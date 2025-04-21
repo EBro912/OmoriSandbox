@@ -1,0 +1,41 @@
+[remap]
+
+importer="font_data_dynamic"
+type="FontFile"
+uid="uid://bdh481cgsv8wf"
+path="res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67be9.fontdata"
+
+[deps]
+
+source_file="res://fonts/OMORI_GAME2.ttf"
+dest_files=["res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67be9.fontdata"]
+
+[params]
+
+Rendering=null
+antialiasing=1
+generate_mipmaps=false
+disable_embedded_bitmaps=false
+multichannel_signed_distance_field=true
+msdf_pixel_range=8
+msdf_size=48
+allow_system_fallback=false
+force_autohinter=false
+hinting=2
+subpixel_positioning=0
+keep_rounding_remainders=true
+oversampling=0.0
+Fallbacks=null
+fallbacks=[]
+Compress=null
+compress=true
+preload=[{
+"chars": [],
+"glyphs": [],
+"name": "New Configuration",
+"size": Vector2i(16, 0),
+&"variation_embolden": 0.0
+}]
+language_support={}
+script_support={}
+opentype_features={}

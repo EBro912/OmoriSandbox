@@ -1,0 +1,112 @@
+[gd_scene load_steps=11 format=3 uid="uid://d32syyvyr6iwr"]
+
+[ext_resource type="Texture2D" uid="uid://lpw3v82vc2q2" path="res://assets/system/target_selected.png" id="1_3r6nr"]
+[ext_resource type="Texture2D" uid="uid://bbkip17brhcgq" path="res://assets/system/player_box.png" id="1_irugt"]
+[ext_resource type="Texture2D" uid="uid://de6mtfata36wd" path="res://assets/system/statelist.png" id="2_8dd6e"]
+[ext_resource type="Texture2D" uid="uid://dwhsh5d4ev7wc" path="res://assets/system/faceset_states.png" id="3_3r6nr"]
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="5_8dd6e"]
+[ext_resource type="Texture2D" uid="uid://cymoa4gm8efxq" path="res://assets/system/bar_health.png" id="5_ms8ku"]
+[ext_resource type="PackedScene" uid="uid://bq6cqi4jmrqwe" path="res://scenes/StateAnimatorComponent.tscn" id="5_xyj2y"]
+[ext_resource type="Texture2D" uid="uid://cbd3wj3fojil6" path="res://assets/system/bar_juice.png" id="6_xyj2y"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_irugt"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_3r6nr"]
+font = ExtResource("5_8dd6e")
+outline_size = 3
+outline_color = Color(0, 0, 0, 0.419608)
+shadow_size = 0
+shadow_color = Color(0.352941, 0.352941, 0.352941, 0.654902)
+shadow_offset = Vector2(0, 0)
+
+[node name="PartyMember" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -240.0
+offset_right = -320.0
+offset_bottom = -240.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SelectedCard" type="TextureRect" parent="."]
+visible = false
+z_index = 1
+layout_mode = 0
+offset_left = -12.0
+offset_top = -3.0
+offset_right = 126.0
+offset_bottom = 175.0
+texture = ExtResource("1_3r6nr")
+
+[node name="Battlecard" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_right = 114.0
+offset_bottom = 164.0
+grow_vertical = 0
+texture = ExtResource("1_irugt")
+stretch_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="State" type="Sprite2D" parent="Battlecard"]
+position = Vector2(57, 13)
+texture = ExtResource("2_8dd6e")
+region_enabled = true
+region_rect = Rect2(17, 0, 98, 22)
+
+[node name="FaceState" type="Sprite2D" parent="Battlecard"]
+z_index = -5
+position = Vector2(57, 67)
+texture = ExtResource("3_3r6nr")
+region_enabled = true
+region_rect = Rect2(0, 0, 100, 100)
+
+[node name="Face" type="AnimatedSprite2D" parent="Battlecard"]
+z_index = -2
+position = Vector2(57, 69)
+sprite_frames = SubResource("SpriteFrames_irugt")
+
+[node name="Health" type="TextureProgressBar" parent="Battlecard"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 127.0
+offset_right = 109.0
+offset_bottom = 139.0
+value = 100.0
+texture_progress = ExtResource("5_ms8ku")
+
+[node name="Juice" type="TextureProgressBar" parent="Battlecard"]
+offset_left = 28.0
+offset_top = 146.0
+offset_right = 109.0
+offset_bottom = 158.0
+value = 100.0
+texture_progress = ExtResource("6_xyj2y")
+
+[node name="HealthLabel" type="Label" parent="Battlecard"]
+offset_left = 32.0
+offset_top = 125.35
+offset_right = 105.0
+offset_bottom = 141.35
+text = "0/0"
+label_settings = SubResource("LabelSettings_3r6nr")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="JuiceLabel" type="Label" parent="Battlecard"]
+offset_left = 32.0
+offset_top = 144.35
+offset_right = 105.0
+offset_bottom = 160.35
+text = "0/0"
+label_settings = SubResource("LabelSettings_3r6nr")
+horizontal_alignment = 2
+
+[node name="StateAnimatorComponent" parent="Battlecard" instance=ExtResource("5_xyj2y")]

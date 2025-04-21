@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq6cqi4jmrqwe"]
+
+[ext_resource type="Script" uid="uid://xdvg665ee1yx" path="res://scripts/StateAnimator.cs" id="1_44tdn"]
+
+[node name="StateAnimatorComponent" type="Node"]
+script = ExtResource("1_44tdn")
