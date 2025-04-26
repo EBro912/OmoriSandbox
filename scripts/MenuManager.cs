@@ -53,6 +53,7 @@ public partial class MenuManager : Node
 		{
 			if (CurrentMenu == "PartyCommand")
 			{
+				AudioManager.Instance.PlaySFX("Move");
 				if (CurrentSelection == "Fight")
 					MoveCursorTo("Run");
 				else
@@ -61,6 +62,7 @@ public partial class MenuManager : Node
 			}
 			if (CurrentMenu == "BattleCommand")
 			{
+				AudioManager.Instance.PlaySFX("Move");
 				if (CurrentSelection == "Attack")
 				{
 					MoveCursorTo("Snack");
@@ -88,6 +90,7 @@ public partial class MenuManager : Node
 		{
 			if (CurrentMenu == "BattleCommand")
 			{
+				AudioManager.Instance.PlaySFX("Move");
 				if (CurrentSelection == "Attack")
 				{
 					MoveCursorTo("Skill");

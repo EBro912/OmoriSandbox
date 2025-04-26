@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dnxcj20hgcsj8"]
+[gd_scene load_steps=12 format=3 uid="uid://dnxcj20hgcsj8"]
 
 [ext_resource type="Texture2D" uid="uid://d36ge2cnq6lkj" path="res://assets/battlebacks/battleback_vf_default.png" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="4_tipki"]
@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://btcashshvc4nv" path="res://audio/battle_vf.ogg" id="9_choun"]
 [ext_resource type="Script" uid="uid://d18gd83t4is60" path="res://scripts/MenuManager.cs" id="9_ya4ey"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="10_choun"]
+[ext_resource type="Script" uid="uid://ckd81otw7er8y" path="res://scripts/AudioManager.cs" id="11_ya4ey"]
 [ext_resource type="Script" uid="uid://bcfwwj4klv2cq" path="res://scripts/GameManager.cs" id="14_a8y0u"]
 
 [node name="Main" type="Node2D"]
@@ -112,3 +113,16 @@ stream = ExtResource("9_choun")
 volume_db = -5.0
 autoplay = true
 parameters/looping = true
+
+[node name="AudioManager" type="Node" parent="."]
+script = ExtResource("11_ya4ey")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="AudioManager"]
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="AudioManager"]
+
+[node name="AudioStreamPlayer3" type="AudioStreamPlayer" parent="AudioManager"]
+
+[node name="AudioStreamPlayer4" type="AudioStreamPlayer" parent="AudioManager"]
+
+[node name="AudioStreamPlayer5" type="AudioStreamPlayer" parent="AudioManager"]

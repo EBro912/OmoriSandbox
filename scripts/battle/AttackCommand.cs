@@ -2,13 +2,7 @@ using System;
 
 public class AttackCommand : BattleCommand
 {
-    public Actor Target;
-
-    public AttackCommand(Actor actor, Actor target) : base(actor)
-    {
-        Target = target;
-    }
-
+    public AttackCommand(Actor actor, Actor target) : base(actor, target) { }
 
     public override void Run()
     {
@@ -19,5 +13,6 @@ public class AttackCommand : BattleCommand
         Target.Damage(finalDamage);
         GameManager.Instance.ClearAndMessageBattleLog(Actor.Name.ToUpper() + " attacks " + Target.Name.ToUpper() + "!");
         GameManager.Instance.MessageBattleLog(Target.Name.ToUpper() + " takes " + finalDamage + " damage!");
+        Target.SetHurt(true);
     }
 }

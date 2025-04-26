@@ -2,8 +2,6 @@ using Godot;
 
 public abstract class Enemy : Actor
 {
-    public AnimatedSprite2D Sprite;
-
     public void Init(AnimatedSprite2D sprite, string initialState)
     {
         SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
@@ -22,7 +20,7 @@ public abstract class Enemy : Actor
         CurrentHP = BaseStats.HP;
         CurrentJuice = BaseStats.Juice;
     }
-    
+
     protected abstract Stats Stats { get; }
     public abstract string AnimationPath { get; }
     public abstract bool IsStateValid(string state);

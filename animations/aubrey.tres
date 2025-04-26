@@ -148,7 +148,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"afraid",
-"speed": 4.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -162,7 +162,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"angry",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -176,7 +176,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"depressed",
-"speed": 4.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -190,7 +190,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"ecstatic",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -204,7 +204,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"enraged",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -218,7 +218,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"happy",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -232,7 +232,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"hurt",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -246,7 +246,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"neutral",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -260,7 +260,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"sad",
-"speed": 4.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -274,7 +274,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"toast",
-"speed": 5.0
+"speed": 4.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -288,5 +288,5 @@ animations = [{
 }],
 "loop": true,
 "name": &"victory",
-"speed": 5.0
+"speed": 4.5
 }]

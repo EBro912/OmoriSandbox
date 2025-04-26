@@ -1,7 +1,7 @@
 public class DoNothingCommand : BattleCommand
 {
     private string Message;
-    public DoNothingCommand(Actor actor, string message) : base(actor)
+    public DoNothingCommand(Actor actor, string message) : base(actor, null)
     {
         Message = message;
     }

@@ -1,9 +1,12 @@
+using Godot;
 using System;
 
 public abstract class Actor
 {
     public abstract string Name { get; }
+    public AnimatedSprite2D Sprite;
     public string CurrentState;
+    public bool IsHurt = false;
     public int Level = 1;
     /// <summary>
     /// The Actor's base stats without any modifiers.
@@ -76,6 +79,18 @@ public abstract class Actor
         CurrentHP -= damage;
         if (CurrentHP < 0)
             CurrentHP = 0;
+    }
+
+    public void SetState(string state)
+    {
+        Sprite.Animation = state;
+        CurrentState = state;
+    }
+
+    public void SetHurt(bool hurt)
+    {
+        Sprite.Animation = hurt ? "hurt" : CurrentState;
+        IsHurt = hurt;
     }
 
 }

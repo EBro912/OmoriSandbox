@@ -19,7 +19,7 @@ public partial class GameManager : Node
 
 	public BattleManager BattleManager { get; private set; }
 
-	public static GameManager Instance;
+	public static GameManager Instance { get; private set; }
 
 	public override void _Ready()
 	{

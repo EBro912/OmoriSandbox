@@ -2,8 +2,6 @@ using Godot;
 
 public abstract class PartyMember : Actor
 {
-    public AnimatedSprite2D Face;
-
     public void Init(AnimatedSprite2D face, string initialState, int level)
     {
         SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
@@ -13,10 +11,10 @@ public abstract class PartyMember : Actor
             return;
         }
         // init animation
-        Face = face;
-        Face.SpriteFrames = animation;
-        Face.Animation = initialState;
-        Face.Play();
+        Sprite = face;
+        Sprite.SpriteFrames = animation;
+        Sprite.Animation = initialState;
+        Sprite.Play();
         CurrentState = initialState;
 
         // init stats
@@ -25,12 +23,6 @@ public abstract class PartyMember : Actor
         AdjustedStats += Weapon;
         CurrentHP = CurrentStats.HP;
         CurrentJuice = CurrentStats.Juice;
-    }
-
-    public void SetState(string state)
-    {
-        Face.Animation = state;
-        CurrentState = state;
     }
 
     public abstract string AnimationPath { get; }

@@ -37,14 +37,25 @@ public partial class BattleManager : Node
 			switch (Phase)
 			{
 				case BattlePhase.FightRun:
-					CurrentPartyMember++;
-					SetPhase(BattlePhase.PlayerCommand);
+					if (MenuManager.Instance.CursorSelection == "Run")
+					{
+						AudioManager.Instance.PlaySFX("Buzzer");
+						return;
+					}
+					else
+					{
+						AudioManager.Instance.PlaySFX("Select");
+						CurrentPartyMember++;
+						SetPhase(BattlePhase.PlayerCommand);
+					}
 					break;
 				case BattlePhase.PlayerCommand:
+					AudioManager.Instance.PlaySFX("Select");
 					CurrentEnemy++;
 					SetPhase(BattlePhase.TargetSelection);
 					break;
 				case BattlePhase.TargetSelection:
+					AudioManager.Instance.PlaySFX("Select");
 					Commands.Add(new AttackCommand(CurrentParty[CurrentPartyMember].Actor, Enemies[CurrentEnemy].Actor));
 					CurrentParty[CurrentPartyMember].SelectionBoxVisible = false;
 					Enemies[CurrentEnemy].ShowInfoBox(false);
@@ -66,6 +77,7 @@ public partial class BattleManager : Node
 			switch (Phase)
 			{
 				case BattlePhase.PlayerCommand:
+					AudioManager.Instance.PlaySFX("Cancel");
 					if (CurrentPartyMember == 0)
 						SetPhase(BattlePhase.FightRun);
 					else
@@ -77,6 +89,7 @@ public partial class BattleManager : Node
 					}
 					break;
 				case BattlePhase.TargetSelection:
+					AudioManager.Instance.PlaySFX("Cancel");
 					Enemies[CurrentEnemy].ShowInfoBox(false);
 					CurrentEnemy = -1;
 					SetPhase(BattlePhase.PlayerCommand);
@@ -136,6 +149,13 @@ public partial class BattleManager : Node
 					SetPhase(BattlePhase.CommandExecute);
 				break;
 			case BattlePhase.PostCommand:
+				if (Commands[CommandIndex].Target != null)
+				{
+					if (Commands[CommandIndex].Target.IsHurt)
+					{
+                        Commands[CommandIndex].Target.SetHurt(false);
+					}
+				}
 				CommandIndex++;
 				SetPhase(BattlePhase.PreCommand);
 				break;
