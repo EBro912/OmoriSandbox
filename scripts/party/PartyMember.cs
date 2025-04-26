@@ -21,14 +21,10 @@ public abstract class PartyMember : Actor
 
         // init stats
         int idx = level - 1;
-        HP = HPTree[idx];
-        MaxHP = HPTree[idx];
-        Juice = JuiceTree[idx];
-        MaxJuice = JuiceTree[idx];
-        ATK = ATKTree[idx];
-        DEF = DEFTree[idx];
-        SPD = SPDTree[idx];
-        LCK = BaseLuck;
+        BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0);
+        AdjustedStats += Weapon;
+        CurrentHP = CurrentStats.HP;
+        CurrentJuice = CurrentStats.Juice;
     }
 
     public void SetState(string state)
@@ -44,6 +40,10 @@ public abstract class PartyMember : Actor
     public abstract int[] DEFTree { get; }
     public abstract int[] SPDTree { get; }
     public abstract int BaseLuck { get; }
+    // TODO: add weapon effects
+    public abstract Stats Weapon { get; }
     public abstract bool IsStateValid(string state);
 
 }
+
+

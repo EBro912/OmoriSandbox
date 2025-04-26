@@ -17,15 +17,15 @@ public partial class EnemyComponent : Node
         AboveHead = GetNode<Control>("../AboveHead");
         NameLabel = GetNode<Label>("../AboveHead/Infobox/Name");
         HPBar = GetNode<TextureProgressBar>("../AboveHead/Infobox/Health");
-        HPBar.MaxValue = Enemy.MaxHP;
-        HPBar.Value = Enemy.HP;
+        HPBar.MaxValue = Enemy.BaseStats.HP;
+        HPBar.Value = Enemy.CurrentHP;
         NameLabel.Text = Enemy.Name;
         AboveHead.Visible = false;
     }
 
     public override void _Process(double delta)
     {
-        HPBar.Value = Enemy.HP;
+        HPBar.Value = Enemy.CurrentHP;
     }
 
     public void ShowInfoBox(bool show)

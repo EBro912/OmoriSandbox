@@ -25,10 +25,10 @@ public partial class PartyMemberComponent : Node
 		JuiceBar = GetNode<TextureProgressBar>("../Battlecard/Juice");
 		SelectedBox = GetNode<TextureRect>("../SelectedCard");
 
-		HPBar.MaxValue = PartyMember.MaxHP;
-		HPBar.Value = PartyMember.HP;
-		JuiceBar.MaxValue = PartyMember.MaxJuice;
-		JuiceBar.Value = PartyMember.Juice;
+		HPBar.MaxValue = PartyMember.BaseStats.HP;
+		HPBar.Value = PartyMember.CurrentHP;
+		JuiceBar.MaxValue = PartyMember.BaseStats.Juice;
+		JuiceBar.Value = PartyMember.CurrentJuice;
 
 		UpdateHealth();
 		UpdateJuice();
@@ -36,14 +36,14 @@ public partial class PartyMemberComponent : Node
 
 	public void UpdateHealth()
 	{
-		HPBar.Value = PartyMember.HP;
-		HPLabel.Text = PartyMember.HP + "/" + PartyMember.MaxHP;
+		HPBar.Value = PartyMember.CurrentHP;
+		HPLabel.Text = PartyMember.CurrentHP + "/" + PartyMember.BaseStats.HP;
 	}
 
 	public void UpdateJuice()
 	{
-		JuiceBar.Value = PartyMember.Juice;
-		JuiceLabel.Text = PartyMember.Juice + "/" + PartyMember.MaxJuice;
+		JuiceBar.Value = PartyMember.CurrentJuice;
+		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + PartyMember.BaseStats.Juice;
 	}
 
 	public bool SelectionBoxVisible

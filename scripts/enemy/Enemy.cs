@@ -18,21 +18,13 @@ public abstract class Enemy : Actor
         Sprite.Animation = initialState;
         Sprite.Play();
         CurrentState = initialState;
-
-        // init stats
-        HP = Stats.HP;
-        MaxHP = Stats.HP;
-        Juice = Stats.Juice;
-        MaxJuice = Stats.Juice;
-        ATK = Stats.ATK;
-        DEF = Stats.DEF;
-        SPD = Stats.SPD;
-        LCK = Stats.LCK;
-        HIT = 100;
+        BaseStats = Stats;
+        CurrentHP = BaseStats.HP;
+        CurrentJuice = BaseStats.Juice;
     }
-
+    
+    protected abstract Stats Stats { get; }
     public abstract string AnimationPath { get; }
-    public abstract EnemyStats Stats { get; }
     public abstract bool IsStateValid(string state);
     public abstract void ProcessAI();
 }

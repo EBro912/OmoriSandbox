@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public partial class GameManager : Node
@@ -9,8 +10,8 @@ public partial class GameManager : Node
 
 	[Export] public Label[] BattleLog;
 
-	private readonly Dictionary<string, PartyMember> ValidPartyMembers = [];
-	private readonly Dictionary<string, Enemy> ValidEnemies = [];
+	private readonly Dictionary<string, Type> ValidPartyMembers = [];
+	private readonly Dictionary<string, Type> ValidEnemies = [];
 
 	private string[] states = ["neutral", "victory", "toast", "happy", "ecstatic", "manic", "sad", "depressed", "miserable", "angry", "enraged", "furious", "afraid", "stressed"];
 
@@ -22,12 +23,12 @@ public partial class GameManager : Node
 
 	public override void _Ready()
 	{
-		ValidPartyMembers.Add("Omori", new Omori());
-		ValidPartyMembers.Add("Aubrey", new Aubrey());
-		ValidPartyMembers.Add("Hero", new Hero());
-		ValidPartyMembers.Add("Kel", new Kel());
+		ValidPartyMembers.Add("Omori", typeof(Omori));
+		ValidPartyMembers.Add("Aubrey", typeof(Aubrey));
+		ValidPartyMembers.Add("Hero", typeof(Hero));
+		ValidPartyMembers.Add("Kel", typeof(Kel));
 
-		ValidEnemies.Add("LostSproutMole", new LostSproutMole());
+		ValidEnemies.Add("LostSproutMole", typeof(LostSproutMole));
 
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
@@ -80,33 +81,35 @@ public partial class GameManager : Node
 
 	private EnemyComponent SpawnEnemy(string who, Vector2 position)
 	{
-		if (!ValidEnemies.TryGetValue(who, out Enemy enemy))
+		if (!ValidEnemies.TryGetValue(who, out Type enemy))
 		{
 			GD.PrintErr("Unknown enemy: " + who);
 			return null;
 		}
 
+		object handle = Activator.CreateInstance(enemy);
 		Node2D node = EnemyUI.Instantiate<Node2D>();
 		UIParent.AddChild(node);
 		EnemyComponent component = new();
 		node.AddChild(component);
-		component.SetEnemy(enemy);
+		component.SetEnemy((Enemy)handle);
 		node.Position = position;
 		return component;
 	}
 
 	private PartyMemberComponent SpawnPartyMember(string who, int position, int level = 1)
 	{
-		if (!ValidPartyMembers.TryGetValue(who, out PartyMember member))
+		if (!ValidPartyMembers.TryGetValue(who, out Type member))
 		{
 			GD.PrintErr("Unknown party member: " + who);
 			return null;
 		}
+		object handle = Activator.CreateInstance(member);
 		Control card = BattlecardUI.Instantiate<Control>();
 		UIParent.AddChild(card);
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember(member, level: level);
+		component.SetPartyMember((PartyMember)handle, level: level);
 		switch (position)
 		{
 			case 1:

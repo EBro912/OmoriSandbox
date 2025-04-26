@@ -10,6 +10,8 @@ public class Kel : PartyMember
     public override int[] SPDTree => new[] { 5, 6, 9, 12, 15, 17, 19, 20, 22, 25, 28, 30, 33, 36, 37, 40, 43, 44, 46, 49, 51, 53, 55, 58, 60, 62, 64, 66, 69, 70, 73, 75, 78, 79, 81, 84, 87, 90, 93, 96, 99, 102, 105, 108, 114, 114, 117, 120, 125, 130 };
     public override int BaseLuck => 7;
 
+    public override Stats Weapon => new(atk: 3, hit: 100);
+
     public override bool IsStateValid(string state)
     {
         return state != "miserable" &&
