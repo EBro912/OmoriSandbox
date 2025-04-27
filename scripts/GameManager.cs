@@ -33,10 +33,10 @@ public partial class GameManager : Node
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
-		party.Add(SpawnPartyMember("Omori", 1));
-		party.Add(SpawnPartyMember("Aubrey", 2));
-		party.Add(SpawnPartyMember("Hero", 3));
-		party.Add(SpawnPartyMember("Kel", 4));
+		party.Add(SpawnPartyMember("Omori", 1, 3));
+		party.Add(SpawnPartyMember("Aubrey", 2, 3));
+		party.Add(SpawnPartyMember("Hero", 3, 3));
+		party.Add(SpawnPartyMember("Kel", 4, 3));
 
 		enemy.Add(SpawnEnemy("LostSproutMole", new Vector2(233, 240)));
 		enemy.Add(SpawnEnemy("LostSproutMole", new Vector2(407, 240)));

@@ -1,12 +1,10 @@
 public class DoNothingCommand : BattleCommand
 {
-    private string Message;
-    public DoNothingCommand(Actor actor, string message) : base(actor, null)
+    public DoNothingCommand(Actor actor, string message = "") : base(actor, null, message) { }
+
+    public override CommandResult Run()
     {
-        Message = message;
-    }
-    public override void Run()
-    {
-        GameManager.Instance.ClearAndMessageBattleLog(Message);
+        GameManager.Instance.ClearAndMessageBattleLog(ParseMessage(Message));
+        return new CommandResult(false);
     }
 }

@@ -24,5 +24,5 @@ public abstract class Enemy : Actor
     protected abstract Stats Stats { get; }
     public abstract string AnimationPath { get; }
     public abstract bool IsStateValid(string state);
-    public abstract void ProcessAI();
+    public abstract BattleCommand ProcessAI();
 }

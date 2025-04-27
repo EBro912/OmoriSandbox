@@ -56,13 +56,14 @@ public partial class BattleManager : Node
 					break;
 				case BattlePhase.TargetSelection:
 					AudioManager.Instance.PlaySFX("Select");
-					Commands.Add(new AttackCommand(CurrentParty[CurrentPartyMember].Actor, Enemies[CurrentEnemy].Actor));
+					Commands.Add(new AttackCommand(CurrentParty[CurrentPartyMember].Actor, Enemies[CurrentEnemy].Actor, "[actor] attacks [target]!"));
 					CurrentParty[CurrentPartyMember].SelectionBoxVisible = false;
 					Enemies[CurrentEnemy].ShowInfoBox(false);
 					CurrentEnemy = -1;
 					CurrentPartyMember++;
 					if (CurrentPartyMember >= CurrentParty.Count)
 					{
+						GameManager.Instance.ClearBattleLog();
 						PrepareCommandExecution();
 						SetPhase(BattlePhase.PreCommand);
 					}
@@ -118,6 +119,7 @@ public partial class BattleManager : Node
 		switch (Phase)
 		{
 			case BattlePhase.FightRun:
+				CheckBattleOver();
 				HandleFightRun();
 				break;
 			case BattlePhase.PlayerCommand:
@@ -127,6 +129,7 @@ public partial class BattleManager : Node
 				HandleTargetSelection();
 				break;
 			case BattlePhase.PreCommand:
+				CheckBattleOver();
 				Delay.Start(0.5d);
 				break;
 			case BattlePhase.CommandExecute:
@@ -149,11 +152,21 @@ public partial class BattleManager : Node
 					SetPhase(BattlePhase.CommandExecute);
 				break;
 			case BattlePhase.PostCommand:
-				if (Commands[CommandIndex].Target != null)
+				Actor target = Commands[CommandIndex].Target;
+				if (target != null)
 				{
-					if (Commands[CommandIndex].Target.IsHurt)
+					if (target.IsHurt)
+						Commands[CommandIndex].Target.SetHurt(false);
+					if (Commands[CommandIndex].Target.CurrentHP == 0)
 					{
-                        Commands[CommandIndex].Target.SetHurt(false);
+						if (Commands[CommandIndex].Target is PartyMember)
+							CurrentParty.First(x => x.Actor == target).SetState("toast");
+						else
+						{
+							EnemyComponent enemy = Enemies.First(x => x.Actor == target);
+							enemy.Despawn();
+							Enemies.Remove(enemy);
+						}
 					}
 				}
 				CommandIndex++;
@@ -190,7 +203,7 @@ public partial class BattleManager : Node
 		// TODO: enemy ai
 		foreach (EnemyComponent enemy in Enemies)
 		{
-			Commands.Add(new DoNothingCommand(enemy.Actor, "LOST SPROUT MOLE is rolling around."));
+			Commands.Add(enemy.Actor.ProcessAI());
 		}
 
 		Commands = Commands.OrderByDescending(x => x.GoesFirst)
@@ -236,11 +249,36 @@ public partial class BattleManager : Node
 	private void HandleCommandExecute()
 	{
 		GD.Print("Processing " + Commands[CommandIndex].GetType());
-		Commands[CommandIndex].Run();
+		CommandResult result = Commands[CommandIndex].Run();
+		if (result.Hit)
+		{
+			Commands[CommandIndex].Target.SetHurt(true);
+		}
 		SetPhase(BattlePhase.PostCommand);
 	}
 
-	// TODO: handle battle over
+	private void CheckBattleOver()
+	{
+		if (Enemies.Count == 0)
+		{
+			SetPhase(BattlePhase.BattleOver);
+			CurrentParty.ForEach(x => x.SetState("victory"));
+			AudioManager.Instance.PlayBGM("Victory");
+			GameManager.Instance.ClearAndMessageBattleLog(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
+		}
+	}
+
+	public PartyMember GetRandomAlivePartyMember()
+	{
+		IEnumerable<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0);
+		return alive.ElementAt(GameManager.Instance.Random.RandiRange(0, alive.Count() - 1)).Actor;
+	}
+
+	public Enemy GetRandomAliveEnemy()
+	{
+		IEnumerable<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0);
+		return alive.ElementAt(GameManager.Instance.Random.RandiRange(0, alive.Count() - 1)).Actor;
+	}
 }
 
 public enum BattlePhase

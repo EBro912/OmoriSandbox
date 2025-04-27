@@ -32,4 +32,9 @@ public partial class EnemyComponent : Node
     {
         AboveHead.Visible = show;
     }
+
+    public void Despawn()
+    {
+        GetParent().QueueFree();
+    }
 }

@@ -29,19 +29,12 @@ public partial class PartyMemberComponent : Node
 		HPBar.Value = PartyMember.CurrentHP;
 		JuiceBar.MaxValue = PartyMember.BaseStats.Juice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
-
-		UpdateHealth();
-		UpdateJuice();
 	}
 
-	public void UpdateHealth()
+	public override void _Process(double delta)
 	{
 		HPBar.Value = PartyMember.CurrentHP;
 		HPLabel.Text = PartyMember.CurrentHP + "/" + PartyMember.BaseStats.HP;
-	}
-
-	public void UpdateJuice()
-	{
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + PartyMember.BaseStats.Juice;
 	}
