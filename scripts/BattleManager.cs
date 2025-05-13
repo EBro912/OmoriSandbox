@@ -286,22 +286,25 @@ public partial class BattleManager : Node
 				}
 				break;
 			case BattlePhase.PostCommand:
-				Actor target = Commands[CommandIndex].Target;
-				if (target != null)
+				CurrentParty.ForEach(x =>
 				{
-					CurrentParty.ForEach(x => x.Actor.SetHurt(false));
-					Enemies.ForEach(x => x.Actor.SetHurt(false));
-					if (Commands[CommandIndex].Target.CurrentHP == 0)
+					x.Actor.SetHurt(false);
+					if (x.Actor.CurrentHP == 0 && x.Actor.CurrentState != "toast")
 					{
-						if (Commands[CommandIndex].Target is PartyMember)
-							CurrentParty.First(x => x.Actor == target).Actor.SetState("toast");
-						else
-						{
-							EnemyComponent enemy = Enemies.First(x => x.Actor == target);
-							enemy.Despawn();
-							Enemies.Remove(enemy);
-							Commands.RemoveAll(x => x.Actor == target);
-						}
+						x.Actor.SetState("toast");
+						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
+						Commands.RemoveAll(y => y.Actor == x.Actor);
+					}
+				});
+				// TODO: enemy death animation
+				foreach (EnemyComponent enemy in Enemies.ToList())
+				{
+					enemy.Actor.SetHurt(false);
+					if (enemy.Actor.CurrentHP == 0)
+					{
+						enemy.Despawn();
+						Enemies.Remove(enemy);
+						Commands.RemoveAll(y => y.Actor == enemy.Actor);
 					}
 				}
 				CommandIndex++;
@@ -467,7 +470,7 @@ public partial class BattleManager : Node
 		float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
 		bool critical = self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf();
 		float finalDamage = baseDamage * variance;
-		finalDamage = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, finalDamage);
+		finalDamage = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, finalDamage, out int effectiveness);
 		if (critical)
 		{
 			finalDamage = (finalDamage * 1.5f) + 2;
@@ -501,6 +504,10 @@ public partial class BattleManager : Node
 		else
 			target.CurrentJuice -= juiceLost;
 		target.Damage(rounded);
+		if (!critical && effectiveness == 0 && target is Enemy)
+		{
+			AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
+		}
 		GameManager.Instance.MessageBattleLog(self, target, "[target] takes " + rounded + " damage!");
 		if (juiceLost > 0)
 		{
@@ -518,12 +525,15 @@ public partial class BattleManager : Node
 	private readonly float[] weakness = [1.5f, 2f, 2.5f];
 	private readonly float[] resistance = [0.8f, 0.65f, 0.5f];
 
-	private float CalculateEmotionModifiers(string self, string target, float damage)
+	private float CalculateEmotionModifiers(string self, string target, float damage, out int effect)
 	{
 		int selfIndex = GetEffectivenessIndex(self);
 		int targetIndex = GetEffectivenessIndex(target);
+		effect = 0;
 		if (selfIndex == -1 || targetIndex == -1)
+		{
 			return damage;
+		}
 		int targetTier = GetEmotionTier(target);
 		int effectiveness = EffectivenessMatrix[targetIndex, selfIndex];
 		float multiplier = 1.0f;
@@ -532,13 +542,16 @@ public partial class BattleManager : Node
 		{
 			GameManager.Instance.MessageBattleLog("...It was a moving attack!");
 			multiplier = weakness[targetTier];
+			AudioManager.Instance.PlaySFX("se_impact_double");
 		}
 		else if (effectiveness < 0)
 		{
 			GameManager.Instance.MessageBattleLog("...It was a dull attack.");
 			multiplier = resistance[targetTier];
+			AudioManager.Instance.PlaySFX("se_impact_soft");
 		}
 
+		effect = effectiveness;
 		return damage * multiplier;
 	}
 

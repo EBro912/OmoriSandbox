@@ -16,11 +16,8 @@ public partial class AnimationManager : Node2D
 	private Dictionary<string, RPGMAnimatedSprite> Animations = [];
 
 	private const float FPS = 15f;
-	private const float ShakeFPS = 60f;
 	private float FrameDuration = 1f / FPS;
-	private float ShakeFrameDuration = 1f / ShakeFPS;
 	private float FrameTimer = 0f;
-	private float ShakeFrameTimer = 0f;
 	private int CurrentFrame = 0;
 	private RPGMAnimatedSprite CurrentAnimation;
 	private Vector2 DrawPosition = Vector2.Zero;
@@ -65,16 +62,6 @@ public partial class AnimationManager : Node2D
 
 	public override void _Process(double delta)
 	{
-		if (ShakeDuration > 0 || Shake != 0f)
-		{
-			ShakeFrameTimer += (float)delta;
-			if (ShakeFrameTimer >= ShakeFrameDuration)
-			{
-				ShakeFrameTimer -= ShakeFrameDuration;
-				UpdateShake();
-			}
-		}
-
 		if (!IsPlaying || CurrentAnimation == null)
 			return;
 
@@ -86,6 +73,19 @@ public partial class AnimationManager : Node2D
 			NextFrame();
 			QueueRedraw();
 		}
+	}
+
+	public override void _PhysicsProcess(double delta)
+	{
+		// physics process runs at 60 fps, just like screen shake
+		if (ShakeDuration > 0 || Shake != 0f)
+		{
+			UpdateShake();
+		}
+
+		float x = 0f;
+		x += (float)Math.Round(Shake) - 640f;
+		Battleback.Position = new Vector2(x, 0);
 	}
 
 	public override void _Draw()
@@ -141,29 +141,24 @@ public partial class AnimationManager : Node2D
 			ShakeDirection = 1;
 		ShakePwr *= 0.9f;
 		ShakeDuration--;
-		Battleback.Position += new Vector2((float)Math.Round(Shake / 2f), 0f);
-		if (ShakeDuration < 1)
-			ResetShake();
 	}
 
 	private void InitShake(Shake shake)
 	{
-		Battleback.Position = Vector2.Zero;
+		Battleback.Position = new Vector2(-640, 0);
 		Shake = 0f;
 		ShakePwr = shake.Power;
 		ShakeSpd = shake.Speed;
 		ShakeDuration = shake.Duration;
-		ShakeFrameTimer = 0f;
 	}
 
 	private void ResetShake()
 	{
-		Battleback.Position = Vector2.Zero;
+		Battleback.Position = new Vector2(-640, 0);
 		Shake = 0f;
 		ShakePwr = 0f;
 		ShakeSpd = 0f;
 		ShakeDuration = 0;
-		ShakeFrameTimer = 0f;
 	}
 
 	public void PlayAnimation(string name, Actor target = null)

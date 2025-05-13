@@ -82,8 +82,6 @@ public abstract class Actor
         CurrentHP -= damage;
         if (CurrentHP < 0)
             CurrentHP = 0;
-        if (this is Enemy)
-            AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
         SetHurt(true);
     }
 
