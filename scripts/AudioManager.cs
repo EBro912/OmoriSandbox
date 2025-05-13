@@ -19,22 +19,31 @@ public partial class AudioManager : Node
 			AudioPlayers.Add((AudioStreamPlayer)node);
 		}
 
-		SFXDictionary.Add("Select", GD.Load<AudioStream>("res://audio/SYS_select.ogg"));
-		SFXDictionary.Add("Cancel", GD.Load<AudioStream>("res://audio/sys_cancel.ogg"));
-		SFXDictionary.Add("Buzzer", GD.Load<AudioStream>("res://audio/sys_buzzer.ogg"));
-		SFXDictionary.Add("Move", GD.Load<AudioStream>("res://audio/SYS_move.ogg"));
+		DirAccess sfx = DirAccess.Open("res://audio/sfx");
+		foreach (string f in sfx.GetFiles())
+		{
+			if (f.Contains(".import")) continue;
+			string name = f.Split('.')[0];
+			SFXDictionary.Add(name, GD.Load<AudioStream>("res://audio/sfx/" + f));
+		}
+		GD.Print("Loaded " + SFXDictionary.Count + " SFX.");
 
-		BGMDictionary.Add("BattleVF", GD.Load<AudioStream>("res://audio/battle_vf.ogg"));
-		BGMDictionary.Add("Invitation", GD.Load<AudioStream>("res://audio/invitation.ogg"));
-		BGMDictionary.Add("BossSlimeGirls", GD.Load<AudioStream>("res://audio/boss_slimegirls.ogg"));
-		BGMDictionary.Add("Victory", GD.Load<AudioStream>("res://audio/xx_victory.ogg"));
-
+		DirAccess bgm = DirAccess.Open("res://audio/bgm");
+		foreach (string f in bgm.GetFiles())
+		{
+			if (f.Contains(".import")) continue;
+			string name = f.Split('.')[0];
+			BGMDictionary.Add(name, GD.Load<AudioStream>("res://audio/bgm/" + f));
+		}
+		GD.Print("Loaded " + BGMDictionary.Count + " BGM.");
+		
 		Instance = this;
 
-		PlayBGM("Invitation");
+		PlayBGM("invitation");
+		BGM.Finished += OnBGMFinish;
 	}
 
-	public void PlaySFX(string name)
+	public void PlaySFX(string name, float pitch = 1f)
 	{
 		if (!SFXDictionary.TryGetValue(name, out AudioStream stream)) {
 			GD.PrintErr("Unknown SFX: " + name);
@@ -46,6 +55,8 @@ public partial class AudioManager : Node
 			if (player.Playing)
 				continue;
 			player.Stream = stream;
+			player.PitchScale = pitch;
+			// TODO: Volume
 			player.Play();
 			break;
 		}
@@ -60,6 +71,11 @@ public partial class AudioManager : Node
 		}
 
 		BGM.Stream = stream;
+		BGM.Play();
+	}
+
+	private void OnBGMFinish()
+	{
 		BGM.Play();
 	}
 }

@@ -10,6 +10,8 @@
 [sub_resource type="SpriteFrames" id="SpriteFrames_xwavj"]
 
 [node name="enemy" type="Node2D"]
+z_index = -5
+z_as_relative = false
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_xwavj")

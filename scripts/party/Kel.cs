@@ -12,6 +12,8 @@ public class Kel : PartyMember
 
     public override Stats Weapon => new(atk: 3, hit: 100);
 
+    protected override string[] EquippedSkills => ["KAttack", "Annoy", "Rebound"];
+
     public override bool IsStateValid(string state)
     {
         return state != "miserable" &&

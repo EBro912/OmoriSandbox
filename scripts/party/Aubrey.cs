@@ -12,6 +12,8 @@ public class Aubrey : PartyMember
 
     public override Stats Weapon => new(atk: 4, hit: 100);
 
+    protected override string[] EquippedSkills => ["AAttack", "PepTalk", "Headbutt"];
+
     public override bool IsStateValid(string state)
     {
         return state != "miserable" &&

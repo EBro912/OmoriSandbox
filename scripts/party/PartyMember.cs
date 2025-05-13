@@ -23,6 +23,16 @@ public abstract class PartyMember : Actor
         AdjustedStats += Weapon;
         CurrentHP = CurrentStats.HP;
         CurrentJuice = CurrentStats.Juice;
+
+        foreach (string s in EquippedSkills)
+        {
+            if (SkillDatabase.TryGetSkill(s, out var skill))
+            {
+                Skills.Add(s, skill);
+                continue;
+            }
+            GD.PrintErr("Unknown skill: " + s);
+        }
     }
 
     public abstract string AnimationPath { get; }
@@ -33,9 +43,8 @@ public abstract class PartyMember : Actor
     public abstract int[] SPDTree { get; }
     public abstract int BaseLuck { get; }
     // TODO: add weapon effects
+    protected abstract string[] EquippedSkills { get; }
     public abstract Stats Weapon { get; }
-    public abstract bool IsStateValid(string state);
-
 }
 
 

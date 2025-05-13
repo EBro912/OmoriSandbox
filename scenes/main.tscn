@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dnxcj20hgcsj8"]
+[gd_scene load_steps=12 format=3 uid="uid://dnxcj20hgcsj8"]
 
 [ext_resource type="Texture2D" uid="uid://d36ge2cnq6lkj" path="res://assets/battlebacks/battleback_vf_default.png" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="4_tipki"]
@@ -8,12 +8,48 @@
 [ext_resource type="Texture2D" uid="uid://b75xtstrsgcbh" path="res://assets/system/bsys_battlelog.png" id="9_85g3d"]
 [ext_resource type="Script" uid="uid://d18gd83t4is60" path="res://scripts/MenuManager.cs" id="9_ya4ey"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="10_choun"]
+[ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="11_eb6dy"]
 [ext_resource type="Script" uid="uid://ckd81otw7er8y" path="res://scripts/AudioManager.cs" id="11_ya4ey"]
 [ext_resource type="Script" uid="uid://bcfwwj4klv2cq" path="res://scripts/GameManager.cs" id="14_a8y0u"]
 
 [node name="Main" type="Node2D"]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="GameManager" type="Node" parent="CanvasLayer" node_paths=PackedStringArray("UIParent", "BattlebackParent", "BattleLog", "FPSLabel")]
+script = ExtResource("14_a8y0u")
+BattlecardUI = ExtResource("5_tefeu")
+EnemyUI = ExtResource("8_choun")
+UIParent = NodePath("../UI")
+BattlebackParent = NodePath("../UI/Battleback")
+BattleLog = NodePath("../UI/BattleLog/MarginContainer/Line1")
+FPSLabel = NodePath("../UI/FPS")
+
+[node name="MenuManager" type="Node" parent="CanvasLayer" node_paths=PackedStringArray("PartyCommandsMenu", "BattleCommandsMenu", "SkillMenu", "SkillLabels", "ValueLabel", "Cursor")]
+script = ExtResource("9_ya4ey")
+PartyCommandsMenu = NodePath("../UI/PartyCommands")
+BattleCommandsMenu = NodePath("../UI/BattleCommands")
+SkillMenu = NodePath("../UI/SkillMenu")
+SkillLabels = [NodePath("../UI/SkillMenu/Skill1"), NodePath("../UI/SkillMenu/Skill2"), NodePath("../UI/SkillMenu/Skill3"), NodePath("../UI/SkillMenu/Skill4")]
+ValueLabel = NodePath("../UI/SkillMenu/Cost/Value")
+Cursor = NodePath("../UI/Cursor")
+
+[node name="BGM" type="AudioStreamPlayer" parent="CanvasLayer"]
+volume_db = -10.0
+
+[node name="AudioManager" type="Node" parent="CanvasLayer" node_paths=PackedStringArray("BGM")]
+script = ExtResource("11_ya4ey")
+BGM = NodePath("../BGM")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
+
+[node name="AudioStreamPlayer3" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
+
+[node name="AudioStreamPlayer4" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
+
+[node name="AudioStreamPlayer5" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
 
 [node name="UI" type="Control" parent="CanvasLayer"]
 layout_mode = 3
@@ -25,17 +61,27 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
+[node name="FPS" type="Label" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = -1.0
+offset_right = 41.0
+offset_bottom = 22.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 10
+text = "0"
+
 [node name="Battleback" type="TextureRect" parent="CanvasLayer/UI"]
-z_index = -10
+z_index = -100
+texture_repeat = 3
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_right = 960.0
+offset_bottom = 480.0
 texture = ExtResource("1_o5qli")
+stretch_mode = 1
 
 [node name="BattleLog" type="TextureRect" parent="CanvasLayer/UI"]
+z_index = -1
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -52,29 +98,18 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 11.0
+offset_right = -11.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 15
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 15
-theme_override_constants/margin_bottom = 10
 
 [node name="Line1" type="Label" parent="CanvasLayer/UI/BattleLog/MarginContainer"]
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-
-[node name="Line2" type="Label" parent="CanvasLayer/UI/BattleLog/MarginContainer"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 25
-
-[node name="Line3" type="Label" parent="CanvasLayer/UI/BattleLog/MarginContainer"]
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 25
+max_lines_visible = 3
 
 [node name="PartyCommands" type="Sprite2D" parent="CanvasLayer/UI"]
 z_index = -1
@@ -90,36 +125,87 @@ texture = ExtResource("4_tipki")
 region_enabled = true
 region_rect = Rect2(653, 130, 362, 82)
 
+[node name="SkillMenu" type="TextureRect" parent="CanvasLayer/UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -178.0
+offset_top = -97.0
+offset_right = 178.0
+grow_horizontal = 2
+grow_vertical = 0
+texture = ExtResource("9_85g3d")
+flip_v = true
+
+[node name="Line2D" type="Line2D" parent="CanvasLayer/UI/SkillMenu"]
+position = Vector2(4, 32)
+points = PackedVector2Array(0, 0, 350, 0)
+width = 2.0
+default_color = Color(0.870588, 0.870588, 0.870588, 1)
+
+[node name="Cost" type="Label" parent="CanvasLayer/UI/SkillMenu"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 65.0
+offset_bottom = 32.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 18
+text = "COST:"
+
+[node name="Value" type="Label" parent="CanvasLayer/UI/SkillMenu/Cost"]
+layout_mode = 0
+offset_left = 35.0
+offset_right = 88.0
+offset_bottom = 24.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 18
+text = "0"
+horizontal_alignment = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="CanvasLayer/UI/SkillMenu/Cost"]
+position = Vector2(101, 9)
+texture = ExtResource("11_eb6dy")
+
+[node name="Skill1" type="Label" parent="CanvasLayer/UI/SkillMenu"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 37.0
+offset_right = 109.0
+offset_bottom = 61.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 24
+
+[node name="Skill2" type="Label" parent="CanvasLayer/UI/SkillMenu"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 59.0
+offset_right = 128.0
+offset_bottom = 83.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 24
+
+[node name="Skill3" type="Label" parent="CanvasLayer/UI/SkillMenu"]
+layout_mode = 0
+offset_left = 228.0
+offset_top = 37.0
+offset_right = 305.0
+offset_bottom = 61.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 24
+
+[node name="Skill4" type="Label" parent="CanvasLayer/UI/SkillMenu"]
+layout_mode = 0
+offset_left = 228.0
+offset_top = 59.0
+offset_right = 300.0
+offset_bottom = 83.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 24
+
 [node name="Cursor" type="Sprite2D" parent="CanvasLayer/UI"]
-position = Vector2(165, 410)
 texture = ExtResource("5_85g3d")
-
-[node name="GameManager" type="Node" parent="." node_paths=PackedStringArray("UIParent", "BattleLog")]
-script = ExtResource("14_a8y0u")
-BattlecardUI = ExtResource("5_tefeu")
-EnemyUI = ExtResource("8_choun")
-UIParent = NodePath("../CanvasLayer/UI")
-BattleLog = [NodePath("../CanvasLayer/UI/BattleLog/MarginContainer/Line1"), NodePath("../CanvasLayer/UI/BattleLog/MarginContainer/Line2"), NodePath("../CanvasLayer/UI/BattleLog/MarginContainer/Line3")]
-
-[node name="MenuManager" type="Node" parent="." node_paths=PackedStringArray("PartyCommandsMenu", "BattleCommandsMenu", "Cursor")]
-script = ExtResource("9_ya4ey")
-PartyCommandsMenu = NodePath("../CanvasLayer/UI/PartyCommands")
-BattleCommandsMenu = NodePath("../CanvasLayer/UI/BattleCommands")
-Cursor = NodePath("../CanvasLayer/UI/Cursor")
-
-[node name="BGM" type="AudioStreamPlayer" parent="."]
-volume_db = -5.0
-
-[node name="AudioManager" type="Node" parent="." node_paths=PackedStringArray("BGM")]
-script = ExtResource("11_ya4ey")
-BGM = NodePath("../BGM")
-
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="AudioManager"]
-
-[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="AudioManager"]
-
-[node name="AudioStreamPlayer3" type="AudioStreamPlayer" parent="AudioManager"]
-
-[node name="AudioStreamPlayer4" type="AudioStreamPlayer" parent="AudioManager"]
-
-[node name="AudioStreamPlayer5" type="AudioStreamPlayer" parent="AudioManager"]

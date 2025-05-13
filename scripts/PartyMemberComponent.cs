@@ -29,6 +29,8 @@ public partial class PartyMemberComponent : Node
 		HPBar.Value = PartyMember.CurrentHP;
 		JuiceBar.MaxValue = PartyMember.BaseStats.Juice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
+
+		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 	}
 
 	public override void _Process(double delta)
@@ -37,6 +39,8 @@ public partial class PartyMemberComponent : Node
 		HPLabel.Text = PartyMember.CurrentHP + "/" + PartyMember.BaseStats.HP;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + PartyMember.BaseStats.Juice;
+		// TODO: not run this every frame?
+		StateAnimator.SetState(PartyMember.CurrentState);
 	}
 
 	public bool SelectionBoxVisible
@@ -44,21 +48,4 @@ public partial class PartyMemberComponent : Node
 		get { return SelectedBox.Visible; }
 		set { SelectedBox.Visible = value; }
 	}
-
-	public bool SetState(string state)
-	{
-		if (PartyMember.IsStateValid(state))
-		{
-			PartyMember.SetState(state);
-			StateAnimator.SetState(state);
-			return true;
-		}
-		return false;
-	}
-
-	public string GetState()
-	{
-		return PartyMember.CurrentState;
-	}
-
 }

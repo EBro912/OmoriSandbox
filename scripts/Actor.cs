@@ -1,11 +1,14 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public abstract class Actor
 {
     public abstract string Name { get; }
     public AnimatedSprite2D Sprite;
+    public Vector2 CenterPoint = Vector2.Zero;
     public string CurrentState;
+    public Dictionary<string, Skill> Skills = [];
     public bool IsHurt = false;
     public int Level = 1;
     /// <summary>
@@ -79,13 +82,11 @@ public abstract class Actor
         CurrentHP -= damage;
         if (CurrentHP < 0)
             CurrentHP = 0;
+        if (this is Enemy)
+            AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
+        SetHurt(true);
     }
 
-    public void SetState(string state)
-    {
-        Sprite.Animation = state;
-        CurrentState = state;
-    }
 
     public void SetHurt(bool hurt)
     {
@@ -93,4 +94,20 @@ public abstract class Actor
         IsHurt = hurt;
     }
 
+    public virtual bool IsStateValid(string state) {  return true; }
+
+    public void SetState(string state)
+    {
+        if (IsStateValid(state))
+        {
+            Sprite.Animation = state;
+            CurrentState = state;
+            if (CurrentState != "neutral" && CurrentState != "victory" && CurrentState != "toast")
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + " feels " + state.ToUpper() + "!");
+        }
+        else
+        {
+            GameManager.Instance.MessageBattleLog(Name.ToUpper() + " cannot feel " + state.ToUpper() + "!");
+        }
+    }
 }

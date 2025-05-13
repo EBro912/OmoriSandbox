@@ -1,36 +1,15 @@
-public abstract class BattleCommand
+public class BattleCommand
 {
 	public Actor Actor;
 	public Actor Target;
-	public bool GoesFirst;
-	protected string Message;
+	public string Message;
+	public Skill Skill;
 
-	public BattleCommand(Actor actor, Actor target, string message = "", bool goesFirst = false)
+	public BattleCommand(Actor actor, Actor target, Skill skill, string message = "")
 	{
 		Actor = actor;
 		Target = target;
-		GoesFirst = goesFirst;
+		Skill = skill;
 		Message = message;
-	}
-
-	public abstract CommandResult Run();
-
-	public string ParseMessage(string message)
-	{
-		return message.Replace("[actor]", Actor.Name.ToUpper()).Replace("[target]", Target == null ? "" : Target.Name.ToUpper());
-	}
-}
-
-public struct CommandResult
-{
-	public bool Hit;
-	public bool Critical;
-	public int Damage;
-
-	public CommandResult(bool hit, bool critical = false, int damage = 0)
-	{
-		Hit = hit;
-		Critical = critical;
-		Damage = damage;
 	}
 }

@@ -21,6 +21,8 @@ public partial class EnemyComponent : Node
         HPBar.Value = Enemy.CurrentHP;
         NameLabel.Text = Enemy.Name;
         AboveHead.Visible = false;
+
+        Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;
     }
 
     public override void _Process(double delta)

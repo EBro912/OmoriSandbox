@@ -7,8 +7,10 @@ public partial class GameManager : Node
 	[Export] public PackedScene BattlecardUI;
 	[Export] public PackedScene EnemyUI;
 	[Export] public Control UIParent;
+	[Export] public Control BattlebackParent;
 
-	[Export] public Label[] BattleLog;
+	[Export] public Label BattleLog;
+	[Export] public Label FPSLabel;
 
 	private readonly Dictionary<string, Type> ValidPartyMembers = [];
 	private readonly Dictionary<string, Type> ValidEnemies = [];
@@ -18,11 +20,19 @@ public partial class GameManager : Node
 	public RandomNumberGenerator Random = new();
 
 	public BattleManager BattleManager { get; private set; }
+	public AnimationManager AnimationManager { get; private set; }
 
 	public static GameManager Instance { get; private set; }
 
+	public override void _PhysicsProcess(double delta)
+	{
+		FPSLabel.Text = Engine.GetFramesPerSecond().ToString();
+	}
+
 	public override void _Ready()
 	{
+		SkillDatabase.Init();
+
 		ValidPartyMembers.Add("Omori", typeof(Omori));
 		ValidPartyMembers.Add("Aubrey", typeof(Aubrey));
 		ValidPartyMembers.Add("Hero", typeof(Hero));
@@ -45,10 +55,13 @@ public partial class GameManager : Node
 
 		Instance = this;
 
+		AnimationManager = new();
+		AddChild(AnimationManager);
 		BattleManager = new();
 		AddChild(BattleManager);
 		BattleManager.Init(party, enemy);
 	}
+
 
 	public void ClearAndMessageBattleLog(string message)
 	{
@@ -56,27 +69,30 @@ public partial class GameManager : Node
 		MessageBattleLog(message);
 	}
 
+	public void ClearAndMessageBattleLog(Actor self, Actor target, string message)
+	{
+		ClearBattleLog();
+		MessageBattleLog(self, target, message);
+	}
+
 	public void MessageBattleLog(string message)
 	{
-		foreach (Label l in BattleLog)
-		{
-			if (string.IsNullOrWhiteSpace(l.Text))
-			{
-				l.Text = message;
-				return;
-			}
-		}
-		BattleLog[0].Text = BattleLog[1].Text;
-		BattleLog[1].Text = BattleLog[2].Text;
-		BattleLog[2].Text = message;
+		BattleLog.Text += message + '\n';
+	}
+
+	public void MessageBattleLog(Actor self, Actor target, string message)
+	{
+		BattleLog.Text += ParseMessage(self, target, message) + '\n';
 	}
 
 	public void ClearBattleLog()
 	{
-		foreach (Label l in BattleLog)
-		{
-			l.Text = "";
-		}
+		BattleLog.Text = "";
+	}
+
+	public string ParseMessage(Actor self, Actor target, string message)
+	{
+		return message.Replace("[actor]", self.Name.ToUpper()).Replace("[target]", target == null ? "" : target.Name.ToUpper());
 	}
 
 	private EnemyComponent SpawnEnemy(string who, Vector2 position)
@@ -89,11 +105,11 @@ public partial class GameManager : Node
 
 		object handle = Activator.CreateInstance(enemy);
 		Node2D node = EnemyUI.Instantiate<Node2D>();
-		UIParent.AddChild(node);
+		BattlebackParent.AddChild(node);
+		node.GlobalPosition = position;
 		EnemyComponent component = new();
 		node.AddChild(component);
 		component.SetEnemy((Enemy)handle);
-		node.Position = position;
 		return component;
 	}
 
@@ -107,9 +123,6 @@ public partial class GameManager : Node
 		object handle = Activator.CreateInstance(member);
 		Control card = BattlecardUI.Instantiate<Control>();
 		UIParent.AddChild(card);
-		PartyMemberComponent component = new();
-		card.AddChild(component);
-		component.SetPartyMember((PartyMember)handle, level: level);
 		switch (position)
 		{
 			case 1:
@@ -125,6 +138,9 @@ public partial class GameManager : Node
 				card.Position = new Vector2(506, 306);
 				break;
 		}
+		PartyMemberComponent component = new();
+		card.AddChild(component);
+		component.SetPartyMember((PartyMember)handle, level: level);
 		return component;
 	}
 }

@@ -12,6 +12,8 @@ public class Hero : PartyMember
 
     public override Stats Weapon => new(atk: 4, hit: 100);
 
+    protected override string[] EquippedSkills => ["HAttack", "Massage"];
+
     public override bool IsStateValid(string state)
     {
         return state != "miserable" &&

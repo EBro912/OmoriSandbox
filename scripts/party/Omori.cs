@@ -12,6 +12,8 @@ public class Omori : PartyMember
 
     public override Stats Weapon => new(atk: 5, hit: 100);
 
+    protected override string[] EquippedSkills => ["OAttack", "SadPoem", "LuckySlice"];
+
     public override bool IsStateValid(string state)
     {
         return state != "toast";

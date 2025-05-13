@@ -19,10 +19,20 @@ public abstract class Enemy : Actor
         BaseStats = Stats;
         CurrentHP = BaseStats.HP;
         CurrentJuice = BaseStats.Juice;
+
+        foreach (string s in EquippedSkills)
+        {
+            if (SkillDatabase.TryGetSkill(s, out var skill))
+            {
+                Skills.Add(s, skill);
+                continue;
+            }
+            GD.PrintErr("Unknown skill: " + s);
+        }
     }
 
     protected abstract Stats Stats { get; }
+    protected abstract string[] EquippedSkills { get; }
     public abstract string AnimationPath { get; }
-    public abstract bool IsStateValid(string state);
     public abstract BattleCommand ProcessAI();
 }
