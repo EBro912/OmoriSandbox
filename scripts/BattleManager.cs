@@ -522,13 +522,14 @@ public partial class BattleManager : Node
 		// we don't need to play a hitsound if the attack is a critical
 		if (!critical)
 		{
-			if (effectiveness == 0 && target is Enemy)
-				AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
-			if (effectiveness > 1)
-                AudioManager.Instance.PlaySFX("se_impact_double");
-			if (effectiveness < 1)
-                AudioManager.Instance.PlaySFX("se_impact_soft");
-        }
+			GD.Print("Effectiveness: " + effectiveness);
+			if (effectiveness > 0)
+				AudioManager.Instance.PlaySFX("se_impact_double", 1f, 0.9f);
+			else if (effectiveness < 0)
+				AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 0.9f);
+			else
+				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
+		}
 		GameManager.Instance.MessageBattleLog(self, target, "[target] takes " + rounded + " damage!");
 		if (juiceLost > 0)
 		{

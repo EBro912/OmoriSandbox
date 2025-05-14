@@ -96,9 +96,9 @@ public class SkillDatabase
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] stabs [target].");
                 if (self.CurrentState == "sad" || self.CurrentState == "depressed" || self.CurrentState == "miserable")
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, guaranteeCrit: true);
+                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false, guaranteeCrit: true);
                 else
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, guaranteeCrit: true);
+                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false, guaranteeCrit: true);
             }
         };
 
@@ -248,7 +248,7 @@ public class SkillDatabase
         Skills["Ricochet"] = new Skill
         {
             Name = "RICOCHET",
-            Description = "Deals damage to a foe 3 times.\nCost : 30",
+            Description = "Deals damage to a foe 3 times.\nCost: 30",
             Cost = 30,
             Hidden = false,
             GoesFirst = false,
