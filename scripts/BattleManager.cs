@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public partial class BattleManager : Node
 {
@@ -463,6 +464,7 @@ public partial class BattleManager : Node
 			{
 				GameManager.Instance.MessageBattleLog(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
+				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
 				return;
 			}
 		}
@@ -504,6 +506,7 @@ public partial class BattleManager : Node
 		else
 			target.CurrentJuice -= juiceLost;
 		target.Damage(rounded);
+		SpawnDamageNumber(rounded, target.CenterPoint);
 		if (!critical && effectiveness == 0 && target is Enemy)
 		{
 			AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
@@ -512,6 +515,7 @@ public partial class BattleManager : Node
 		if (juiceLost > 0)
 		{
 			GameManager.Instance.MessageBattleLog(self, target, "[target] lost " + juiceLost + " juice...");
+			SpawnDamageNumber(juiceLost, target.CenterPoint + new Vector2(0, 60), DamageType.JuiceLoss);
 		}
 	}
 
@@ -575,6 +579,22 @@ public partial class BattleManager : Node
 			"sad" or "happy" or "angry" => 0,
 			_ => -1,
 		};
+	}
+
+	public void SpawnDamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage)
+	{
+		DamageNumber dmg = new(damage, type)
+		{
+			Position = position,
+			ZAsRelative = false,
+			ZIndex = 5
+		};
+		AddChild(dmg);
+
+		Task.Delay(TimeSpan.FromSeconds(1.5f)).ContinueWith(_ =>
+		{
+			dmg.QueueFree();
+		});
 	}
 
 	public PartyMember GetRandomAlivePartyMember()
