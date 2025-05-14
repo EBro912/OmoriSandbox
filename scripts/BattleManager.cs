@@ -96,11 +96,6 @@ public partial class BattleManager : Node
 						AudioManager.Instance.PlaySFX("sys_buzzer");
 						return;
 					}
-					if ((SelectedSkill?.Target == SkillTarget.Ally || SelectedSkill?.Target == SkillTarget.AllyOrEnemy) && CurrentParty[CurrentPartyMemberTarget].Actor.CurrentState == "toast")
-					{
-                        AudioManager.Instance.PlaySFX("sys_buzzer");
-                        return;
-                    }
 					if ((SelectedSkill?.Target == SkillTarget.DeadAlly || SelectedSkill?.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast")) {
 						AudioManager.Instance.PlaySFX("sys_buzzer");
 						return;
@@ -388,6 +383,14 @@ public partial class BattleManager : Node
 
 	private void SelectTarget()
 	{
+		if ((SelectedSkill?.Target == SkillTarget.Ally || 
+			(SelectedSkill?.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1)) 
+			&& CurrentParty[CurrentPartyMemberTarget].Actor.CurrentState == "toast")
+		{
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
+		
 		AudioManager.Instance.PlaySFX("SYS_select");
 		switch (SelectedSkill?.Target)
 		{
@@ -516,15 +519,21 @@ public partial class BattleManager : Node
 			target.CurrentJuice -= juiceLost;
 		target.Damage(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint);
-		if (!critical && effectiveness == 0 && target is Enemy)
+		// we don't need to play a hitsound if the attack is a critical
+		if (!critical)
 		{
-			AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
-		}
+			if (effectiveness == 0 && target is Enemy)
+				AudioManager.Instance.PlaySFX("SE_dig", 0.7f);
+			if (effectiveness > 1)
+                AudioManager.Instance.PlaySFX("se_impact_double");
+			if (effectiveness < 1)
+                AudioManager.Instance.PlaySFX("se_impact_soft");
+        }
 		GameManager.Instance.MessageBattleLog(self, target, "[target] takes " + rounded + " damage!");
 		if (juiceLost > 0)
 		{
 			GameManager.Instance.MessageBattleLog(self, target, "[target] lost " + juiceLost + " juice...");
-			SpawnDamageNumber(juiceLost, target.CenterPoint + new Vector2(0, 60), DamageType.JuiceLoss);
+			SpawnDamageNumber(juiceLost, target.CenterPoint + new Vector2(0, 50), DamageType.JuiceLoss);
 		}
 	}
 
@@ -555,13 +564,11 @@ public partial class BattleManager : Node
 		{
 			GameManager.Instance.MessageBattleLog("...It was a moving attack!");
 			multiplier = weakness[targetTier];
-			AudioManager.Instance.PlaySFX("se_impact_double");
 		}
 		else if (effectiveness < 0)
 		{
 			GameManager.Instance.MessageBattleLog("...It was a dull attack.");
 			multiplier = resistance[targetTier];
-			AudioManager.Instance.PlaySFX("se_impact_soft");
 		}
 
 		effect = effectiveness;

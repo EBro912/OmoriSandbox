@@ -81,11 +81,13 @@
 			{
 				"frame": 0,
 				"name": "BA_angsty_song",
+				"pitch": 100,
 				"volume": 90
 			},
 			{
 				"frame": 6,
 				"name": "BA_sad_poem",
+				"pitch": 100,
 				"volume": 90
 			}
 		],
