@@ -43,7 +43,12 @@ public partial class AudioManager : Node
 		BGM.Finished += OnBGMFinish;
 	}
 
-	public void PlaySFX(string name, float pitch = 1f)
+	public void PlaySFX(SFX sfx)
+	{
+		PlaySFX(sfx.Name, sfx.Pitch / 100f, sfx.Volume / 100f);
+	}
+
+	public void PlaySFX(string name, float pitch = 1f, float volume = 1f)
 	{
 		if (!SFXDictionary.TryGetValue(name, out AudioStream stream)) {
 			GD.PrintErr("Unknown SFX: " + name);
@@ -56,7 +61,7 @@ public partial class AudioManager : Node
 				continue;
 			player.Stream = stream;
 			player.PitchScale = pitch;
-			// TODO: Volume
+			player.VolumeLinear = volume;
 			player.Play();
 			break;
 		}

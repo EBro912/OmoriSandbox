@@ -10,7 +10,7 @@ public class RPGMAnimatedSprite
     public int Layer { get; private set; }
     private AtlasTexture Texture;
     private readonly List<List<Frame>> Frames = [];
-    private readonly Dictionary<int, string> FrameSFX = [];
+    private readonly Dictionary<int, SFX> FrameSFX = [];
     private readonly Dictionary<int, Shake> FrameShake = [];
     private readonly int Columns;
 
@@ -30,7 +30,7 @@ public class RPGMAnimatedSprite
         Frames.Add(frames);
     }
 
-    public void SetFrameSFX(int frame, string sfx)
+    public void SetFrameSFX(int frame, SFX sfx)
     {
         FrameSFX[frame] = sfx;
     }
@@ -53,7 +53,7 @@ public class RPGMAnimatedSprite
         return Frames[frame];
     }
 
-    public bool TryGetFrameSFX(int frame, out string sfx)
+    public bool TryGetFrameSFX(int frame, out SFX sfx)
     {
         return FrameSFX.TryGetValue(frame, out sfx);
     }
@@ -75,6 +75,13 @@ public struct Frame(int pattern = 0, float x = 0, float y = 0, float scale = 100
     public readonly float Rotation = rotation;
     public readonly bool Mirror = mirror;
     public readonly float Opacity = opacity;
+}
+
+public struct SFX(string name, float pitch = 100f, float volume = 100f)
+{
+    public readonly string Name = name;
+    public readonly float Pitch = pitch;
+    public readonly float Volume = volume;
 }
 
 public struct Shake(float power, float speed, int duration)

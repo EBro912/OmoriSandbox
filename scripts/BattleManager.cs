@@ -464,7 +464,7 @@ public partial class BattleManager : Node
 		}
 	}
 
-	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f)
+	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f, bool guaranteeCrit = false)
 	{
 		if (!neverMiss)
 		{
@@ -479,7 +479,7 @@ public partial class BattleManager : Node
 		}
 		float baseDamage = damageFunc();
 		float damageVariance = GameManager.Instance.Random.RandfRange(1f - variance, 1f + variance);
-		bool critical = self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf();
+		bool critical = self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit;
 		float finalDamage = baseDamage * damageVariance;
 		finalDamage = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, finalDamage, out int effectiveness);
 		if (critical)

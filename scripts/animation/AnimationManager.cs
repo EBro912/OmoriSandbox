@@ -49,7 +49,7 @@ public partial class AnimationManager : Node2D
 			}
 			foreach (SFXInfo sfx in info.SFX)
 			{
-				animation.SetFrameSFX(sfx.Frame, sfx.Name);
+				animation.SetFrameSFX(sfx.Frame, new SFX(sfx.Name, sfx.Pitch, sfx.Volume));
 			}
 			foreach (ShakeInfo shake in info.Shake)
 			{
@@ -118,7 +118,7 @@ public partial class AnimationManager : Node2D
 			EmitSignal(SignalName.AnimationFinished);
 			return;
 		}
-		if (CurrentAnimation.TryGetFrameSFX(CurrentFrame, out string sfx))
+		if (CurrentAnimation.TryGetFrameSFX(CurrentFrame, out SFX sfx))
 		{
 			AudioManager.Instance.PlaySFX(sfx);
 		}
@@ -202,7 +202,7 @@ public partial class AnimationManager : Node2D
 		FrameTimer = 0f;
 		IsPlaying = true;
 
-		if (CurrentAnimation.TryGetFrameSFX(0, out string sfx))
+		if (CurrentAnimation.TryGetFrameSFX(0, out SFX sfx))
 		{
 			AudioManager.Instance.PlaySFX(sfx);
 		}
@@ -224,7 +224,8 @@ class SFXInfo
 {
 	public int Frame;
 	public string Name;
-	public int Volume;
+	public float Pitch;
+	public float Volume;
 }
 
 class ShakeInfo

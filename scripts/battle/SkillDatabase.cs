@@ -82,6 +82,25 @@ public class SkillDatabase
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 1.5f - target.CurrentStats.DEF; }, false);
             }
         };
+        Skills["Stab"] = new Skill
+        {
+            Name = "STAB",
+            Description = "Always deals a critical hit.\nIgnores DEFENSE when OMORI is sad. Cost: 13",
+            Cost = 13,
+            Hidden = false,
+            GoesFirst = true,
+            Target = SkillTarget.Enemy,
+            Animation = "o_stab",
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] stabs [target].");
+                if (self.CurrentState == "sad" || self.CurrentState == "depressed" || self.CurrentState == "miserable")
+                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, guaranteeCrit: true);
+                else
+                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, guaranteeCrit: true);
+            }
+        };
 
 
         // AUBREY //
