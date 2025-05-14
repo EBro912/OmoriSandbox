@@ -92,6 +92,15 @@ public partial class BattleManager : Node
 					break;
 				case BattlePhase.SkillSelection:
 					SelectedSkill = MenuManager.Instance.GetSelectedSkill();
+					if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - SelectedSkill?.Cost <= 0) {
+						AudioManager.Instance.PlaySFX("sys_buzzer");
+						return;
+					}
+					if ((SelectedSkill?.Target == SkillTarget.Ally || SelectedSkill?.Target == SkillTarget.AllyOrEnemy) && CurrentParty[CurrentPartyMemberTarget].Actor.CurrentState == "toast")
+					{
+                        AudioManager.Instance.PlaySFX("sys_buzzer");
+                        return;
+                    }
 					if ((SelectedSkill?.Target == SkillTarget.DeadAlly || SelectedSkill?.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast")) {
 						AudioManager.Instance.PlaySFX("sys_buzzer");
 						return;
@@ -455,7 +464,7 @@ public partial class BattleManager : Node
 		}
 	}
 
-	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true)
+	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f)
 	{
 		if (!neverMiss)
 		{
@@ -469,9 +478,9 @@ public partial class BattleManager : Node
 			}
 		}
 		float baseDamage = damageFunc();
-		float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
+		float damageVariance = GameManager.Instance.Random.RandfRange(1f - variance, 1f + variance);
 		bool critical = self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf();
-		float finalDamage = baseDamage * variance;
+		float finalDamage = baseDamage * damageVariance;
 		finalDamage = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, finalDamage, out int effectiveness);
 		if (critical)
 		{

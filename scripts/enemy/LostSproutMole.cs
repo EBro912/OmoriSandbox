@@ -4,7 +4,7 @@ public class LostSproutMole : Enemy
 
 	public override string AnimationPath => "res://animations/sprout_mole.tres";
 
-	protected override Stats Stats => new(62, 31, 11, 8, 9, 5, 95);
+	protected override Stats Stats => new(170, 75, 22, 10, 13, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
 
 	public override bool IsStateValid(string state)

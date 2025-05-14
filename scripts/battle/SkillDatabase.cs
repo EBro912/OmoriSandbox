@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 public class SkillDatabase
@@ -225,6 +226,26 @@ public class SkillDatabase
                     GameManager.Instance.BattleManager.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
             }
         };
+        Skills["Ricochet"] = new Skill
+        {
+            Name = "RICOCHET",
+            Description = "Deals damage to a foe 3 times.\nCost : 30",
+            Cost = 30,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            Animation = "k_riccochet_big",
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] does a fancy ball trick!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+                await Task.Delay(1000);
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+                await Task.Delay(1000);
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+            }
+        };
 
         // HERO //
         Skills["HAttack"] = new Skill
@@ -258,6 +279,45 @@ public class SkillDatabase
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
                 target.SetState("neutral");
                 GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " calms down...");
+            }
+        };
+        Skills["Cook"] = new Skill
+        {
+            Name = "COOK",
+            Description = "Heals a friend for 75% of their HEART.\nCost: 10",
+            Cost = 10,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Ally,
+            Animation = "h_snack_time",
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] makes a cookie just for [target]!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.75f, MidpointRounding.AwayFromZero);
+                target.Heal(heal);
+                GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+                GameManager.Instance.AnimationManager.PlayAnimation("u_healheart", target);
+                await Task.Delay(TimeSpan.FromSeconds(1d));
+            }
+        };
+        Skills["Refresh"] = new Skill
+        {
+            Name = "REFRESH",
+            Description = "Heals 50% of a friend's JUICE.\nCost: 40",
+            Cost = 40,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Ally,
+            Animation = "u_healjuice",
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] makes a refreshment for [target].");
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.Animation, target);
+                int heal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.5f, MidpointRounding.AwayFromZero);
+                target.HealJuice(heal);
+                GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.JuiceGain);
+                await Task.Delay(TimeSpan.FromSeconds(1d));
             }
         };
 

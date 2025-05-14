@@ -85,6 +85,20 @@ public abstract class Actor
         SetHurt(true);
     }
 
+    public void Heal(int health)
+    {
+        CurrentHP += health;
+        if (CurrentHP > CurrentStats.MaxHP)
+            CurrentHP = CurrentStats.MaxHP;
+    }
+
+    public void HealJuice(int juice)
+    {
+        CurrentJuice += juice;
+        if (CurrentJuice > CurrentStats.MaxJuice)
+            CurrentJuice = CurrentStats.MaxJuice;
+    }
+
 
     public void SetHurt(bool hurt)
     {

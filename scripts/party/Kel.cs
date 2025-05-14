@@ -12,7 +12,7 @@ public class Kel : PartyMember
 
     public override Stats Weapon => new(atk: 3, hit: 100);
 
-    protected override string[] EquippedSkills => ["KAttack", "Annoy", "Rebound"];
+    protected override string[] EquippedSkills => ["KAttack", "Annoy", "Rebound", "Ricochet"];
 
     public override bool IsStateValid(string state)
     {
