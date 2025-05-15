@@ -1,5 +1,7 @@
 using Godot;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 public partial class DamageNumber : Node2D
 {
@@ -51,6 +53,7 @@ public partial class DamageNumber : Node2D
             sprite.Position = new Vector2(offset, 20);
         }
     }
+
 
     private int TypeOffset
     {

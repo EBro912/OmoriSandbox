@@ -79,7 +79,7 @@ public partial class BattleManager : Node
 					if (MenuManager.Instance.CursorSelection == "Attack")
 					{
 						AudioManager.Instance.PlaySFX("SYS_select");
-						SelectedSkill = CurrentParty[CurrentPartyMember].Actor.Skills[$"{CurrentParty[CurrentPartyMember].Actor.Name[0]}Attack"];
+						SelectedSkill = CurrentParty[CurrentPartyMember].Actor.Skills.Values.First();
 						SetPhase(BattlePhase.TargetSelection);
 					}
 					else if (MenuManager.Instance.CursorSelection == "Skill")
@@ -298,7 +298,6 @@ public partial class BattleManager : Node
 					{
 						x.Actor.SetState("toast");
 						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
-						Commands.RemoveAll(y => y.Actor == x.Actor);
 					}
 				});
 				// TODO: enemy death animation
@@ -428,6 +427,16 @@ public partial class BattleManager : Node
 
 	private async void HandleCommandExecute()
 	{
+		if (Commands[CommandIndex].Actor.CurrentState == "toast")
+		{
+			CommandIndex++;
+			if (CommandIndex >= Commands.Count)
+			{
+				SetPhase(BattlePhase.FightRun);
+				return;
+			}
+		}
+
 		GameManager.Instance.ClearBattleLog();
 		Actor target = Commands[CommandIndex].Target;
 		if (Commands[CommandIndex].Skill.Cost > 0)
@@ -600,7 +609,7 @@ public partial class BattleManager : Node
 
 	public void SpawnDamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage)
 	{
-		DamageNumber dmg = new(damage, type)
+		DamageNumber dmg = new(damage, (DamageType)type)
 		{
 			Position = position,
 			ZAsRelative = false,

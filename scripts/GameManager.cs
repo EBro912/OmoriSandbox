@@ -37,6 +37,7 @@ public partial class GameManager : Node
 		ValidPartyMembers.Add("Aubrey", typeof(Aubrey));
 		ValidPartyMembers.Add("Hero", typeof(Hero));
 		ValidPartyMembers.Add("Kel", typeof(Kel));
+		ValidPartyMembers.Add("Tony", typeof(Tony));
 
 		ValidEnemies.Add("LostSproutMole", typeof(LostSproutMole));
 

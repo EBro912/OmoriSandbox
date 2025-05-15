@@ -6,10 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://dwhsh5d4ev7wc" path="res://assets/system/faceset_states.png" id="3_3r6nr"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="5_8dd6e"]
 [ext_resource type="Texture2D" uid="uid://cymoa4gm8efxq" path="res://assets/system/bar_health.png" id="5_ms8ku"]
+[ext_resource type="SpriteFrames" uid="uid://dtenxrsdo51ht" path="res://animations/tony.tres" id="5_wg2g7"]
 [ext_resource type="PackedScene" uid="uid://bq6cqi4jmrqwe" path="res://scenes/StateAnimatorComponent.tscn" id="5_xyj2y"]
 [ext_resource type="Texture2D" uid="uid://cbd3wj3fojil6" path="res://assets/system/bar_juice.png" id="6_xyj2y"]
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_ms8ku"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_3r6nr"]
 font = ExtResource("5_8dd6e")
@@ -73,7 +72,9 @@ region_rect = Rect2(0, 0, 100, 100)
 [node name="Face" type="AnimatedSprite2D" parent="Battlecard"]
 z_index = -1
 position = Vector2(57, 69)
-sprite_frames = SubResource("SpriteFrames_ms8ku")
+sprite_frames = ExtResource("5_wg2g7")
+animation = &"victory"
+frame_progress = 0.111583
 
 [node name="Health" type="TextureProgressBar" parent="Battlecard"]
 layout_mode = 0
