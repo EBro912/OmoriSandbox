@@ -74,7 +74,7 @@ z_index = -1
 position = Vector2(57, 69)
 sprite_frames = ExtResource("5_wg2g7")
 animation = &"victory"
-frame_progress = 0.111583
+frame_progress = 0.190897
 
 [node name="Health" type="TextureProgressBar" parent="Battlecard"]
 layout_mode = 0

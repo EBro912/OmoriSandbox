@@ -62,16 +62,7 @@ public partial class BattleManager : Node
 					else
 					{
 						AudioManager.Instance.PlaySFX("SYS_select");
-						do
-						{
-							CurrentPartyMember++;
-							if (CurrentPartyMember >= CurrentParty.Count)
-							{
-								GameManager.Instance.ClearBattleLog();
-								PrepareCommandExecution();
-								SetPhase(BattlePhase.PreCommand);
-							}
-						} while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast");
+						CurrentPartyMember++;
 						SetPhase(BattlePhase.PlayerCommand);
 					}
 					break;
@@ -354,6 +345,17 @@ public partial class BattleManager : Node
 
 	private void HandlePlayerCommand()
 	{
+		while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast")
+		{
+			CurrentPartyMember++;
+			if (CurrentPartyMember >= CurrentParty.Count)
+			{
+				GameManager.Instance.ClearBattleLog();
+				PrepareCommandExecution();
+				SetPhase(BattlePhase.PreCommand);
+				return;
+			}
+		}
 		GameManager.Instance.ClearAndMessageBattleLog("What will " + CurrentParty[CurrentPartyMember].Actor.Name.ToUpper() + " do?");
 		MenuManager.Instance.ShowMenu("BattleCommand");
 	}
@@ -427,7 +429,7 @@ public partial class BattleManager : Node
 
 	private async void HandleCommandExecute()
 	{
-		if (Commands[CommandIndex].Actor.CurrentState == "toast")
+		while (Commands[CommandIndex].Actor.CurrentState == "toast")
 		{
 			CommandIndex++;
 			if (CommandIndex >= Commands.Count)
