@@ -17,6 +17,7 @@ public partial class BattleManager : Node
 	private int CommandIndex = -1;
 	private Timer Delay;
 	private Skill? SelectedSkill;
+	private List<Node2D> DyingEnemies = [];
 
 	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
 	{
@@ -267,6 +268,10 @@ public partial class BattleManager : Node
 			case BattlePhase.PostCommand:
 				Delay.Start(2d);
 				break;
+			case BattlePhase.EnemyDying:
+				HandleEnemyDying();
+				break;
+
 		}
 	}
 
@@ -297,13 +302,17 @@ public partial class BattleManager : Node
 					enemy.Actor.SetHurt(false);
 					if (enemy.Actor.CurrentHP == 0)
 					{
-						enemy.Despawn();
+						enemy.Actor.SetState("toast");
+						DyingEnemies.Add(enemy.GetParent<Node2D>());
 						Enemies.Remove(enemy);
 						Commands.RemoveAll(y => y.Actor == enemy.Actor);
 					}
 				}
 				CommandIndex++;
-				SetPhase(BattlePhase.PreCommand);
+				if (DyingEnemies.Count > 0)
+					SetPhase(BattlePhase.EnemyDying);
+				else
+					SetPhase(BattlePhase.PreCommand);
 				break;
 		}
 	}
@@ -465,6 +474,24 @@ public partial class BattleManager : Node
 		GD.Print("Processing " + Commands[CommandIndex].GetType());
 		await Commands[CommandIndex].Skill.Effect(Commands[CommandIndex].Actor, Commands[CommandIndex].Target, Commands[CommandIndex].Skill);
 		SetPhase(BattlePhase.PostCommand);
+	}
+
+	private void HandleEnemyDying()
+	{
+		Tween tween = CreateTween();
+		foreach (Node2D enemy in DyingEnemies)
+		{
+			tween.TweenInterval(0.5f);
+			tween.TweenProperty(enemy, "position", enemy.Position + new Vector2(0, 500f), 0.75f);
+		}
+		tween.TweenCallback(Callable.From(EnemiesDoneDying));
+	}
+
+	private void EnemiesDoneDying()
+	{
+		DyingEnemies.ForEach(x => x.QueueFree());
+		DyingEnemies.Clear();
+		SetPhase(BattlePhase.PreCommand);
 	}
 
 	private void CheckBattleOver()
@@ -652,5 +679,6 @@ public enum BattlePhase
 	PreCommand,
 	CommandExecute,
 	PostCommand,
+	EnemyDying,
 	BattleOver
 }
