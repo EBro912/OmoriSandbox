@@ -6,23 +6,47 @@ public class RPGMAnimatedSprite
     public static readonly int SIZE = 192;
     private const float DIVIDEND = 0.03529411764705882f;
 
-    public string Name { get; private set; }
+    public int Id { get; private set; }
     public int Layer { get; private set; }
     private AtlasTexture Texture;
+    private AtlasTexture AltTexture;
     private readonly List<List<Frame>> Frames = [];
+    // TODO: support animations that have duplicate SFX on the same frame (power hit)
     private readonly Dictionary<int, SFX> FrameSFX = [];
     private readonly Dictionary<int, Shake> FrameShake = [];
     private readonly int Columns;
 
-    public RPGMAnimatedSprite(string name, int layer, Texture2D texture)
+    // cache the max pattern number for each texture
+    private readonly int TextureMaxPattern = 0;
+    private readonly int AltTextureMaxPattern = 0;
+
+    public RPGMAnimatedSprite(int id, int layer, Texture2D texture)
     {
-        Name = name;
+        Id = id;
         Layer = layer;
         Texture = new()
         {
             Atlas = texture
         };
         Columns = texture.GetWidth() / SIZE;
+        TextureMaxPattern = (texture.GetWidth() / SIZE) * (texture.GetHeight() / SIZE);
+    }
+
+    public RPGMAnimatedSprite(int id, int layer, Texture2D texture, Texture2D altTexture)
+    {
+        Id = id;
+        Layer = layer;
+        Texture = new()
+        {
+            Atlas = texture
+        };
+        AltTexture = new()
+        {
+            Atlas = altTexture
+        };
+        Columns = texture.GetWidth() / SIZE;
+        TextureMaxPattern = (texture.GetWidth() / SIZE) * (texture.GetHeight() / SIZE);
+        AltTextureMaxPattern = (altTexture.GetWidth() / SIZE) * (altTexture.GetHeight() / SIZE);
     }
 
     public void CreateFrame(List<Frame> frames)
@@ -42,10 +66,27 @@ public class RPGMAnimatedSprite
 
     public AtlasTexture GetTextureAt(int pattern)
     {
-        int column = pattern % Columns;
-        int row = pattern / Columns;
-        Texture.Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE);
-        return Texture;
+        if (pattern < TextureMaxPattern)
+        {
+            int column = pattern % Columns;
+            int row = pattern / Columns;
+            Texture.Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE);
+            return Texture;
+        }
+        else if (AltTexture != null)
+        {
+            int adjusted = pattern - TextureMaxPattern;
+            if (adjusted < AltTextureMaxPattern)
+            {
+                int column = adjusted % Columns;
+                int row = adjusted / Columns;
+                AltTexture.Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE);
+                return AltTexture;
+            }
+        }
+
+        GD.PrintErr($"Invalid pattern number {pattern} for animation {Id}");
+        return null;
     }
 
     public List<Frame> GetFrame(int frame)

@@ -19,11 +19,13 @@ public abstract class Actor
     /// The Actor's standalone modified stats.
     /// </summary>
     public Stats AdjustedStats;
+
+    public List<StatModifier> StatModifiers = [];
     public int CurrentHP = 0;
     public int CurrentJuice = 0;
 
     /// <summary>
-    /// The Actor's base stats, any adjusted stats, and emotion stats.
+    /// The Actor's base stats, any adjusted stats from weapons or buffs, and emotion stats.
     /// </summary>
     public Stats CurrentStats
     {
@@ -34,47 +36,181 @@ public abstract class Actor
             {
                 case "happy":
                     current.LCK *= 2;
-                    current.SPD = (int)Math.Round(current.SPD * 1.25f, MidpointRounding.AwayFromZero);
-                    current.HIT -= (int)Math.Round(current.HIT * 0.1f, MidpointRounding.AwayFromZero);
+                    current.SPD = RoundedStat(current.SPD * 1.25f);
+                    current.HIT -= RoundedStat(current.HIT * 0.1f);
                     break;
                 case "ecstatic":
                     current.LCK *= 3;
-                    current.SPD = (int)Math.Round(current.SPD * 1.5f, MidpointRounding.AwayFromZero);
-                    current.HIT -= (int)Math.Round(current.HIT * 0.2f, MidpointRounding.AwayFromZero);
+                    current.SPD = RoundedStat(current.SPD * 1.5f);
+                    current.HIT -= RoundedStat(current.HIT * 0.2f);
                     break;
                 case "manic":
                     current.LCK *= 4;
-                    current.SPD = (int)Math.Round(current.SPD * 2f, MidpointRounding.AwayFromZero);
-                    current.HIT -= (int)Math.Round(current.HIT * 0.3f, MidpointRounding.AwayFromZero);
+                    current.SPD = RoundedStat(current.SPD * 2f);
+                    current.HIT -= RoundedStat(current.HIT * 0.3f);
                     break;
                 case "angry":
-                    current.ATK = (int)Math.Round(current.ATK * 1.3f, MidpointRounding.AwayFromZero);
-                    current.DEF = (int)Math.Round(current.DEF * 0.5f, MidpointRounding.AwayFromZero);
+                    current.ATK = RoundedStat(current.ATK * 1.3f);
+                    current.DEF = RoundedStat(current.DEF * 0.5f);
                     break;
                 case "enraged":
-                    current.ATK = (int)Math.Round(current.ATK * 1.5f, MidpointRounding.AwayFromZero);
-                    current.DEF = (int)Math.Round(current.DEF * 0.3f, MidpointRounding.AwayFromZero);
+                    current.ATK = RoundedStat(current.ATK * 1.5f);
+                    current.DEF = RoundedStat(current.DEF * 0.3f);
                     break;
                 case "furious":
-                    current.ATK = (int)Math.Round(current.ATK * 2f, MidpointRounding.AwayFromZero);
-                    current.DEF = (int)Math.Round(current.DEF * 0.15f, MidpointRounding.AwayFromZero);
+                    current.ATK = RoundedStat(current.ATK * 2f);
+                    current.DEF = RoundedStat(current.DEF * 0.15f);
                     break;
                 case "sad":
-                    current.DEF = (int)Math.Round(current.DEF * 1.25f, MidpointRounding.AwayFromZero);
-                    current.SPD = (int)Math.Round(current.SPD * 0.8f, MidpointRounding.AwayFromZero);
+                    current.DEF = RoundedStat(current.DEF * 1.25f);
+                    current.SPD = RoundedStat(current.SPD * 0.8f);
                     break;
                 case "depressed":
-                    current.DEF = (int)Math.Round(current.DEF * 1.35f, MidpointRounding.AwayFromZero);
-                    current.SPD = (int)Math.Round(current.SPD * 0.65f, MidpointRounding.AwayFromZero);
+                    current.DEF = RoundedStat(current.DEF * 1.35f);
+                    current.SPD = RoundedStat(current.SPD * 0.65f);
                     break;
                 case "miserable":
-                    current.DEF = (int)Math.Round(current.DEF * 1.5f, MidpointRounding.AwayFromZero);
-                    current.SPD = (int)Math.Round(current.SPD * 0.5f, MidpointRounding.AwayFromZero);
+                    current.DEF = RoundedStat(current.DEF * 1.5f);
+                    current.SPD = RoundedStat(current.SPD * 0.5f);
                     break;
+            }
+
+            // TODO: try NOT to do this???
+            foreach (StatModifier modifier in StatModifiers)
+            {
+                switch (modifier.Modifier)
+                {
+                    case Modifier.AttackUp:
+                        if (modifier.Tier == 1)
+                            current.ATK = RoundedStat(current.ATK * 1.1f);
+                        else if (modifier.Tier == 2)
+                            current.ATK = RoundedStat(current.ATK * 1.25f);
+                        else
+                            current.ATK = RoundedStat(current.ATK * 1.5f);
+                        break;
+                    case Modifier.AttackDown:
+                        if (modifier.Tier == 1)
+                            current.ATK = RoundedStat(current.ATK * 0.9f);
+                        else if (modifier.Tier == 2)
+                            current.ATK = RoundedStat(current.ATK * 0.8f);
+                        else
+                            current.ATK = RoundedStat(current.ATK * 0.7f);
+                        break;
+                    case Modifier.DefenseUp:
+                        if (modifier.Tier == 1)
+                            current.DEF = RoundedStat(current.DEF * 1.15f);
+                        else if (modifier.Tier == 2)
+                            current.DEF = RoundedStat(current.DEF * 1.3f);
+                        else
+                            current.DEF = RoundedStat(current.DEF * 1.5f);
+                        break;
+                    case Modifier.DefenseDown:
+                        if (modifier.Tier == 1)
+                            current.DEF = RoundedStat(current.DEF * 0.75f);
+                        else if (modifier.Tier == 2)
+                            current.DEF = RoundedStat(current.DEF * 0.5f);
+                        else
+                            current.DEF = RoundedStat(current.DEF * 0.25f);
+                        break;
+                    case Modifier.SpeedUp:
+                        if (modifier.Tier == 1)
+                            current.SPD = RoundedStat(current.SPD * 1.5f);
+                        else if (modifier.Tier == 2)
+                            current.SPD = RoundedStat(current.SPD * 2f);
+                        else
+                            current.SPD = RoundedStat(current.SPD * 5f);
+                        break;
+                    case Modifier.SpeedDown:
+                        if (modifier.Tier == 1)
+                            current.SPD = RoundedStat(current.SPD * 0.8f);
+                        else if (modifier.Tier == 2)
+                            current.SPD = RoundedStat(current.SPD * 0.5f);
+                        else
+                            current.SPD = RoundedStat(current.SPD * 0.25f);
+                        break;
+                }
             }
 
             return current;
         }
+    }
+
+    private int RoundedStat(float value)
+    {
+        return (int)Math.Round(value, MidpointRounding.AwayFromZero);
+    }
+
+    public void AddStatModifier(Modifier modifier, int tier = 1)
+    {
+        foreach (StatModifier mod in StatModifiers)
+        {
+            if (mod.Modifier == modifier)
+            {
+                if (mod.IncreaseTier())
+                    ShowStatSuccess(modifier);
+                else
+                    ShowStatFail(modifier);
+                return;
+            }
+        }
+        StatModifiers.Add(new StatModifier(modifier, tier));
+        ShowStatSuccess(modifier);
+    }
+
+    private void ShowStatFail(Modifier modifer)
+    {
+        switch (modifer)
+        {
+            case Modifier.AttackUp:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK cannot go any higher!");
+                return;
+            case Modifier.AttackDown:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK cannot go any lower!");
+                return;
+            case Modifier.DefenseUp:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE cannot go any higher!");
+                return;
+            case Modifier.DefenseDown:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE cannot go any lower!");
+                return;
+            case Modifier.SpeedUp:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED cannot go any higher!");
+                return;
+            case Modifier.SpeedDown:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED cannot go any lower!");
+                return;
+        }
+    }
+
+    private void ShowStatSuccess(Modifier modifer)
+    {
+        switch (modifer)
+        {
+            case Modifier.AttackUp:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK rose!");
+                return;
+            case Modifier.AttackDown:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK fell!");
+                return;
+            case Modifier.DefenseUp:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE rose!");
+                return;
+            case Modifier.DefenseDown:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE fell!");
+                return;
+            case Modifier.SpeedUp:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED rose!");
+                return;
+            case Modifier.SpeedDown:
+                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED fell!");
+                return;
+        }
+    }
+
+    public void DecreaseTurnCounter()
+    {
+        StatModifiers.ForEach(x => x.DecreaseTurn());
+        StatModifiers.RemoveAll(x => x.TurnsLeft <= 0);
     }
 
     public void Damage(int damage)

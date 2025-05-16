@@ -296,7 +296,7 @@ public partial class BattleManager : Node
 						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
 					}
 				});
-				// TODO: enemy death animation
+
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
 					enemy.Actor.SetHurt(false);
@@ -473,6 +473,8 @@ public partial class BattleManager : Node
 		
 		GD.Print("Processing " + Commands[CommandIndex].GetType());
 		await Commands[CommandIndex].Skill.Effect(Commands[CommandIndex].Actor, Commands[CommandIndex].Target, Commands[CommandIndex].Skill);
+		// tick down buffs after actor takes their turn
+		Commands[CommandIndex].Actor.DecreaseTurnCounter();
 		SetPhase(BattlePhase.PostCommand);
 	}
 

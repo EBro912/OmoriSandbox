@@ -15,8 +15,6 @@ public partial class GameManager : Node
 	private readonly Dictionary<string, Type> ValidPartyMembers = [];
 	private readonly Dictionary<string, Type> ValidEnemies = [];
 
-	private string[] states = ["neutral", "victory", "toast", "happy", "ecstatic", "manic", "sad", "depressed", "miserable", "angry", "enraged", "furious", "afraid", "stressed"];
-
 	public RandomNumberGenerator Random = new();
 
 	public BattleManager BattleManager { get; private set; }
@@ -40,16 +38,17 @@ public partial class GameManager : Node
 		ValidPartyMembers.Add("Tony", typeof(Tony));
 
 		ValidEnemies.Add("LostSproutMole", typeof(LostSproutMole));
+		ValidEnemies.Add("ForestBunny?", typeof(ForestBunnyQuestion));
 
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
-		party.Add(SpawnPartyMember("Omori", 1, 15));
-		party.Add(SpawnPartyMember("Aubrey", 2, 15));
-		party.Add(SpawnPartyMember("Hero", 3, 15));
-		party.Add(SpawnPartyMember("Kel", 4, 15));
+		party.Add(SpawnPartyMember("Omori", 1, 8));
+		party.Add(SpawnPartyMember("Aubrey", 2, 8));
+		party.Add(SpawnPartyMember("Hero", 3, 8));
+		party.Add(SpawnPartyMember("Kel", 4, 8));
 
-		enemy.Add(SpawnEnemy("LostSproutMole", new Vector2(233, 240)));
+		enemy.Add(SpawnEnemy("ForestBunny?", new Vector2(233, 280)));
 		enemy.Add(SpawnEnemy("LostSproutMole", new Vector2(407, 240)));
 
 		party.RemoveAll(x => x == null);

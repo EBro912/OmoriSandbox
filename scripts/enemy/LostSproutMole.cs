@@ -53,10 +53,10 @@ public class LostSproutMole : Enemy
 
 		}
 		attack:
-		return new BattleCommand(this, target, Skills["LSMAttack"], "[actor] bumps into [target]!");
+		return new BattleCommand(this, target, Skills["LSMAttack"]);
 		nothing:
-		return new BattleCommand(this, target, Skills["LSMDoNothing"], "[actor] is rolling around.");
+		return new BattleCommand(this, target, Skills["LSMDoNothing"]);
 		run:
-		return new BattleCommand(this, target, Skills["LSMRunAround"], "[actor] runs around!");
+		return new BattleCommand(this, target, Skills["LSMRunAround"]);
 	}
 }

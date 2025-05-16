@@ -23,10 +23,10 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "o_attack",
+            AnimationId = 3,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
@@ -39,11 +39,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.AllyOrEnemy,
-            Animation = "o_sad_story",
+            AnimationId = 5,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " reads a sad poem.");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, self);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self);
                 string state = "sad";
                 switch (target.CurrentState)
                 {
@@ -71,10 +71,10 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = true,
             Target = SkillTarget.Enemy,
-            Animation = "o_quick_attack",
+            AnimationId = 8,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] lunges at [target]!");
                 if (self.CurrentState == "happy" || self.CurrentState == "ecstatic" || self.CurrentState == "manic")
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 2f - target.CurrentStats.DEF; }, false);
@@ -90,10 +90,10 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = true,
             Target = SkillTarget.Enemy,
-            Animation = "o_stab",
+            AnimationId = 9,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] stabs [target].");
                 if (self.CurrentState == "sad" || self.CurrentState == "depressed" || self.CurrentState == "miserable")
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false, guaranteeCrit: true);
@@ -112,10 +112,10 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "a_attack",
+            AnimationId = 28,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
@@ -128,11 +128,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.AllyOrEnemy,
-            Animation = "a_peptalk",
+            AnimationId = 29,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " cheers on " + target.Name.ToUpper() + "!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 string state = "happy";
                 switch (target.CurrentState)
                 {
@@ -160,7 +160,7 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "a_headbutt_edit",
+            AnimationId = 30,
             Effect = async (self, target, skill) =>
             {
                 double neededHp = Math.Floor(self.CurrentStats.MaxHP * 0.2);
@@ -169,13 +169,32 @@ public class SkillDatabase
                     GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] does not have enough HP!");
                     return;
                 }
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] headbutts [target]!");
                 if (self.CurrentState == "angry" || self.CurrentState == "enraged")
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
                 else
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
                 self.CurrentHP = (int)Math.Max(1f, self.CurrentHP - Math.Floor(self.CurrentStats.MaxHP * 0.2));
+            }
+        };
+
+        Skills["PowerHit"] = new Skill
+        {
+            Name = "POWER HIT",
+            Description = "An attack that ignore's a foe's DEFENSE,\nthen reduces the foe's DEFENSE. Cost: 20",
+            Cost = 20,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 31,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
+                await Task.Delay(1000);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(219, target);
+                target.AddStatModifier(Modifier.DefenseDown);
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false);
             }
         };
 
@@ -188,10 +207,10 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "k_attack",
+            AnimationId = 54,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
@@ -204,11 +223,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.AllyOrEnemy,
-            Animation = "k_annoy",
+            AnimationId = 55,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " annoys " + target.Name.ToUpper() + "!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 string state = "angry";
                 switch (target.CurrentState)
                 {
@@ -236,11 +255,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.AllEnemies,
-            Animation = "k_rebound",
+            AnimationId = 56,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor]'s ball bounces everywhere!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 foreach (Enemy enemy in GameManager.Instance.BattleManager.GetAllEnemies())
                     GameManager.Instance.BattleManager.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
             }
@@ -253,11 +272,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "k_riccochet_big",
+            AnimationId = 58,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] does a fancy ball trick!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
                 await Task.Delay(1000);
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
@@ -275,10 +294,10 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "h_attack",
+            AnimationId = 83,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
@@ -291,11 +310,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.AllyOrEnemy,
-            Animation = "h_massage",
+            AnimationId = 86,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " massages " + target.Name.ToUpper() + "!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 target.SetState("neutral");
                 GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " calms down...");
             }
@@ -308,15 +327,15 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.Ally,
-            Animation = "h_snack_time",
+            AnimationId = 85,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] makes a cookie just for [target]!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.75f, MidpointRounding.AwayFromZero);
                 target.Heal(heal);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
-                GameManager.Instance.AnimationManager.PlayAnimation("u_healheart", target);
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target);
                 await Task.Delay(TimeSpan.FromSeconds(1d));
             }
         };
@@ -328,11 +347,11 @@ public class SkillDatabase
             Hidden = false,
             GoesFirst = false,
             Target = SkillTarget.Ally,
-            Animation = "u_healjuice",
+            AnimationId = 213,
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] makes a refreshment for [target].");
-                GameManager.Instance.AnimationManager.PlayAnimation(skill.Animation, target);
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
                 int heal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.5f, MidpointRounding.AwayFromZero);
                 target.HealJuice(heal);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.JuiceGain);
@@ -349,10 +368,10 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "e_attacksolid",
+            AnimationId = 123,
             Effect = async (self, target, skill) =>
             {
-                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.Animation, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] bumps into [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
@@ -366,7 +385,7 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = string.Empty,
+            AnimationId = -1,
             Effect = async (self, target, skill) =>
             {
                 AudioManager.Instance.PlaySFX("BA_do_nothing_dance");
@@ -383,17 +402,103 @@ public class SkillDatabase
             Hidden = true,
             GoesFirst = false,
             Target = SkillTarget.Enemy,
-            Animation = "e_sproutmole_running",
+            AnimationId = 200,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.AnimationManager.PlayAnimation(skill.Animation);
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId);
                 GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] runs around!");
-                await Task.Delay(167);
+                await Task.Delay(100);
                 target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
-                await Task.Delay(916);
+                await Task.Delay(917);
                 target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        // FOREST BUNNY? //
+        Skills["FBQAttack"] = new Skill
+        {
+            Name = "Attack",
+            Description = "Basic Attack",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 123,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] nibbles at [target]?");
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["FBQDoNothing"] = new Skill
+        {
+            Name = "Do Nothing",
+            Description = "Does nothing",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = -1,
+            Effect = async (self, target, skill) =>
+            {
+                AudioManager.Instance.PlaySFX("BA_do_nothing_falls_over");
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] is hopping around?");
+                await Task.CompletedTask;
+            }
+        };
+
+        Skills["FBQBeCute"] = new Skill
+        {
+            Name = "Be Cute",
+            Description = "Be Cute",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 148,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] winks at [target]?");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(215, target);
+                target.AddStatModifier(Modifier.AttackDown);
+            }
+        };
+
+        Skills["FBQSadEyes"] = new Skill
+        {
+            Name = "Sad Eyes",
+            Description = "Sad Eyes",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 149,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] looks sadly at [target]?");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self);
+                string state = "sad";
+                switch (target.CurrentState)
+                {
+                    case "miserable":
+                        GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any sadder!");
+                        return;
+                    case "depressed":
+                        state = "miserable";
+                        break;
+                    case "sad":
+                        state = "depressed";
+                        break;
+                }
+                if (target.IsStateValid(state))
+                    target.SetState(state);
+                else
+                    GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any sadder!");
             }
         };
     }

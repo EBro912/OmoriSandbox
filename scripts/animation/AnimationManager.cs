@@ -13,7 +13,7 @@ public partial class AnimationManager : Node2D
 
 	private TextureRect Battleback;
 
-	private Dictionary<string, RPGMAnimatedSprite> Animations = [];
+	private Dictionary<int, RPGMAnimatedSprite> Animations = [];
 
 	private const float FPS = 15f;
 	private float FrameDuration = 1f / FPS;
@@ -37,7 +37,13 @@ public partial class AnimationManager : Node2D
 		List<AnimationInfo> animationData = JsonConvert.DeserializeObject<List<AnimationInfo>>(data);
 		foreach (AnimationInfo info in animationData)
 		{
-			RPGMAnimatedSprite animation = new(info.Name, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Name}.png"));
+			RPGMAnimatedSprite animation;
+
+			if (!string.IsNullOrWhiteSpace(info.AltTexture))
+				animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"), GD.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
+			else
+				animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"));
+
 			foreach (float[][] frame in info.Frames)
 			{
 				List<Frame> frames = [];
@@ -55,8 +61,11 @@ public partial class AnimationManager : Node2D
 			{
 				animation.SetFrameShake(shake.Frame, shake.Power, shake.Speed, shake.Duration);
 			}
-			Animations.Add(info.Name, animation);
-			GD.Print("Loaded animation: " + info.Name);
+			if (!Animations.TryAdd(info.Id, animation))
+			{
+				GD.PrintErr("Unable to add animation ID " + info.Id + ", is there a duplicate?");
+			}
+			GD.Print("Loaded animation: " + info.Id);
 		}
 	}
 
@@ -161,19 +170,19 @@ public partial class AnimationManager : Node2D
 		ShakeDuration = 0;
 	}
 
-	public void PlayAnimation(string name, Actor target = null)
+	public void PlayAnimation(int id, Actor target = null)
 	{
 		if (target == null)
 		{
-			StartAnimation(name, new Vector2(320, 240));
+			StartAnimation(id, new Vector2(320, 240));
 		}
 		else
 		{
-			StartAnimation(name, target.CenterPoint);
+			StartAnimation(id, target.CenterPoint);
 		}
 	}
 
-	public Task WaitForAnimation(string name, Actor target = null)
+	public Task WaitForAnimation(int id, Actor target = null)
 	{
 		TaskCompletionSource tcs = new();
 
@@ -183,16 +192,16 @@ public partial class AnimationManager : Node2D
 			tcs.SetResult();
 		}
 
-		PlayAnimation(name, target);
+		PlayAnimation(id, target);
 		AnimationFinished += Handle;
 		return tcs.Task;
 	}
 
-	private void StartAnimation(string name, Vector2 position)
+	private void StartAnimation(int id, Vector2 position)
 	{
-		if (!Animations.TryGetValue(name, out RPGMAnimatedSprite animation))
+		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 		{
-			GD.PrintErr("Unknown animation: " + name);
+			GD.PrintErr("Unknown animation: " + id);
 			return;
 		}
 
@@ -213,8 +222,10 @@ public partial class AnimationManager : Node2D
 
 class AnimationInfo
 {
-	public string Name;
+	public int Id;
 	public int Layer;
+	public string Texture;
+	public string AltTexture;
 	public float[][][] Frames;
 	public SFXInfo[] SFX;
 	public ShakeInfo[] Shake;

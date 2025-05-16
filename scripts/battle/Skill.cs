@@ -9,7 +9,7 @@ public struct Skill
     public bool GoesFirst;
     public bool Hidden;
     public SkillTarget Target;
-    public string Animation;
+    public int AnimationId;
     public Func<Actor, Actor, Skill, Task> Effect;
 }
 
