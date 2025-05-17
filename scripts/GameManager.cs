@@ -36,20 +36,24 @@ public partial class GameManager : Node
 		ValidPartyMembers.Add("Hero", typeof(Hero));
 		ValidPartyMembers.Add("Kel", typeof(Kel));
 		ValidPartyMembers.Add("Tony", typeof(Tony));
+		ValidPartyMembers.Add("AubreyRW", typeof(AubreyRW));
+		ValidPartyMembers.Add("KelRW", typeof(KelRW));
+		ValidPartyMembers.Add("HeroRW", typeof(HeroRW));
+		ValidPartyMembers.Add("Sunny", typeof(Sunny));
 
 		ValidEnemies.Add("LostSproutMole", typeof(LostSproutMole));
 		ValidEnemies.Add("ForestBunny?", typeof(ForestBunnyQuestion));
+		ValidEnemies.Add("Sweetheart", typeof(Sweetheart));
 
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
-		party.Add(SpawnPartyMember("Omori", 1, 8));
-		party.Add(SpawnPartyMember("Aubrey", 2, 8));
-		party.Add(SpawnPartyMember("Hero", 3, 8));
-		party.Add(SpawnPartyMember("Kel", 4, 8));
+		party.Add(SpawnPartyMember("Omori", 1, 20));
+		party.Add(SpawnPartyMember("Aubrey", 2, 20));
+		party.Add(SpawnPartyMember("Hero", 3, 20));
+		party.Add(SpawnPartyMember("Kel", 4, 20));
 
-		enemy.Add(SpawnEnemy("ForestBunny?", new Vector2(233, 280)));
-		enemy.Add(SpawnEnemy("LostSproutMole", new Vector2(407, 240)));
+		enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 270)));
 
 		party.RemoveAll(x => x == null);
 

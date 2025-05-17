@@ -1,19 +1,6 @@
-[gd_resource type="SpriteFrames" load_steps=45 format=3 uid="uid://ccadnjgqeryle"]
+[gd_resource type="SpriteFrames" load_steps=38 format=3 uid="uid://ccadnjgqeryle"]
 
-[ext_resource type="Texture2D" uid="uid://d3kmgwttmuvh" path="res://assets/faces/01_FA_OMORI_BATTLE.png" id="1_jt0el"]
 [ext_resource type="Texture2D" uid="uid://c4turqhp7q86c" path="res://assets/faces/01_OMORI_BATTLE.png" id="2_uv7pg"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_dnhof"]
-atlas = ExtResource("1_jt0el")
-region = Rect2(0, 318, 106, 106)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1v6qk"]
-atlas = ExtResource("1_jt0el")
-region = Rect2(106, 318, 106, 106)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_augu2"]
-atlas = ExtResource("1_jt0el")
-region = Rect2(212, 318, 106, 106)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_tygh4"]
 atlas = ExtResource("2_uv7pg")
@@ -147,18 +134,6 @@ region = Rect2(106, 424, 106, 106)
 atlas = ExtResource("2_uv7pg")
 region = Rect2(212, 424, 106, 106)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_tm6hj"]
-atlas = ExtResource("1_jt0el")
-region = Rect2(0, 1484, 106, 106)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_kf5aa"]
-atlas = ExtResource("1_jt0el")
-region = Rect2(106, 1484, 106, 106)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_t5ykj"]
-atlas = ExtResource("1_jt0el")
-region = Rect2(212, 1484, 106, 106)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_o7ddy"]
 atlas = ExtResource("2_uv7pg")
 region = Rect2(0, 1060, 106, 106)
@@ -173,20 +148,6 @@ region = Rect2(212, 1060, 106, 106)
 
 [resource]
 animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_dnhof")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1v6qk")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_augu2")
-}],
-"loop": true,
-"name": &"afraid",
-"speed": 4.5
-}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_tygh4")
@@ -339,20 +300,6 @@ animations = [{
 }],
 "loop": true,
 "name": &"sad",
-"speed": 4.5
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_tm6hj")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_kf5aa")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_t5ykj")
-}],
-"loop": true,
-"name": &"stressed",
 "speed": 4.5
 }, {
 "frames": [{

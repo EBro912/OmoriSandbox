@@ -4,8 +4,8 @@ using System.Linq;
 
 public partial class MenuManager : Node
 {
-	[Export] public Node2D PartyCommandsMenu;
-	[Export] public Node2D BattleCommandsMenu;
+	[Export] public Sprite2D PartyCommandsMenu;
+	[Export] public Sprite2D BattleCommandsMenu;
 	[Export] public TextureRect SkillMenu;
 	[Export] public Label[] SkillLabels;
 	[Export] public Label ValueLabel;
@@ -23,9 +23,29 @@ public partial class MenuManager : Node
 
 	private List<Skill> CurrentSkills = [];
 
+	private const float FightRunOffsetRW = 458f;
+	private const float FightRunOffset = 376f;
+	private const float BattleOffsetRW = 212f;
+	private const float BattleOffset = 130f;
+
+
 	public override void _EnterTree()
 	{
 		Instance = this;
+	}
+
+	public void ShowButtons(bool realWorld)
+	{
+		if (realWorld)
+		{
+			PartyCommandsMenu.RegionRect = new Rect2(653f, FightRunOffsetRW, 362f, 82f);
+			BattleCommandsMenu.RegionRect = new Rect2(653f, BattleOffsetRW, 362f, 82f);
+		}
+		else
+		{
+			PartyCommandsMenu.RegionRect = new Rect2(653f, FightRunOffset, 362f, 82f);
+			BattleCommandsMenu.RegionRect = new Rect2(653f, BattleOffset, 362f, 82f);
+		}
 	}
 
 	public void ShowMenu(string menu)

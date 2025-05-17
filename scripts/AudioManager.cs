@@ -39,7 +39,7 @@ public partial class AudioManager : Node
 		
 		Instance = this;
 
-		PlayBGM("dont");
+		PlayBGM("boss_sweetheart");
 		BGM.Finished += OnBGMFinish;
 	}
 
@@ -77,6 +77,13 @@ public partial class AudioManager : Node
 
 		BGM.Stream = stream;
 		BGM.Play();
+	}
+
+	public void FadeBGMTo(float volume, float seconds = 1f)
+	{
+		float target = -10 + Mathf.LinearToDb(volume / 100f);
+		Tween tween = CreateTween();
+		tween.TweenProperty(BGM, "volume_db", target, seconds);
 	}
 
 	private void OnBGMFinish()

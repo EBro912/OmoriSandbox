@@ -29,7 +29,6 @@ public class RPGMAnimatedSprite
             Atlas = texture
         };
         Columns = texture.GetWidth() / SIZE;
-        TextureMaxPattern = (texture.GetWidth() / SIZE) * (texture.GetHeight() / SIZE);
     }
 
     public RPGMAnimatedSprite(int id, int layer, Texture2D texture, Texture2D altTexture)
@@ -45,8 +44,6 @@ public class RPGMAnimatedSprite
             Atlas = altTexture
         };
         Columns = texture.GetWidth() / SIZE;
-        TextureMaxPattern = (texture.GetWidth() / SIZE) * (texture.GetHeight() / SIZE);
-        AltTextureMaxPattern = (altTexture.GetWidth() / SIZE) * (altTexture.GetHeight() / SIZE);
     }
 
     public void CreateFrame(List<Frame> frames)
@@ -66,7 +63,7 @@ public class RPGMAnimatedSprite
 
     public AtlasTexture GetTextureAt(int pattern)
     {
-        if (pattern < TextureMaxPattern)
+        if (pattern < 99)
         {
             int column = pattern % Columns;
             int row = pattern / Columns;
@@ -75,8 +72,9 @@ public class RPGMAnimatedSprite
         }
         else if (AltTexture != null)
         {
-            int adjusted = pattern - TextureMaxPattern;
-            if (adjusted < AltTextureMaxPattern)
+            // RPGMaker allocates 100 frame slots to each image even if the image doesn't have that many sprites
+            int adjusted = pattern - 100;
+            if (adjusted < 199)
             {
                 int column = adjusted % Columns;
                 int row = adjusted / Columns;

@@ -15,6 +15,7 @@ public struct Skill
 
 public enum SkillTarget
 {
+    Self,
     Ally,
     AllAllies,
     Enemy,

@@ -16,6 +16,8 @@ public class Omori : PartyMember
 
     public override bool IsStateValid(string state)
     {
-        return state != "toast";
+        return state != "toast" && state != "afraid" && state != "stressed";
     }
+
+    public override bool IsRealWorld => false;
 }

@@ -45,6 +45,7 @@ public abstract class PartyMember : Actor
     // TODO: add weapon effects
     protected abstract string[] EquippedSkills { get; }
     public abstract Stats Weapon { get; }
+    public abstract bool IsRealWorld { get; }
 }
 
 

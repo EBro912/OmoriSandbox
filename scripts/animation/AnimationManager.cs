@@ -207,6 +207,9 @@ public partial class AnimationManager : Node2D
 
 		CurrentAnimation = animation;
 		DrawPosition = position - new Vector2(96f, 96f);
+		// hack fix for the headbutt curtain animation
+		if (id == 30)
+			DrawPosition -= new Vector2(6f, 0f);
 		CurrentFrame = 0;
 		FrameTimer = 0f;
 		IsPlaying = true;

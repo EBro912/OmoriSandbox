@@ -18,6 +18,8 @@ public partial class BattleManager : Node
 	private Timer Delay;
 	private Skill? SelectedSkill;
 	private List<Node2D> DyingEnemies = [];
+	// an empty skill used for enemies before processing AI
+	private Skill EmptySkill = new Skill() { GoesFirst = false };
 
 	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
 	{
@@ -50,6 +52,12 @@ public partial class BattleManager : Node
 
 	public override void _Input(InputEvent @event)
 	{
+		if (Input.IsActionJustPressed("TestAnim"))
+		{
+			GameManager.Instance.AnimationManager.PlayAnimation(30);
+		}
+
+
 		if (Input.IsActionJustPressed("Accept"))
 		{
 			switch (Phase)
@@ -84,7 +92,7 @@ public partial class BattleManager : Node
 					break;
 				case BattlePhase.SkillSelection:
 					SelectedSkill = MenuManager.Instance.GetSelectedSkill();
-					if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - SelectedSkill?.Cost <= 0) {
+					if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - SelectedSkill?.Cost < 0) {
 						AudioManager.Instance.PlaySFX("sys_buzzer");
 						return;
 					}
@@ -280,6 +288,7 @@ public partial class BattleManager : Node
 		switch (Phase)
 		{
 			case BattlePhase.PreCommand:
+				GD.Print("Command Index: " + CommandIndex);
 				if (CommandIndex >= Commands.Count)
 					SetPhase(BattlePhase.FightRun);
 				else {
@@ -305,7 +314,6 @@ public partial class BattleManager : Node
 						enemy.Actor.SetState("toast");
 						DyingEnemies.Add(enemy.GetParent<Node2D>());
 						Enemies.Remove(enemy);
-						Commands.RemoveAll(y => y.Actor == enemy.Actor);
 					}
 				}
 				CommandIndex++;
@@ -322,7 +330,8 @@ public partial class BattleManager : Node
 		MenuManager.Instance.ShowMenu("None");
 		foreach (EnemyComponent enemy in Enemies)
 		{
-			Commands.Add(enemy.Actor.ProcessAI());
+			// Add an empty skill for each enemy so the sorting below still works
+			Commands.Add(new BattleCommand(enemy.Actor, null, EmptySkill));
 		}
 
 		Commands = Commands.OrderByDescending(x => x.Skill.GoesFirst)
@@ -349,6 +358,7 @@ public partial class BattleManager : Node
 		CommandIndex = -1;
 		Commands.Clear();
 		GameManager.Instance.ClearAndMessageBattleLog("What will " + CurrentParty[0].Actor.Name.ToUpper() + " and friends do?");
+		MenuManager.Instance.ShowButtons(CurrentParty[0].Actor.IsRealWorld);
 		MenuManager.Instance.ShowMenu("PartyCommand");
 	}
 
@@ -366,6 +376,7 @@ public partial class BattleManager : Node
 			}
 		}
 		GameManager.Instance.ClearAndMessageBattleLog("What will " + CurrentParty[CurrentPartyMember].Actor.Name.ToUpper() + " do?");
+		MenuManager.Instance.ShowButtons(CurrentParty[CurrentPartyMember].Actor.IsRealWorld);
 		MenuManager.Instance.ShowMenu("BattleCommand");
 	}
 
@@ -404,6 +415,9 @@ public partial class BattleManager : Node
 		AudioManager.Instance.PlaySFX("SYS_select");
 		switch (SelectedSkill?.Target)
 		{
+			case SkillTarget.Self:
+				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, CurrentParty[CurrentPartyMember].Actor, SelectedSkill.Value));
+				break;
 			case SkillTarget.Ally:
 			case SkillTarget.DeadAlly:
 				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, CurrentParty[CurrentPartyMemberTarget].Actor, SelectedSkill.Value));
@@ -448,6 +462,12 @@ public partial class BattleManager : Node
 			}
 		}
 
+		if (Commands[CommandIndex].Actor is Enemy enemy)
+		{
+			// overwrite the empty skill with an actual command
+			Commands[CommandIndex] = enemy.ProcessAI();
+		}
+
 		GameManager.Instance.ClearBattleLog();
 		Actor target = Commands[CommandIndex].Target;
 		if (Commands[CommandIndex].Skill.Cost > 0)
@@ -484,7 +504,7 @@ public partial class BattleManager : Node
 		foreach (Node2D enemy in DyingEnemies)
 		{
 			tween.TweenInterval(0.5f);
-			tween.TweenProperty(enemy, "position", enemy.Position + new Vector2(0, 500f), 0.75f);
+			tween.TweenProperty(enemy, "position", enemy.Position + new Vector2(0, 400f), 0.50f);
 		}
 		tween.TweenCallback(Callable.From(EnemiesDoneDying));
 	}
@@ -507,7 +527,7 @@ public partial class BattleManager : Node
 		}
 	}
 
-	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f, bool guaranteeCrit = false)
+	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false)
 	{
 		if (!neverMiss)
 		{
@@ -525,7 +545,7 @@ public partial class BattleManager : Node
 		bool critical = self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit;
 		float finalDamage = baseDamage * damageVariance;
 		finalDamage = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, finalDamage, out int effectiveness);
-		if (critical)
+		if (critical && !neverCrit)
 		{
 			finalDamage = (finalDamage * 1.5f) + 2;
 			GameManager.Instance.MessageBattleLog("IT HIT RIGHT IN THE HEART!");
@@ -669,6 +689,11 @@ public partial class BattleManager : Node
 	public List<Enemy> GetAllEnemies()
 	{
 		return Enemies.Select(x => x.Actor).ToList();
+	}
+
+	public List<PartyMemberComponent> GetAlivePartyMembers()
+	{
+		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
 	}
 }
 

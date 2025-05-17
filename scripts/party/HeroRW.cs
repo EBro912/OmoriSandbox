@@ -1,0 +1,31 @@
+public class HeroRW : PartyMember
+{
+    public override string Name => "Hero";
+    public override string AnimationPath => "res://animations/hero_rw.tres";
+
+    public override int[] HPTree => [260];
+
+    public override int[] JuiceTree => [60];
+
+    public override int[] ATKTree => [20];
+
+    public override int[] DEFTree => [20];
+
+    public override int[] SPDTree => [10];
+
+    public override int BaseLuck => 10;
+
+    public override Stats Weapon => new Stats(atk: 1, hit: 95);
+
+    protected override string[] EquippedSkills => ["HRWAttack", "FirstAid"];
+
+    public override bool IsStateValid(string state)
+    {
+        return state != "miserable" &&
+            state != "manic" &&
+            state != "furious" &&
+            state != "stressed";
+    }
+
+    public override bool IsRealWorld => true;
+}

@@ -21,4 +21,6 @@ public class Aubrey : PartyMember
             state != "furious" &&
             state != "stressed";
     }
+
+    public override bool IsRealWorld => false;
 }

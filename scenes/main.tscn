@@ -1,9 +1,9 @@
 [gd_scene load_steps=12 format=3 uid="uid://dnxcj20hgcsj8"]
 
-[ext_resource type="Texture2D" uid="uid://d36ge2cnq6lkj" path="res://assets/battlebacks/battleback_vf_default.png" id="1_o5qli"]
 [ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="4_tipki"]
 [ext_resource type="Texture2D" uid="uid://q4jxuj12jmru" path="res://assets/system/bsys_cursor.png" id="5_85g3d"]
 [ext_resource type="PackedScene" uid="uid://d32syyvyr6iwr" path="res://scenes/party_member.tscn" id="5_tefeu"]
+[ext_resource type="Texture2D" uid="uid://bewmi21adeutt" path="res://assets/battlebacks/battleback_sw_sweetheart.png" id="7_ya4ey"]
 [ext_resource type="PackedScene" uid="uid://u0o0invoxvnj" path="res://scenes/enemy.tscn" id="8_choun"]
 [ext_resource type="Texture2D" uid="uid://b75xtstrsgcbh" path="res://assets/system/bsys_battlelog.png" id="9_85g3d"]
 [ext_resource type="Script" uid="uid://d18gd83t4is60" path="res://scripts/MenuManager.cs" id="9_ya4ey"]
@@ -78,7 +78,7 @@ layout_mode = 1
 offset_left = -640.0
 offset_right = 1280.0
 offset_bottom = 480.0
-texture = ExtResource("1_o5qli")
+texture = ExtResource("7_ya4ey")
 stretch_mode = 1
 
 [node name="BattleLog" type="TextureRect" parent="CanvasLayer/UI"]
@@ -121,6 +121,7 @@ region_rect = Rect2(653, 376, 362, 82)
 
 [node name="BattleCommands" type="Sprite2D" parent="CanvasLayer/UI"]
 visible = false
+z_index = -1
 position = Vector2(320, 429)
 texture = ExtResource("4_tipki")
 region_enabled = true
