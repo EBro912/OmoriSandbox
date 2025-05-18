@@ -13,6 +13,7 @@ public partial class BattleManager : Node
 	private int CurrentPartyMember = -1;
 	private int CurrentEnemyTarget = -1;
 	private int CurrentPartyMemberTarget = -1;
+	// TODO: convert this to a queue to better handle deaths
 	private List<BattleCommand> Commands = [];
 	private int CommandIndex = -1;
 	private Timer Delay;
@@ -510,7 +511,7 @@ public partial class BattleManager : Node
 		Actor target = currentAction.Target;
 		if (target != null)
 		{
-			if (target.CurrentHP == 0)
+			if (target.CurrentHP == 0 && currentAction.Action.Target != SkillTarget.DeadAlly && currentAction.Action.Target != SkillTarget.AllDeadAllies)
 			{
 				if (target is Enemy)
 					target = GameManager.Instance.BattleManager.GetRandomAliveEnemy();
