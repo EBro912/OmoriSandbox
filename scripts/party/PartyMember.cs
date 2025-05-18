@@ -26,7 +26,7 @@ public abstract class PartyMember : Actor
 
         foreach (string s in EquippedSkills)
         {
-            if (SkillDatabase.TryGetSkill(s, out var skill))
+            if (Database.TryGetSkill(s, out var skill))
             {
                 Skills.Add(s, skill);
                 continue;

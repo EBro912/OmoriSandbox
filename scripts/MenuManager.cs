@@ -10,6 +10,8 @@ public partial class MenuManager : Node
 	[Export] public Label[] SkillLabels;
 	[Export] public Label ValueLabel;
 	[Export] public Sprite2D Cursor;
+	[Export] public Label CostText;
+	[Export] public Sprite2D CostIcon;
 
 	private string CurrentMenu = "PartyCommand";
 	private string CurrentSelection = "Fight";
@@ -20,8 +22,10 @@ public partial class MenuManager : Node
 	public string CursorSelection => CurrentSelection;
 
 	private int SelectedSkill = 1;
+	private int SelectedSnack = 1;
 
 	private List<Skill> CurrentSkills = [];
+	private List<(Snack, int)> CurrentSnacks = [];
 
 	private const float FightRunOffsetRW = 458f;
 	private const float FightRunOffset = 376f;
@@ -73,9 +77,22 @@ public partial class MenuManager : Node
 				BattleCommandsMenu.Visible = false;
 				SkillMenu.Visible = true;
 				Cursor.Visible = true;
+				CostText.Text = "COST:";
+				CostIcon.Visible = true;
 				MoveCursorTo("Skill1");
 				ShowSkillInfo(1);
 				CurrentMenu = "SkillMenu";
+				break;
+			case "SnackMenu":
+				PartyCommandsMenu.Visible = false;
+				BattleCommandsMenu.Visible = false;
+				SkillMenu.Visible = true;
+				Cursor.Visible = true;
+				CostText.Text = "HOLD:";
+				CostIcon.Visible = false;
+				MoveCursorTo("Skill1");
+				ShowSnackInfo(1);
+				CurrentMenu = "SnackMenu";
 				break;
 			case "None":
 				PartyCommandsMenu.Visible = false;
@@ -153,6 +170,34 @@ public partial class MenuManager : Node
 					return;
 				}
 			}
+			if (CurrentMenu == "SnackMenu")
+			{
+				AudioManager.Instance.PlaySFX("SYS_move");
+				if (CurrentSelection == "Skill1")
+				{
+					MoveCursorTo("Skill2");
+					ShowSnackInfo(2);
+					return;
+				}
+				if (CurrentSelection == "Skill2")
+				{
+					MoveCursorTo("Skill1");
+					ShowSnackInfo(1);
+					return;
+				}
+				if (CurrentSelection == "Skill3")
+				{
+					MoveCursorTo("Skill4");
+					ShowSnackInfo(4);
+					return;
+				}
+				if (CurrentSelection == "Skill4")
+				{
+					MoveCursorTo("Skill3");
+					ShowSnackInfo(3);
+					return;
+				}
+			}
 		}
 
 		if (Input.IsActionJustPressed("MenuLeft") || Input.IsActionJustPressed("MenuRight"))
@@ -209,6 +254,34 @@ public partial class MenuManager : Node
 					return;
 				}
 			}
+			if (CurrentMenu == "SnackMenu")
+			{
+				AudioManager.Instance.PlaySFX("SYS_move");
+				if (CurrentSelection == "Skill1")
+				{
+					MoveCursorTo("Skill3");
+					ShowSnackInfo(3);
+					return;
+				}
+				if (CurrentSelection == "Skill3")
+				{
+					MoveCursorTo("Skill1");
+					ShowSnackInfo(1);
+					return;
+				}
+				if (CurrentSelection == "Skill2")
+				{
+					MoveCursorTo("Skill4");
+					ShowSnackInfo(4);
+					return;
+				}
+				if (CurrentSelection == "Skill4")
+				{
+					MoveCursorTo("Skill2");
+					ShowSnackInfo(2);
+					return;
+				}
+			}
 		}
 	}
 
@@ -240,7 +313,39 @@ public partial class MenuManager : Node
 		{
 			Skill s = CurrentSkills[idx - 1];
 			ValueLabel.Text = s.Cost.ToString();
-			GameManager.Instance.ClearAndMessageBattleLog($"{s.Name}\n{s.Description}");
+			BattleLogManager.Instance.ClearAndShowMessage($"{s.Name}\n{s.Description}");
+		}
+	}
+
+	public void PopulateSnackMenu()
+	{
+		CurrentSkills.Clear();
+		foreach (Label l in SkillLabels)
+			l.Text = "";
+		int idx = 0;
+		foreach ((Snack, int) snack in GameManager.Instance.BattleManager.GetSnacks())
+		{
+			if (idx > 3)
+				return;
+			SkillLabels[idx].Text = snack.Item1.Name;
+			CurrentSnacks.Add(snack);
+			idx++;
+		}
+	}
+
+	public Snack GetSelectedSnack()
+	{
+		return CurrentSnacks[SelectedSnack - 1].Item1;
+	}
+
+	private void ShowSnackInfo(int idx)
+	{
+		SelectedSnack = idx;
+		if (idx <= CurrentSnacks.Count)
+		{
+			Snack s = CurrentSnacks[idx - 1].Item1;
+			ValueLabel.Text = "x" + CurrentSnacks[idx - 1].Item2;
+			BattleLogManager.Instance.ClearAndShowMessage($"{s.Name}\n{s.Description}");
 		}
 	}
 

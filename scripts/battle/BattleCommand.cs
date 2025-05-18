@@ -2,12 +2,12 @@ public class BattleCommand
 {
 	public Actor Actor;
 	public Actor Target;
-	public Skill Skill;
+	public BattleAction Action;
 
-	public BattleCommand(Actor actor, Actor target, Skill skill)
+	public BattleCommand(Actor actor, Actor target, BattleAction action)
 	{
 		Actor = actor;
 		Target = target;
-		Skill = skill;
+		Action = action;
 	}
 }

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public abstract class Actor
 {
@@ -128,6 +129,9 @@ public abstract class Actor
                         else
                             current.SPD = RoundedStat(current.SPD * 0.25f);
                         break;
+                    case Modifier.Flex:
+                        current.HIT += 1000;
+                        break;
                 }
             }
 
@@ -140,7 +144,7 @@ public abstract class Actor
         return (int)Math.Round(value, MidpointRounding.AwayFromZero);
     }
 
-    public void AddStatModifier(Modifier modifier, int tier = 1)
+    public void AddStatModifier(Modifier modifier, int tier = 1, int turns = 6)
     {
         foreach (StatModifier mod in StatModifiers)
         {
@@ -153,8 +157,15 @@ public abstract class Actor
                 return;
             }
         }
-        StatModifiers.Add(new StatModifier(modifier, tier));
+        StatModifiers.Add(new StatModifier(modifier, tier, turns));
         ShowStatSuccess(modifier);
+    }
+
+    public void RemoveStatModifier(Modifier modifier)
+    {
+        StatModifier mod = StatModifiers.FirstOrDefault(x => x.Modifier == modifier);
+        if (mod != null)
+            StatModifiers.Remove(mod);
     }
 
     private void ShowStatFail(Modifier modifer)
@@ -162,22 +173,22 @@ public abstract class Actor
         switch (modifer)
         {
             case Modifier.AttackUp:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK cannot go any higher!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s ATTACK cannot go any higher!");
                 return;
             case Modifier.AttackDown:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK cannot go any lower!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s ATTACK cannot go any lower!");
                 return;
             case Modifier.DefenseUp:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE cannot go any higher!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s DEFENSE cannot go any higher!");
                 return;
             case Modifier.DefenseDown:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE cannot go any lower!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s DEFENSE cannot go any lower!");
                 return;
             case Modifier.SpeedUp:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED cannot go any higher!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s SPEED cannot go any higher!");
                 return;
             case Modifier.SpeedDown:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED cannot go any lower!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s SPEED cannot go any lower!");
                 return;
         }
     }
@@ -187,22 +198,22 @@ public abstract class Actor
         switch (modifer)
         {
             case Modifier.AttackUp:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK rose!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s ATTACK rose!");
                 return;
             case Modifier.AttackDown:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s ATTACK fell!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s ATTACK fell!");
                 return;
             case Modifier.DefenseUp:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE rose!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s DEFENSE rose!");
                 return;
             case Modifier.DefenseDown:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s DEFENSE fell!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s DEFENSE fell!");
                 return;
             case Modifier.SpeedUp:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED rose!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s SPEED rose!");
                 return;
             case Modifier.SpeedDown:
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + "'s SPEED fell!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + "'s SPEED fell!");
                 return;
         }
     }
@@ -211,6 +222,11 @@ public abstract class Actor
     {
         StatModifiers.ForEach(x => x.DecreaseTurn());
         StatModifiers.RemoveAll(x => x.TurnsLeft <= 0);
+    }
+
+    public bool HasStatModifier(Modifier modifier)
+    {
+        return StatModifiers.Any(x => x.Modifier == modifier);
     }
 
     public void Damage(int damage)
@@ -251,11 +267,11 @@ public abstract class Actor
             Sprite.Animation = state;
             CurrentState = state;
             if (CurrentState != "neutral" && CurrentState != "victory" && CurrentState != "toast")
-                GameManager.Instance.MessageBattleLog(Name.ToUpper() + " feels " + state.ToUpper() + "!");
+                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + state.ToUpper() + "!");
         }
         else
         {
-            GameManager.Instance.MessageBattleLog(Name.ToUpper() + " cannot feel " + state.ToUpper() + "!");
+            BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot feel " + state.ToUpper() + "!");
         }
     }
 }

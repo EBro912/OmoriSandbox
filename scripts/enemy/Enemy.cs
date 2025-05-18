@@ -22,7 +22,7 @@ public abstract class Enemy : Actor
 
         foreach (string s in EquippedSkills)
         {
-            if (SkillDatabase.TryGetSkill(s, out var skill))
+            if (Database.TryGetSkill(s, out var skill))
             {
                 Skills.Add(s, skill);
                 continue;
@@ -35,4 +35,5 @@ public abstract class Enemy : Actor
     protected abstract string[] EquippedSkills { get; }
     public abstract string AnimationPath { get; }
     public abstract BattleCommand ProcessAI();
+    public virtual void ProcessBattleConditions() { }
 }

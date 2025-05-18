@@ -6,14 +6,19 @@ public class Sweetheart : Enemy
 
     protected override string[] EquippedSkills => ["SHAttack", "SharpInsult", "SwingMace", "Brag"];
 
+    private bool EmotionLocked = false;
+    private int Stage = 0;
+
     public override bool IsStateValid(string state)
     {
+        if (EmotionLocked)
+            return false;
+
         return state == "neutral" || state == "sad" || state == "happy" 
             || state == "angry" || state == "hurt" || state == "toast" 
             || state == "ecstatic" || state == "manic";
     }
 
-    // TODO: emotion locks
     public override BattleCommand ProcessAI()
     {
         int roll;
@@ -80,5 +85,34 @@ public class Sweetheart : Enemy
         return new BattleCommand(this, target, Skills["SwingMace"]);
     brag:
         return new BattleCommand(this, target, Skills["Brag"]);
+    }
+
+
+
+    public override void ProcessBattleConditions()
+    {
+        if (Stage > 2)
+            return;
+        if (CurrentHP < 990 && Stage == 2)
+        {
+            EmotionLocked = false;
+            SetState("manic");
+            EmotionLocked = true;
+            Stage++;
+        }
+        if (CurrentHP < 1650 && Stage == 1)
+        {
+            EmotionLocked = false;
+            SetState("ecstatic");
+            EmotionLocked = true;
+            Stage++;
+        }
+        if (CurrentHP < 2640 && Stage == 0)
+        {
+            SetState("happy");
+            EmotionLocked = true;
+            AddStatModifier(Modifier.SweetheartLock, 1, int.MaxValue);
+            Stage++;
+        }
     }
 }

@@ -40,7 +40,7 @@ public partial class AudioManager : Node
 		Instance = this;
 
 		PlayBGM("boss_sweetheart");
-		BGM.Finished += OnBGMFinish;
+		// BGM.Finished += OnBGMFinish;
 	}
 
 	public void PlaySFX(SFX sfx)

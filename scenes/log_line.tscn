@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://coa7jio0ejncb"]
+
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_lkc2j"]
+
+[node name="LogLine" type="Control"]
+custom_minimum_size = Vector2(335, 26)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 335.0
+offset_bottom = 26.0
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_fonts/font = ExtResource("1_lkc2j")
+theme_override_font_sizes/font_size = 24

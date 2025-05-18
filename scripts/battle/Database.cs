@@ -2,17 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class SkillDatabase
+public class Database
 {
     private static readonly Dictionary<string, Skill> Skills = [];
+    private static readonly Dictionary<string, Snack> Snacks = [];
 
     public static bool TryGetSkill(string name, out Skill skill)
     {
         return Skills.TryGetValue(name, out skill);
     }
 
+    public static bool TryGetSnack(string name, out Snack snack)
+    {
+        return Snacks.TryGetValue(name, out snack);
+    }
+
     public static void Init()
     {
+        #region SKILLS
         // OMORI //
         Skills["OAttack"] = new Skill
         {
@@ -26,7 +33,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -41,13 +48,13 @@ public class SkillDatabase
             AnimationId = 5,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " reads a sad poem.");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] reads a sad poem.");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self);
                 string state = "sad";
                 switch (target.CurrentState)
                 {
                     case "miserable":
-                        GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any sadder!");
+                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
                         return;
                     case "depressed":
                         state = "miserable";
@@ -59,7 +66,7 @@ public class SkillDatabase
                 if (target.IsStateValid(state))
                     target.SetState(state);
                 else
-                    GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any sadder!");
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
             }
         };
         Skills["LuckySlice"] = new Skill
@@ -74,7 +81,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] lunges at [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] lunges at [target]!");
                 if (self.CurrentState == "happy" || self.CurrentState == "ecstatic" || self.CurrentState == "manic")
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 2f - target.CurrentStats.DEF; }, false);
                 else
@@ -93,11 +100,33 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] stabs [target].");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] stabs [target].");
                 if (self.CurrentState == "sad" || self.CurrentState == "depressed" || self.CurrentState == "miserable")
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false, guaranteeCrit: true);
                 else
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false, guaranteeCrit: true);
+            }
+        };
+        Skills["Trick"] = new Skill
+        {
+            Name = "TRICK",
+            Description = "Deals damage. If the foe is HAPPY, greatly\nreduce it's SPEED. Cost: 20",
+            Cost = 20,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 10,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] tricks [target].");
+                if (self.CurrentState == "happy" || self.CurrentState == "ecstatic" || self.CurrentState == "manic")
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(219, target);
+                    target.AddStatModifier(Modifier.SpeedDown, 3);
+                }
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                await Task.Delay(334);
             }
         };
 
@@ -115,7 +144,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -132,7 +161,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 AudioManager.Instance.FadeBGMTo(10f);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] calms down.");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] calms down.");
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId);
                 await Task.Delay(2500);
                 self.Heal((int)Math.Round(self.BaseStats.MaxHP * 0.5, MidpointRounding.AwayFromZero));
@@ -155,7 +184,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -170,13 +199,13 @@ public class SkillDatabase
             AnimationId = 29,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " cheers on " + target.Name.ToUpper() + "!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] cheers on [target]!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 string state = "happy";
                 switch (target.CurrentState)
                 {
                     case "manic":
-                        GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any happier!");
+                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
                         return;
                     case "ecstatic":
                         state = "manic";
@@ -188,7 +217,7 @@ public class SkillDatabase
                 if (target.IsStateValid(state))
                     target.SetState(state);
                 else
-                    GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any happier!");
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
             }
         };
         Skills["Headbutt"] = new Skill
@@ -205,13 +234,13 @@ public class SkillDatabase
                 double neededHp = Math.Floor(self.CurrentStats.MaxHP * 0.2);
                 if (self.CurrentHP < neededHp)
                 {
-                    GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] does not have enough HP!");
+                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] does not have enough HP!");
                     // refund juice
                     self.CurrentJuice += skill.Cost;
                     return;
                 }
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] headbutts [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
                 if (self.CurrentState == "angry" || self.CurrentState == "enraged")
                     GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
                 else
@@ -239,6 +268,43 @@ public class SkillDatabase
             }
         };
 
+        Skills["Twirl"] = new Skill
+        {
+            Name = "TWIRL",
+            Description = "AUBREY attacks a foe and becomes HAPPY.\nCost: 10",
+            Cost = 10,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 45,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
+                await Task.Delay(500);
+                GameManager.Instance.AnimationManager.PlayAnimation(28, target);
+                await Task.Delay(500);
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK * 2f + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
+                string state = "happy";
+                switch (self.CurrentState)
+                {
+                    case "manic":
+                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+                        return;
+                    case "ecstatic":
+                        state = "manic";
+                        break;
+                    case "happy":
+                        state = "ecstatic";
+                        break;
+                }
+                if (self.IsStateValid(state))
+                    self.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+
+            }
+        };
+
         Skills["ARWAttack"] = new Skill
         {
             Name = "Attack",
@@ -251,7 +317,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -268,7 +334,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] hits a home run!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] hits a home run!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 4f - target.CurrentStats.DEF; });
                 int roll = GameManager.Instance.Random.RandiRange(0, 100);
                 if (roll < 11)
@@ -292,7 +358,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -307,13 +373,13 @@ public class SkillDatabase
             AnimationId = 55,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " annoys " + target.Name.ToUpper() + "!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] annoys [target]!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 string state = "angry";
                 switch (target.CurrentState)
                 {
                     case "furious":
-                        GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any angrier!");
+                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any angrier!");
                         return;
                     case "enraged":
                         state = "furious";
@@ -325,7 +391,7 @@ public class SkillDatabase
                 if (target.IsStateValid(state))
                     target.SetState(state);
                 else
-                    GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any angrier!");
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any angrier!");
             }
         };
         Skills["Rebound"] = new Skill
@@ -339,7 +405,7 @@ public class SkillDatabase
             AnimationId = 56,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor]'s ball bounces everywhere!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s ball bounces everywhere!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 foreach (Enemy enemy in GameManager.Instance.BattleManager.GetAllEnemies())
                     GameManager.Instance.BattleManager.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
@@ -356,13 +422,31 @@ public class SkillDatabase
             AnimationId = 58,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] does a fancy ball trick!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] does a fancy ball trick!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
                 await Task.Delay(1000);
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
                 await Task.Delay(1000);
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+            }
+        };
+        Skills["Flex"] = new Skill
+        {
+            Name = "FLEX",
+            Description = "KEL deals more damage next turn and increases\nHIT RATE for his next attack. Cost: 10",
+            Cost = 10,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Self,
+            AnimationId = 57,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] flexes and feels his best!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s HIT RATE rose!");
+                self.AddStatModifier(Modifier.Flex, turns: int.MaxValue);
+                await Task.CompletedTask;
             }
         };
 
@@ -378,7 +462,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -394,7 +478,7 @@ public class SkillDatabase
             AnimationId = 214,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] gives some encouragement!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] gives some encouragement!");
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
                 await Task.Delay(1000);
                 target.AddStatModifier(Modifier.AttackUp);
@@ -414,7 +498,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -429,10 +513,10 @@ public class SkillDatabase
             AnimationId = 86,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self.Name.ToUpper() + " massages " + target.Name.ToUpper() + "!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] massages [target]!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 target.SetState("neutral");
-                GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " calms down...");
+                BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " calms down...");
             }
         };
         Skills["Cook"] = new Skill
@@ -446,7 +530,7 @@ public class SkillDatabase
             AnimationId = 85,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] makes a cookie just for [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes a cookie just for [target]!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 float heal = target.CurrentStats.MaxHP * 0.75f;
                 float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
@@ -454,6 +538,7 @@ public class SkillDatabase
                 target.Heal(finalHeal);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
                 await Task.Delay(1000);
             }
         };
@@ -468,11 +553,43 @@ public class SkillDatabase
             AnimationId = 213,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] makes a refreshment for [target].");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes a refreshment for [target].");
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
                 int heal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.5f, MidpointRounding.AwayFromZero);
                 target.HealJuice(heal);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} JUICE!");
+                await Task.Delay(1000);
+            }
+        };
+        Skills["HomemadeJam"] = new Skill
+        {
+            Name = "HOMEMADE JAM",
+            Description = "Brings back a friend that is TOAST.\nCost: 40",
+            Cost = 40,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.DeadAlly,
+            AnimationId = 269,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes HOMEMADE JAM!");
+                if (target.CurrentState != "toast")
+                {
+                    target = GameManager.Instance.BattleManager.GetRandomDeadPartyMember();
+                    if (target == null)
+                    {
+                        BattleLogManager.Instance.QueueMessage("It had no effect.");
+                        return;
+                    }
+                }
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                target.SetState("neutral");
+                int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
+                target.Heal(heal);
+                GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
                 await Task.Delay(1000);
             }
         };
@@ -489,7 +606,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] attacks [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -505,7 +622,7 @@ public class SkillDatabase
             AnimationId = 114,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] provides first aid!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] provides first aid!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 float heal = target.CurrentStats.MaxHP * 0.25f;
                 float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
@@ -513,6 +630,7 @@ public class SkillDatabase
                 target.Heal(finalHeal);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
                 await Task.Delay(1000);
             }
         };
@@ -530,7 +648,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] bumps into [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] bumps into [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -547,7 +665,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 AudioManager.Instance.PlaySFX("BA_do_nothing_dance");
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] is rolling around.");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] is rolling around.");
                 await Task.CompletedTask;
             }
         };
@@ -564,7 +682,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] runs around!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] runs around!");
                 await Task.Delay(100);
                 target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
@@ -587,7 +705,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] nibbles at [target]?");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] nibbles at [target]?");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -604,7 +722,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 AudioManager.Instance.PlaySFX("BA_do_nothing_falls_over");
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] is hopping around?");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] is hopping around?");
                 await Task.CompletedTask;
             }
         };
@@ -620,7 +738,7 @@ public class SkillDatabase
             AnimationId = 148,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] winks at [target]?");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target]?");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(215, target);
                 target.AddStatModifier(Modifier.AttackDown);
@@ -638,13 +756,13 @@ public class SkillDatabase
             AnimationId = 149,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] looks sadly at [target]?");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks sadly at [target]?");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self);
                 string state = "sad";
                 switch (target.CurrentState)
                 {
                     case "miserable":
-                        GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any sadder!");
+                        BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " cannot be any sadder!");
                         return;
                     case "depressed":
                         state = "miserable";
@@ -656,7 +774,7 @@ public class SkillDatabase
                 if (target.IsStateValid(state))
                     target.SetState(state);
                 else
-                    GameManager.Instance.MessageBattleLog(target.Name.ToUpper() + " cannot be any sadder!");
+                    BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " cannot be any sadder!");
             }
         };
 
@@ -673,7 +791,7 @@ public class SkillDatabase
             Effect = async (self, target, skill) =>
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] slaps [target].");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] slaps [target].");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
@@ -689,7 +807,7 @@ public class SkillDatabase
             AnimationId = 183,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] insults everyone!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] insults everyone!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers()) {
                     GameManager.Instance.BattleManager.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
@@ -697,7 +815,7 @@ public class SkillDatabase
                     switch (member.Actor.CurrentState)
                     {
                         case "furious":
-                            GameManager.Instance.MessageBattleLog(member.Actor.Name.ToUpper() + " cannot be any angrier!");
+                            BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
                             return;
                         case "enraged":
                             state = "furious";
@@ -709,7 +827,7 @@ public class SkillDatabase
                     if (member.Actor.IsStateValid(state))
                         member.Actor.SetState(state);
                     else
-                        GameManager.Instance.MessageBattleLog(member.Actor.Name.ToUpper() + " cannot be any angrier!");
+                        BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
                 }
             }
         };
@@ -725,7 +843,7 @@ public class SkillDatabase
             AnimationId = 206,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] swings her mace!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] swings her mace!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
                 {
@@ -745,13 +863,13 @@ public class SkillDatabase
             AnimationId = 162,
             Effect = async (self, target, skill) =>
             {
-                GameManager.Instance.ClearAndMessageBattleLog(self, target, "[actor] boasts about one of her\nmany, many talents!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] boasts about one of her\nmany, many talents!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
                 string state = "happy";
                 switch (self.CurrentState)
                 {
                     case "manic":
-                        GameManager.Instance.MessageBattleLog(self.Name.ToUpper() + " cannot be any happier!");
+                        BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
                         return;
                     case "ecstatic":
                         state = "manic";
@@ -763,8 +881,89 @@ public class SkillDatabase
                 if (self.IsStateValid(state))
                     self.SetState(state);
                 else
-                    GameManager.Instance.MessageBattleLog(self.Name.ToUpper() + " cannot be any happier!");
+                    BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
             }
         };
+        #endregion
+
+        #region SNACKS
+        Snacks["HOT DOG"] = new Snack
+        {
+            Name = "HOT DOG",
+            Description = "Better than a cold dog.\nHeals 100 HEART.",
+            Target = SkillTarget.Ally,
+            AnimationId = 212,
+            Effect = async (self, target, snack) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses HOT DOG!");
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target);
+                target.Heal(100);
+                GameManager.Instance.BattleManager.SpawnDamageNumber(100, target.CenterPoint, DamageType.Heal);
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 100 HEART!");
+                await Task.CompletedTask;
+            }
+        };
+
+        Snacks["CHOCOLATE"] = new Snack
+        {
+            Name = "CHOCOLATE",
+            Description = "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.",
+            Target = SkillTarget.Ally,
+            AnimationId = 212,
+            Effect = async (self, target, snack) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses CHOCOLATE!");
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target);
+                float heal = target.CurrentStats.MaxHP * 0.4f;
+                int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
+                target.Heal(finalHeal);
+                GameManager.Instance.BattleManager.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
+                await Task.CompletedTask;
+            }
+        };
+
+        Snacks["LIFE JAM"] = new Snack
+        {
+            Name = "LIFE JAM",
+            Description = "Infused with the spirit of life.\nRevives a friend that is TOAST.",
+            Target = SkillTarget.DeadAlly,
+            AnimationId = 269,
+            Effect = async (self, target, snack) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LIFE JAM!");
+                if (target.CurrentState != "toast")
+                {
+                    target = GameManager.Instance.BattleManager.GetRandomDeadPartyMember();
+                    if (target == null)
+                    {
+                        BattleLogManager.Instance.QueueMessage("It had no effect.");
+                        return;
+                    }
+                }
+                await GameManager.Instance.AnimationManager.WaitForAnimation(snack.AnimationId, target);
+                target.CurrentHP = target.CurrentStats.MaxHP / 2;
+                target.SetState("neutral");
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
+            }
+        };
+
+        Snacks["LEMONADE"] = new Snack
+        {
+            Name = "LEMONADE",
+            Description = "When life gives you lemons, you make this!\nHeals 75 JUICE.",
+            Target = SkillTarget.Ally,
+            AnimationId = 212,
+            Effect = async (self, target, snack) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LEMONADE!");
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target);
+                target.HealJuice(75);
+                GameManager.Instance.BattleManager.SpawnDamageNumber(75, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 75 JUICE!");
+                await Task.CompletedTask;
+            }
+        };
+        #endregion
     }
 }

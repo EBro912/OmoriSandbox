@@ -4,11 +4,11 @@ public class StatModifier
     public int Tier { get; private set; }
     public int TurnsLeft { get; private set; }
 
-    public StatModifier(Modifier modifier, int tier = 1)
+    public StatModifier(Modifier modifier, int tier, int turnsLeft)
     {
         Modifier = modifier;
         Tier = tier;
-        TurnsLeft = 6;
+        TurnsLeft = turnsLeft;
     }
 
     public bool IncreaseTier()
@@ -33,5 +33,7 @@ public enum Modifier
     SpeedUp,
     AttackDown,
     DefenseDown,
-    SpeedDown
+    SpeedDown,
+    SweetheartLock,
+    Flex
 }

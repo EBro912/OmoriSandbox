@@ -110,10 +110,10 @@ public partial class AnimationManager : Node2D
 				// TODO: dont use GetImage here
 				Image img = texture.GetImage();
 				img.FlipX();
-				DrawTexture(ImageTexture.CreateFromImage(img), DrawPosition + new Vector2(frame.X, frame.Y));
+				DrawTexture(ImageTexture.CreateFromImage(img), DrawPosition + new Vector2(frame.X, frame.Y), new Color(1f, 1f, 1f, frame.Opacity / 255f));
 				continue;
 			}				
-			DrawTexture(texture, DrawPosition + new Vector2(frame.X, frame.Y));
+			DrawTexture(texture, DrawPosition + new Vector2(frame.X, frame.Y), new Color(1f, 1f, 1f, frame.Opacity / 255f));
 		}
 	}
 
@@ -197,6 +197,7 @@ public partial class AnimationManager : Node2D
 		return tcs.Task;
 	}
 
+	// TODO: support multiple animations on the same frame
 	private void StartAnimation(int id, Vector2 position)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
@@ -209,7 +210,7 @@ public partial class AnimationManager : Node2D
 		DrawPosition = position - new Vector2(96f, 96f);
 		// hack fix for the headbutt curtain animation
 		if (id == 30)
-			DrawPosition -= new Vector2(6f, 0f);
+			DrawPosition += new Vector2(6f, 0f);
 		CurrentFrame = 0;
 		FrameTimer = 0f;
 		IsPlaying = true;

@@ -8,8 +8,6 @@ public partial class GameManager : Node
 	[Export] public PackedScene EnemyUI;
 	[Export] public Control UIParent;
 	[Export] public Control BattlebackParent;
-
-	[Export] public Label BattleLog;
 	[Export] public Label FPSLabel;
 
 	private readonly Dictionary<string, Type> ValidPartyMembers = [];
@@ -29,7 +27,7 @@ public partial class GameManager : Node
 
 	public override void _Ready()
 	{
-		SkillDatabase.Init();
+		Database.Init();
 
 		ValidPartyMembers.Add("Omori", typeof(Omori));
 		ValidPartyMembers.Add("Aubrey", typeof(Aubrey));
@@ -48,10 +46,12 @@ public partial class GameManager : Node
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
+		// Omori, Aubrey, Hero, Kel
+		// TODO: properly handle less than 4 party members
 		party.Add(SpawnPartyMember("Omori", 1, 20));
-		party.Add(SpawnPartyMember("Aubrey", 2, 20));
+		party.Add(SpawnPartyMember("Aubrey", 2, 1));
 		party.Add(SpawnPartyMember("Hero", 3, 20));
-		party.Add(SpawnPartyMember("Kel", 4, 20));
+		party.Add(SpawnPartyMember("Tony", 4, 20));
 
 		enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 270)));
 
@@ -64,39 +64,6 @@ public partial class GameManager : Node
 		BattleManager = new();
 		AddChild(BattleManager);
 		BattleManager.Init(party, enemy);
-	}
-
-
-	public void ClearAndMessageBattleLog(string message)
-	{
-		ClearBattleLog();
-		MessageBattleLog(message);
-	}
-
-	public void ClearAndMessageBattleLog(Actor self, Actor target, string message)
-	{
-		ClearBattleLog();
-		MessageBattleLog(self, target, message);
-	}
-
-	public void MessageBattleLog(string message)
-	{
-		BattleLog.Text += message + '\n';
-	}
-
-	public void MessageBattleLog(Actor self, Actor target, string message)
-	{
-		BattleLog.Text += ParseMessage(self, target, message) + '\n';
-	}
-
-	public void ClearBattleLog()
-	{
-		BattleLog.Text = "";
-	}
-
-	public string ParseMessage(Actor self, Actor target, string message)
-	{
-		return message.Replace("[actor]", self.Name.ToUpper()).Replace("[target]", target == null ? "" : target.Name.ToUpper());
 	}
 
 	private EnemyComponent SpawnEnemy(string who, Vector2 position)
