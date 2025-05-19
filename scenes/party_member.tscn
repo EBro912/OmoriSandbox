@@ -64,14 +64,14 @@ region_enabled = true
 region_rect = Rect2(17, 0, 98, 22)
 
 [node name="FaceState" type="Sprite2D" parent="Battlecard"]
-z_index = -2
+z_index = -3
 position = Vector2(57, 67)
 texture = ExtResource("3_3r6nr")
 region_enabled = true
 region_rect = Rect2(0, 0, 100, 100)
 
 [node name="Face" type="AnimatedSprite2D" parent="Battlecard"]
-z_index = -1
+z_index = -2
 position = Vector2(57, 69)
 sprite_frames = SubResource("SpriteFrames_ms8ku")
 

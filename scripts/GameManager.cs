@@ -48,10 +48,10 @@ public partial class GameManager : Node
 
 		// Omori, Aubrey, Hero, Kel
 		// TODO: properly handle less than 4 party members
-		party.Add(SpawnPartyMember("Omori", 1, 50));
-		party.Add(SpawnPartyMember("Aubrey", 2, 1));
-		party.Add(SpawnPartyMember("Hero", 3, 1));
-		party.Add(SpawnPartyMember("Tony", 4, 1));
+		party.Add(SpawnPartyMember("Omori", 1, 20));
+		party.Add(SpawnPartyMember("Aubrey", 2, 20));
+		party.Add(SpawnPartyMember("Hero", 3, 20));
+		party.Add(SpawnPartyMember("Tony", 4, 20));
 
 		enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 270)));
 

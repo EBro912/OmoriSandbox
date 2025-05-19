@@ -215,6 +215,19 @@ public partial class AnimationManager : Node2D
 		FrameTimer = 0f;
 		IsPlaying = true;
 
+		switch (animation.Layer)
+		{
+			case 0:
+				ZIndex = 10;
+				break;
+			case 2:
+				ZIndex = -1;
+				break;
+			case 3:
+				ZIndex = -4;
+				break;
+		}
+
 		if (CurrentAnimation.TryGetFrameSFX(0, out SFX sfx))
 		{
 			AudioManager.Instance.PlaySFX(sfx);

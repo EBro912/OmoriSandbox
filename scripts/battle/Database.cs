@@ -120,7 +120,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] tricks [target].");
-                if (self.CurrentState == "happy" || self.CurrentState == "ecstatic" || self.CurrentState == "manic")
+                if (target.CurrentState == "happy" || target.CurrentState == "ecstatic" || target.CurrentState == "manic")
                 {
                     GameManager.Instance.AnimationManager.PlayAnimation(219, target);
                     target.AddStatModifier(Modifier.SpeedDown, 3);

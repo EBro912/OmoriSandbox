@@ -63,6 +63,7 @@ public partial class AudioManager : Node
 			player.PitchScale = pitch;
 			player.VolumeLinear = volume;
 			player.Play();
+			GD.Print("Playing sound " + stream.ResourceName + " on " + player.Name);
 			break;
 		}
 	}
