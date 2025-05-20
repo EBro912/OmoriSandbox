@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 public class Database
 {
     private static readonly Dictionary<string, Skill> Skills = [];
-    private static readonly Dictionary<string, Snack> Snacks = [];
+    private static readonly Dictionary<string, Item> Items = [];
 
     public static bool TryGetSkill(string name, out Skill skill)
     {
         return Skills.TryGetValue(name, out skill);
     }
 
-    public static bool TryGetSnack(string name, out Snack snack)
+    public static bool TryGetItem(string name, out Item item)
     {
-        return Snacks.TryGetValue(name, out snack);
+        return Items.TryGetValue(name, out item);
     }
 
     public static void Init()
@@ -816,7 +816,7 @@ public class Database
                     {
                         case "furious":
                             BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
-                            return;
+                            continue;
                         case "enraged":
                             state = "furious";
                             break;
@@ -887,13 +887,13 @@ public class Database
         #endregion
 
         #region SNACKS
-        Snacks["HOT DOG"] = new Snack
+        Items["HOT DOG"] = new Item
         {
             Name = "HOT DOG",
             Description = "Better than a cold dog.\nHeals 100 HEART.",
             Target = SkillTarget.Ally,
             AnimationId = 212,
-            Effect = async (self, target, snack) =>
+            Effect = async (self, target, item) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses HOT DOG!");
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target);
@@ -904,13 +904,13 @@ public class Database
             }
         };
 
-        Snacks["CHOCOLATE"] = new Snack
+        Items["CHOCOLATE"] = new Item
         {
             Name = "CHOCOLATE",
             Description = "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.",
             Target = SkillTarget.Ally,
             AnimationId = 212,
-            Effect = async (self, target, snack) =>
+            Effect = async (self, target, item) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses CHOCOLATE!");
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target);
@@ -923,13 +923,13 @@ public class Database
             }
         };
 
-        Snacks["LIFE JAM"] = new Snack
+        Items["LIFE JAM"] = new Item
         {
             Name = "LIFE JAM",
             Description = "Infused with the spirit of life.\nRevives a friend that is TOAST.",
             Target = SkillTarget.DeadAlly,
             AnimationId = 269,
-            Effect = async (self, target, snack) =>
+            Effect = async (self, target, item) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LIFE JAM!");
                 if (target.CurrentState != "toast")
@@ -941,26 +941,78 @@ public class Database
                         return;
                     }
                 }
-                await GameManager.Instance.AnimationManager.WaitForAnimation(snack.AnimationId, target);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(item.AnimationId, target);
                 target.CurrentHP = target.CurrentStats.MaxHP / 2;
                 target.SetState("neutral");
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
             }
         };
 
-        Snacks["LEMONADE"] = new Snack
+        Items["LEMONADE"] = new Item
         {
             Name = "LEMONADE",
             Description = "When life gives you lemons, you make this!\nHeals 75 JUICE.",
             Target = SkillTarget.Ally,
             AnimationId = 212,
-            Effect = async (self, target, snack) =>
+            Effect = async (self, target, item) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LEMONADE!");
                 GameManager.Instance.AnimationManager.PlayAnimation(213, target);
                 target.HealJuice(75);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(75, target.CenterPoint, DamageType.JuiceGain);
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 75 JUICE!");
+                await Task.CompletedTask;
+            }
+        };
+        #endregion
+        #region TOYS
+        Items["RUBBER BAND"] = new Item
+        {
+            Name = "RUBBER BAND",
+            Description = "Deals damage to a for and reduces\ntheir DEFENSE.",
+            IsToy = true,
+            Target = SkillTarget.Enemy,
+            AnimationId = 219,
+            Effect = async (self, target, item) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses RUBBER BAND!");
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return 50; }, true, 0, neverCrit: true);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(item.AnimationId, target);
+                target.AddStatModifier(Modifier.DefenseDown);
+            }
+        };
+
+        Items["AIR HORN"] = new Item
+        {
+            Name = "AIR HORN",
+            Description = "Who would invent this!?\nInflicts ANGER on all friends.",
+            IsToy = true,
+            Target = SkillTarget.AllAllies,
+            AnimationId = -1,
+            Effect = async (self, target, item) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses AIR HORN!");
+                AudioManager.Instance.PlaySFX("SE_airhorn", 1, 0.9f);
+                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                {
+                    string state = "angry";
+                    switch (member.Actor.CurrentState)
+                    {
+                        case "furious":
+                            BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any angrier!");
+                            continue;
+                        case "enraged":
+                            state = "furious";
+                            break;
+                        case "angry":
+                            state = "enraged";
+                            break;
+                    }
+                    if (member.Actor.IsStateValid(state))
+                        member.Actor.SetState(state);
+                    else
+                        BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any angrier!");
+                }
                 await Task.CompletedTask;
             }
         };

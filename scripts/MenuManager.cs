@@ -22,10 +22,10 @@ public partial class MenuManager : Node
 	public string CursorSelection => CurrentSelection;
 
 	private int SelectedSkill = 1;
-	private int SelectedSnack = 1;
+	private int SelectedItem = 1;
 
 	private List<Skill> CurrentSkills = [];
-	private List<(Snack, int)> CurrentSnacks = [];
+	private List<(Item, int)> CurrentItems = [];
 
 	private const float FightRunOffsetRW = 458f;
 	private const float FightRunOffset = 376f;
@@ -91,8 +91,19 @@ public partial class MenuManager : Node
 				CostText.Text = "HOLD:";
 				CostIcon.Visible = false;
 				MoveCursorTo("Skill1");
-				ShowSnackInfo(1);
+				ShowItemInfo(1);
 				CurrentMenu = "SnackMenu";
+				break;
+			case "ToyMenu":
+				PartyCommandsMenu.Visible = false;
+				BattleCommandsMenu.Visible = false;
+				SkillMenu.Visible = true;
+				Cursor.Visible = true;
+				CostText.Text = "HOLD:";
+				CostIcon.Visible = false;
+				MoveCursorTo("Skill1");
+				ShowItemInfo(1);
+				CurrentMenu = "ToyMenu";
 				break;
 			case "None":
 				PartyCommandsMenu.Visible = false;
@@ -170,31 +181,31 @@ public partial class MenuManager : Node
 					return;
 				}
 			}
-			if (CurrentMenu == "SnackMenu")
+			if (CurrentMenu == "SnackMenu" || CurrentMenu == "ToyMenu")
 			{
 				AudioManager.Instance.PlaySFX("SYS_move");
 				if (CurrentSelection == "Skill1")
 				{
 					MoveCursorTo("Skill2");
-					ShowSnackInfo(2);
+					ShowItemInfo(2);
 					return;
 				}
 				if (CurrentSelection == "Skill2")
 				{
 					MoveCursorTo("Skill1");
-					ShowSnackInfo(1);
+					ShowItemInfo(1);
 					return;
 				}
 				if (CurrentSelection == "Skill3")
 				{
 					MoveCursorTo("Skill4");
-					ShowSnackInfo(4);
+					ShowItemInfo(4);
 					return;
 				}
 				if (CurrentSelection == "Skill4")
 				{
 					MoveCursorTo("Skill3");
-					ShowSnackInfo(3);
+					ShowItemInfo(3);
 					return;
 				}
 			}
@@ -254,31 +265,31 @@ public partial class MenuManager : Node
 					return;
 				}
 			}
-			if (CurrentMenu == "SnackMenu")
+			if (CurrentMenu == "SnackMenu" || CurrentMenu == "ToyMenu")
 			{
 				AudioManager.Instance.PlaySFX("SYS_move");
 				if (CurrentSelection == "Skill1")
 				{
 					MoveCursorTo("Skill3");
-					ShowSnackInfo(3);
+					ShowItemInfo(3);
 					return;
 				}
 				if (CurrentSelection == "Skill3")
 				{
 					MoveCursorTo("Skill1");
-					ShowSnackInfo(1);
+					ShowItemInfo(1);
 					return;
 				}
 				if (CurrentSelection == "Skill2")
 				{
 					MoveCursorTo("Skill4");
-					ShowSnackInfo(4);
+					ShowItemInfo(4);
 					return;
 				}
 				if (CurrentSelection == "Skill4")
 				{
 					MoveCursorTo("Skill2");
-					ShowSnackInfo(2);
+					ShowItemInfo(2);
 					return;
 				}
 			}
@@ -317,34 +328,34 @@ public partial class MenuManager : Node
 		}
 	}
 
-	public void PopulateSnackMenu()
+	public void PopulateItemMenu(bool toys)
 	{
-		CurrentSkills.Clear();
+		CurrentItems.Clear();
 		foreach (Label l in SkillLabels)
 			l.Text = "";
 		int idx = 0;
-		foreach ((Snack, int) snack in GameManager.Instance.BattleManager.GetSnacks())
+		foreach ((Item, int) item in toys ? GameManager.Instance.BattleManager.GetToys() : GameManager.Instance.BattleManager.GetSnacks())
 		{
 			if (idx > 3)
 				return;
-			SkillLabels[idx].Text = snack.Item1.Name;
-			CurrentSnacks.Add(snack);
+			SkillLabels[idx].Text = item.Item1.Name;
+			CurrentItems.Add(item);
 			idx++;
 		}
 	}
 
-	public Snack GetSelectedSnack()
+	public Item GetSelectedItem()
 	{
-		return CurrentSnacks[SelectedSnack - 1].Item1;
+		return CurrentItems[SelectedItem - 1].Item1;
 	}
 
-	private void ShowSnackInfo(int idx)
+	private void ShowItemInfo(int idx)
 	{
-		SelectedSnack = idx;
-		if (idx <= CurrentSnacks.Count)
+		SelectedItem = idx;
+		if (idx <= CurrentItems.Count)
 		{
-			Snack s = CurrentSnacks[idx - 1].Item1;
-			ValueLabel.Text = "x" + CurrentSnacks[idx - 1].Item2;
+			Item s = CurrentItems[idx - 1].Item1;
+			ValueLabel.Text = "x" + CurrentItems[idx - 1].Item2;
 			BattleLogManager.Instance.ClearAndShowMessage($"{s.Name}\n{s.Description}");
 		}
 	}

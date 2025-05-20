@@ -18,7 +18,7 @@ public partial class BattleManager : Node
 	private int CommandIndex = -1;
 	private Timer Delay;
 	private List<Node2D> DyingEnemies = [];
-	private Dictionary<string, int> Snacks = [];
+	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
 
 	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
@@ -35,10 +35,13 @@ public partial class BattleManager : Node
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
 
-		Snacks.Add("LIFE JAM", 4);
-		Snacks.Add("HOT DOG", 4);
-		Snacks.Add("LEMONADE", 4);
-		Snacks.Add("CHOCOLATE", 4);
+		Items.Add("LIFE JAM", 4);
+		Items.Add("HOT DOG", 4);
+		Items.Add("LEMONADE", 4);
+		Items.Add("CHOCOLATE", 4);
+
+		Items.Add("RUBBER BAND", 4);
+		Items.Add("AIR HORN", 4);
 
 		SetPhase(BattlePhase.FightRun);
 	}
@@ -99,8 +102,15 @@ public partial class BattleManager : Node
 					{
 						AudioManager.Instance.PlaySFX("SYS_select");
 						SetPhase(BattlePhase.SkillSelection);
-						MenuManager.Instance.PopulateSnackMenu();
+						MenuManager.Instance.PopulateItemMenu(false);
 						MenuManager.Instance.ShowMenu("SnackMenu");
+					}
+					else if (MenuManager.Instance.CursorSelection == "Toy")
+					{
+						AudioManager.Instance.PlaySFX("SYS_select");
+						SetPhase(BattlePhase.SkillSelection);
+						MenuManager.Instance.PopulateItemMenu(true);
+						MenuManager.Instance.ShowMenu("ToyMenu");
 					}
 					break;
 				case BattlePhase.SkillSelection:
@@ -118,14 +128,19 @@ public partial class BattleManager : Node
 							return;
 						}
 					}
-					if (MenuManager.Instance.DisplayedMenu == "SnackMenu")
+					if (MenuManager.Instance.DisplayedMenu == "SnackMenu" || MenuManager.Instance.DisplayedMenu == "ToyMenu")
 					{
-						SelectedAction = MenuManager.Instance.GetSelectedSnack();
+						SelectedAction = MenuManager.Instance.GetSelectedItem();
 						if ((SelectedAction.Target == SkillTarget.DeadAlly || SelectedAction.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
 						{
 							AudioManager.Instance.PlaySFX("sys_buzzer");
 							return;
 						}
+
+						Item item = SelectedAction as Item;
+						Items[item.Name]--;
+						if (Items[item.Name] == 0)
+							Items.Remove(item.Name);
 					}
 					AudioManager.Instance.PlaySFX("SYS_select");
 					SetPhase(BattlePhase.TargetSelection);
@@ -146,6 +161,13 @@ public partial class BattleManager : Node
 						SetPhase(BattlePhase.FightRun);
 					else
 					{
+						if (Commands[^1].Action is Item item)
+						{
+							if (!Items.ContainsKey(item.Name))
+								Items.Add(item.Name, 1);
+							else
+								Items[item.Name]++;
+						}
 						Commands.RemoveAt(Commands.Count - 1);
 						CurrentPartyMember--;
 						SetPhase(BattlePhase.PlayerCommand);
@@ -533,14 +555,9 @@ public partial class BattleManager : Node
 			}
 			await skill.Effect(currentAction.Actor, currentAction.Target, skill);
 		}
-		else if (currentAction.Action is Snack snack)
+		else if (currentAction.Action is Item item)
 		{
-			await snack.Effect(currentAction.Actor, currentAction.Target, snack);
-			Snacks[snack.Name]--;
-			if (Snacks[snack.Name] <= 0)
-			{
-				Snacks.Remove(snack.Name);
-			}
+			await item.Effect(currentAction.Actor, currentAction.Target, item);
 		}
 		// tick down buffs after actor takes their turn
 		currentAction.Actor.DecreaseTurnCounter();
@@ -775,14 +792,30 @@ public partial class BattleManager : Node
 		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
 	}
 
-	public List<(Snack, int)> GetSnacks()
+	public List<(Item, int)> GetSnacks()
 	{
-		List<(Snack, int)> result = [];
-		foreach (var entry in Snacks)
+		List<(Item, int)> result = [];
+		foreach (var entry in Items)
 		{
-			if (Database.TryGetSnack(entry.Key, out Snack snack))
+			if (Database.TryGetItem(entry.Key, out Item item))
 			{
-				result.Add((snack, entry.Value));
+				if (!item.IsToy)
+					result.Add((item, entry.Value));
+			}
+		}
+
+		return result;
+	}
+
+	public List<(Item, int)> GetToys()
+	{
+		List<(Item, int)> result = [];
+		foreach (var entry in Items)
+		{
+			if (Database.TryGetItem(entry.Key, out Item item))
+			{
+				if (item.IsToy)
+					result.Add((item, entry.Value));
 			}
 		}
 
