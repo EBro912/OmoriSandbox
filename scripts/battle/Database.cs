@@ -130,6 +130,72 @@ public class Database
             }
         };
 
+        Skills["AttackAgain1"] = new Skill
+        {
+            Name = "Attack Again 1",
+            Description = "Omori Followup",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 3,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] readies his blade.");
+                await Task.Delay(1000);
+                BattleLogManager.Instance.ClearBattleLog();
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks again!");
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["Trip1"] = new Skill
+        {
+            Name = "Trip 1",
+            Description = "Omori Followup",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 14,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] walks forward.");
+                await Task.Delay(1000);
+                BattleLogManager.Instance.ClearBattleLog();
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                GameManager.Instance.AnimationManager.PlayAnimation(219, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
+                target.AddStatModifier(Modifier.SpeedDown, 1);
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["ReleaseEnergy1"] = new Skill
+        {
+            Name = "Release Energy 1",
+            Description = "Omori Followup",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.AllEnemies,
+            AnimationId = 15,
+            Effect = async (self, target, skill) =>
+            {
+                // TODO: window close animation
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] and friends come together and\nuse their ultimate attack!");
+                await GameManager.Instance.AnimationManager.WaitForReleaseEnergy();
+                BattleLogManager.Instance.ClearBattleLog();
+                await GameManager.Instance.AnimationManager.WaitForAnimation(15);
+                foreach (Enemy enemy in GameManager.Instance.BattleManager.GetAllEnemies())
+                {
+                    GameManager.Instance.BattleManager.Damage(self, enemy, () => { return 300; }, true, 0f, false, true);
+                }
+            }
+            // TODO: status effect
+        };
+
         // SUNNY
 
         Skills["SAttack"] = new Skill
@@ -304,6 +370,103 @@ public class Database
 
             }
         };
+
+        Skills["LookAtOmori1"] = new Skill
+        {
+            Name = "Look At Omori 1",
+            Description = "Aubrey Followup",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 35,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks at OMORI.");
+                await Task.Delay(1000);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(28, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "OMORI didn't notice AUBREY, so\nAUBREY attacks again!");
+                GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK * 2 + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["LookAtKel1"] = new Skill
+        {
+            Name = "Look At Kel 1",
+            Description = "Aubrey Followup",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Self,
+            AnimationId = 38,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks at KEL.");
+                await Task.Delay(1000);
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId);
+                await Task.Delay(2000);
+                BattleLogManager.Instance.QueueMessage(self, target, "KEL eggs [actor] on!");
+                string state = "angry";
+                switch (self.CurrentState)
+                {
+                    case "furious":
+                        BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any angrier!");
+                        return;
+                    case "enraged":
+                        state = "furious";
+                        break;
+                    case "angry":
+                        state = "enraged";
+                        break;
+                }
+                if (self.IsStateValid(state))
+                    self.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any angrier!");
+            }
+        };
+
+        Skills["LookAtHero1"] = new Skill
+        {
+            Name = "Look At Hero 1",
+            Description = "Aubrey Followup",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Self,
+            AnimationId = 41,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks at HERO.");
+                await Task.Delay(1000);
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId);
+                await Task.Delay(2000);
+                GameManager.Instance.AnimationManager.PlayAnimation(214, self);
+                await Task.Delay(1000);
+                BattleLogManager.Instance.QueueMessage(self, target, "HERO tells [actor] to focus!");
+                self.AddStatModifier(Modifier.DefenseUp);
+                string state = "happy";
+                switch (self.CurrentState)
+                {
+                    case "manic":
+                        BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
+                        break;
+                    case "ecstatic":
+                        state = "manic";
+                        break;
+                    case "happy":
+                        state = "ecstatic";
+                        break;
+                }
+                if (self.IsStateValid(state))
+                    self.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
+            }
+        };
+
+
 
         Skills["ARWAttack"] = new Skill
         {
@@ -969,7 +1132,7 @@ public class Database
         Items["RUBBER BAND"] = new Item
         {
             Name = "RUBBER BAND",
-            Description = "Deals damage to a for and reduces\ntheir DEFENSE.",
+            Description = "Deals damage to a foe and reduces\ntheir DEFENSE.",
             IsToy = true,
             Target = SkillTarget.Enemy,
             AnimationId = 219,

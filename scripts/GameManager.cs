@@ -10,6 +10,11 @@ public partial class GameManager : Node
 	[Export] public Control BattlebackParent;
 	[Export] public Label FPSLabel;
 
+	[Export] public PackedScene OmoriFollowup;
+	[Export] public PackedScene AubreyFollowup;
+	[Export] public PackedScene HeroFollowup;
+	[Export] public PackedScene KelFollowup;
+
 	private readonly Dictionary<string, Type> ValidPartyMembers = [];
 	private readonly Dictionary<string, Type> ValidEnemies = [];
 
@@ -48,10 +53,10 @@ public partial class GameManager : Node
 
 		// Omori, Aubrey, Hero, Kel
 		// TODO: properly handle less than 4 party members
-		party.Add(SpawnPartyMember("Omori", 1, 20));
-		party.Add(SpawnPartyMember("Aubrey", 2, 20));
-		party.Add(SpawnPartyMember("Hero", 3, 20));
-		party.Add(SpawnPartyMember("Tony", 4, 20));
+		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, 20));
+		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, 20));
+		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, 20));
+		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, 20));
 
 		enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 270)));
 
@@ -84,7 +89,7 @@ public partial class GameManager : Node
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(string who, int position, int level = 1)
+	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, int level = 1)
 	{
 		if (!ValidPartyMembers.TryGetValue(who, out Type member))
 		{
@@ -111,7 +116,7 @@ public partial class GameManager : Node
 		}
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember((PartyMember)handle, level: level);
+		component.SetPartyMember((PartyMember)handle, followup, position, level: level);
 		return component;
 	}
 

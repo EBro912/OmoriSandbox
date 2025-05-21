@@ -64,8 +64,10 @@ public partial class AudioManager : Node
 			player.VolumeLinear = volume;
 			player.Play();
 			GD.Print("Playing sound " + stream.ResourceName + " on " + player.Name);
-			break;
+			return;
 		}
+
+		GD.PushWarning("Overloaded! We ran out of AudioStreams!");
 	}
 
 	public void PlayBGM(string name)

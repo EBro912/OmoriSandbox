@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://dksr6yuevphnc"]
+
+[ext_resource type="Texture2D" uid="uid://bp4sh5ji6jwpv" path="res://assets/system/ACS_Bubble.png" id="1_c4c7k"]
+[ext_resource type="Texture2D" uid="uid://kbjbvwx6bpq5" path="res://assets/system/ACSArrows.png" id="2_8slu8"]
+
+[node name="omori_followup" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-51, 95)
+texture = ExtResource("1_c4c7k")
+region_enabled = true
+region_rect = Rect2(512.51, 97, 127, 99)
+
+[node name="Sprite2D" type="Sprite2D" parent="Sprite2D"]
+position = Vector2(-4, -39)
+texture = ExtResource("2_8slu8")
+region_enabled = true
+region_rect = Rect2(96, 0, 29, 29)
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(50, 189)
+texture = ExtResource("1_c4c7k")
+region_enabled = true
+region_rect = Rect2(642, 97, 127, 99)
+
+[node name="Sprite2D" type="Sprite2D" parent="Sprite2D2"]
+position = Vector2(-10, 42)
+texture = ExtResource("2_8slu8")
+region_enabled = true
+region_rect = Rect2(0, 0, 29, 29)
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+position = Vector2(-48, 157)
+texture = ExtResource("1_c4c7k")
+region_enabled = true
+region_rect = Rect2(384, 95, 127, 99)
+
+[node name="Sprite2D" type="Sprite2D" parent="Sprite2D3"]
+position = Vector2(-60, 0)
+texture = ExtResource("2_8slu8")
+region_enabled = true
+region_rect = Rect2(66, 0, 29, 29)

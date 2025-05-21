@@ -1,11 +1,14 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
 public partial class BattleManager : Node
 {
+	[Export] public Label EnergyText;
+
 	private List<PartyMemberComponent> CurrentParty = [];
 	private List<EnemyComponent> Enemies = [];
 
@@ -20,6 +23,8 @@ public partial class BattleManager : Node
 	private List<Node2D> DyingEnemies = [];
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
+	private int Energy = 0;
+	private bool FollowupActive = true;
 
 	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
 	{
@@ -43,6 +48,8 @@ public partial class BattleManager : Node
 		Items.Add("RUBBER BAND", 4);
 		Items.Add("AIR HORN", 4);
 
+		Energy = 10;
+
 		SetPhase(BattlePhase.FightRun);
 	}
 
@@ -57,16 +64,13 @@ public partial class BattleManager : Node
 		{
 			Enemies[i].ShowInfoBox(i == CurrentEnemyTarget);
 		}
+
+		MenuManager.Instance.EnergyText.Text = $"{Energy:00}";
+		MenuManager.Instance.EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(Energy / 3f) * 45f, 362f, 49f);
 	}
 
 	public override void _Input(InputEvent @event)
 	{
-		if (Input.IsActionJustPressed("TestAnim"))
-		{
-			BattleLogManager.Instance.QueueMessage("This is a longer test message\nthat probably gets wrapped.");
-		}
-
-
 		if (Input.IsActionJustPressed("Accept"))
 		{
 			switch (Phase)
@@ -189,6 +193,13 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionJustPressed("MenuLeft"))
 		{
+			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+			{
+				if (HandleFollowup("left"))
+				{
+					ProcessFollowupSuccess();
+				}
+			}
 			if (Phase == BattlePhase.TargetSelection)
 			{
 				AudioManager.Instance.PlaySFX("SYS_move");
@@ -223,6 +234,13 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionJustPressed("MenuRight"))
 		{
+			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+			{
+				if (HandleFollowup("right"))
+				{
+					ProcessFollowupSuccess();
+				}
+			}
 			if (Phase == BattlePhase.TargetSelection)
 			{
 				AudioManager.Instance.PlaySFX("SYS_move");
@@ -254,8 +272,48 @@ public partial class BattleManager : Node
 			}
 		}
 
-		if (Input.IsActionJustPressed("MenuUp") || Input.IsActionJustPressed("MenuDown"))
+		if (Input.IsActionJustPressed("MenuUp"))
 		{
+			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+			{
+				if (HandleFollowup("up"))
+				{
+					ProcessFollowupSuccess();
+				}
+			}
+			if (Phase == BattlePhase.TargetSelection)
+			{
+				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+				{
+					AudioManager.Instance.PlaySFX("SYS_move");
+					switch (CurrentPartyMemberTarget)
+					{
+						case 0:
+							CurrentPartyMemberTarget = 1;
+							break;
+						case 1:
+							CurrentPartyMemberTarget = 0;
+							break;
+						case 2:
+							CurrentPartyMemberTarget = 3;
+							break;
+						case 3:
+							CurrentPartyMemberTarget = 2;
+							break;
+					}
+				}
+			}
+		}
+
+		if (Input.IsActionJustPressed("MenuDown"))
+		{
+			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+			{
+				if (HandleFollowup("down"))
+				{
+					ProcessFollowupSuccess();
+				}
+			}
 			if (Phase == BattlePhase.TargetSelection)
 			{
 				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
@@ -345,15 +403,21 @@ public partial class BattleManager : Node
 				}
 				break;
 			case BattlePhase.PostCommand:
+
 				CurrentParty.ForEach(x =>
 				{
-					x.Actor.SetHurt(false);
+					x.Actor.SetHurt(false);					
 					if (x.Actor.CurrentHP == 0 && x.Actor.CurrentState != "toast")
 					{
 						x.Actor.SetState("toast");
 						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
 					}
 				});
+				if (Commands[CommandIndex].Actor is PartyMember && Commands[CommandIndex].Action.Name.EndsWith("Attack"))
+				{
+					CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor).FadeOutFollowups();
+				}
+				FollowupActive = false;
 
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
@@ -553,6 +617,11 @@ public partial class BattleManager : Node
 			{
 				currentAction.Actor.CurrentJuice -= skill.Cost;
 			}
+			if (currentAction.Actor is PartyMember && skill.Name.EndsWith("Attack"))
+			{
+				CurrentParty.First(x => x.Actor == currentAction.Actor).FadeInFollowups();
+				FollowupActive = true;
+			}
 			await skill.Effect(currentAction.Actor, currentAction.Target, skill);
 		}
 		else if (currentAction.Action is Item item)
@@ -565,6 +634,71 @@ public partial class BattleManager : Node
 			SetPhase(BattlePhase.WaitForBattleLog);
 		else
 			SetPhase(BattlePhase.PostCommand);
+	}
+
+	private bool HandleFollowup(string direction)
+	{
+		if (Energy < 3)
+			return false;
+
+		PartyMemberComponent current = CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor);
+		switch (current.Position)
+		{
+			case 1:
+				if (direction == "up") {
+					if (Database.TryGetSkill("AttackAgain1", out Skill skill))
+						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+					return true;
+				}
+				if (direction == "right")
+				{
+					if (Database.TryGetSkill("Trip1", out Skill skill))
+						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+					return true;
+				}
+				if (direction == "down")
+				{
+					if (Energy == 10)
+					{
+						if (Database.TryGetSkill("ReleaseEnergy1", out Skill skill))
+							Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, null, skill));
+						return true;
+					}
+				}
+				break;
+			case 2:
+				if (direction == "up")
+				{
+					if (Database.TryGetSkill("LookAtHero1", out Skill skill))
+						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+					return true;
+				}
+				if (direction == "right")
+				{
+					if (Database.TryGetSkill("LookAtKel1", out Skill skill))
+						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+					return true;
+				}
+				if (direction == "down")
+				{
+					if (Database.TryGetSkill("LookAtOmori1", out Skill skill))
+						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+					return true;
+				}
+				break;
+		}
+		return false;
+	}
+
+	private void ProcessFollowupSuccess()
+	{
+		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
+		FollowupActive = false;
+		CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor).FadeOutFollowups();
+		if (Commands[CommandIndex + 1].Action.Name.Contains("Release Energy"))
+			Energy = 0;
+		else
+			Energy -= 3;
 	}
 
 	public void OnBattleLogFinished()
@@ -668,6 +802,12 @@ public partial class BattleManager : Node
 		else
 			target.CurrentJuice -= juiceLost;
 		target.Damage(rounded);
+		if (target is PartyMember)
+		{
+			Energy++;
+			if (Energy > 10)
+				Energy = 10;
+		}
 		SpawnDamageNumber(rounded, target.CenterPoint);
 		// we don't need to play a hitsound if the attack is a critical
 		if (!critical)
@@ -750,7 +890,7 @@ public partial class BattleManager : Node
 
 	public void SpawnDamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage)
 	{
-		DamageNumber dmg = new(damage, (DamageType)type)
+		DamageNumber dmg = new(damage, type)
 		{
 			Position = position,
 			ZAsRelative = false,

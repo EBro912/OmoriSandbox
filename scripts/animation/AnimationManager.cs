@@ -12,6 +12,7 @@ public partial class AnimationManager : Node2D
 	public delegate void AnimationFinishedEventHandler();
 
 	private TextureRect Battleback;
+	private AnimatedSprite2D ReleaseEnergy;
 
 	private Dictionary<int, RPGMAnimatedSprite> Animations = [];
 
@@ -32,6 +33,7 @@ public partial class AnimationManager : Node2D
 	public override void _Ready()
 	{
 		Battleback = GetNode<TextureRect>("../../UI/Battleback");
+		ReleaseEnergy = GetNode<AnimatedSprite2D>("../../UI/ReleaseEnergy");
 
 		string data = FileAccess.GetFileAsString("res://animations/animations.json");
 		List<AnimationInfo> animationData = JsonConvert.DeserializeObject<List<AnimationInfo>>(data);
@@ -69,8 +71,14 @@ public partial class AnimationManager : Node2D
 		}
 	}
 
-	public override void _Process(double delta)
+	public override async void _Process(double delta)
 	{
+		if (Input.IsActionJustPressed("TestAnim"))
+		{
+			await WaitForReleaseEnergy();
+			PlayAnimation(15);
+		}
+
 		if (!IsPlaying || CurrentAnimation == null)
 			return;
 
@@ -197,6 +205,23 @@ public partial class AnimationManager : Node2D
 		return tcs.Task;
 	}
 
+	public Task WaitForReleaseEnergy()
+	{
+		TaskCompletionSource tcs = new();
+		void Handle()
+		{
+			ReleaseEnergy.AnimationFinished -= Handle;
+			ReleaseEnergy.Visible = false;
+			tcs.SetResult();
+		}
+
+		ReleaseEnergy.Visible = true;
+		AudioManager.Instance.PlaySFX("BA_release_energy", 1, 0.9f);
+		ReleaseEnergy.Play();
+		ReleaseEnergy.AnimationFinished += Handle;
+		return tcs.Task;
+	}
+
 	// TODO: support multiple animations on the same frame
 	private void StartAnimation(int id, Vector2 position)
 	{
@@ -219,6 +244,9 @@ public partial class AnimationManager : Node2D
 		{
 			case 0:
 				ZIndex = 10;
+				break;
+			case 1:
+				ZIndex = 1;
 				break;
 			case 2:
 				ZIndex = -1;

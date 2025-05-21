@@ -12,8 +12,10 @@ public partial class PartyMemberComponent : Node
 	public PartyMemberComponent() { }
 
 	public PartyMember Actor => PartyMember;
+	public Node2D FollowupBubbles { get; private set; }
+	public int Position { get; private set; }
 
-	public void SetPartyMember(PartyMember partyMember, string initialState = "neutral", int level = 1)
+	public void SetPartyMember(PartyMember partyMember, PackedScene followup, int position, string initialState = "neutral", int level = 1)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
@@ -29,6 +31,12 @@ public partial class PartyMemberComponent : Node
 		HPBar.Value = PartyMember.CurrentHP;
 		JuiceBar.MaxValue = PartyMember.BaseStats.Juice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
+
+		Node2D bubbles = followup.Instantiate<Node2D>();
+		bubbles.Modulate = Colors.Transparent;
+		GetParent().AddChild(bubbles);
+		FollowupBubbles = bubbles;
+		Position = position;
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 	}
@@ -47,5 +55,17 @@ public partial class PartyMemberComponent : Node
 	{
 		get { return SelectedBox.Visible; }
 		set { SelectedBox.Visible = value; }
+	}
+
+	public void FadeInFollowups()
+	{
+		Tween tween = CreateTween();
+		tween.TweenProperty(FollowupBubbles, "modulate:a", 1f, 0.2f);
+	}
+
+	public void FadeOutFollowups()
+	{
+		Tween tween = CreateTween();
+		tween.TweenProperty(FollowupBubbles, "modulate:a", 0f, 0.2f);
 	}
 }

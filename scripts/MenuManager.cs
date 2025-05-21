@@ -12,6 +12,8 @@ public partial class MenuManager : Node
 	[Export] public Sprite2D Cursor;
 	[Export] public Label CostText;
 	[Export] public Sprite2D CostIcon;
+	[Export] public Sprite2D EnergyBar;
+	[Export] public Label EnergyText;
 
 	private string CurrentMenu = "PartyCommand";
 	private string CurrentSelection = "Fight";
@@ -62,6 +64,8 @@ public partial class MenuManager : Node
 				SkillMenu.Visible = false;
 				Cursor.Visible = true;
 				MoveCursorTo("Fight");
+				if (CurrentMenu == "None")
+					MoveEnergyBarUp();
 				CurrentMenu = "PartyCommand";
 				break;
 			case "BattleCommand":
@@ -70,6 +74,8 @@ public partial class MenuManager : Node
 				SkillMenu.Visible = false;
 				Cursor.Visible = true;
 				MoveCursorTo("Attack");
+				if (CurrentMenu == "None")
+					MoveEnergyBarUp();
 				CurrentMenu = "BattleCommand";
 				break;
 			case "SkillMenu":
@@ -81,6 +87,8 @@ public partial class MenuManager : Node
 				CostIcon.Visible = true;
 				MoveCursorTo("Skill1");
 				ShowSkillInfo(1);
+				if (CurrentMenu == "None")
+					MoveEnergyBarUp();
 				CurrentMenu = "SkillMenu";
 				break;
 			case "SnackMenu":
@@ -92,6 +100,8 @@ public partial class MenuManager : Node
 				CostIcon.Visible = false;
 				MoveCursorTo("Skill1");
 				ShowItemInfo(1);
+				if (CurrentMenu == "None")
+					MoveEnergyBarUp();
 				CurrentMenu = "SnackMenu";
 				break;
 			case "ToyMenu":
@@ -103,6 +113,8 @@ public partial class MenuManager : Node
 				CostIcon.Visible = false;
 				MoveCursorTo("Skill1");
 				ShowItemInfo(1);
+				if (CurrentMenu == "None")
+					MoveEnergyBarUp();
 				CurrentMenu = "ToyMenu";
 				break;
 			case "None":
@@ -111,6 +123,7 @@ public partial class MenuManager : Node
 				SkillMenu.Visible = false;
 				Cursor.Visible = false;
 				CurrentMenu = "None";
+				MoveEnergyBarDown();
 				break;
 		}
 	}
@@ -359,6 +372,19 @@ public partial class MenuManager : Node
 			BattleLogManager.Instance.ClearAndShowMessage($"{s.Name}\n{s.Description}");
 		}
 	}
+
+	private void MoveEnergyBarDown()
+	{
+		Tween tween = CreateTween();
+		tween.TweenProperty(EnergyBar, "position", new Vector2(320f, 450f), 0.1f).SetTrans(Tween.TransitionType.Sine);
+	}
+
+	private void MoveEnergyBarUp()
+	{
+		Tween tween = CreateTween();
+		tween.TweenProperty(EnergyBar, "position", new Vector2(320f, 360f), 0.1f).SetTrans(Tween.TransitionType.Sine); ;
+	}
+
 
 	private void MoveCursorTo(string position)
 	{

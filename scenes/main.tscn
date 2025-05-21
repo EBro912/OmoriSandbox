@@ -1,8 +1,12 @@
-[gd_scene load_steps=14 format=3 uid="uid://dnxcj20hgcsj8"]
+[gd_scene load_steps=19 format=3 uid="uid://dnxcj20hgcsj8"]
 
+[ext_resource type="PackedScene" uid="uid://b8h6qs361gmp5" path="res://scenes/omori_followup.tscn" id="4_muem4"]
 [ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="4_tipki"]
 [ext_resource type="Texture2D" uid="uid://q4jxuj12jmru" path="res://assets/system/bsys_cursor.png" id="5_85g3d"]
+[ext_resource type="PackedScene" uid="uid://cmi2ecyja4pw6" path="res://scenes/aubrey_followup.tscn" id="5_dp3eg"]
 [ext_resource type="PackedScene" uid="uid://d32syyvyr6iwr" path="res://scenes/party_member.tscn" id="5_tefeu"]
+[ext_resource type="PackedScene" uid="uid://dksr6yuevphnc" path="res://scenes/hero_followup.tscn" id="6_0ld40"]
+[ext_resource type="PackedScene" uid="uid://dcw23mfavolv2" path="res://scenes/kel_followup.tscn" id="7_gqmmt"]
 [ext_resource type="Texture2D" uid="uid://bewmi21adeutt" path="res://assets/battlebacks/battleback_sw_sweetheart.png" id="7_ya4ey"]
 [ext_resource type="PackedScene" uid="uid://u0o0invoxvnj" path="res://scenes/enemy.tscn" id="8_choun"]
 [ext_resource type="Texture2D" uid="uid://b75xtstrsgcbh" path="res://assets/system/bsys_battlelog.png" id="9_85g3d"]
@@ -10,6 +14,7 @@
 [ext_resource type="Script" uid="uid://d18gd83t4is60" path="res://scripts/MenuManager.cs" id="9_ya4ey"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="10_choun"]
 [ext_resource type="PackedScene" uid="uid://coa7jio0ejncb" path="res://scenes/log_line.tscn" id="10_trceg"]
+[ext_resource type="SpriteFrames" uid="uid://clatbr34577po" path="res://animations/release_energy.tres" id="11_dp3eg"]
 [ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="11_eb6dy"]
 [ext_resource type="Script" uid="uid://ckd81otw7er8y" path="res://scripts/AudioManager.cs" id="11_ya4ey"]
 [ext_resource type="Script" uid="uid://bcfwwj4klv2cq" path="res://scripts/GameManager.cs" id="14_a8y0u"]
@@ -25,8 +30,12 @@ EnemyUI = ExtResource("8_choun")
 UIParent = NodePath("../UI")
 BattlebackParent = NodePath("../UI/Battleback")
 FPSLabel = NodePath("../UI/FPS")
+OmoriFollowup = ExtResource("4_muem4")
+AubreyFollowup = ExtResource("5_dp3eg")
+HeroFollowup = ExtResource("6_0ld40")
+KelFollowup = ExtResource("7_gqmmt")
 
-[node name="MenuManager" type="Node" parent="CanvasLayer" node_paths=PackedStringArray("PartyCommandsMenu", "BattleCommandsMenu", "SkillMenu", "SkillLabels", "ValueLabel", "Cursor", "CostText", "CostIcon")]
+[node name="MenuManager" type="Node" parent="CanvasLayer" node_paths=PackedStringArray("PartyCommandsMenu", "BattleCommandsMenu", "SkillMenu", "SkillLabels", "ValueLabel", "Cursor", "CostText", "CostIcon", "EnergyBar", "EnergyText")]
 script = ExtResource("9_ya4ey")
 PartyCommandsMenu = NodePath("../UI/PartyCommands")
 BattleCommandsMenu = NodePath("../UI/BattleCommands")
@@ -36,6 +45,8 @@ ValueLabel = NodePath("../UI/SkillMenu/Cost/Value")
 Cursor = NodePath("../UI/Cursor")
 CostText = NodePath("../UI/SkillMenu/Cost")
 CostIcon = NodePath("../UI/SkillMenu/Cost/Sprite2D")
+EnergyBar = NodePath("../UI/Energy")
+EnergyText = NodePath("../UI/Energy/EnergyAmount")
 
 [node name="BGM" type="AudioStreamPlayer" parent="CanvasLayer"]
 volume_db = -10.0
@@ -62,6 +73,10 @@ BGM = NodePath("../BGM")
 
 [node name="AudioStreamPlayer9" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
 
+[node name="AudioStreamPlayer10" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
+
+[node name="AudioStreamPlayer11" type="AudioStreamPlayer" parent="CanvasLayer/AudioManager"]
+
 [node name="UI" type="Control" parent="CanvasLayer"]
 layout_mode = 3
 anchors_preset = 15
@@ -81,6 +96,13 @@ offset_bottom = 22.0
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 10
 text = "0"
+
+[node name="ReleaseEnergy" type="AnimatedSprite2D" parent="CanvasLayer/UI"]
+visible = false
+z_index = 20
+position = Vector2(320, 243.5)
+scale = Vector2(1, 1.01458)
+sprite_frames = ExtResource("11_dp3eg")
 
 [node name="Battleback" type="TextureRect" parent="CanvasLayer/UI"]
 z_index = -100
@@ -121,6 +143,25 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
+
+[node name="Energy" type="Sprite2D" parent="CanvasLayer/UI"]
+z_index = -1
+position = Vector2(320, 360)
+texture = ExtResource("4_tipki")
+region_enabled = true
+region_rect = Rect2(0, 0, 362, 49)
+
+[node name="EnergyAmount" type="Label" parent="CanvasLayer/UI/Energy"]
+offset_left = 145.0
+offset_top = -13.0
+offset_right = 168.0
+offset_bottom = 11.0
+theme_override_colors/font_outline_color = Color(0.299547, 0.299548, 0.299547, 0.713726)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 24
+text = "00"
+horizontal_alignment = 1
 
 [node name="PartyCommands" type="Sprite2D" parent="CanvasLayer/UI"]
 z_index = -1
