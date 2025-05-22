@@ -132,6 +132,13 @@ public abstract class Actor
                     case Modifier.Flex:
                         current.HIT += 1000;
                         break;
+                    case Modifier.ReleaseEnergy:
+                        current.SPD = RoundedStat(current.SPD * 1.25f);
+                        current.ATK = RoundedStat(current.ATK * 1.25f);
+                        current.DEF = RoundedStat(current.DEF * 1.25f);
+                        current.LCK = RoundedStat(current.LCK * 1.25f);
+                        break;
+
                 }
             }
 

@@ -13,7 +13,7 @@ public class StatModifier
 
     public bool IncreaseTier()
     {
-        if (Tier == 3)
+        if (Tier == 3 || Modifier == Modifier.ReleaseEnergy)
             return false;
         Tier++;
         TurnsLeft = 6;
@@ -35,5 +35,6 @@ public enum Modifier
     DefenseDown,
     SpeedDown,
     SweetheartLock,
-    Flex
+    Flex,
+    ReleaseEnergy
 }

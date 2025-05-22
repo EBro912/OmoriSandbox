@@ -43,6 +43,7 @@ public abstract class PartyMember : Actor
     public abstract int[] SPDTree { get; }
     public abstract int BaseLuck { get; }
     // TODO: add weapon effects
+    // TODO: add charms
     protected abstract string[] EquippedSkills { get; }
     public abstract Stats Weapon { get; }
     public abstract bool IsRealWorld { get; }

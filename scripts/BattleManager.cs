@@ -48,7 +48,7 @@ public partial class BattleManager : Node
 		Items.Add("RUBBER BAND", 4);
 		Items.Add("AIR HORN", 4);
 
-		Energy = 10;
+		Energy = 3;
 
 		SetPhase(BattlePhase.FightRun);
 	}
@@ -647,21 +647,21 @@ public partial class BattleManager : Node
 			case 1:
 				if (direction == "up") {
 					if (Database.TryGetSkill("AttackAgain1", out Skill skill))
-						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				if (direction == "right")
 				{
 					if (Database.TryGetSkill("Trip1", out Skill skill))
-						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				if (direction == "down")
 				{
-					if (Energy == 10)
+					if (Energy == 10 && CurrentParty.All(x => x.Actor.CurrentState != "toast"))
 					{
 						if (Database.TryGetSkill("ReleaseEnergy1", out Skill skill))
-							Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, null, skill));
+							ForceCommand(current.Actor, null, skill);
 						return true;
 					}
 				}
@@ -669,25 +669,82 @@ public partial class BattleManager : Node
 			case 2:
 				if (direction == "up")
 				{
+					if (GetPartyMember(2).CurrentState == "toast")
+						return false;
 					if (Database.TryGetSkill("LookAtHero1", out Skill skill))
-						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				if (direction == "right")
 				{
+					if (GetPartyMember(3).CurrentState == "toast")
+						return false;
 					if (Database.TryGetSkill("LookAtKel1", out Skill skill))
-						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				if (direction == "down")
 				{
 					if (Database.TryGetSkill("LookAtOmori1", out Skill skill))
-						Commands.Insert(CommandIndex + 1, new BattleCommand(current.Actor, Commands[CommandIndex].Target, skill));
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+					return true;
+				}
+				break;
+			case 3:
+				if (direction == "up")
+				{
+					if (GetPartyMember(1).CurrentState == "toast")
+						return false;
+					if (Database.TryGetSkill("CallAubrey1", out Skill skill))
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+					return true;
+				}
+				if (direction == "left")
+				{
+					if (Database.TryGetSkill("CallOmori1", out Skill skill))
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+					return true;
+				}
+				if (direction == "down")
+				{
+					if (GetPartyMember(3).CurrentState == "toast")
+						return false;
+					if (Database.TryGetSkill("CallKel1", out Skill skill))
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+					return true;
+				}
+				break;
+			case 4:
+				if (direction == "down")
+				{
+					if (Database.TryGetSkill("PassToOmori1", out Skill skill))
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+					return true;
+				}
+				if (direction == "left")
+				{
+					if (GetPartyMember(1).CurrentState == "toast")
+						return false;
+					if (Database.TryGetSkill("PassToAubrey1", out Skill skill))
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+					return true;
+				}
+				if (direction == "up")
+				{
+					if (GetPartyMember(2).CurrentState == "toast")
+						return false;
+					if (Database.TryGetSkill("PassToHero1", out Skill skill))
+						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				break;
 		}
 		return false;
+	}
+
+	public void ForceCommand(Actor self, Actor target, Skill skill)
+	{
+		Commands.Insert(CommandIndex + 1, new BattleCommand(self, target, skill));
 	}
 
 	private void ProcessFollowupSuccess()
@@ -930,6 +987,12 @@ public partial class BattleManager : Node
 	public List<PartyMemberComponent> GetAlivePartyMembers()
 	{
 		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
+	}
+
+	public PartyMember GetPartyMember(int index)
+	{
+		// eh who needs bounds checks these days
+		return CurrentParty[index].Actor;
 	}
 
 	public List<(Item, int)> GetSnacks()

@@ -16,10 +16,6 @@ public class RPGMAnimatedSprite
     private readonly Dictionary<int, Shake> FrameShake = [];
     private readonly int Columns;
 
-    // cache the max pattern number for each texture
-    private readonly int TextureMaxPattern = 0;
-    private readonly int AltTextureMaxPattern = 0;
-
     public RPGMAnimatedSprite(int id, int layer, Texture2D texture)
     {
         Id = id;

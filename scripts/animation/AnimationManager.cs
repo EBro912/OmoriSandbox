@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 public partial class AnimationManager : Node2D
 {
-	// TODO: handle ZIndex
-
 	[Signal]
 	public delegate void AnimationFinishedEventHandler();
 
@@ -71,14 +69,8 @@ public partial class AnimationManager : Node2D
 		}
 	}
 
-	public override async void _Process(double delta)
+	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("TestAnim"))
-		{
-			await WaitForReleaseEnergy();
-			PlayAnimation(15);
-		}
-
 		if (!IsPlaying || CurrentAnimation == null)
 			return;
 
@@ -178,19 +170,32 @@ public partial class AnimationManager : Node2D
 		ShakeDuration = 0;
 	}
 
-	public void PlayAnimation(int id, Actor target = null)
+	public void PlayAnimation(int id, Actor target, bool targetsEnemy = true)
 	{
-		if (target == null)
-		{
-			StartAnimation(id, new Vector2(320, 240));
-		}
-		else
-		{
-			StartAnimation(id, target.CenterPoint);
-		}
+		StartAnimation(id, target.CenterPoint, targetsEnemy);
 	}
 
-	public Task WaitForAnimation(int id, Actor target = null)
+	public void PlayScreenAnimation(int id, bool targetsEnemy)
+	{
+		StartAnimation(id, new Vector2(320, 240), targetsEnemy);
+	}
+
+	public Task WaitForAnimation(int id, Actor target, bool targetsEnemy = true)
+	{
+		TaskCompletionSource tcs = new();
+
+		void Handle()
+		{
+			AnimationFinished -= Handle;
+			tcs.SetResult();
+		}	
+
+		PlayAnimation(id, target, targetsEnemy);
+		AnimationFinished += Handle;
+		return tcs.Task;
+	}
+
+	public Task WaitForScreenAnimation(int id, bool targetsEnemy)
 	{
 		TaskCompletionSource tcs = new();
 
@@ -200,7 +205,7 @@ public partial class AnimationManager : Node2D
 			tcs.SetResult();
 		}
 
-		PlayAnimation(id, target);
+		PlayScreenAnimation(id, targetsEnemy);
 		AnimationFinished += Handle;
 		return tcs.Task;
 	}
@@ -223,7 +228,7 @@ public partial class AnimationManager : Node2D
 	}
 
 	// TODO: support multiple animations on the same frame
-	private void StartAnimation(int id, Vector2 position)
+	private void StartAnimation(int id, Vector2 position, bool targetsEnemy)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 		{
@@ -245,14 +250,11 @@ public partial class AnimationManager : Node2D
 			case 0:
 				ZIndex = 10;
 				break;
-			case 1:
-				ZIndex = 1;
-				break;
 			case 2:
 				ZIndex = -1;
 				break;
 			case 3:
-				ZIndex = -4;
+				ZIndex = targetsEnemy ? -4 : 0;
 				break;
 		}
 
@@ -265,6 +267,7 @@ public partial class AnimationManager : Node2D
 	}
 }
 
+#pragma warning disable CS0649
 class AnimationInfo
 {
 	public int Id;
@@ -291,3 +294,4 @@ class ShakeInfo
 	public int Speed;
 	public int Duration;
 }
+#pragma warning restore CS0649
