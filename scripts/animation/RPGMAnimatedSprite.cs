@@ -11,8 +11,7 @@ public class RPGMAnimatedSprite
     private AtlasTexture Texture;
     private AtlasTexture AltTexture;
     private readonly List<List<Frame>> Frames = [];
-    // TODO: support animations that have duplicate SFX on the same frame (power hit)
-    private readonly Dictionary<int, SFX> FrameSFX = [];
+    private readonly Dictionary<int, List<SFX>> FrameSFX = [];
     private readonly Dictionary<int, Shake> FrameShake = [];
     private readonly int Columns;
 
@@ -49,7 +48,14 @@ public class RPGMAnimatedSprite
 
     public void SetFrameSFX(int frame, SFX sfx)
     {
-        FrameSFX[frame] = sfx;
+        if (FrameSFX.TryGetValue(frame, out List<SFX> value))
+        {
+            value.Add(sfx);
+        }
+        else
+        {
+            FrameSFX[frame] = [sfx];
+        }
     }
 
     public void SetFrameShake(int frame, int power, int speed, int duration)
@@ -88,7 +94,7 @@ public class RPGMAnimatedSprite
         return Frames[frame];
     }
 
-    public bool TryGetFrameSFX(int frame, out SFX sfx)
+    public bool TryGetFrameSFX(int frame, out List<SFX> sfx)
     {
         return FrameSFX.TryGetValue(frame, out sfx);
     }

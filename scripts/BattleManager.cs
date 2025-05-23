@@ -155,7 +155,7 @@ public partial class BattleManager : Node
 			}
 		}
 
-		if (Input.IsActionPressed("Back"))
+		if (Input.IsActionJustPressed("Back"))
 		{
 			switch (Phase)
 			{

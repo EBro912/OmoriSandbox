@@ -12,11 +12,16 @@ public partial class AudioManager : Node
 
 	public static AudioManager Instance { get; private set; }
 
+	// only one instance of a sound can play at once
+	private Dictionary<string, AudioStreamPlayer> PlayingSounds = [];
+
 	public override void _Ready()
 	{
 		foreach (Node node in GetChildren())
 		{
-			AudioPlayers.Add((AudioStreamPlayer)node);
+			AudioStreamPlayer player = node as AudioStreamPlayer;
+			AudioPlayers.Add(player);
+			player.Finished += () => OnSFXFinish(player);
 		}
 
 		DirAccess sfx = DirAccess.Open("res://audio/sfx");
@@ -55,6 +60,13 @@ public partial class AudioManager : Node
 			return;
 		}
 
+		if (PlayingSounds.TryGetValue(name, out AudioStreamPlayer existing))
+		{
+			existing.Stream = stream;
+			existing.Play();
+			return;
+		}
+
 		foreach (AudioStreamPlayer player in AudioPlayers)
 		{
 			if (player.Playing)
@@ -63,7 +75,7 @@ public partial class AudioManager : Node
 			player.PitchScale = pitch;
 			player.VolumeLinear = volume;
 			player.Play();
-			GD.Print("Playing sound " + stream.ResourceName + " on " + player.Name);
+			PlayingSounds.Add(name, player);
 			return;
 		}
 
@@ -87,6 +99,18 @@ public partial class AudioManager : Node
 		float target = -10 + Mathf.LinearToDb(volume / 100f);
 		Tween tween = CreateTween();
 		tween.TweenProperty(BGM, "volume_db", target, seconds);
+	}
+
+	private void OnSFXFinish(AudioStreamPlayer player)
+	{
+		foreach (var pair in PlayingSounds)
+		{
+			if (pair.Value == player)
+			{
+				PlayingSounds.Remove(pair.Key);
+				break;
+			}
+		}
 	}
 
 	private void OnBGMFinish()

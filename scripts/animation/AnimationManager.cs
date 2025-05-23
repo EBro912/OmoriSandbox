@@ -127,9 +127,9 @@ public partial class AnimationManager : Node2D
 			EmitSignal(SignalName.AnimationFinished);
 			return;
 		}
-		if (CurrentAnimation.TryGetFrameSFX(CurrentFrame, out SFX sfx))
+		if (CurrentAnimation.TryGetFrameSFX(CurrentFrame, out List<SFX> sfx))
 		{
-			AudioManager.Instance.PlaySFX(sfx);
+			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 		if (CurrentAnimation.TryGetFrameShake(CurrentFrame, out Shake shake))
 		{
@@ -258,9 +258,9 @@ public partial class AnimationManager : Node2D
 				break;
 		}
 
-		if (CurrentAnimation.TryGetFrameSFX(0, out SFX sfx))
+		if (CurrentAnimation.TryGetFrameSFX(0, out List<SFX> sfx))
 		{
-			AudioManager.Instance.PlaySFX(sfx);
+			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 
 		QueueRedraw();
