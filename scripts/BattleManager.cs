@@ -16,7 +16,6 @@ public partial class BattleManager : Node
 	private int CurrentPartyMember = -1;
 	private int CurrentEnemyTarget = -1;
 	private int CurrentPartyMemberTarget = -1;
-	// TODO: convert this to a queue to better handle deaths
 	private List<BattleCommand> Commands = [];
 	private int CommandIndex = -1;
 	private Timer Delay;
@@ -25,6 +24,7 @@ public partial class BattleManager : Node
 	private BattleAction SelectedAction;
 	private int Energy = 0;
 	private bool FollowupActive = true;
+	private bool ForceHideFollowup = false;
 
 	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
 	{
@@ -47,8 +47,11 @@ public partial class BattleManager : Node
 
 		Items.Add("RUBBER BAND", 4);
 		Items.Add("AIR HORN", 4);
+		Items.Add("RAIN CLOUD", 4);
 
 		Energy = 3;
+
+		DamageNumber.CacheTexture(GD.Load<Texture2D>("res://assets/system/Damage.png"));
 
 		SetPhase(BattlePhase.FightRun);
 	}
@@ -555,7 +558,7 @@ public partial class BattleManager : Node
 					Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, CurrentParty[CurrentPartyMemberTarget].Actor, SelectedAction));
 				break;
 			default:
-				// TODO: pass in targets as an array for multi hit skills
+				// this can probably be null, try it out at some point
 				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, Enemies[0].Actor, SelectedAction));
 				break;
 		}
@@ -619,8 +622,15 @@ public partial class BattleManager : Node
 			}
 			if (currentAction.Actor is PartyMember && skill.Name.EndsWith("Attack"))
 			{
-				CurrentParty.First(x => x.Actor == currentAction.Actor).FadeInFollowups();
-				FollowupActive = true;
+				if (ForceHideFollowup)
+				{
+					ForceHideFollowup = false;
+				}
+				else
+				{
+					CurrentParty.First(x => x.Actor == currentAction.Actor).FadeInFollowups(Energy);
+					FollowupActive = true;
+				}
 			}
 			await skill.Effect(currentAction.Actor, currentAction.Target, skill);
 		}
@@ -696,13 +706,19 @@ public partial class BattleManager : Node
 					if (GetPartyMember(1).CurrentState == "toast")
 						return false;
 					if (Database.TryGetSkill("CallAubrey1", out Skill skill))
+					{
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+						ForceHideFollowup = true;
+					}
 					return true;
 				}
 				if (direction == "left")
 				{
 					if (Database.TryGetSkill("CallOmori1", out Skill skill))
+					{
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+						ForceHideFollowup = true;
+					}
 					return true;
 				}
 				if (direction == "down")
@@ -710,7 +726,10 @@ public partial class BattleManager : Node
 					if (GetPartyMember(3).CurrentState == "toast")
 						return false;
 					if (Database.TryGetSkill("CallKel1", out Skill skill))
+					{
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
+						ForceHideFollowup = true;
+					}
 					return true;
 				}
 				break;
@@ -822,7 +841,7 @@ public partial class BattleManager : Node
 		{
 			finalDamage = (finalDamage * 1.5f) + 2;
 			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
-			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT");
+			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 		if (self.HasStatModifier(Modifier.Flex))
 		{

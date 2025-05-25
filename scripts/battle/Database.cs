@@ -374,6 +374,35 @@ public class Database
             }
         };
 
+        Skills["MoodWrecker"] = new Skill
+        {
+            Name = "MOOD WRECKER",
+            Description = "A swing that doesn't miss. Deals extra damage to\nHAPPY foes. Cost: 10",
+            Cost = 10,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 46,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, true);
+                await Task.Delay(500);
+                if (target.CurrentState == "happy" || target.CurrentState == "ecstatic" || target.CurrentState == "manic")
+                {
+                    // very nice
+                    if (target.CurrentState == "ecstatic" || target.CurrentState == "manic")
+                        await GameManager.Instance.AnimationManager.WaitForAnimation(279, target, true);
+                    else
+                        await GameManager.Instance.AnimationManager.WaitForAnimation(278, target, true);
+                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, true);
+                }
+                else
+                {
+                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF; }, true);
+                }
+            }
+        };
+
         Skills["LookAtOmori1"] = new Skill
         {
             Name = "Look At Omori 1",
@@ -826,8 +855,6 @@ public class Database
                 await Task.Delay(1000);
             }
         };
-
-        // TODO: hero followups should not show other followups
 
         Skills["CallOmori1"] = new Skill
         {
@@ -1319,6 +1346,41 @@ public class Database
                         member.Actor.SetState(state);
                     else
                         BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any angrier!");
+                }
+                await Task.CompletedTask;
+            }
+        };
+
+        Items["RAIN CLOUD"] = new Item
+        {
+            Name = "RAIN CLOUD",
+            Description = "Angsty water droplets.\nInflicts SAD on all friends.",
+            IsToy = true,
+            Target = SkillTarget.AllAllies,
+            AnimationId = -1,
+            Effect = async (self, target, item) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses RAIN CLOUD!");
+                AudioManager.Instance.PlaySFX("BA_sad_level_2", 1, 0.9f);
+                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                {
+                    string state = "sad";
+                    switch (member.Actor.CurrentState)
+                    {
+                        case "miserable":
+                            BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any sadder!");
+                            continue;
+                        case "depressed":
+                            state = "miserable";
+                            break;
+                        case "sad":
+                            state = "depressed";
+                            break;
+                    }
+                    if (member.Actor.IsStateValid(state))
+                        member.Actor.SetState(state);
+                    else
+                        BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any sadder!");
                 }
                 await Task.CompletedTask;
             }

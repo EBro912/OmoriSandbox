@@ -12,7 +12,7 @@ public class Aubrey : PartyMember
 
     public override Stats Weapon => new(atk: 4, hit: 100);
 
-    protected override string[] EquippedSkills => ["AAttack", "PepTalk", "Headbutt", "PowerHit", "Twirl"];
+    protected override string[] EquippedSkills => ["AAttack", "PepTalk", "Headbutt", "PowerHit", "MoodWrecker"];
 
     public override bool IsStateValid(string state)
     {

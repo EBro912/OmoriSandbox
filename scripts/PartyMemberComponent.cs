@@ -57,10 +57,10 @@ public partial class PartyMemberComponent : Node
 		set { SelectedBox.Visible = value; }
 	}
 
-	public void FadeInFollowups()
+	public void FadeInFollowups(int energy)
 	{
 		Tween tween = CreateTween();
-		tween.TweenProperty(FollowupBubbles, "modulate:a", 1f, 0.2f);
+		tween.TweenProperty(FollowupBubbles, "modulate:a", energy > 2 ? 1f : 0.75f, 0.2f);
 	}
 
 	public void FadeOutFollowups()

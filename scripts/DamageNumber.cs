@@ -7,7 +7,7 @@ public partial class DamageNumber : Node2D
 {
     private int[] Digits;
     private DamageType DamageType;
-    private Texture2D Texture;
+    private static Texture2D Texture;
 
     private const int WIDTH = 30;
     private const int HEIGHT = 42;
@@ -18,8 +18,12 @@ public partial class DamageNumber : Node2D
     {
         Digits = damage.ToString().Select(digit => (int)char.GetNumericValue(digit)).ToArray();
         DamageType = type;
-        // TODO: cache
-        Texture = GD.Load<Texture2D>("res://assets/system/Damage.png");
+    }
+
+    // since we spawn in damage numbers we need to cache this texture from elsewhere
+    public static void CacheTexture(Texture2D texture)
+    {
+        Texture ??= texture;
     }
 
     public override void _Ready()
