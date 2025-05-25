@@ -232,7 +232,7 @@ offset_top = 37.0
 offset_right = 109.0
 offset_bottom = 61.0
 theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 
 [node name="Skill2" type="Label" parent="CanvasLayer/UI/SkillMenu"]
 layout_mode = 0
@@ -241,7 +241,7 @@ offset_top = 59.0
 offset_right = 128.0
 offset_bottom = 83.0
 theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 
 [node name="Skill3" type="Label" parent="CanvasLayer/UI/SkillMenu"]
 layout_mode = 0
@@ -250,7 +250,7 @@ offset_top = 37.0
 offset_right = 305.0
 offset_bottom = 61.0
 theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 
 [node name="Skill4" type="Label" parent="CanvasLayer/UI/SkillMenu"]
 layout_mode = 0
@@ -259,7 +259,7 @@ offset_top = 59.0
 offset_right = 300.0
 offset_bottom = 83.0
 theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 
 [node name="Cursor" type="Sprite2D" parent="CanvasLayer/UI"]
 texture = ExtResource("5_85g3d")

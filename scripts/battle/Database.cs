@@ -183,8 +183,11 @@ public class Database
             AnimationId = 15,
             Effect = async (self, target, skill) =>
             {
-                // TODO: window close animation
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] and friends come together and\nuse their ultimate attack!");
+                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(243, member.Actor, false);
+                }
                 await GameManager.Instance.AnimationManager.WaitForReleaseEnergy();
                 BattleLogManager.Instance.ClearBattleLog();
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(15, true);
@@ -1295,6 +1298,26 @@ public class Database
                 target.HealJuice(75);
                 GameManager.Instance.BattleManager.SpawnDamageNumber(75, target.CenterPoint, DamageType.JuiceGain);
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 75 JUICE!");
+                await Task.CompletedTask;
+            }
+        };
+
+        Items["FRIES"] = new Item
+        {
+            Name = "FRIES",
+            Description = "From France, wherever that is...\nHeals 60 HEART to all friends.",
+            Target = SkillTarget.AllAllies,
+            AnimationId = 212,
+            Effect = async (self, target, item) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses FRIES!");
+                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(212, member.Actor, false);
+                    member.Actor.Heal(60);
+                    GameManager.Instance.BattleManager.SpawnDamageNumber(60, member.Actor.CenterPoint, DamageType.Heal);
+                }
+                BattleLogManager.Instance.QueueMessage("Everyone recovered 60 HEART!");
                 await Task.CompletedTask;
             }
         };

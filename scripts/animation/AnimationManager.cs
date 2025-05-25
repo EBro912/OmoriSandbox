@@ -17,10 +17,7 @@ public partial class AnimationManager : Node2D
 	private const float FPS = 15f;
 	private float FrameDuration = 1f / FPS;
 	private float FrameTimer = 0f;
-	private int CurrentFrame = 0;
-	private RPGMAnimatedSprite CurrentAnimation;
-	private Vector2 DrawPosition = Vector2.Zero;
-	public bool IsPlaying { get; private set; } = false;
+	private List<PlayingAnimation> PlayingAnimations = [];
 
 	private float Shake = 0f;
 	private float ShakePwr = 0f;
@@ -71,7 +68,7 @@ public partial class AnimationManager : Node2D
 
 	public override void _Process(double delta)
 	{
-		if (!IsPlaying || CurrentAnimation == null)
+		if (PlayingAnimations.Count == 0)
 			return;
 
 		FrameTimer += (float)delta;
@@ -80,7 +77,6 @@ public partial class AnimationManager : Node2D
 		{
 			FrameTimer -= FrameDuration;
 			NextFrame();
-			QueueRedraw();
 		}
 	}
 
@@ -97,43 +93,31 @@ public partial class AnimationManager : Node2D
 		Battleback.Position = new Vector2(x, 0);
 	}
 
-	public override void _Draw()
-	{
-		if (!IsPlaying || CurrentAnimation == null)
-			return;
-
-		foreach (Frame frame in CurrentAnimation.GetFrame(CurrentFrame))
-		{
-			AtlasTexture texture = CurrentAnimation.GetTextureAt(frame.Pattern);
-			if (frame.Mirror)
-			{
-				// TODO: dont use GetImage here
-				Image img = texture.GetImage();
-				img.FlipX();
-				DrawTexture(ImageTexture.CreateFromImage(img), DrawPosition + new Vector2(frame.X, frame.Y), new Color(1f, 1f, 1f, frame.Opacity / 255f));
-				continue;
-			}				
-			DrawTexture(texture, DrawPosition + new Vector2(frame.X, frame.Y), new Color(1f, 1f, 1f, frame.Opacity / 255f));
-		}
-	}
-
 	private void NextFrame()
 	{
-		CurrentFrame++;
-		if (CurrentFrame >= CurrentAnimation.FrameCount)
+		for (int i = PlayingAnimations.Count - 1; i >= 0; i--)
 		{
-			IsPlaying = false;
-			CurrentAnimation = null;
-			EmitSignal(SignalName.AnimationFinished);
-			return;
-		}
-		if (CurrentAnimation.TryGetFrameSFX(CurrentFrame, out List<SFX> sfx))
-		{
-			sfx.ForEach(AudioManager.Instance.PlaySFX);
-		}
-		if (CurrentAnimation.TryGetFrameShake(CurrentFrame, out Shake shake))
-		{
-			InitShake(shake);
+			// returns true if we're out of frames
+			if (PlayingAnimations[i].AdvanceFrame())
+			{
+				PlayingAnimations[i].QueueFree();
+				PlayingAnimations.RemoveAt(i);
+				if (PlayingAnimations.Count == 0)
+				{
+					FrameTimer = 0f;
+					EmitSignal(SignalName.AnimationFinished);
+					return;
+				}
+				continue;
+			}
+			if (PlayingAnimations[i].Animation.TryGetFrameSFX(PlayingAnimations[i].CurrentFrame, out List<SFX> sfx))
+			{
+				sfx.ForEach(AudioManager.Instance.PlaySFX);
+			}
+			if (PlayingAnimations[i].Animation.TryGetFrameShake(PlayingAnimations[i].CurrentFrame, out Shake shake))
+			{
+				InitShake(shake);
+			}
 		}
 	}
 
@@ -227,7 +211,6 @@ public partial class AnimationManager : Node2D
 		return tcs.Task;
 	}
 
-	// TODO: support multiple animations on the same frame
 	private void StartAnimation(int id, Vector2 position, bool targetsEnemy)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
@@ -236,34 +219,33 @@ public partial class AnimationManager : Node2D
 			return;
 		}
 
-		CurrentAnimation = animation;
-		DrawPosition = position - new Vector2(96f, 96f);
+		Vector2 drawPosition = position - new Vector2(96f, 96f);
 		// hack fix for the headbutt curtain animation
 		if (id == 30)
-			DrawPosition += new Vector2(6f, 0f);
-		CurrentFrame = 0;
-		FrameTimer = 0f;
-		IsPlaying = true;
+			drawPosition += new Vector2(6f, 0f);
 
+		int index = 0;
 		switch (animation.Layer)
 		{
 			case 0:
-				ZIndex = 10;
+				index = 10;
 				break;
 			case 2:
-				ZIndex = -1;
+				index = -1;
 				break;
 			case 3:
-				ZIndex = targetsEnemy ? -4 : 0;
+				index = targetsEnemy ? -4 : 0;
 				break;
 		}
 
-		if (CurrentAnimation.TryGetFrameSFX(0, out List<SFX> sfx))
+		if (animation.TryGetFrameSFX(0, out List<SFX> sfx))
 		{
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 
-		QueueRedraw();
+		PlayingAnimation playing = new(animation, drawPosition, index);
+		AddChild(playing);
+		PlayingAnimations.Add(playing);
 	}
 }
 

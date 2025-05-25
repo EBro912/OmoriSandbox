@@ -43,7 +43,7 @@ public partial class BattleManager : Node
 		Items.Add("LIFE JAM", 4);
 		Items.Add("HOT DOG", 4);
 		Items.Add("LEMONADE", 4);
-		Items.Add("CHOCOLATE", 4);
+		Items.Add("FRIES", 4);
 
 		Items.Add("RUBBER BAND", 4);
 		Items.Add("AIR HORN", 4);
@@ -428,7 +428,8 @@ public partial class BattleManager : Node
 					if (enemy.Actor.CurrentHP == 0)
 					{
 						enemy.Actor.SetState("toast");
-						DyingEnemies.Add(enemy.GetParent<Node2D>());
+						if (enemy.Actor.FallsOffScreen)
+							DyingEnemies.Add(enemy.GetParent<Node2D>());
 						Enemies.Remove(enemy);
 					}
 					enemy.Actor.ProcessBattleConditions();
@@ -849,7 +850,7 @@ public partial class BattleManager : Node
 			self.RemoveStatModifier(Modifier.Flex);
 		}
 		int rounded = (int)Math.Round(finalDamage, MidpointRounding.AwayFromZero);
-		// attakcs will always do at least 1 damage
+		// attacks will always do at least 1 damage
 		if (rounded <= 0)
 			rounded = 1;
 		int juiceLost = 0;

@@ -11,8 +11,8 @@ public class LostSproutMole : Enemy
 	{
 		return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
 	}
-
-	public override BattleCommand ProcessAI()
+    public override bool FallsOffScreen => true;
+    public override BattleCommand ProcessAI()
 	{
 		int roll;
 		Actor target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();

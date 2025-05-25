@@ -35,5 +35,6 @@ public abstract class Enemy : Actor
     protected abstract string[] EquippedSkills { get; }
     public abstract string AnimationPath { get; }
     public abstract BattleCommand ProcessAI();
+    public abstract bool FallsOffScreen { get; }
     public virtual void ProcessBattleConditions() { }
 }

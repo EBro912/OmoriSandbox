@@ -15,9 +15,12 @@ public class Sweetheart : Enemy
             return false;
 
         return state == "neutral" || state == "sad" || state == "happy" 
-            || state == "angry" || state == "hurt" || state == "toast" 
+            || state == "angry" || state == "hurt" 
             || state == "ecstatic" || state == "manic";
     }
+
+    // TODO: handle more boss specific stuff
+    public override bool FallsOffScreen => false;
 
     public override BattleCommand ProcessAI()
     {

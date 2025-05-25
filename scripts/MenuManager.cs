@@ -26,6 +26,7 @@ public partial class MenuManager : Node
 	private int SelectedSkill = 1;
 	private int SelectedItem = 1;
 
+	// TODO: scroll item list
 	private List<Skill> CurrentSkills = [];
 	private List<(Item, int)> CurrentItems = [];
 
