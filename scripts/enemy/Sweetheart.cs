@@ -14,9 +14,8 @@ public class Sweetheart : Enemy
         if (EmotionLocked)
             return false;
 
-        return state == "neutral" || state == "sad" || state == "happy" 
-            || state == "angry" || state == "hurt" 
-            || state == "ecstatic" || state == "manic";
+        return state == "neutral" || state == "sad" || state == "happy"
+            || state == "angry" || state == "hurt";
     }
 
     // TODO: handle more boss specific stuff
@@ -99,20 +98,20 @@ public class Sweetheart : Enemy
         if (CurrentHP < 990 && Stage == 2)
         {
             EmotionLocked = false;
-            SetState("manic");
+            ForceState("manic");
             EmotionLocked = true;
             Stage++;
         }
         if (CurrentHP < 1650 && Stage == 1)
         {
             EmotionLocked = false;
-            SetState("ecstatic");
+            ForceState("ecstatic");
             EmotionLocked = true;
             Stage++;
         }
         if (CurrentHP < 2640 && Stage == 0)
         {
-            SetState("happy");
+            ForceState("happy");
             EmotionLocked = true;
             AddStatModifier(Modifier.SweetheartLock, 1, int.MaxValue);
             Stage++;

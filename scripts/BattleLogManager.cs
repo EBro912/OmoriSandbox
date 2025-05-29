@@ -102,14 +102,14 @@ public partial class BattleLogManager : Node
 		ActiveLines.Add(newLine);
 
 		Tween tween = GetTree().CreateTween();
-		tween.TweenProperty(newLine, "modulate:a", 1f, 0.2f);
+		tween.TweenProperty(newLine, "modulate:a", 1f, 0.15f);
 
 		for (int i = 0; i < ActiveLines.Count; i++)
 		{
 			Control line = ActiveLines[i];
 			Vector2 target = new(11, i * HEIGHT);
 			Tween repositionTween = GetTree().CreateTween();
-			repositionTween.TweenProperty(line, "position", target, 0.2f)
+			repositionTween.TweenProperty(line, "position", target, 0.15f)
 						   .SetTrans(Tween.TransitionType.Sine);
 		}
 
@@ -121,9 +121,9 @@ public partial class BattleLogManager : Node
 	private void MoveOffScreen(Control line)
 	{
 		Tween tween = GetTree().CreateTween();
-		tween.TweenProperty(line, "position", new Vector2(11, -HEIGHT), 0.2f)
+		tween.TweenProperty(line, "position", new Vector2(11, -HEIGHT), 0.15f)
 			.SetTrans(Tween.TransitionType.Sine);
-		tween.TweenProperty(line, "modulate:a", 0f, 0.2f)
+		tween.TweenProperty(line, "modulate:a", 0f, 0.15f)
 			.SetTrans(Tween.TransitionType.Sine);
 		tween.TweenCallback(Callable.From(() => line.QueueFree()));
 	}

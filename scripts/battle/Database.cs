@@ -32,6 +32,7 @@ public class Database
             AnimationId = 3,
             Effect = async (self, target, skill) =>
             {
+                await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
@@ -215,6 +216,7 @@ public class Database
             AnimationId = 108,
             Effect = async (self, target, skill) =>
             {
+                await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
@@ -255,6 +257,7 @@ public class Database
             AnimationId = 28,
             Effect = async (self, target, skill) =>
             {
+                await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
@@ -555,6 +558,7 @@ public class Database
             AnimationId = 54,
             Effect = async (self, target, skill) =>
             {
+                await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
@@ -762,6 +766,7 @@ public class Database
             AnimationId = 83,
             Effect = async (self, target, skill) =>
             {
+                await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                 GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);

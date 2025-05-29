@@ -281,4 +281,13 @@ public abstract class Actor
             BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot feel " + state.ToUpper() + "!");
         }
     }
+
+    // forces a state without any validity checks
+    // mainly used for bosses like Sweetheart
+    public void ForceState(string state)
+    {
+        Sprite.Animation = state;
+        CurrentState = state;
+        BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " became " + state.ToUpper() + "!");
+    }
 }
