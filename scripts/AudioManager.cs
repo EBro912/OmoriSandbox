@@ -23,24 +23,18 @@ public partial class AudioManager : Node
 			AudioPlayers.Add(player);
 			player.Finished += () => OnSFXFinish(player);
 		}
-
-		DirAccess sfx = DirAccess.Open("res://audio/sfx");
-		foreach (string f in sfx.GetFiles())
+		// preload animation sfx
+		foreach (RPGMAnimatedSprite animation in GameManager.Instance.AnimationManager.GetAllAnimations())
 		{
-			if (f.Contains(".import")) continue;
-			string name = f.Split('.')[0];
-			SFXDictionary.Add(name, GD.Load<AudioStream>("res://audio/sfx/" + f));
+			foreach (List<SFX> sfxList in animation.AllSFX)
+			{
+				foreach (SFX sfx in sfxList)
+				{
+					SFXDictionary.TryAdd(sfx.Name, GD.Load<AudioStream>("res://audio/sfx/" + sfx.Name + ".ogg"));
+				}
+			}
 		}
-		GD.Print("Loaded " + SFXDictionary.Count + " SFX.");
-
-		DirAccess bgm = DirAccess.Open("res://audio/bgm");
-		foreach (string f in bgm.GetFiles())
-		{
-			if (f.Contains(".import")) continue;
-			string name = f.Split('.')[0];
-			BGMDictionary.Add(name, GD.Load<AudioStream>("res://audio/bgm/" + f));
-		}
-		GD.Print("Loaded " + BGMDictionary.Count + " BGM.");
+		GD.Print("Preloaded " + SFXDictionary.Count + " SFX.");
 		
 		Instance = this;
 
@@ -56,8 +50,13 @@ public partial class AudioManager : Node
 	public void PlaySFX(string name, float pitch = 1f, float volume = 1f)
 	{
 		if (!SFXDictionary.TryGetValue(name, out AudioStream stream)) {
-			GD.PrintErr("Unknown SFX: " + name);
-			return;
+			stream = GD.Load<AudioStream>("res://audio/sfx/" + name + ".ogg");
+			if (stream == null)
+			{
+				GD.PrintErr("Unknown SFX: " + name);
+				return;
+			}
+			SFXDictionary.Add(name, stream);
 		}
 
 		if (PlayingSounds.TryGetValue(name, out AudioStreamPlayer existing))
@@ -86,8 +85,13 @@ public partial class AudioManager : Node
 	{
 		if (!BGMDictionary.TryGetValue(name, out AudioStream stream))
 		{
-			GD.PrintErr("Unknown SFX: " + name);
-			return;
+            stream = GD.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
+            if (stream == null)
+            {
+                GD.PrintErr("Unknown BGM: " + name);
+                return;
+            }
+			BGMDictionary.Add(name, stream);
 		}
 
 		BGM.Stream = stream;

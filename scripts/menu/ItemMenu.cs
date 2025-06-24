@@ -28,18 +28,30 @@ public partial class ItemMenu : Menu
         DisplayedItems = Items.GetRange(start, end - start);
         for (int i = 0; i < DisplayedItems.Count; i++)
         {
-            // convert to column-by-column
-            int offset = (i % 2) * 2 + (i / 2);
             ItemLabels[i].Text = DisplayedItems[i].Item1.Name;
         }
         CursorPositions = Positions.GetRange(0, DisplayedItems.Count);
         CursorIndex = 0;
         UpdateCursor();
         ShowItemInfo();
+        AudioManager.Instance.PlaySFX("SYS_move");
     }
 
     protected override void MoveCursor(Vector2I direction)
     {
+        if (direction.Y > 0 && Page < Mathf.CeilToInt((float)Items.Count / 4) - 1 && CursorIndex > 1)
+        {
+            Page++;
+            UpdatePage();
+            return;
+        }
+        if (direction.Y < 0 && Page > 0 && CursorIndex < 2)
+        {
+            Page--;
+            UpdatePage();
+            return;
+        }
+
         int x = CursorIndex % 2;
         int y = CursorIndex / 2;
         x = (x + direction.X + GridSize.X) % GridSize.X;
@@ -48,17 +60,6 @@ public partial class ItemMenu : Menu
         newIndex = Mathf.Min(newIndex, DisplayedItems.Count - 1);
         CursorIndex = newIndex;
         UpdateCursor();
-
-        if (direction.Y > 0 && Page < Mathf.CeilToInt(Items.Count / 4) - 1 && CursorIndex >= DisplayedItems.Count - 1)
-        {
-            Page++;
-            UpdatePage();
-        }
-        else if (direction.Y < 0 && Page > 0 && CursorIndex == 0)
-        {
-            Page--;
-            UpdatePage();
-        }
         ShowItemInfo();
         AudioManager.Instance.PlaySFX("SYS_move");
     }

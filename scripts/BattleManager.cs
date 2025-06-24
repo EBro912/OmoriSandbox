@@ -46,6 +46,7 @@ public partial class BattleManager : Node
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
 
+		Items.Add("CHOCOLATE", 4);
 		Items.Add("LIFE JAM", 4);
 		Items.Add("HOT DOG", 4);
 		Items.Add("LEMONADE", 4);

@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://d32syyvyr6iwr"]
+[gd_scene load_steps=12 format=3 uid="uid://d32syyvyr6iwr"]
 
 [ext_resource type="Texture2D" uid="uid://lpw3v82vc2q2" path="res://assets/system/target_selected.png" id="1_3r6nr"]
 [ext_resource type="Texture2D" uid="uid://bbkip17brhcgq" path="res://assets/system/player_box.png" id="1_irugt"]
 [ext_resource type="Texture2D" uid="uid://de6mtfata36wd" path="res://assets/system/statelist.png" id="2_8dd6e"]
+[ext_resource type="Script" uid="uid://7tv4a2lds2hb" path="res://scripts/SelectionBoxFade.cs" id="2_xyj2y"]
 [ext_resource type="Texture2D" uid="uid://dwhsh5d4ev7wc" path="res://assets/system/faceset_states.png" id="3_3r6nr"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="5_8dd6e"]
 [ext_resource type="Texture2D" uid="uid://cymoa4gm8efxq" path="res://assets/system/bar_health.png" id="5_ms8ku"]
@@ -42,6 +43,7 @@ offset_top = -3.0
 offset_right = 126.0
 offset_bottom = 175.0
 texture = ExtResource("1_3r6nr")
+script = ExtResource("2_xyj2y")
 
 [node name="Battlecard" type="TextureRect" parent="."]
 z_index = -1

@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
 public class RPGMAnimatedSprite
 {
@@ -103,6 +104,8 @@ public class RPGMAnimatedSprite
 	{
 		return FrameShake.TryGetValue(frame, out shake);
 	}
+
+	public IEnumerable<List<SFX>> AllSFX => FrameSFX.Values.ToList();
 
 	public int FrameCount => Frames.Count;
 }

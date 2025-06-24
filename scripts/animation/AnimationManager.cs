@@ -250,6 +250,11 @@ public partial class AnimationManager : Node2D
 		AddChild(playing);
 		PlayingAnimations.Add(playing);
 	}
+
+	public IEnumerable<RPGMAnimatedSprite> GetAllAnimations()
+	{
+		return Animations.Values;
+	}
 }
 
 #pragma warning disable CS0649
