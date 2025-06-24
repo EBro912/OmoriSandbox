@@ -1,0 +1,26 @@
+[gd_resource type="SpriteFrames" load_steps=3 format=3 uid="uid://bfpamslcycenf"]
+
+[ext_resource type="Texture2D" uid="uid://bltdr10i4oeva" path="res://assets/sv_actors/!battle_humphrey_uvula.png" id="1_lmpm5"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8gice"]
+atlas = ExtResource("1_lmpm5")
+region = Rect2(0, 0, 640, 480)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8gice")
+}],
+"loop": true,
+"name": &"neutral",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8gice")
+}],
+"loop": true,
+"name": &"toast",
+"speed": 5.0
+}]

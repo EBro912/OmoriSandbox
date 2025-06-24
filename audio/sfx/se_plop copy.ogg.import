@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://m8jn0ewcc7fl"
+path="res://.godot/imported/se_plop copy.ogg-c8a1b34c3da8c1010ade462b001320a9.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/sfx/se_plop copy.ogg"
+dest_files=["res://.godot/imported/se_plop copy.ogg-c8a1b34c3da8c1010ade462b001320a9.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

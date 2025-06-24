@@ -35,7 +35,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
         Skills["SadPoem"] = new Skill
@@ -84,9 +84,9 @@ public class Database
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] lunges at [target]!");
                 if (self.CurrentState == "happy" || self.CurrentState == "ecstatic" || self.CurrentState == "manic")
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 2f - target.CurrentStats.DEF; }, false);
+                    BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 2f - target.CurrentStats.DEF; }, false);
                 else
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 1.5f - target.CurrentStats.DEF; }, false);
+                    BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK + self.CurrentStats.LCK) * 1.5f - target.CurrentStats.DEF; }, false);
             }
         };
         Skills["Stab"] = new Skill
@@ -103,9 +103,9 @@ public class Database
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] stabs [target].");
                 if (self.CurrentState == "sad" || self.CurrentState == "depressed" || self.CurrentState == "miserable")
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false, guaranteeCrit: true);
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false, guaranteeCrit: true);
                 else
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false, guaranteeCrit: true);
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false, guaranteeCrit: true);
             }
         };
         Skills["Trick"] = new Skill
@@ -126,7 +126,7 @@ public class Database
                     GameManager.Instance.AnimationManager.PlayAnimation(219, target);
                     target.AddStatModifier(Modifier.SpeedDown, 3);
                 }
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
                 await Task.Delay(334);
             }
         };
@@ -147,7 +147,7 @@ public class Database
                 BattleLogManager.Instance.ClearBattleLog();
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks again!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -169,7 +169,7 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayAnimation(219, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
                 target.AddStatModifier(Modifier.SpeedDown, 1);
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -185,18 +185,18 @@ public class Database
             Effect = async (self, target, skill) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] and friends come together and\nuse their ultimate attack!");
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
                     GameManager.Instance.AnimationManager.PlayAnimation(243, member.Actor, false);
                 }
                 await GameManager.Instance.AnimationManager.WaitForReleaseEnergy();
                 BattleLogManager.Instance.ClearBattleLog();
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(15, true);
-                foreach (Enemy enemy in GameManager.Instance.BattleManager.GetAllEnemies())
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
                 {
-                    GameManager.Instance.BattleManager.Damage(self, enemy, () => { return 300; }, true, 0f, false, true);
+                    BattleManager.Instance.Damage(self, enemy, () => { return 300; }, true, 0f, false, true);
                 }
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
                     member.Actor.AddStatModifier(Modifier.ReleaseEnergy, 1, 9999);
                 }
@@ -219,7 +219,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -260,7 +260,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
         Skills["PepTalk"] = new Skill
@@ -317,9 +317,9 @@ public class Database
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, true);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
                 if (self.CurrentState == "angry" || self.CurrentState == "enraged")
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
                 else
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
                 self.CurrentHP = (int)Math.Max(1f, self.CurrentHP - Math.Floor(self.CurrentStats.MaxHP * 0.2));
             }
         };
@@ -339,7 +339,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(219, target);
                 target.AddStatModifier(Modifier.DefenseDown);
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false);
             }
         };
 
@@ -358,7 +358,7 @@ public class Database
                 await Task.Delay(500);
                 GameManager.Instance.AnimationManager.PlayAnimation(28, target);
                 await Task.Delay(500);
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK * 2f + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK * 2f + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
                 string state = "happy";
                 switch (self.CurrentState)
                 {
@@ -400,11 +400,11 @@ public class Database
                         await GameManager.Instance.AnimationManager.WaitForAnimation(279, target, true);
                     else
                         await GameManager.Instance.AnimationManager.WaitForAnimation(278, target, true);
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, true);
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, true);
                 }
                 else
                 {
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF; }, true);
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF; }, true);
                 }
             }
         };
@@ -425,7 +425,7 @@ public class Database
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(28, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "OMORI didn't notice AUBREY, so\nAUBREY attacks again!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return (self.CurrentStats.ATK * 2 + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK * 2 + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -519,7 +519,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -536,7 +536,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] hits a home run!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 4f - target.CurrentStats.DEF; });
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 4f - target.CurrentStats.DEF; });
                 int roll = GameManager.Instance.Random.RandiRange(0, 100);
                 if (roll < 11)
                 {
@@ -561,7 +561,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
         Skills["Annoy"] = new Skill
@@ -609,8 +609,8 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s ball bounces everywhere!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, true);
-                foreach (Enemy enemy in GameManager.Instance.BattleManager.GetAllEnemies())
-                    GameManager.Instance.BattleManager.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+                    BattleManager.Instance.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
             }
         };
         Skills["Ricochet"] = new Skill
@@ -626,11 +626,11 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] does a fancy ball trick!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, true);
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
                 await Task.Delay(1000);
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
                 await Task.Delay(1000);
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
             }
         };
         Skills["Flex"] = new Skill
@@ -665,7 +665,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -697,13 +697,13 @@ public class Database
             AnimationId = 62,
             Effect = async (self, target, skill) =>
             {
-                PartyMember first = GameManager.Instance.BattleManager.GetPartyMember(0);
+                PartyMember first = BattleManager.Instance.GetPartyMember(0);
                 BattleLogManager.Instance.QueueMessage(self, first, "[actor] passes to [target].");
                 await Task.Delay(1000);
                 GameManager.Instance.AnimationManager.PlayScreenAnimation(skill.AnimationId, false);
                 await Task.Delay(1000);
                 BattleLogManager.Instance.QueueMessage(self, first, "[target] wasn't looking and gets bopped!");
-                GameManager.Instance.BattleManager.Damage(self, first, () => { return 1; }, true, 0f, false, true);
+                BattleManager.Instance.Damage(self, first, () => { return 1; }, true, 0f, false, true);
                 first.SetState("sad");
             }
         };
@@ -718,15 +718,15 @@ public class Database
             AnimationId = 65,
             Effect = async (self, target, skill) =>
             {
-                target = GameManager.Instance.BattleManager.GetRandomAliveEnemy();
-                PartyMember second = GameManager.Instance.BattleManager.GetPartyMember(1);
+                target = BattleManager.Instance.GetRandomAliveEnemy();
+                PartyMember second = BattleManager.Instance.GetPartyMember(1);
                 BattleLogManager.Instance.QueueMessage(self, second, "[actor] passes to [target].");
                 await Task.Delay(1000);
                 GameManager.Instance.AnimationManager.PlayScreenAnimation(skill.AnimationId, true);
                 await Task.Delay(2000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(66, target);
                 BattleLogManager.Instance.QueueMessage(self, second, "[target] knocks the ball out of the park!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF; }, true);
+                BattleManager.Instance.Damage(self, target, () => { return second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF; }, true);
             }
         };
         Skills["PassToHero1"] = new Skill
@@ -740,16 +740,16 @@ public class Database
             AnimationId = 69,
             Effect = async (self, target, skill) =>
             {
-                PartyMember second = GameManager.Instance.BattleManager.GetPartyMember(1);
-                PartyMember third = GameManager.Instance.BattleManager.GetPartyMember(2);
+                PartyMember second = BattleManager.Instance.GetPartyMember(1);
+                PartyMember third = BattleManager.Instance.GetPartyMember(2);
                 BattleLogManager.Instance.QueueMessage(self, third, "[actor] passes to [target].");
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, true);
                 BattleLogManager.Instance.QueueMessage(self, third, "[target] dunks on the foes!");
-                foreach (Enemy enemy in GameManager.Instance.BattleManager.GetAllEnemies())
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
                 {
                     // VANILLA BUG: uses Aubrey's attack instead of Hero's
-                    GameManager.Instance.BattleManager.Damage(self, target, () => { return second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF; }, true);
+                    BattleManager.Instance.Damage(self, target, () => { return second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF; }, true);
                 }
             }
         };
@@ -769,7 +769,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
         Skills["Massage"] = new Skill
@@ -806,7 +806,7 @@ public class Database
                 float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
                 int finalHeal = (int)Math.Round(heal * variance, MidpointRounding.AwayFromZero);
                 target.Heal(finalHeal);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+                BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target);
                 BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
                 await Task.Delay(1000);
@@ -827,7 +827,7 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target, false);
                 int heal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.5f, MidpointRounding.AwayFromZero);
                 target.HealJuice(heal);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.JuiceGain);
+                BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.JuiceGain);
                 BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} JUICE!");
                 await Task.Delay(1000);
             }
@@ -846,7 +846,7 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes HOMEMADE JAM!");
                 if (target.CurrentState != "toast")
                 {
-                    target = GameManager.Instance.BattleManager.GetRandomDeadPartyMember();
+                    target = BattleManager.Instance.GetRandomDeadPartyMember();
                     if (target == null)
                     {
                         BattleLogManager.Instance.QueueMessage("It had no effect.");
@@ -857,7 +857,7 @@ public class Database
                 target.SetState("neutral");
                 int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
                 target.Heal(heal);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+                BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
                 BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
                 await Task.Delay(1000);
@@ -875,7 +875,7 @@ public class Database
             AnimationId = 93,
             Effect = async (self, target, skill) =>
             {
-                PartyMember first = GameManager.Instance.BattleManager.GetPartyMember(0);
+                PartyMember first = BattleManager.Instance.GetPartyMember(0);
                 BattleLogManager.Instance.QueueMessage(self, first, "[actor] calls out to [target].");
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
@@ -884,7 +884,7 @@ public class Database
                 first.Heal(heal);
                 BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
                 BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
-                GameManager.Instance.BattleManager.ForceCommand(first, GameManager.Instance.BattleManager.GetRandomAliveEnemy(), Skills["OAttack"]);
+                BattleManager.Instance.ForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(), Skills["OAttack"]);
             }
         };
 
@@ -899,7 +899,7 @@ public class Database
             AnimationId = 94,
             Effect = async (self, target, skill) =>
             {
-                PartyMember second = GameManager.Instance.BattleManager.GetPartyMember(1);
+                PartyMember second = BattleManager.Instance.GetPartyMember(1);
                 BattleLogManager.Instance.QueueMessage(self, second, "[actor] calls out to [target].");
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
@@ -908,7 +908,7 @@ public class Database
                 second.Heal(heal);
                 BattleLogManager.Instance.QueueMessage(self, second, "[actor] signals to [target]!");
                 BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
-                GameManager.Instance.BattleManager.ForceCommand(second, GameManager.Instance.BattleManager.GetRandomAliveEnemy(), Skills["AAttack"]);
+                BattleManager.Instance.ForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(), Skills["AAttack"]);
             }
         };
 
@@ -923,7 +923,7 @@ public class Database
             AnimationId = 95,
             Effect = async (self, target, skill) =>
             {
-                PartyMember fourth = GameManager.Instance.BattleManager.GetPartyMember(3);
+                PartyMember fourth = BattleManager.Instance.GetPartyMember(3);
                 BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] calls out to [target].");
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
@@ -932,7 +932,7 @@ public class Database
                 fourth.Heal(heal);
                 BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] signals to [target]!");
                 BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
-                GameManager.Instance.BattleManager.ForceCommand(fourth, GameManager.Instance.BattleManager.GetRandomAliveEnemy(), Skills["KAttack"]);
+                BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(), Skills["KAttack"]);
             }
         };
 
@@ -949,7 +949,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -970,7 +970,7 @@ public class Database
                 float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
                 int finalHeal = (int)Math.Round(heal * variance, MidpointRounding.AwayFromZero);
                 target.Heal(finalHeal);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+                BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
                 BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
                 await Task.Delay(1000);
@@ -991,7 +991,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] bumps into [target]!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -1026,11 +1026,11 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayScreenAnimation(skill.AnimationId, false);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] runs around!");
                 await Task.Delay(100);
-                target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
+                target = BattleManager.Instance.GetRandomAlivePartyMember();
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
                 await Task.Delay(917);
-                target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
+                target = BattleManager.Instance.GetRandomAlivePartyMember();
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -1048,7 +1048,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] nibbles at [target]?");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -1134,7 +1134,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] slaps [target].");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
             }
         };
 
@@ -1151,8 +1151,8 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] insults everyone!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers()) {
-                    GameManager.Instance.BattleManager.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers()) {
+                    BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
                     string state = "angry";
                     switch (member.Actor.CurrentState)
                     {
@@ -1187,9 +1187,9 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] swings her mace!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
-                    GameManager.Instance.BattleManager.Damage(self, member.Actor, () => { return self.CurrentStats.ATK * 2.5f - member.Actor.CurrentStats.DEF; }, false);
+                    BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK * 2.5f - member.Actor.CurrentStats.DEF; }, false);
                 }
             }
         };
@@ -1226,6 +1226,188 @@ public class Database
                     BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
             }
         };
+
+        // SLIME GIRLS //
+        Skills["ComboAttack"] = new Skill
+        {
+            Name = "ComboAttack",
+            Description = "ComboAttack",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "The [actor] attack all at once!");
+                GameManager.Instance.AnimationManager.PlayAnimation(133, target, false);
+                await Task.Delay(580);
+                GameManager.Instance.AnimationManager.PlayAnimation(134, target, false);
+                await Task.Delay(580);
+                GameManager.Instance.AnimationManager.PlayAnimation(135, target, false);
+                await Task.Delay(580);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["StrangeGas"] = new Skill
+        {
+            Name = "StrangeGas",
+            Description = "StrangeGas",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.AllEnemies,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage("MEDUSA threw a bottle...");
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(194, false);
+                await Task.Delay(1500);
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(181, false);
+                BattleLogManager.Instance.QueueMessage("A strange gas fills the room.");
+                await Task.Delay(2000);
+
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    int roll = GameManager.Instance.Random.RandiRange(0, 2);
+                    string state = "";
+                    switch (roll)
+                    {
+                        case 0:
+                            state = "sad";
+                            switch (member.Actor.CurrentState)
+                            {
+                                case "miserable":
+                                    continue;
+                                case "depressed":
+                                    state = "miserable";
+                                    break;
+                                case "sad":
+                                    state = "depressed";
+                                    break;
+                            }
+                            break;
+                        case 1:
+                            state = "angry";
+                            switch (member.Actor.CurrentState)
+                            {
+                                case "furious":
+                                    continue;
+                                case "enraged":
+                                    state = "furious";
+                                    break;
+                                case "angry":
+                                    state = "enraged";
+                                    break;
+                            }
+                            break;
+                        case 2:
+                            state = "happy";
+                            switch (member.Actor.CurrentState)
+                            {
+                                case "manic":
+                                    continue;
+                                case "ecstatic":
+                                    state = "manic";
+                                    break;
+                                case "happy":
+                                    state = "ecstatic";
+                                    break;
+                            }
+                            break;
+                    }
+                    if (member.Actor.IsStateValid(state))
+                        member.Actor.SetState(state);
+                }
+            }
+        };
+
+        Skills["Dynamite"] = new Skill
+        {
+            Name = "Dynamite",
+            Description = "Dynamite",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.AllEnemies,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage("MEDUSA threw a bottle...");
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(194, false);
+                await Task.Delay(1500);
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(172, false);
+                BattleLogManager.Instance.QueueMessage("And it explodes!");
+                await Task.Delay(2000);
+
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    BattleManager.Instance.Damage(self, member.Actor, () => { return 75; }, false, 0f, false, true);
+                }
+            }
+        };
+
+        Skills["StingRay"] = new Skill
+        {
+            Name = "StingRay",
+            Description = "StingRay",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 193,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "MOLLY fires her stingers!\n[target] gets struck!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2; }, false);
+                GameManager.Instance.AnimationManager.PlayAnimation(215, target, false);
+                target.AddStatModifier(Modifier.SpeedDown, 3);
+            }
+        };
+
+        Skills["Chainsaw"] = new Skill
+        {
+            Name = "Chainsaw",
+            Description = "Chainsaw",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 208,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] pulls out a chainsaw!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
+                for (int i = 0; i < 3; i++)
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return 40; }, false, 0.75f, false, true);
+                    await Task.Delay(500);
+                }
+            }
+        };
+
+        Skills["Swap"] = new Skill
+        {
+            Name = "Swap",
+            Description = "Swap",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 191,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] did their thing!\nHEART and JUICE were swapped!");
+                await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    int hp = member.Actor.CurrentHP;
+                    int juice = member.Actor.CurrentJuice;
+                    member.Actor.CurrentHP = juice + 1;
+                    member.Actor.CurrentJuice = hp;
+                }
+            }
+        };
+
         #endregion
 
         #region SNACKS
@@ -1240,7 +1422,7 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses HOT DOG!");
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
                 target.Heal(100);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(100, target.CenterPoint, DamageType.Heal);
+                BattleManager.Instance.SpawnDamageNumber(100, target.CenterPoint, DamageType.Heal);
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 100 HEART!");
                 await Task.CompletedTask;
             }
@@ -1259,7 +1441,7 @@ public class Database
                 float heal = target.CurrentStats.MaxHP * 0.4f;
                 int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
                 target.Heal(finalHeal);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+                BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
                 BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
                 await Task.CompletedTask;
             }
@@ -1276,7 +1458,7 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LIFE JAM!");
                 if (target.CurrentState != "toast")
                 {
-                    target = GameManager.Instance.BattleManager.GetRandomDeadPartyMember();
+                    target = BattleManager.Instance.GetRandomDeadPartyMember();
                     if (target == null)
                     {
                         BattleLogManager.Instance.QueueMessage("It had no effect.");
@@ -1301,7 +1483,7 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LEMONADE!");
                 GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
                 target.HealJuice(75);
-                GameManager.Instance.BattleManager.SpawnDamageNumber(75, target.CenterPoint, DamageType.JuiceGain);
+                BattleManager.Instance.SpawnDamageNumber(75, target.CenterPoint, DamageType.JuiceGain);
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 75 JUICE!");
                 await Task.CompletedTask;
             }
@@ -1316,17 +1498,18 @@ public class Database
             Effect = async (self, target, item) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses FRIES!");
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
                     GameManager.Instance.AnimationManager.PlayAnimation(212, member.Actor, false);
                     member.Actor.Heal(60);
-                    GameManager.Instance.BattleManager.SpawnDamageNumber(60, member.Actor.CenterPoint, DamageType.Heal);
+                    BattleManager.Instance.SpawnDamageNumber(60, member.Actor.CenterPoint, DamageType.Heal);
                 }
                 BattleLogManager.Instance.QueueMessage("Everyone recovered 60 HEART!");
                 await Task.CompletedTask;
             }
         };
         #endregion
+
         #region TOYS
         Items["RUBBER BAND"] = new Item
         {
@@ -1338,7 +1521,7 @@ public class Database
             Effect = async (self, target, item) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses RUBBER BAND!");
-                GameManager.Instance.BattleManager.Damage(self, target, () => { return 50; }, true, 0, neverCrit: true);
+                BattleManager.Instance.Damage(self, target, () => { return 50; }, true, 0, neverCrit: true);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(item.AnimationId, target);
                 target.AddStatModifier(Modifier.DefenseDown);
             }
@@ -1355,7 +1538,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses AIR HORN!");
                 AudioManager.Instance.PlaySFX("SE_airhorn", 1, 0.9f);
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
                     string state = "angry";
                     switch (member.Actor.CurrentState)
@@ -1390,7 +1573,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses RAIN CLOUD!");
                 AudioManager.Instance.PlaySFX("BA_sad_level_2", 1, 0.9f);
-                foreach (PartyMemberComponent member in GameManager.Instance.BattleManager.GetAlivePartyMembers())
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
                     string state = "sad";
                     switch (member.Actor.CurrentState)

@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -26,7 +25,14 @@ public partial class BattleManager : Node
 	private bool FollowupActive = true;
 	private bool ForceHideFollowup = false;
 
-	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
+	public static BattleManager Instance { get; private set; }
+
+    public override void _EnterTree()
+    {
+		Instance = this;
+    }
+
+    public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
 	{
 		CurrentParty = party;
 		Enemies = enemies;
@@ -40,7 +46,6 @@ public partial class BattleManager : Node
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
 
-		// TODO: refund items if a character dies while trying to use one
 		Items.Add("LIFE JAM", 4);
 		Items.Add("HOT DOG", 4);
 		Items.Add("LEMONADE", 4);
@@ -71,296 +76,281 @@ public partial class BattleManager : Node
 
 		MenuManager.Instance.EnergyText.Text = $"{Energy:00}";
 		MenuManager.Instance.EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(Energy / 3f) * 45f, 362f, 49f);
-	}
 
-	public override void _Input(InputEvent @event)
-	{
 		if (Input.IsActionJustPressed("Accept"))
 		{
-			switch (Phase)
-			{
-				case BattlePhase.FightRun:
-					if (MenuManager.Instance.CursorSelection == "Run")
-					{
-						AudioManager.Instance.PlaySFX("sys_buzzer");
-						return;
-					}
-					else
-					{
-						AudioManager.Instance.PlaySFX("SYS_select");
-						CurrentPartyMember++;
-						SetPhase(BattlePhase.PlayerCommand);
-					}
-					break;
-				case BattlePhase.PlayerCommand:
-					if (MenuManager.Instance.CursorSelection == "Attack")
-					{
-						AudioManager.Instance.PlaySFX("SYS_select");
-						SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.First();
-						SetPhase(BattlePhase.TargetSelection);
-					}
-					else if (MenuManager.Instance.CursorSelection == "Skill")
-					{
-						AudioManager.Instance.PlaySFX("SYS_select");
-						SetPhase(BattlePhase.SkillSelection);
-						MenuManager.Instance.PopulateSkillMenu(CurrentParty[CurrentPartyMember].Actor);
-						MenuManager.Instance.ShowMenu("SkillMenu");					
-					}
-					else if (MenuManager.Instance.CursorSelection == "Snack")
-					{
-						AudioManager.Instance.PlaySFX("SYS_select");
-						SetPhase(BattlePhase.SkillSelection);
-						MenuManager.Instance.PopulateItemMenu(false);
-						MenuManager.Instance.ShowMenu("SnackMenu");
-					}
-					else if (MenuManager.Instance.CursorSelection == "Toy")
-					{
-						AudioManager.Instance.PlaySFX("SYS_select");
-						SetPhase(BattlePhase.SkillSelection);
-						MenuManager.Instance.PopulateItemMenu(true);
-						MenuManager.Instance.ShowMenu("ToyMenu");
-					}
-					break;
-				case BattlePhase.SkillSelection:
-					if (MenuManager.Instance.DisplayedMenu == "SkillMenu")
-					{
-						SelectedAction = MenuManager.Instance.GetSelectedSkill();
-						if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - (SelectedAction as Skill).Cost < 0)
-						{
-							AudioManager.Instance.PlaySFX("sys_buzzer");
-							return;
-						}
-						if ((SelectedAction.Target == SkillTarget.DeadAlly || SelectedAction.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
-						{
-							AudioManager.Instance.PlaySFX("sys_buzzer");
-							return;
-						}
-					}
-					if (MenuManager.Instance.DisplayedMenu == "SnackMenu" || MenuManager.Instance.DisplayedMenu == "ToyMenu")
-					{
-						SelectedAction = MenuManager.Instance.GetSelectedItem();
-						if ((SelectedAction.Target == SkillTarget.DeadAlly || SelectedAction.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
-						{
-							AudioManager.Instance.PlaySFX("sys_buzzer");
-							return;
-						}
-
-						Item item = SelectedAction as Item;
-						Items[item.Name]--;
-						if (Items[item.Name] == 0)
-							Items.Remove(item.Name);
-					}
-					AudioManager.Instance.PlaySFX("SYS_select");
-					SetPhase(BattlePhase.TargetSelection);
-					break;
-				case BattlePhase.TargetSelection:
-					SelectTarget();
-					break;
-			}
-		}
-
-		if (Input.IsActionJustPressed("Back"))
-		{
-			switch (Phase)
-			{
-				case BattlePhase.PlayerCommand:
-					AudioManager.Instance.PlaySFX("sys_cancel");
-					if (CurrentPartyMember == 0)
-						SetPhase(BattlePhase.FightRun);
-					else
-					{
-						if (Commands[^1].Action is Item item)
-						{
-							if (!Items.ContainsKey(item.Name))
-								Items.Add(item.Name, 1);
-							else
-								Items[item.Name]++;
-						}
-						Commands.RemoveAt(Commands.Count - 1);
-						CurrentPartyMember--;
-						SetPhase(BattlePhase.PlayerCommand);
-					}
-					break;
-				case BattlePhase.TargetSelection:
-					AudioManager.Instance.PlaySFX("sys_cancel");
-					CurrentEnemyTarget = -1;
-					CurrentPartyMemberTarget = -1;
-					SetPhase(BattlePhase.PlayerCommand);
-					break;
-				case BattlePhase.SkillSelection:
-					AudioManager.Instance.PlaySFX("sys_cancel");
-					MenuManager.Instance.ShowMenu("BattleCommand");
-					SetPhase(BattlePhase.PlayerCommand);
-					break;
-			}			
-		}
-
-		if (Input.IsActionJustPressed("MenuLeft"))
-		{
-			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
-			{
-				if (HandleFollowup("left"))
-				{
-					ProcessFollowupSuccess();
-				}
-			}
 			if (Phase == BattlePhase.TargetSelection)
 			{
-				AudioManager.Instance.PlaySFX("SYS_move");
-				if (SelectedAction.Target == SkillTarget.Enemy || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentEnemyTarget > -1) && Enemies.Count > 1)
-				{
-					CurrentEnemyTarget--;
-					if (CurrentEnemyTarget < 0)
-						CurrentEnemyTarget = Enemies.Count - 1;
-					return;
-				}
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
-				{
-					switch(CurrentPartyMemberTarget)
-					{
-						case 0:
-							CurrentPartyMemberTarget = 3;
-							break;
-						case 1:
-							CurrentPartyMemberTarget = 2;
-							break;
-						case 2:
-							CurrentPartyMemberTarget = 1;
-							break;
-						case 3:
-							CurrentPartyMemberTarget = 0;
-							break;
-					}
-				}
+				SelectTarget();
 			}
-				
-		}
-
-		if (Input.IsActionJustPressed("MenuRight"))
-		{
-			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+			else
 			{
-				if (HandleFollowup("right"))
-				{
-					ProcessFollowupSuccess();
-				}
-			}
-			if (Phase == BattlePhase.TargetSelection)
-			{
-				AudioManager.Instance.PlaySFX("SYS_move");
-				if (SelectedAction.Target == SkillTarget.Enemy || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentEnemyTarget > -1) && Enemies.Count > 1)
-				{
-					CurrentEnemyTarget++;
-					if (CurrentEnemyTarget >= Enemies.Count)
-						CurrentEnemyTarget = 0;
-					return;
-				}
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
-				{
-					switch (CurrentPartyMemberTarget)
-					{
-						case 0:
-							CurrentPartyMemberTarget = 3;
-							break;
-						case 1:
-							CurrentPartyMemberTarget = 2;
-							break;
-						case 2:
-							CurrentPartyMemberTarget = 1;
-							break;
-						case 3:
-							CurrentPartyMemberTarget = 0;
-							break;
-					}
-				}
+				MenuManager.Instance.Select();
 			}
 		}
 
-		if (Input.IsActionJustPressed("MenuUp"))
-		{
-			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
-			{
-				if (HandleFollowup("up"))
-				{
-					ProcessFollowupSuccess();
-				}
-			}
-			if (Phase == BattlePhase.TargetSelection)
-			{
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
-				{
-					AudioManager.Instance.PlaySFX("SYS_move");
-					switch (CurrentPartyMemberTarget)
-					{
-						case 0:
-							CurrentPartyMemberTarget = 1;
-							break;
-						case 1:
-							CurrentPartyMemberTarget = 0;
-							break;
-						case 2:
-							CurrentPartyMemberTarget = 3;
-							break;
-						case 3:
-							CurrentPartyMemberTarget = 2;
-							break;
-					}
-				}
-			}
-		}
+        // handle Back here instead of MenuManager to have more control and easier variable access
+        if (Input.IsActionJustPressed("Back"))
+        {
+            switch (Phase)
+            {
+                case BattlePhase.PlayerCommand:
+                    if (CurrentPartyMember == 0)
+                    {
+                        AudioManager.Instance.PlaySFX("sys_cancel");
+                        MenuManager.Instance.ShowMenu(MenuState.Party);
+                        SetPhase(BattlePhase.FightRun);
+                    }
+                    else
+                    {
+                        if (Commands[^1].Action is Item item)
+                        {
+                            if (!Items.ContainsKey(item.Name))
+                                Items.Add(item.Name, 1);
+                            else
+                                Items[item.Name]++;
+                        }
+                        Commands.RemoveAt(Commands.Count - 1);
+                        CurrentPartyMember--;
+                        AudioManager.Instance.PlaySFX("sys_cancel");
+                        MenuManager.Instance.ShowMenu(MenuState.Battle);
+                        SetPhase(BattlePhase.PlayerCommand);
+                    }
+                    break;
+                case BattlePhase.TargetSelection:
+                    AudioManager.Instance.PlaySFX("sys_cancel");
+                    CurrentEnemyTarget = -1;
+                    CurrentPartyMemberTarget = -1;
+                    MenuManager.Instance.ShowMenu(MenuState.Battle);
+                    SetPhase(BattlePhase.PlayerCommand);
+                    break;
+                case BattlePhase.SkillSelection:
+                    AudioManager.Instance.PlaySFX("sys_cancel");
+                    MenuManager.Instance.ShowMenu(MenuState.Battle);
+                    SetPhase(BattlePhase.PlayerCommand);
+                    break;
+            }
+        }
 
-		if (Input.IsActionJustPressed("MenuDown"))
-		{
-			if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
-			{
-				if (HandleFollowup("down"))
-				{
-					ProcessFollowupSuccess();
-				}
-			}
-			if (Phase == BattlePhase.TargetSelection)
-			{
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
-				{
-					AudioManager.Instance.PlaySFX("SYS_move");
-					switch (CurrentPartyMemberTarget)
-					{
-						case 0:
-							CurrentPartyMemberTarget = 1;
-							break;
-						case 1:
-							CurrentPartyMemberTarget = 0;
-							break;
-						case 2:
-							CurrentPartyMemberTarget = 3;
-							break;
-						case 3:
-							CurrentPartyMemberTarget = 2;
-							break;
-					}
-				}
-			}
-		}
+        if (Input.IsActionJustPressed("MenuLeft"))
+        {
+            if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+            {
+                if (HandleFollowup("left"))
+                {
+                    ProcessFollowupSuccess();
+                }
+            }
+            if (Phase == BattlePhase.TargetSelection)
+            {
+                AudioManager.Instance.PlaySFX("SYS_move");
+                if (SelectedAction.Target == SkillTarget.Enemy || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentEnemyTarget > -1) && Enemies.Count > 1)
+                {
+                    CurrentEnemyTarget--;
+                    if (CurrentEnemyTarget < 0)
+                        CurrentEnemyTarget = Enemies.Count - 1;
+                    return;
+                }
+                if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+                {
+                    switch (CurrentPartyMemberTarget)
+                    {
+                        case 0:
+                            CurrentPartyMemberTarget = 3;
+                            break;
+                        case 1:
+                            CurrentPartyMemberTarget = 2;
+                            break;
+                        case 2:
+                            CurrentPartyMemberTarget = 1;
+                            break;
+                        case 3:
+                            CurrentPartyMemberTarget = 0;
+                            break;
+                    }
+                }
+            }
 
-		if (Input.IsActionJustPressed("SwitchSides"))
-		{
-			if (Phase == BattlePhase.TargetSelection && SelectedAction.Target == SkillTarget.AllyOrEnemy)
-			{
-				if (CurrentPartyMemberTarget > -1)
-				{
-					CurrentPartyMemberTarget = -1;
-					CurrentEnemyTarget = 0;
-				}
-				else
-				{
-					CurrentPartyMemberTarget = 0;
-					CurrentEnemyTarget = -1;
-				}
-			}
-		}
-	}	
+        }
 
-	private void SetPhase(BattlePhase phase)
+        if (Input.IsActionJustPressed("MenuRight"))
+        {
+            if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+            {
+                if (HandleFollowup("right"))
+                {
+                    ProcessFollowupSuccess();
+                }
+            }
+            if (Phase == BattlePhase.TargetSelection)
+            {
+                AudioManager.Instance.PlaySFX("SYS_move");
+                if (SelectedAction.Target == SkillTarget.Enemy || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentEnemyTarget > -1) && Enemies.Count > 1)
+                {
+                    CurrentEnemyTarget++;
+                    if (CurrentEnemyTarget >= Enemies.Count)
+                        CurrentEnemyTarget = 0;
+                    return;
+                }
+                if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+                {
+                    switch (CurrentPartyMemberTarget)
+                    {
+                        case 0:
+                            CurrentPartyMemberTarget = 3;
+                            break;
+                        case 1:
+                            CurrentPartyMemberTarget = 2;
+                            break;
+                        case 2:
+                            CurrentPartyMemberTarget = 1;
+                            break;
+                        case 3:
+                            CurrentPartyMemberTarget = 0;
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (Input.IsActionJustPressed("MenuUp"))
+        {
+            if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+            {
+                if (HandleFollowup("up"))
+                {
+                    ProcessFollowupSuccess();
+                }
+            }
+            if (Phase == BattlePhase.TargetSelection)
+            {
+                if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+                {
+                    AudioManager.Instance.PlaySFX("SYS_move");
+                    switch (CurrentPartyMemberTarget)
+                    {
+                        case 0:
+                            CurrentPartyMemberTarget = 1;
+                            break;
+                        case 1:
+                            CurrentPartyMemberTarget = 0;
+                            break;
+                        case 2:
+                            CurrentPartyMemberTarget = 3;
+                            break;
+                        case 3:
+                            CurrentPartyMemberTarget = 2;
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (Input.IsActionJustPressed("MenuDown"))
+        {
+            if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+            {
+                if (HandleFollowup("down"))
+                {
+                    ProcessFollowupSuccess();
+                }
+            }
+            if (Phase == BattlePhase.TargetSelection)
+            {
+                if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+                {
+                    AudioManager.Instance.PlaySFX("SYS_move");
+                    switch (CurrentPartyMemberTarget)
+                    {
+                        case 0:
+                            CurrentPartyMemberTarget = 1;
+                            break;
+                        case 1:
+                            CurrentPartyMemberTarget = 0;
+                            break;
+                        case 2:
+                            CurrentPartyMemberTarget = 3;
+                            break;
+                        case 3:
+                            CurrentPartyMemberTarget = 2;
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (Input.IsActionJustPressed("SwitchSides"))
+        {
+            if (Phase == BattlePhase.TargetSelection && SelectedAction.Target == SkillTarget.AllyOrEnemy)
+            {
+                if (CurrentPartyMemberTarget > -1)
+                {
+                    CurrentPartyMemberTarget = -1;
+                    CurrentEnemyTarget = 0;
+                }
+                else
+                {
+                    CurrentPartyMemberTarget = 0;
+                    CurrentEnemyTarget = -1;
+                }
+            }
+        }
+    }
+
+    public void OnFightSelected()
+    {
+        CurrentPartyMember++;
+        SetPhase(BattlePhase.PlayerCommand);
+    }
+
+    public void OnSelectAttack()
+    {
+        SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.First();
+        SetPhase(BattlePhase.TargetSelection);
+    }
+
+    // idfk
+    public void OnSelectNotAttack()
+    {
+        SetPhase(BattlePhase.SkillSelection);
+    }
+
+    public void OnSelectSkill(Skill skill)
+    {
+        SelectedAction = skill;
+        if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - (SelectedAction as Skill).Cost < 0)
+        {
+            AudioManager.Instance.PlaySFX("sys_buzzer");
+            return;
+        }
+        if ((SelectedAction.Target == SkillTarget.DeadAlly || SelectedAction.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+        {
+            AudioManager.Instance.PlaySFX("sys_buzzer");
+            return;
+        }
+        AudioManager.Instance.PlaySFX("SYS_select");
+        SetPhase(BattlePhase.TargetSelection);
+    }
+
+    public void OnSelectItem(Item item)
+    {
+        SelectedAction = item;
+        if ((SelectedAction.Target == SkillTarget.DeadAlly || SelectedAction.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+        {
+            AudioManager.Instance.PlaySFX("sys_buzzer");
+            return;
+        }
+
+        Item i = SelectedAction as Item;
+        Items[i.Name]--;
+        if (Items[i.Name] == 0)
+            Items.Remove(i.Name);
+
+        AudioManager.Instance.PlaySFX("SYS_select");
+        SetPhase(BattlePhase.TargetSelection);
+    }
+
+    private void SetPhase(BattlePhase phase)
 	{
 		GD.Print("Entering Phase: " + phase);
 		Phase = phase;
@@ -446,7 +436,7 @@ public partial class BattleManager : Node
 
 	private void PrepareCommandExecution()
 	{
-		MenuManager.Instance.ShowMenu("None");
+		MenuManager.Instance.ShowMenu(MenuState.None);
 		foreach (EnemyComponent enemy in Enemies)
 		{
 			// Add an empty action for each enemy so the sorting below still works
@@ -476,9 +466,12 @@ public partial class BattleManager : Node
 		CurrentPartyMemberTarget = -1;
 		CommandIndex = -1;
 		Commands.Clear();
-		BattleLogManager.Instance.ClearAndShowMessage("What will " + CurrentParty[0].Actor.Name.ToUpper() + " and friends do?");
+		// tick down stat turn timers
+		CurrentParty.ForEach(x => x.Actor.DecreaseStatTurnCounter());
+		Enemies.ForEach(x => x.Actor.DecreaseStatTurnCounter());
+        BattleLogManager.Instance.ClearAndShowMessage("What will " + CurrentParty[0].Actor.Name.ToUpper() + " and friends do?");
 		MenuManager.Instance.ShowButtons(CurrentParty[0].Actor.IsRealWorld);
-		MenuManager.Instance.ShowMenu("PartyCommand");
+		MenuManager.Instance.ShowMenu(MenuState.Party);
 	}
 
 	private void HandlePlayerCommand()
@@ -496,12 +489,11 @@ public partial class BattleManager : Node
 		}
 		BattleLogManager.Instance.ClearAndShowMessage("What will " + CurrentParty[CurrentPartyMember].Actor.Name.ToUpper() + " do?");
 		MenuManager.Instance.ShowButtons(CurrentParty[CurrentPartyMember].Actor.IsRealWorld);
-		MenuManager.Instance.ShowMenu("BattleCommand");
+		MenuManager.Instance.ShowMenu(MenuState.Battle);
 	}
 
 	private void HandleTargetSelection()
 	{
-		MenuManager.Instance.ShowMenu("None");
 		switch (SelectedAction.Target)
 		{
 			case SkillTarget.Ally:
@@ -582,6 +574,11 @@ public partial class BattleManager : Node
 	{
 		while (Commands[CommandIndex].Actor.CurrentState == "toast")
 		{
+			if (Commands[CommandIndex].Action is Item item)
+			{
+				// refund items if the character died before using it
+				Items[item.Name]++;
+			}
 			CommandIndex++;
 			if (CommandIndex >= Commands.Count)
 			{
@@ -592,9 +589,9 @@ public partial class BattleManager : Node
 
 		BattleCommand currentAction = Commands[CommandIndex];
 
-		if (currentAction.Actor is Enemy enemy)
+		if (currentAction.Actor is Enemy enemy && currentAction.Action == null)
 		{
-			// overwrite the empty skill with an actual command
+			// overwrite the empty enemy skill with an actual command
 			currentAction = enemy.ProcessAI();
 		}
 
@@ -605,9 +602,9 @@ public partial class BattleManager : Node
 			if (target.CurrentHP == 0 && currentAction.Action.Target != SkillTarget.DeadAlly && currentAction.Action.Target != SkillTarget.AllDeadAllies)
 			{
 				if (target is Enemy)
-					target = GameManager.Instance.BattleManager.GetRandomAliveEnemy();
+					target = GetRandomAliveEnemy();
 				else
-					target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
+					target = GetRandomAlivePartyMember();
 				if (target == null)
 				{
 					GD.PrintErr("Running Command when all targets are dead!");
@@ -640,8 +637,7 @@ public partial class BattleManager : Node
 		{
 			await item.Effect(currentAction.Actor, currentAction.Target, item);
 		}
-		// tick down buffs after actor takes their turn
-		currentAction.Actor.DecreaseTurnCounter();
+
 		if (BattleLogManager.Instance.IsProcessingMessage)
 			SetPhase(BattlePhase.WaitForBattleLog);
 		else
@@ -812,6 +808,11 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlayBGM("xx_victory");
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 		}
+		if (CurrentParty[0].Actor.CurrentHP == 0)
+		{
+			SetPhase(BattlePhase.BattleOver);
+            BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + " was defeated...");
+        }
 	}
 
 	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false)
@@ -851,9 +852,15 @@ public partial class BattleManager : Node
 			self.RemoveStatModifier(Modifier.Flex);
 		}
 		int rounded = (int)Math.Round(finalDamage, MidpointRounding.AwayFromZero);
-		// attacks will always do at least 1 damage
+		if (target.HasStatModifier(Modifier.PlotArmor))
+		{
+			rounded = 0;
+		}
 		if (rounded <= 0)
-			rounded = 1;
+		{
+            BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack did nothing.");
+			return;
+        }
 		int juiceLost = 0;
 		switch (target.CurrentState)
 		{
@@ -978,7 +985,7 @@ public partial class BattleManager : Node
 
 		Task.Delay(TimeSpan.FromSeconds(1.5f)).ContinueWith(_ =>
 		{
-			dmg.QueueFree();
+			dmg.CallDeferred(DamageNumber.MethodName.Despawn);
 		});
 	}
 
@@ -1014,6 +1021,11 @@ public partial class BattleManager : Node
 	{
 		// eh who needs bounds checks these days
 		return CurrentParty[index].Actor;
+	}
+
+	public PartyMember GetCurrentPartyMember()
+	{
+		return CurrentParty[CurrentPartyMember].Actor;
 	}
 
 	public List<(Item, int)> GetSnacks()

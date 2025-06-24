@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://co6vyfcb5n5j6"
+path="res://.godot/imported/Re Stretched.ogg-87280e6cb2278ac1fee54cad6a80d1a8.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/sfx/Re Stretched.ogg"
+dest_files=["res://.godot/imported/Re Stretched.ogg-87280e6cb2278ac1fee54cad6a80d1a8.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

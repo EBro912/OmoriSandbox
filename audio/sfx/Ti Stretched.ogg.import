@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://unptxudtaqnn"
+path="res://.godot/imported/Ti Stretched.ogg-66dfc2f25bb82a7340e0a9b27c054f2e.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/sfx/Ti Stretched.ogg"
+dest_files=["res://.godot/imported/Ti Stretched.ogg-66dfc2f25bb82a7340e0a9b27c054f2e.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

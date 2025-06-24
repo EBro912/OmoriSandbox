@@ -36,12 +36,15 @@ public partial class AnimationManager : Node2D
 		{
 			RPGMAnimatedSprite animation;
 
-			if (!string.IsNullOrWhiteSpace(info.AltTexture))
-				animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"), GD.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
-			else
-				animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"));
+			if (string.IsNullOrWhiteSpace(info.Texture))
+				continue;
 
-			foreach (float[][] frame in info.Frames)
+            if (!string.IsNullOrWhiteSpace(info.AltTexture))
+                animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"), GD.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
+            else
+                animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"));
+
+            foreach (float[][] frame in info.Frames)
 			{
 				List<Frame> frames = [];
 				foreach (float[] f in frame)
@@ -62,8 +65,8 @@ public partial class AnimationManager : Node2D
 			{
 				GD.PrintErr("Unable to add animation ID " + info.Id + ", is there a duplicate?");
 			}
-			GD.Print("Loaded animation: " + info.Id);
 		}
+		GD.Print($"Loaded {Animations.Count} animations");
 	}
 
 	public override void _Process(double delta)

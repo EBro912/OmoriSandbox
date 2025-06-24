@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 public partial class PartyMemberComponent : Node
 {
@@ -39,6 +40,12 @@ public partial class PartyMemberComponent : Node
 		Position = position;
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
+		PartyMember.OnStateChanged += StateChanged;
+	}
+
+	private void StateChanged(object sender, EventArgs e)
+	{
+		StateAnimator.SetState(PartyMember.CurrentState);
 	}
 
 	public override void _Process(double delta)
@@ -47,8 +54,6 @@ public partial class PartyMemberComponent : Node
 		HPLabel.Text = PartyMember.CurrentHP + "/" + PartyMember.BaseStats.HP;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + PartyMember.BaseStats.Juice;
-		// TODO: not run this every frame?
-		StateAnimator.SetState(PartyMember.CurrentState);
 	}
 
 	public bool SelectionBoxVisible

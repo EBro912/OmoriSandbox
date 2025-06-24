@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=38 format=3 uid="uid://ccadnjgqeryle"]
+[gd_resource type="SpriteFrames" load_steps=41 format=3 uid="uid://ccadnjgqeryle"]
 
 [ext_resource type="Texture2D" uid="uid://c4turqhp7q86c" path="res://assets/faces/01_OMORI_BATTLE.png" id="2_uv7pg"]
 
@@ -121,6 +121,18 @@ region = Rect2(106, 0, 106, 106)
 [sub_resource type="AtlasTexture" id="AtlasTexture_gqmmt"]
 atlas = ExtResource("2_uv7pg")
 region = Rect2(212, 0, 106, 106)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t4s73"]
+atlas = ExtResource("2_uv7pg")
+region = Rect2(0, 318, 106, 106)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qym46"]
+atlas = ExtResource("2_uv7pg")
+region = Rect2(106, 318, 106, 106)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mjmdu"]
+atlas = ExtResource("2_uv7pg")
+region = Rect2(212, 318, 106, 106)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j2jfr"]
 atlas = ExtResource("2_uv7pg")
@@ -286,6 +298,20 @@ animations = [{
 }],
 "loop": true,
 "name": &"neutral",
+"speed": 4.5
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t4s73")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qym46")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mjmdu")
+}],
+"loop": true,
+"name": &"plotarmor",
 "speed": 4.5
 }, {
 "frames": [{

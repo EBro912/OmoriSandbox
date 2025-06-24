@@ -18,6 +18,7 @@ public partial class DamageNumber : Node2D
     {
         Digits = damage.ToString().Select(digit => (int)char.GetNumericValue(digit)).ToArray();
         DamageType = type;
+        Modulate = Colors.Transparent;
     }
 
     // since we spawn in damage numbers we need to cache this texture from elsewhere
@@ -28,6 +29,9 @@ public partial class DamageNumber : Node2D
 
     public override void _Ready()
     {
+        Tween tween = GetTree().CreateTween();
+        tween.TweenProperty(this, "modulate:a", 1f, 0.1f);
+
         if (DamageType == DamageType.Miss)
         {
             Sprite2D sprite = new()
@@ -56,6 +60,13 @@ public partial class DamageNumber : Node2D
             float offset = i * scaledSpacing - totalWidth / 2f;
             sprite.Position = new Vector2(offset, 20);
         }
+    }
+
+    public void Despawn()
+    {
+        Tween tween = GetTree().CreateTween();
+        tween.TweenProperty(this, "modulate:a", 0f, 0.1f);
+        tween.TweenCallback(Callable.From(QueueFree));
     }
 
 

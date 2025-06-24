@@ -9,7 +9,6 @@ public class Omori : PartyMember
     public override int[] DEFTree => new[] { 6, 7, 8, 8, 9, 10, 11, 13, 15, 15, 17, 18, 19, 22, 23, 25, 26, 27, 28, 30, 30, 31, 32, 33, 35, 35, 36, 37, 37, 39, 42, 43, 44, 46, 47, 49, 50, 51, 52, 54, 56, 59, 61, 63, 65, 68, 70, 72, 74, 77 };
     public override int[] SPDTree => new[] { 6, 8, 9, 10, 11, 13, 15, 17, 19, 20, 21, 23, 26, 28, 29, 31, 32, 35, 37, 40, 41, 44, 46, 48, 50, 51, 53, 54, 57, 58, 60, 62, 64, 65, 66, 68, 70, 71, 74, 77, 79, 82, 85, 88, 90, 92, 94, 96, 98, 100 };
     public override int BaseLuck => 5;
-
     public override Stats Weapon => new(atk: 5, hit: 100);
 
     protected override string[] EquippedSkills => ["OAttack", "SadPoem", "LuckySlice", "Stab", "Trick"];
@@ -20,4 +19,6 @@ public class Omori : PartyMember
     }
 
     public override bool IsRealWorld => false;
+
+    public bool HasUsedPlotArmor = false;
 }

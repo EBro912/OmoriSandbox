@@ -18,7 +18,7 @@ public class ForestBunnyQuestion : Enemy
     public override BattleCommand ProcessAI()
     {
         int roll;
-        Actor target = GameManager.Instance.BattleManager.GetRandomAlivePartyMember();
+        Actor target = BattleManager.Instance.GetRandomAlivePartyMember();
         switch (CurrentState)
         {
             case "happy":

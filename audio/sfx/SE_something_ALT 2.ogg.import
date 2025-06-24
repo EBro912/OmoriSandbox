@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://crmtomvbsfsgx"
+path="res://.godot/imported/SE_something_ALT 2.ogg-d046b0095ebc7295b78b125729a56f80.oggvorbisstr"
+
+[deps]
+
+source_file="res://audio/sfx/SE_something_ALT 2.ogg"
+dest_files=["res://.godot/imported/SE_something_ALT 2.ogg-d046b0095ebc7295b78b125729a56f80.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

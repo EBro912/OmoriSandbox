@@ -19,15 +19,13 @@ public partial class GameManager : Node
 	private readonly Dictionary<string, Type> ValidEnemies = [];
 
 	public RandomNumberGenerator Random = new();
-
-	public BattleManager BattleManager { get; private set; }
 	public AnimationManager AnimationManager { get; private set; }
 
 	public static GameManager Instance { get; private set; }
 
 	public override void _PhysicsProcess(double delta)
 	{
-		FPSLabel.Text = Engine.GetFramesPerSecond().ToString();
+		FPSLabel.Text = $"{Engine.GetFramesPerSecond()} : {OS.GetStaticMemoryUsage() / 1000000}";
 	}
 
 	public override void _Ready()
@@ -47,28 +45,29 @@ public partial class GameManager : Node
 		ValidEnemies.Add("LostSproutMole", typeof(LostSproutMole));
 		ValidEnemies.Add("ForestBunny?", typeof(ForestBunnyQuestion));
 		ValidEnemies.Add("Sweetheart", typeof(Sweetheart));
+		ValidEnemies.Add("SlimeGirls", typeof(SlimeGirls));
+		ValidEnemies.Add("HumphreyUvula", typeof(HumphreyUvula));
 
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
 		// Omori, Aubrey, Hero, Kel
 		// TODO: properly handle less than 4 party members
-		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, 20));
-		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, 20));
-		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, 20));
-		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, 20));
+		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, 30));
+		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, 30));
+		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, 30));
+		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, 30));
 
-		enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 270)));
+		enemy.Add(SpawnEnemy("SlimeGirls", new Vector2(320, 240)));
 
-		party.RemoveAll(x => x == null);
+        party.RemoveAll(x => x == null);
 
 		Instance = this;
 
 		AnimationManager = new();
 		AddChild(AnimationManager);
-		BattleManager = new();
-		AddChild(BattleManager);
-		BattleManager.Init(party, enemy);
+
+		BattleManager.Instance.Init(party, enemy);
 	}
 
 	private EnemyComponent SpawnEnemy(string who, Vector2 position)

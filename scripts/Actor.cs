@@ -5,6 +5,8 @@ using System.Linq;
 
 public abstract class Actor
 {
+    public event EventHandler OnStateChanged;
+
     public abstract string Name { get; }
     public AnimatedSprite2D Sprite;
     public Vector2 CenterPoint = Vector2.Zero;
@@ -225,7 +227,7 @@ public abstract class Actor
         }
     }
 
-    public void DecreaseTurnCounter()
+    public void DecreaseStatTurnCounter()
     {
         StatModifiers.ForEach(x => x.DecreaseTurn());
         StatModifiers.RemoveAll(x => x.TurnsLeft <= 0);
@@ -242,6 +244,15 @@ public abstract class Actor
         if (CurrentHP < 0)
             CurrentHP = 0;
         SetHurt(true);
+
+        // TODO: allow other character to have plot armor if desired
+        if (this is Omori omori && CurrentHP == 0 && !omori.HasUsedPlotArmor)
+        {
+            SetHurt(false);
+            SetState("plotarmor");
+            AddStatModifier(Modifier.PlotArmor, 1, 1);
+            omori.HasUsedPlotArmor = true;
+        }
     }
 
     public void Heal(int health)
@@ -273,8 +284,9 @@ public abstract class Actor
         {
             Sprite.Animation = state;
             CurrentState = state;
-            if (CurrentState != "neutral" && CurrentState != "victory" && CurrentState != "toast")
+            if (CurrentState != "neutral" && CurrentState != "victory" && CurrentState != "toast" && CurrentState != "plotarmor")
                 BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + state.ToUpper() + "!");
+            OnStateChanged?.Invoke(this, EventArgs.Empty);
         }
         else
         {

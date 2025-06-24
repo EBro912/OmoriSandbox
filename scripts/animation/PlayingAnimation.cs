@@ -20,7 +20,6 @@ public partial class PlayingAnimation : Node2D
             AtlasTexture texture = Animation.GetTextureAt(frame.Pattern);
             if (frame.Mirror)
             {
-                // TODO: dont use GetImage here
                 Image img = texture.GetImage();
                 img.FlipX();
                 DrawTexture(ImageTexture.CreateFromImage(img), DrawPosition + new Vector2(frame.X, frame.Y), new Color(1f, 1f, 1f, frame.Opacity / 255f));
