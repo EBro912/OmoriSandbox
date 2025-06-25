@@ -34,7 +34,6 @@ public partial class ItemMenu : Menu
         CursorIndex = 0;
         UpdateCursor();
         ShowItemInfo();
-        AudioManager.Instance.PlaySFX("SYS_move");
     }
 
     protected override void MoveCursor(Vector2I direction)
@@ -75,6 +74,5 @@ public partial class ItemMenu : Menu
     {
         Item selected = DisplayedItems[CursorIndex].Item1;
         BattleManager.Instance.OnSelectItem(selected);
-        MenuManager.Instance.ShowMenu(MenuState.None);
     }
 }

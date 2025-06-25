@@ -15,9 +15,7 @@ public class Sunny : PartyMember
 
     public override int BaseLuck => 5;
 
-    public override Stats Weapon => new Stats(atk: 2, hit: 95);
-
-    protected override string[] EquippedSkills => ["SAttack", "CalmDown"];
+    protected override string[] EquippedSkills => ["SAttack", "CalmDown", "PepTalk"];
 
     public override bool IsStateValid(string state)
     {

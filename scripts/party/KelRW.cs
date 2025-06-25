@@ -15,8 +15,6 @@ public class KelRW : PartyMember
 
     public override int BaseLuck => 15;
 
-    public override Stats Weapon => new Stats(atk: 2, hit: 95);
-
     protected override string[] EquippedSkills => ["KRWAttack", "Encourage"];
 
     public override bool IsStateValid(string state)

@@ -6,6 +6,7 @@ public class Database
 {
     private static readonly Dictionary<string, Skill> Skills = [];
     private static readonly Dictionary<string, Item> Items = [];
+    private static readonly Dictionary<string, Weapon> Weapons = [];
 
     public static bool TryGetSkill(string name, out Skill skill)
     {
@@ -17,6 +18,13 @@ public class Database
         return Items.TryGetValue(name, out item);
     }
 
+    public static bool TryGetWeapon(string name, out Weapon weapon)
+    {
+        return Weapons.TryGetValue(name, out weapon);
+    }
+
+    // TODO: Healing abilities should be effected by emotion
+    // TODO: Hero's weapon heart/juice effectiveness
     public static void Init()
     {
         #region SKILLS
@@ -219,7 +227,7 @@ public class Database
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, neverCrit: true);
             }
         };
 
@@ -519,7 +527,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, neverCrit: true);
             }
         };
 
@@ -536,7 +544,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] hits a home run!");
-                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 4f - target.CurrentStats.DEF; });
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 4f - target.CurrentStats.DEF; }, neverCrit: true);
                 int roll = GameManager.Instance.Random.RandiRange(0, 100);
                 if (roll < 11)
                 {
@@ -665,7 +673,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, neverCrit: true);
             }
         };
 
@@ -949,7 +957,7 @@ public class Database
             {
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
-                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, neverCrit: true);
             }
         };
 
@@ -1408,6 +1416,58 @@ public class Database
             }
         };
 
+        // AUBREY (Enemy) //
+
+        Skills["AEAttack"] = new Skill
+        {
+            Name = "AEAttack",
+            Description = "AEAttack",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 28,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, neverCrit: true);
+            }
+        };
+
+        Skills["AEDoNothing"] = new Skill
+        {
+            Name = "AEDoNothing",
+            Description = "AEDoNothing",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = -1,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] spits on your shoe.");
+                await Task.CompletedTask;
+            }
+        };
+
+        Skills["AEHeadbutt"] = new Skill
+        {
+            Name = "AEHeadbutt",
+            Description = "AEHeadbutt",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 124,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3 - target.CurrentStats.DEF; }, false, neverCrit: true);
+            }
+        };
+
         #endregion
 
         #region SNACKS
@@ -1596,6 +1656,61 @@ public class Database
                 await Task.CompletedTask;
             }
         };
+        #endregion
+
+        #region WEAPONS
+        Weapons["Shiny Knife"] = new Weapon("Shiny Knife", new Stats(atk: 5, hit: 100));
+        Weapons["Knife"] = new Weapon("Shiny Knife", new Stats(atk: 7, spd:2, hit: 100));
+        Weapons["Dull Knife"] = new Weapon("Dull Knife", new Stats(atk: 9, spd: 4, lck: 2, hit: 100));
+        Weapons["Rusty Knife"] = new Weapon("Rusty Knife", new Stats(atk: 11, def: 2, spd: 6, lck: 4, hit: 100));
+        Weapons["Red Knife"] = new Weapon("Red Knife", new Stats(atk: 13, def: 6, spd: 6, lck: 6, hit: 100));
+
+        Weapons["Fly Swatter"] = new Weapon("Fly Swatter", new Stats(atk: 1, hit: 1000));
+        Weapons["Steak Knife"] = new Weapon("Steak Knife", new Stats(atk: 30, hit: 25));
+        Weapons["Hands"] = new Weapon("Hands", new Stats(atk: 2, hit: 95));
+        Weapons["Steak Knife"] = new Weapon("Steak Knife", new Stats(atk: 30, hit: 25));
+        Weapons["Steak Knife"] = new Weapon("Steak Knife", new Stats(atk: 30, hit: 25));
+        // potential todo: other violin variants?
+        Weapons["Violin"] = new Weapon("Violin", new Stats(atk: 14, hit: 1000));
+
+        Weapons["Stuffed Toy"] = new Weapon("Stuffed Toy", new Stats(atk: 4, hit: 100));
+        Weapons["Comet Hammer"] = new Weapon("Comet Hammer", new Stats(atk: 6, lck: 2, hit: 100));
+        Weapons["Body Pillow"] = new Weapon("Body Pillow", new Stats(hp: 10, atk: 8, hit: 100));
+        Weapons["Pool Noodle"] = new Weapon("Pool Noodle", new Stats(atk: -5, def: -5, spd: -5, lck: -5, hit: 100));
+        Weapons["Cool Noodle"] = new Weapon("Cool Noodle", new Stats(atk: 15, hit: 100));
+        Weapons["Hero's Trophy"] = new Weapon("Hero's Trophy", new Stats(atk: 10, def: 5, hit: 100));
+        Weapons["Mailbox"] = new Weapon("Mailbox", new Stats(atk: 12, hit: 100));
+        Weapons["Baguette"] = new Weapon("Baguette", new Stats(atk: 10, def: 10, hit: 100));
+        Weapons["Sweetheart Bust"] = new Weapon("Sweetheart Bust", new Stats(atk: 20, spd: -30, hit: 75));
+        Weapons["Baseball Bat"] = new Weapon("Baseball Bat", new Stats(hp: 10, atk: 20, spd: 10, lck: 10, hit: 100));
+
+        Weapons["Nail Bat"] = new Weapon("Nail Bat", new Stats(atk: 3, hit: 95));
+
+        Weapons["Rubber Ball"] = new Weapon("Rubber Ball", new Stats(atk: 3, hit: 100));
+        Weapons["Meteor Ball"] = new Weapon("Meteor Ball", new Stats(atk: 4, lck: 2, hit: 100));
+        Weapons["Blood Orange"] = new Weapon("Blood Orange", new Stats(juice: 30, atk: 6, hit: 100));
+        Weapons["Jack"] = new Weapon("Jack", new Stats(atk: 12, def: -6, lck: -6, hit: 100));
+        Weapons["Beach Ball"] = new Weapon("Beach Ball", new Stats(atk: 10, spd: 25, hit: 100));
+        Weapons["Coconut"] = new Weapon("Coconut", new Stats(juice: 50, atk: 8, hit: 100));
+        Weapons["Globe"] = new Weapon("Globe", new Stats(atk: 10, hit: 1000));
+        Weapons["Chicken Ball"] = new Weapon("Chicken Ball", new Stats(spd: 200, hit: 100));
+        Weapons["Snowball"] = new Weapon("Snowball", new Stats(atk: 13, hit: 100));
+        Weapons["Basketball"] = new Weapon("Basketball", new Stats(juice: 50, atk: 15, spd: 100, lck: 15, hit: 100));
+
+        Weapons["Basketball (Real World)"] = new Weapon("Basketball", new Stats(atk: 2, hit: 95));
+
+        Weapons["Spatula"] = new Weapon("Spatula", new Stats(atk: 4, hit: 100));
+        Weapons["Rolling Pin"] = new Weapon("Rolling Pin", new Stats(hp: 10, atk: 12, def: 12, hit: 100));
+        Weapons["Teapot"] = new Weapon("Teapot", new Stats(juice: 30, atk: 6, hit: 100));
+        Weapons["Frying Pan"] = new Weapon("Frying Pan", new Stats(hp: 30, atk: 7, hit: 100));
+        Weapons["Blender"] = new Weapon("Blender", new Stats(juice: 30, atk: 7, hit: 100));
+        Weapons["Baking Pan"] = new Weapon("Baking Pan", new Stats(hp: 10, atk: 6, hit: 100));
+        Weapons["Tenderizer"] = new Weapon("Tenderizer", new Stats(atk: 30, hit: 100));
+        Weapons["LOL Sword"] = new Weapon("LOL Sword", new Stats(juice: 10, atk: 14, hit: 100));
+        Weapons["Ol' Reliable"] = new Weapon("Ol' Reliable", new Stats(hp: 20, juice: 20, atk: 20, hit: 100));
+        Weapons["Shucker"] = new Weapon("Shucker", new Stats(atk: 10, hit: 100));
+
+        Weapons["Fist"] = new Weapon("Fist", new Stats(atk: 1, hit: 95));
         #endregion
     }
 }

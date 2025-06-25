@@ -16,8 +16,6 @@ public class AubreyRW : PartyMember
 
     public override int BaseLuck => 5;
 
-    public override Stats Weapon => new Stats(atk: 3, hit: 95);
-
     protected override string[] EquippedSkills => ["ARWAttack", "Homerun"];
 
     public override bool IsStateValid(string state)

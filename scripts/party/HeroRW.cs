@@ -15,8 +15,6 @@ public class HeroRW : PartyMember
 
     public override int BaseLuck => 10;
 
-    public override Stats Weapon => new Stats(atk: 1, hit: 95);
-
     protected override string[] EquippedSkills => ["HRWAttack", "FirstAid"];
 
     public override bool IsStateValid(string state)

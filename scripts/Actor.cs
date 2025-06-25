@@ -278,14 +278,17 @@ public abstract class Actor
 
     public virtual bool IsStateValid(string state) {  return true; }
 
-    public void SetState(string state)
+    public void SetState(string state, bool silent = false)
     {
         if (IsStateValid(state))
         {
             Sprite.Animation = state;
             CurrentState = state;
-            if (CurrentState != "neutral" && CurrentState != "victory" && CurrentState != "toast" && CurrentState != "plotarmor")
-                BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + state.ToUpper() + "!");
+            if (!silent)
+            {
+                if (CurrentState != "neutral" && CurrentState != "victory" && CurrentState != "toast" && CurrentState != "plotarmor")
+                    BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + state.ToUpper() + "!");
+            }
             OnStateChanged?.Invoke(this, EventArgs.Empty);
         }
         else
@@ -296,10 +299,11 @@ public abstract class Actor
 
     // forces a state without any validity checks
     // mainly used for bosses like Sweetheart
-    public void ForceState(string state)
+    public void ForceState(string state, bool silent = false)
     {
         Sprite.Animation = state;
         CurrentState = state;
-        BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " became " + state.ToUpper() + "!");
+        if (!silent)
+            BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " became " + state.ToUpper() + "!");
     }
 }

@@ -56,6 +56,5 @@ public partial class SkillMenu : Menu
 	{
 		Skill selected = Skills[CursorIndex];
 		BattleManager.Instance.OnSelectSkill(selected);
-		MenuManager.Instance.ShowMenu(MenuState.None);
 	}
 }

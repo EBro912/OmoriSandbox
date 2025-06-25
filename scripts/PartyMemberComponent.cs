@@ -15,32 +15,42 @@ public partial class PartyMemberComponent : Node
 	public PartyMember Actor => PartyMember;
 	public Node2D FollowupBubbles { get; private set; }
 	public int Position { get; private set; }
+	public bool HasFollowup => FollowupBubbles != null;
 
-	public void SetPartyMember(PartyMember partyMember, PackedScene followup, int position, string initialState = "neutral", int level = 1)
+	public void SetPartyMember(PartyMember partyMember, PackedScene followup, int position, string initialState, int level, string weapon)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
 		StateAnimator = GetNode<StateAnimator>("../Battlecard/StateAnimatorComponent");
-		PartyMember.Init(face, initialState, level);
+		PartyMember.Init(face, initialState, level, weapon);
 		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");
 		JuiceBar = GetNode<TextureProgressBar>("../Battlecard/Juice");
 		SelectedBox = GetNode<TextureRect>("../SelectedCard");
 
-		HPBar.MaxValue = PartyMember.BaseStats.HP;
+		HPBar.MaxValue = PartyMember.CurrentHP;
 		HPBar.Value = PartyMember.CurrentHP;
-		JuiceBar.MaxValue = PartyMember.BaseStats.Juice;
+		JuiceBar.MaxValue = PartyMember.CurrentJuice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 
-		Node2D bubbles = followup.Instantiate<Node2D>();
-		bubbles.Modulate = Colors.Transparent;
-		GetParent().AddChild(bubbles);
-		FollowupBubbles = bubbles;
+		if (followup != null)
+		{
+			Node2D bubbles = followup.Instantiate<Node2D>();
+			bubbles.Modulate = Colors.Transparent;
+			GetParent().AddChild(bubbles);
+			FollowupBubbles = bubbles;
+		}
+
 		Position = position;
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 		PartyMember.OnStateChanged += StateChanged;
+
+		PartyMember.Sprite.Animation = initialState;
+		PartyMember.CurrentState = initialState;
+		// delay this call to let everything initialize
+		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, initialState);
 	}
 
 	private void StateChanged(object sender, EventArgs e)
@@ -51,9 +61,9 @@ public partial class PartyMemberComponent : Node
 	public override void _Process(double delta)
 	{
 		HPBar.Value = PartyMember.CurrentHP;
-		HPLabel.Text = PartyMember.CurrentHP + "/" + PartyMember.BaseStats.HP;
+		HPLabel.Text = PartyMember.CurrentHP + "/" + HPBar.MaxValue;
 		JuiceBar.Value = PartyMember.CurrentJuice;
-		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + PartyMember.BaseStats.Juice;
+		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + JuiceBar.MaxValue;
 	}
 
 	public bool SelectionBoxVisible
@@ -73,4 +83,5 @@ public partial class PartyMemberComponent : Node
 		Tween tween = CreateTween();
 		tween.TweenProperty(FollowupBubbles, "modulate:a", 0f, 0.2f);
 	}
+
 }

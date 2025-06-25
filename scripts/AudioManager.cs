@@ -38,7 +38,7 @@ public partial class AudioManager : Node
 		
 		Instance = this;
 
-		PlayBGM("black_knife");
+		PlayBGM("vs_susie");
 		// BGM.Finished += OnBGMFinish;
 	}
 
@@ -85,12 +85,12 @@ public partial class AudioManager : Node
 	{
 		if (!BGMDictionary.TryGetValue(name, out AudioStream stream))
 		{
-            stream = GD.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
-            if (stream == null)
-            {
-                GD.PrintErr("Unknown BGM: " + name);
-                return;
-            }
+			stream = GD.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
+			if (stream == null)
+			{
+				GD.PrintErr("Unknown BGM: " + name);
+				return;
+			}
 			BGMDictionary.Add(name, stream);
 		}
 

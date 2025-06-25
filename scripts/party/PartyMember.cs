@@ -2,7 +2,7 @@ using Godot;
 
 public abstract class PartyMember : Actor
 {
-    public void Init(AnimatedSprite2D face, string initialState, int level)
+    public void Init(AnimatedSprite2D face, string initialState, int level, string weapon)
     {
         SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
         if (animation == null)
@@ -20,7 +20,13 @@ public abstract class PartyMember : Actor
         // init stats
         int idx = level - 1;
         BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0);
-        AdjustedStats += Weapon;
+        if (!Database.TryGetWeapon(weapon, out Weapon w))
+        {
+            GD.PrintErr("Failed to find Weapon: " + weapon);
+            return;
+        }
+        Weapon = w;
+        AdjustedStats += Weapon.Stats;
         CurrentHP = CurrentStats.HP;
         CurrentJuice = CurrentStats.Juice;
 
@@ -42,10 +48,9 @@ public abstract class PartyMember : Actor
     public abstract int[] DEFTree { get; }
     public abstract int[] SPDTree { get; }
     public abstract int BaseLuck { get; }
-    // TODO: add weapon effects
     // TODO: add charms
+    public Weapon Weapon { get; private set; }
     protected abstract string[] EquippedSkills { get; }
-    public abstract Stats Weapon { get; }
     public abstract bool IsRealWorld { get; }
 }
 

@@ -2,8 +2,6 @@ public class Tony : PartyMember
 {
     public override string AnimationPath => "res://animations/tony.tres";
 
-    public override Stats Weapon => new(atk: 5, hit: 100);
-
     public override string Name => "Tony";
 
     public override int[] HPTree => new[] { 37, 38, 40, 42, 47, 52, 58, 61, 66, 71, 75, 77, 81, 90, 93, 103, 108, 110, 115, 119, 124, 128, 133, 139, 141, 147, 151, 157, 165, 167, 174, 179, 185, 187, 192, 196, 201, 205, 210, 218, 227, 236, 243, 251, 260, 269, 276, 286, 296, 300 };

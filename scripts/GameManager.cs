@@ -25,7 +25,11 @@ public partial class GameManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
+#if DEBUG
 		FPSLabel.Text = $"{Engine.GetFramesPerSecond()} : {OS.GetStaticMemoryUsage() / 1000000}";
+#else
+		FPSLabel.Text = $"{Engine.GetFramesPerSecond()}";
+#endif
 	}
 
 	public override void _Ready()
@@ -47,18 +51,19 @@ public partial class GameManager : Node
 		ValidEnemies.Add("Sweetheart", typeof(Sweetheart));
 		ValidEnemies.Add("SlimeGirls", typeof(SlimeGirls));
 		ValidEnemies.Add("HumphreyUvula", typeof(HumphreyUvula));
+		ValidEnemies.Add("AubreyEnemy", typeof(AubreyEnemy));
 
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
-		// Omori, Aubrey, Hero, Kel
-		// TODO: properly handle less than 4 party members
-		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, 30));
-		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, 30));
-		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, 30));
-		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, 30));
+        // Omori, Aubrey, Hero, Kel
+        // TODO: properly handle less than 4 party members
+		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, "Dull Knife", 30));
+		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, "Mailbox", 30));
+		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, "Baking Pan", 30));
+		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, "Snowball", 30));
 
-		enemy.Add(SpawnEnemy("SlimeGirls", new Vector2(320, 240)));
+        enemy.Add(SpawnEnemy("AubreyEnemy", new Vector2(320, 275)));
 
         party.RemoveAll(x => x == null);
 
@@ -88,7 +93,7 @@ public partial class GameManager : Node
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, int level = 1)
+	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, string weapon, int level = 1, string startingEmotion = "neutral")
 	{
 		if (!ValidPartyMembers.TryGetValue(who, out Type member))
 		{
@@ -115,7 +120,7 @@ public partial class GameManager : Node
 		}
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember((PartyMember)handle, followup, position, level: level);
+		component.SetPartyMember((PartyMember)handle, followup, position, startingEmotion, level, weapon);
 		return component;
 	}
 

@@ -23,5 +23,10 @@ public struct Stats
         HIT = hit;
     }
 
-    public static Stats operator +(Stats a, Stats b) => new(a.HP + b.HP, a.Juice + b.Juice, a.ATK + b.ATK, a.DEF + b.DEF, a.SPD + b.SPD, a.LCK + b.LCK, a.HIT + b.HIT);
+    public static Stats operator +(Stats a, Stats b) {
+        Stats result = new(a.HP + b.HP, a.Juice + b.Juice, a.ATK + b.ATK, a.DEF + b.DEF, a.SPD + b.SPD, a.LCK + b.LCK, a.HIT + b.HIT);
+        result.MaxHP = a.HP + b.HP;
+        result.MaxJuice = a.Juice + b.Juice;
+        return result;
+    }
 }
