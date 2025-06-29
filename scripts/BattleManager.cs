@@ -424,7 +424,7 @@ public partial class BattleManager : Node
 					x.Actor.SetHurt(false);					
 					if (x.Actor.CurrentHP == 0 && x.Actor.CurrentState != "toast")
 					{
-						x.Actor.SetState("toast");
+						x.Actor.SetState("toast", true);
 						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
 					}
 				});
@@ -443,7 +443,7 @@ public partial class BattleManager : Node
 					enemy.Actor.SetHurt(false);
 					if (enemy.Actor.CurrentHP == 0)
 					{
-						enemy.Actor.SetState("toast");
+						enemy.Actor.SetState("toast", true);
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
 						Enemies.Remove(enemy);
@@ -842,7 +842,7 @@ public partial class BattleManager : Node
 		if (Enemies.Count == 0)
 		{
 			SetPhase(BattlePhase.BattleOver);
-			CurrentParty.ForEach(x => x.Actor.SetState("victory"));
+			CurrentParty.ForEach(x => x.Actor.SetState("victory", true));
 			AudioManager.Instance.PlayBGM("xx_victory");
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 		}
@@ -853,7 +853,7 @@ public partial class BattleManager : Node
 		}
 	}
 
-	public void Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false)
+	public bool Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false)
 	{
 		if (!neverMiss)
 		{
@@ -863,7 +863,7 @@ public partial class BattleManager : Node
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
 				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
-				return;
+				return false;
 			}
 		}
 		float baseDamage = damageFunc();
@@ -905,7 +905,7 @@ public partial class BattleManager : Node
 		if (rounded <= 0)
 		{
 			BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack did nothing.");
-			return;
+			return true;
 		}
 		int juiceLost = 0;
 		switch (target.CurrentState)
@@ -962,7 +962,9 @@ public partial class BattleManager : Node
 		{
 			BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " juice...");
 			SpawnDamageNumber(juiceLost, target.CenterPoint + new Vector2(0, 50), DamageType.JuiceLoss);
-	   }
+		}
+
+		return true;
 	}
 
 	// some healing and juice skills are affected by emotion

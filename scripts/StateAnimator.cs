@@ -69,6 +69,10 @@ public partial class StateAnimator : Node
 				StateSprite.RegionRect = StateAtlas(12);
 				target = FaceStateAtlas(3, 2);
 				break;
+			case "plotarmor":
+				// special case for plot armor, the background gets set to "afraid" but emotion is kept
+				target = FaceStateAtlas(3, 2);
+				break;
 
 		}
 

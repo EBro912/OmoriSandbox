@@ -11,9 +11,12 @@ public partial class PartyMemberComponent : Node
 	private Label HPLabel;
 	private Label JuiceLabel;
 
+
+	private const float LerpSpeed = 100f;
 	private float DisplayedHP;
 	private float DisplayedJuice;
-	private const float LerpSpeed = 15f;
+	private float TargetHP;
+	private float TargetJuice;
 
 	public PartyMemberComponent() { }
 
@@ -39,7 +42,9 @@ public partial class PartyMemberComponent : Node
 		JuiceBar.MaxValue = PartyMember.CurrentJuice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
+		TargetHP = PartyMember.CurrentHP;
 		DisplayedJuice = PartyMember.CurrentJuice;
+		TargetJuice = PartyMember.CurrentJuice;
 
 		if (followup != null)
 		{
@@ -53,6 +58,8 @@ public partial class PartyMemberComponent : Node
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 		PartyMember.OnStateChanged += StateChanged;
+		PartyMember.OnHPChanged += HPChanged;
+		PartyMember.OnJuiceChanged += JuiceChanged;
 
 		PartyMember.Sprite.Animation = initialState;
 		PartyMember.CurrentState = initialState;
@@ -65,12 +72,28 @@ public partial class PartyMemberComponent : Node
 		StateAnimator.SetState(PartyMember.CurrentState);
 	}
 
+	private void HPChanged(object sender, EventArgs e)
+	{
+		TargetHP = PartyMember.CurrentHP;
+	}
+
+	private void JuiceChanged(object sender, EventArgs e)
+	{
+		TargetJuice = PartyMember.CurrentJuice;
+	}
+
 	public override void _Process(double delta)
 	{
-		HPBar.Value = PartyMember.CurrentHP;
-		HPLabel.Text = PartyMember.CurrentHP + "/" + HPBar.MaxValue;
-		JuiceBar.Value = PartyMember.CurrentJuice;
-		JuiceLabel.Text = PartyMember.CurrentJuice + "/" + JuiceBar.MaxValue;
+		float dt = (float)delta;
+
+		DisplayedHP = Mathf.MoveToward(DisplayedHP, PartyMember.CurrentHP, dt * LerpSpeed);
+		DisplayedJuice = Mathf.MoveToward(DisplayedJuice, PartyMember.CurrentJuice, dt * LerpSpeed);
+
+		HPBar.Value = DisplayedHP;
+		JuiceBar.Value = DisplayedJuice;
+
+		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
+		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
 	}
 
 	public bool SelectionBoxVisible

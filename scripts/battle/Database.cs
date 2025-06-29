@@ -261,7 +261,7 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayScreenAnimation(skill.AnimationId, false);
                 await Task.Delay(2500);
                 self.Heal((int)Math.Round(self.BaseStats.MaxHP * 0.5, MidpointRounding.AwayFromZero));
-                self.SetState("neutral");
+                self.SetState("neutral", true);
                 AudioManager.Instance.FadeBGMTo(100f);
             }
         };
@@ -380,24 +380,27 @@ public class Database
                 await Task.Delay(500);
                 GameManager.Instance.AnimationManager.PlayAnimation(28, target);
                 await Task.Delay(500);
-                BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK * 2f + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
-                string state = "happy";
-                switch (self.CurrentState)
+                bool miss = BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK * 2f + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
+                if (!miss)
                 {
-                    case "manic":
+                    string state = "happy";
+                    switch (self.CurrentState)
+                    {
+                        case "manic":
+                            BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+                            return;
+                        case "ecstatic":
+                            state = "manic";
+                            break;
+                        case "happy":
+                            state = "ecstatic";
+                            break;
+                    }
+                    if (self.IsStateValid(state))
+                        self.SetState(state);
+                    else
                         BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
-                        return;
-                    case "ecstatic":
-                        state = "manic";
-                        break;
-                    case "happy":
-                        state = "ecstatic";
-                        break;
                 }
-                if (self.IsStateValid(state))
-                    self.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
 
             }
         };
@@ -807,7 +810,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] massages [target]!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
-                target.SetState("neutral");
+                target.SetState("neutral", true);
                 BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " calms down...");
             }
         };
@@ -868,7 +871,7 @@ public class Database
                     }
                 }
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
-                target.SetState("neutral");
+                target.SetState("neutral", true);
                 int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
                 target.Heal(heal);
                 BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
@@ -1166,24 +1169,27 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] insults everyone!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
                 foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers()) {
-                    BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
-                    string state = "angry";
-                    switch (member.Actor.CurrentState)
+                    bool miss = BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
+                    if (!miss)
                     {
-                        case "furious":
+                        string state = "angry";
+                        switch (member.Actor.CurrentState)
+                        {
+                            case "furious":
+                                BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
+                                continue;
+                            case "enraged":
+                                state = "furious";
+                                break;
+                            case "angry":
+                                state = "enraged";
+                                break;
+                        }
+                        if (member.Actor.IsStateValid(state))
+                            member.Actor.SetState(state);
+                        else
                             BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
-                            continue;
-                        case "enraged":
-                            state = "furious";
-                            break;
-                        case "angry":
-                            state = "enraged";
-                            break;
                     }
-                    if (member.Actor.IsStateValid(state))
-                        member.Actor.SetState(state);
-                    else
-                        BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
                 }
             }
         };
@@ -1533,7 +1539,7 @@ public class Database
                 }
                 await GameManager.Instance.AnimationManager.WaitForAnimation(item.AnimationId, target, false);
                 target.CurrentHP = target.CurrentStats.MaxHP / 2;
-                target.SetState("neutral");
+                target.SetState("neutral", true);
                 BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
             }
         };

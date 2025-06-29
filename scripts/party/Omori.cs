@@ -20,4 +20,5 @@ public class Omori : PartyMember
     public override bool IsRealWorld => false;
 
     public bool HasUsedPlotArmor = false;
+    public string OldEmotion;
 }
