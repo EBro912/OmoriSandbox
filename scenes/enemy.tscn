@@ -17,6 +17,7 @@ z_as_relative = false
 sprite_frames = SubResource("SpriteFrames_xwavj")
 
 [node name="AboveHead" type="Control" parent="."]
+z_index = 10
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

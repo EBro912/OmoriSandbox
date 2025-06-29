@@ -13,63 +13,81 @@ public partial class StateAnimator : Node
 
 	public void SetState(string state)
 	{
+		Rect2 target = new();
 		switch (state)
 		{
 			case "neutral":
 			case "victory":
 				StateSprite.RegionRect = StateAtlas(0);
-				FaceStateSprite.RegionRect = FaceStateAtlas();
+				target = FaceStateAtlas();
 				break;
 			case "toast":
 				StateSprite.RegionRect = StateAtlas(1);
-				FaceStateSprite.RegionRect = FaceStateAtlas();
+				target = FaceStateAtlas();
 				break;
 			case "stressed":
 				StateSprite.RegionRect = StateAtlas(2);
-				FaceStateSprite.RegionRect = FaceStateAtlas(1);
+				target = FaceStateAtlas(1);
 				break;
 			case "happy":
 				StateSprite.RegionRect = StateAtlas(3);
-				FaceStateSprite.RegionRect = FaceStateAtlas(2);
+				target = FaceStateAtlas(2);
 				break;
 			case "ecstatic":
 				StateSprite.RegionRect = StateAtlas(4);
-				FaceStateSprite.RegionRect = FaceStateAtlas(3);
+				target = FaceStateAtlas(3);
 				break;
 			case "manic":
 				StateSprite.RegionRect = StateAtlas(5);
-				FaceStateSprite.RegionRect = FaceStateAtlas(0, 1);
+				target = FaceStateAtlas(0, 1);
 				break;
 			case "sad":
 				StateSprite.RegionRect = StateAtlas(6);
-				FaceStateSprite.RegionRect = FaceStateAtlas(1, 1);
+				target = FaceStateAtlas(1, 1);
 				break;
 			case "depressed":
 				StateSprite.RegionRect = StateAtlas(7);
-				FaceStateSprite.RegionRect = FaceStateAtlas(2, 1);
+				target = FaceStateAtlas(2, 1);
 				break;
 			case "miserable":
 				StateSprite.RegionRect = StateAtlas(8);
-				FaceStateSprite.RegionRect = FaceStateAtlas(3, 1);
+				target = FaceStateAtlas(3, 1);
 				break;
 			case "angry":
 				StateSprite.RegionRect = StateAtlas(9);
-				FaceStateSprite.RegionRect = FaceStateAtlas(0, 2);
+				target = FaceStateAtlas(0, 2);
 				break;
 			case "enraged":
 				StateSprite.RegionRect = StateAtlas(10);
-				FaceStateSprite.RegionRect = FaceStateAtlas(1, 2);
+				target = FaceStateAtlas(1, 2);
 				break;
 			case "furious":
 				StateSprite.RegionRect = StateAtlas(11);
-				FaceStateSprite.RegionRect = FaceStateAtlas(2, 2);
+				target = FaceStateAtlas(2, 2);
 				break;
 			case "afraid":
 				StateSprite.RegionRect = StateAtlas(12);
-				FaceStateSprite.RegionRect = FaceStateAtlas(3, 2);
+				target = FaceStateAtlas(3, 2);
 				break;
 
 		}
+
+		// emotions in the original game have a "fade in" effect here
+		// so we do that by making a copy of the back sprite and fading in the new one
+		FaceStateSprite.ZIndex = -4;
+		Sprite2D newFaceSprite = (Sprite2D)FaceStateSprite.Duplicate();
+		GetParent().AddChild(newFaceSprite);
+		newFaceSprite.ZIndex = -3;
+		newFaceSprite.Modulate = Colors.Transparent;
+		newFaceSprite.RegionRect = target;
+		Tween tween = newFaceSprite.CreateTween();
+		tween.TweenProperty(newFaceSprite, "modulate:a", 1f, 0.25f);
+		tween.TweenCallback(Callable.From(() =>
+		{
+			// after we fade in the new sprite, remove the old one
+			FaceStateSprite.Free();
+			FaceStateSprite = newFaceSprite;
+		}));
 	}
 
 	private Rect2 StateAtlas(int y)

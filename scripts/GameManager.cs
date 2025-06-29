@@ -63,7 +63,7 @@ public partial class GameManager : Node
 		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, "Baking Pan", 30));
 		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, "Snowball", 30));
 
-        enemy.Add(SpawnEnemy("AubreyEnemy", new Vector2(320, 275)));
+        enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 275)));
 
         party.RemoveAll(x => x == null);
 

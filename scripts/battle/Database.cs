@@ -23,11 +23,25 @@ public class Database
         return Weapons.TryGetValue(name, out weapon);
     }
 
-    // TODO: Healing abilities should be effected by emotion
-    // TODO: Hero's weapon heart/juice effectiveness
     public static void Init()
     {
         #region SKILLS
+        Skills["Guard"] = new Skill
+        {
+            Name = "GUARD",
+            Description = "Acts first, reducing damage taken for 1 turn.\nCost: 0",
+            Hidden = false,
+            GoesFirst = true,
+            Target = SkillTarget.Self,
+            AnimationId = 115,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] guards.");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, self, false);
+                self.AddStatModifier(Modifier.Guard, 1, 1);
+            }
+        };
+
         // OMORI //
         Skills["OAttack"] = new Skill
         {
@@ -810,13 +824,8 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes a cookie just for [target]!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target, false);
-                float heal = target.CurrentStats.MaxHP * 0.75f;
-                float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
-                int finalHeal = (int)Math.Round(heal * variance, MidpointRounding.AwayFromZero);
-                target.Heal(finalHeal);
-                BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
-                GameManager.Instance.AnimationManager.PlayAnimation(212, target);
-                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
+                BattleManager.Instance.Heal(self, target, () => { return target.CurrentStats.MaxHP * 0.75f; });
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
                 await Task.Delay(1000);
             }
         };
@@ -833,10 +842,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes a refreshment for [target].");
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target, false);
-                int heal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.5f, MidpointRounding.AwayFromZero);
-                target.HealJuice(heal);
-                BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.JuiceGain);
-                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} JUICE!");
+                BattleManager.Instance.HealJuice(self, target, () => { return target.CurrentStats.MaxJuice * 0.5f; });
                 await Task.Delay(1000);
             }
         };

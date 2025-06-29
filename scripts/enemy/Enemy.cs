@@ -37,4 +37,6 @@ public abstract class Enemy : Actor
     public abstract BattleCommand ProcessAI();
     public abstract bool FallsOffScreen { get; }
     public virtual void ProcessBattleConditions() { }
+    public virtual void ProcessStartOfTurn() { }
+    public virtual void ProcessEndOfTurn() { }
 }

@@ -17,7 +17,7 @@
 [ext_resource type="SpriteFrames" uid="uid://clatbr34577po" path="res://animations/release_energy.tres" id="11_dp3eg"]
 [ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="11_eb6dy"]
 [ext_resource type="Script" uid="uid://ckd81otw7er8y" path="res://scripts/AudioManager.cs" id="11_ya4ey"]
-[ext_resource type="Texture2D" uid="uid://bpp3m0m8xuldl" path="res://assets/battlebacks/battleback_ft_church.png" id="13_y6deb"]
+[ext_resource type="Texture2D" uid="uid://bewmi21adeutt" path="res://assets/battlebacks/battleback_sw_sweetheart.png" id="13_y6deb"]
 [ext_resource type="Script" uid="uid://bcfwwj4klv2cq" path="res://scripts/GameManager.cs" id="14_a8y0u"]
 [ext_resource type="Script" uid="uid://b0t86bflug3po" path="res://scripts/menu/PartyMenu.cs" id="17_pm3ni"]
 [ext_resource type="Script" uid="uid://cbac1p51c0gbd" path="res://scripts/menu/BattleMenu.cs" id="18_y6deb"]

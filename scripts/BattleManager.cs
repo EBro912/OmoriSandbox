@@ -408,8 +408,12 @@ public partial class BattleManager : Node
 			case BattlePhase.PreCommand:
 				GD.Print("Command Index: " + CommandIndex);
 				if (CommandIndex >= Commands.Count)
+				{
+					Enemies.ForEach(x => x.Actor.ProcessEndOfTurn());
 					SetPhase(BattlePhase.FightRun);
-				else {
+				}
+				else
+				{
 					SetPhase(BattlePhase.CommandExecute);
 				}
 				break;
@@ -489,7 +493,11 @@ public partial class BattleManager : Node
 		Commands.Clear();
 		// tick down stat turn timers
 		CurrentParty.ForEach(x => x.Actor.DecreaseStatTurnCounter());
-		Enemies.ForEach(x => x.Actor.DecreaseStatTurnCounter());
+		Enemies.ForEach(x =>
+		{
+			x.Actor.DecreaseStatTurnCounter();
+			x.Actor.ProcessStartOfTurn();
+		});
 		BattleLogManager.Instance.ClearAndShowMessage("What will " + CurrentParty[0].Actor.Name.ToUpper() + " and friends do?");
 		MenuManager.Instance.ShowButtons(CurrentParty[0].Actor.IsRealWorld);
 		MenuManager.Instance.ShowMenu(MenuState.Party);
@@ -838,10 +846,10 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlayBGM("xx_victory");
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 		}
-		if (CurrentParty[0].Actor.CurrentHP == 0)
+		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
 		{
 			SetPhase(BattlePhase.BattleOver);
-			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + " was defeated...");
+			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was defeated...");
 		}
 	}
 
@@ -881,7 +889,15 @@ public partial class BattleManager : Node
 			finalDamage *= 2.5f;
 			self.RemoveStatModifier(Modifier.Flex);
 		}
-		int rounded = (int)Math.Round(finalDamage, MidpointRounding.AwayFromZero);
+		int rounded;
+		if (target.HasStatModifier(Modifier.Guard))
+		{
+			rounded = (int)Math.Round(finalDamage / 0.5f, MidpointRounding.AwayFromZero);
+		}
+		else
+		{
+			rounded = (int)Math.Round(finalDamage, MidpointRounding.AwayFromZero);
+		}
 		if (target.HasStatModifier(Modifier.PlotArmor))
 		{
 			rounded = 0;
@@ -929,9 +945,15 @@ public partial class BattleManager : Node
 		{
 			GD.Print("Effectiveness: " + effectiveness);
 			if (effectiveness > 0)
+			{
+				BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
 				AudioManager.Instance.PlaySFX("se_impact_double", 1f, 0.9f);
+			}
 			else if (effectiveness < 0)
+			{
+				BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
 				AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 0.9f);
+			}
 			else
 				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
 		}
@@ -941,6 +963,30 @@ public partial class BattleManager : Node
 			BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " juice...");
 			SpawnDamageNumber(juiceLost, target.CenterPoint + new Vector2(0, 50), DamageType.JuiceLoss);
 	   }
+	}
+
+	// some healing and juice skills are affected by emotion
+
+	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f)
+	{
+		float baseHealing = healFunc();
+		float healingVariance = GameManager.Instance.Random.RandfRange(1f - variance, 1f + variance);
+		float finalHealing = baseHealing * healingVariance;
+		finalHealing = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, finalHealing, out _);
+		int rounded = (int)Math.Round(finalHealing, MidpointRounding.AwayFromZero);
+		target.Heal(rounded);
+		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
+		BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
+	}
+
+	public void HealJuice(Actor self, Actor target, Func<float> healFunc)
+	{
+		float baseJuice = healFunc();
+		float finalJuice = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, baseJuice, out _);
+		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
+		target.HealJuice(rounded);
+		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
+		BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 	}
 
 	private readonly int[,] EffectivenessMatrix = new int[3, 3]
@@ -968,12 +1014,10 @@ public partial class BattleManager : Node
 
 		if (effectiveness > 0)
 		{
-			BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
 			multiplier = weakness[targetTier];
 		}
 		else if (effectiveness < 0)
 		{
-			BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
 			multiplier = resistance[targetTier];
 		}
 

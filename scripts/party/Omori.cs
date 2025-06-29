@@ -10,7 +10,7 @@ public class Omori : PartyMember
     public override int[] SPDTree => new[] { 6, 8, 9, 10, 11, 13, 15, 17, 19, 20, 21, 23, 26, 28, 29, 31, 32, 35, 37, 40, 41, 44, 46, 48, 50, 51, 53, 54, 57, 58, 60, 62, 64, 65, 66, 68, 70, 71, 74, 77, 79, 82, 85, 88, 90, 92, 94, 96, 98, 100 };
     public override int BaseLuck => 5;
 
-    protected override string[] EquippedSkills => ["OAttack", "SadPoem", "LuckySlice", "Stab", "Trick"];
+    protected override string[] EquippedSkills => ["OAttack", "SadPoem", "Guard", "Stab", "Trick"];
 
     public override bool IsStateValid(string state)
     {

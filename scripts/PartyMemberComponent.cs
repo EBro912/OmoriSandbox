@@ -10,6 +10,11 @@ public partial class PartyMemberComponent : Node
 	private TextureProgressBar JuiceBar;
 	private Label HPLabel;
 	private Label JuiceLabel;
+
+	private float DisplayedHP;
+	private float DisplayedJuice;
+	private const float LerpSpeed = 15f;
+
 	public PartyMemberComponent() { }
 
 	public PartyMember Actor => PartyMember;
@@ -33,6 +38,8 @@ public partial class PartyMemberComponent : Node
 		HPBar.Value = PartyMember.CurrentHP;
 		JuiceBar.MaxValue = PartyMember.CurrentJuice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
+		DisplayedHP = PartyMember.CurrentHP;
+		DisplayedJuice = PartyMember.CurrentJuice;
 
 		if (followup != null)
 		{

@@ -7,7 +7,7 @@ public partial class SkillMenu : Menu
 	[Export] public Label[] SkillLabels;
 	[Export] public Label CostText;
 	private readonly List<Skill> Skills = [];
-	private List<Vector2I> Positions = [new Vector2I(170, 435), new Vector2I(340, 435), new Vector2I(170, 457), new Vector2I(340, 457)];
+	private List<Vector2I> Positions = [new Vector2I(170, 440), new Vector2I(340, 440), new Vector2I(170, 462), new Vector2I(340, 462)];
 
 	private Vector2I GridSize = new(2, 2);
 

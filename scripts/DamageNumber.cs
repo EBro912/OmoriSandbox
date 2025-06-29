@@ -1,8 +1,5 @@
 using Godot;
-using System;
 using System.Linq;
-using System.Threading.Tasks;
-
 public partial class DamageNumber : Node2D
 {
     private int[] Digits;
@@ -12,7 +9,7 @@ public partial class DamageNumber : Node2D
     private const int WIDTH = 30;
     private const int HEIGHT = 42;
     private const float SPACING = 25f;
-    private const float SCALE = 1.2f;
+    private const float SCALE = 1f;
 
     public DamageNumber(int damage, DamageType type = DamageType.Damage)
     {

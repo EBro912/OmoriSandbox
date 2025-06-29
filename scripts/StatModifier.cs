@@ -37,5 +37,6 @@ public enum Modifier
     SweetheartLock,
     Flex,
     ReleaseEnergy,
-    PlotArmor
+    PlotArmor,
+    Guard
 }
