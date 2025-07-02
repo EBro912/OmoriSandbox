@@ -38,7 +38,7 @@ public partial class AudioManager : Node
 		
 		Instance = this;
 
-		PlayBGM("vs_susie");
+		PlayBGM("invitation");
 		// BGM.Finished += OnBGMFinish;
 	}
 

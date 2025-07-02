@@ -130,6 +130,7 @@ public class Database
                     BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false, guaranteeCrit: true);
             }
         };
+
         Skills["Trick"] = new Skill
         {
             Name = "TRICK",
@@ -152,6 +153,252 @@ public class Database
                 await Task.Delay(334);
             }
         };
+
+        Skills["HackAway"] = new Skill
+        {
+            Name = "HACK AWAY",
+            Description = "Attacks 3 times, hitting random foes.\nCost: 30",
+            Cost = 30,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.AllEnemies,
+            AnimationId = 6,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, true);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] slashes wildly!");
+                List<Enemy> allEnemies = BattleManager.Instance.GetAllEnemies();
+                List<Enemy> targets = [];
+                for (int i = 0; i < 3; i++)
+                {
+                    targets.Add(allEnemies[GameManager.Instance.Random.RandiRange(0, allEnemies.Count - 1)]);
+                }
+                foreach (Enemy enemy in allEnemies)
+                {
+                    BattleManager.Instance.Damage(self, target, () =>
+                    {
+                        if (self.CurrentState == "angry" || self.CurrentState == "enraged" || self.CurrentState == "furious")
+                        {
+                            return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF;
+                        }
+                        return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF;
+                    }, false);
+                }
+            }
+        };
+
+        Skills["PainfulTruth"] = new Skill
+        {
+            Name = "PAINFUL TRUTH",
+            Description = "Deals damage to a foe. OMORI and the foe\nbecome SAD. Cost: 10",
+            Cost = 10,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 5,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, self, false);
+                GameManager.Instance.AnimationManager.PlayAnimation(19, target);
+
+                string state = "sad";
+                switch (self.CurrentState)
+                {
+                    case "miserable":
+                        BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any sadder!");
+                        return;
+                    case "depressed":
+                        state = "miserable";
+                        break;
+                    case "sad":
+                        state = "depressed";
+                        break;
+                }
+                if (self.IsStateValid(state))
+                    self.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any sadder!");
+
+                state = "sad";
+                switch (target.CurrentState)
+                {
+                    case "miserable":
+                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
+                        return;
+                    case "depressed":
+                        state = "miserable";
+                        break;
+                    case "sad":
+                        state = "depressed";
+                        break;
+                }
+                if (target.IsStateValid(state))
+                    target.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
+
+                await Task.Delay(1000);
+
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] whispers something\nto [target].");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["Shun"] = new Skill
+        {
+            Name = "SHUN",
+            Description = "Deals damage. If the foe is SAD, greatly\nreduce it's DEFENSE. Cost: 20",
+            Cost = 20,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 12,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] mocks [target].");
+                if (target.CurrentState == "angry" || target.CurrentState == "enraged" || target.CurrentState == "furious")
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(219, target);
+                    target.AddStatModifier(Modifier.AttackDown, 3);
+                }
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                await Task.Delay(334);
+            }
+        };
+
+        Skills["Mock"] = new Skill
+        {
+            Name = "MOCK",
+            Description = "Deals damage. If the foe is ANGRY, greatly\nreduce it's ATTACK. Cost: 20",
+            Cost = 20,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 11,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] shuns [target].");
+                if (target.CurrentState == "sad" || target.CurrentState == "depressed" || target.CurrentState == "miserable")
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(219, target);
+                    target.AddStatModifier(Modifier.DefenseDown, 3);
+                }
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                await Task.Delay(334);
+            }
+        };
+
+        Skills["Stare"] = new Skill
+        {
+            Name = "STARE",
+            Description = "Reduces all of a foe's STATS.\nCost: 45",
+            Cost = 45,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 18,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
+                await Task.Delay(1660);
+                GameManager.Instance.AnimationManager.PlayAnimation(219, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] stares at [target].");
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] feels uncomfortable.");
+                target.AddStatModifier(Modifier.AttackDown, 1);
+                target.AddStatModifier(Modifier.DefenseDown, 1);
+                target.AddStatModifier(Modifier.SpeedDown, 1);
+                await Task.Delay(334);
+            }
+        };
+
+        Skills["Exploit"] = new Skill
+        {
+            Name = "EXPLOIT",
+            Description = "Deals extra damage to a HAPPY, SAD, or\nANGRY foe. Cost: 30",
+            Cost = 30,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = -1,
+            Effect = async (self, target, skill) =>
+            {
+                if (target.CurrentState == "happy" || target.CurrentState == "ecstatic" || target.CurrentState == "manic")
+                {
+                    await GameManager.Instance.AnimationManager.WaitForAnimation(10, target);
+                }
+                else if (target.CurrentState == "sad" || target.CurrentState == "depressed" || target.CurrentState == "miserable")
+                {
+                    await GameManager.Instance.AnimationManager.WaitForAnimation(11, target);
+                }
+                else if (target.CurrentState == "angry" || target.CurrentState == "enraged" || target.CurrentState == "furious")
+                {
+                    await GameManager.Instance.AnimationManager.WaitForAnimation(12, target);
+                }
+                else
+                {
+                    await GameManager.Instance.AnimationManager.WaitForAnimation(123, target);
+                }
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s EMOTIONS!");
+                if (target.CurrentState != "neutral")
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3.5f - target.CurrentStats.DEF; }, false);
+                }
+                else
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
+                }
+            }
+        };
+
+        Skills["FinalStrike"] = new Skill
+        {
+            Name = "FINAL STRIKE",
+            Description = "Strikes all foes. Deals more damage if OMORI\nhas a higher stage of EMOTION. Cost: 50",
+            Cost = 50,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.AllEnemies,
+            AnimationId = 13,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] releases his ultimate\nattack!");
+                await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, true);
+                float multiplier = 3f;
+                if (self.CurrentState == "manic" || self.CurrentState == "miserable" || self.CurrentState == "furious")
+                    multiplier = 6f;
+                else if (self.CurrentState == "ecstatic" || self.CurrentState == "depressed" || self.CurrentState == "enraged")
+                    multiplier = 5f;
+                else if (self.CurrentState == "happy" || self.CurrentState == "sad" || self.CurrentState == "angry")
+                    multiplier = 5f;
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * multiplier - target.CurrentStats.DEF; }, false);
+                }
+            }
+        };
+
+        Skills["RedHands"] = new Skill
+        {
+            Name = "RED HANDS",
+            Description = "Deals big damage 4 times.\nCost: 75",
+            Cost = 75,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = -1,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForRedHands();
+                for (int i = 0; i < 4; i++)
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                }
+            }
+        };
+
+        // TODO: special skills (vertigo, cripple, suffocate), these require a special animation
 
         Skills["AttackAgain1"] = new Skill
         {
@@ -360,6 +607,7 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
                 await Task.Delay(1000);
                 await GameManager.Instance.AnimationManager.WaitForAnimation(219, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] smashes [target]!");
                 target.AddStatModifier(Modifier.DefenseDown);
                 BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false);
             }
@@ -425,12 +673,156 @@ public class Database
                         await GameManager.Instance.AnimationManager.WaitForAnimation(279, target, true);
                     else
                         await GameManager.Instance.AnimationManager.WaitForAnimation(278, target, true);
+                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                     BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, true);
                 }
                 else
                 {
+                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
                     BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF; }, true);
                 }
+            }
+        };
+
+        // TODO: add support for skills that use the <Not User> tag
+        Skills["TeamSpirit"] = new Skill
+        {
+            Name = "TEAM SPIRIT",
+            Description = "Makes AUBREY and a friend HAPPY.\nCost: 10",
+            Cost = 10,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Ally,
+            AnimationId = 49,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] cheers on [target]!");
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, self, false);
+                await Task.Delay(500);
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(29, false);
+                string state = "happy";
+                switch (target.CurrentState)
+                {
+                    case "manic":
+                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+                        return;
+                    case "ecstatic":
+                        state = "manic";
+                        break;
+                    case "happy":
+                        state = "ecstatic";
+                        break;
+                }
+                if (target.IsStateValid(state))
+                    target.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+
+                state = "happy";
+                switch (self.CurrentState)
+                {
+                    case "manic":
+                        BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any happier!");
+                        return;
+                    case "ecstatic":
+                        state = "manic";
+                        break;
+                    case "happy":
+                        state = "ecstatic";
+                        break;
+                }
+                if (self.IsStateValid(state))
+                    self.SetState(state);
+                else
+                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any happier!");
+            }
+        };
+
+        Skills["WindUpThrow"] = new Skill
+        {
+            Name = "WIND-UP THROW",
+            Description = "Damages all foes. Deals more damage the less\nenemies there are. Cost: 20",
+            Cost = 20,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.AllEnemies,
+            AnimationId = 33,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws her weapon!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                int enemies = BattleManager.Instance.GetAllEnemies().Count;
+                if (enemies == 1)
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                else if (enemies == 2)
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
+                else
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF; }, false);
+            }
+        };
+
+        Skills["Mash"] = new Skill
+        {
+            Name = "MASH",
+            Description = "If this skill defeats a foe, recover 100% JUICE.\nCost: 15",
+            Cost = 15,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 28,
+            Effect = async (self, target, skill) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(skill.AnimationId, target);
+                await Task.Delay(500);
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target);
+                await Task.Delay(500);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
+                if (target.CurrentHP == 0)
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(213, self);
+                    self.HealJuice(self.CurrentStats.MaxJuice);
+                    BattleManager.Instance.SpawnDamageNumber(self.CurrentStats.MaxJuice, target.CenterPoint, DamageType.JuiceGain);
+                }
+            }
+        };
+
+        Skills["Beatdown"] = new Skill
+        {
+            Name = "BEATDOWN",
+            Description = "Attacks a foe 3 times.\nCost: 30",
+            Cost = 30,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 17,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] furiously attacks!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                for (int i = 0; i < 3; i++)
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF; }, false);
+                    await Task.Delay(1000);
+                }
+            }
+        };
+
+        Skills["LastResort"] = new Skill
+        {
+            Name = "LAST RESORT",
+            Description = "Deals damage based on AUBREY's HEART,\nbut AUBREY becomes TOAST. Cost: 50",
+            Cost = 50,
+            Hidden = false,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 34,
+            Effect = async (self, target, skill) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(skill.AnimationId, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] strikes [target]\nwith all her strength!");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentHP * 4f; }, false);
+                self.Damage(self.CurrentHP);
             }
         };
 
@@ -1169,27 +1561,24 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] insults everyone!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(skill.AnimationId, false);
                 foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers()) {
-                    bool miss = BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
-                    if (!miss)
+                    BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
+                    string state = "angry";
+                    switch (member.Actor.CurrentState)
                     {
-                        string state = "angry";
-                        switch (member.Actor.CurrentState)
-                        {
-                            case "furious":
-                                BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
-                                continue;
-                            case "enraged":
-                                state = "furious";
-                                break;
-                            case "angry":
-                                state = "enraged";
-                                break;
-                        }
-                        if (member.Actor.IsStateValid(state))
-                            member.Actor.SetState(state);
-                        else
+                        case "furious":
                             BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
+                            continue;
+                        case "enraged":
+                            state = "furious";
+                            break;
+                        case "angry":
+                            state = "enraged";
+                            break;
                     }
+                    if (member.Actor.IsStateValid(state))
+                        member.Actor.SetState(state);
+                    else
+                        BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
                 }
             }
         };
@@ -1425,6 +1814,36 @@ public class Database
                     member.Actor.CurrentHP = juice + 1;
                     member.Actor.CurrentJuice = hp;
                 }
+            }
+        };
+
+        Skills["SlimeUltimateAttack"] = new Skill
+        {
+            Name = "SlimeUltimateAttack",
+            Description = "SlimeUltimateAttack",
+            Cost = 0,
+            Hidden = true,
+            GoesFirst = false,
+            Target = SkillTarget.Enemy,
+            AnimationId = 293,
+            Effect = async (self, target, skill) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] throw everything they have!");
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(skill.AnimationId, false);
+                await Task.Delay(1162);
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(181, false);
+                await Task.Delay(332);
+                foreach (PartyMemberComponent partyMember in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    BattleManager.Instance.SpawnDamageNumber(partyMember.Actor.CurrentJuice, partyMember.Actor.CenterPoint, DamageType.JuiceLoss);
+                    partyMember.Actor.CurrentJuice = 0;
+                }
+                await Task.Delay(1660);
+                // TODO: screen tint?
+                await Task.Delay(332);
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(193, false);
+                await Task.Delay(332);
+
             }
         };
 

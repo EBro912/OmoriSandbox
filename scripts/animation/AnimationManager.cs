@@ -11,6 +11,7 @@ public partial class AnimationManager : Node2D
 
 	private TextureRect Battleback;
 	private AnimatedSprite2D ReleaseEnergy;
+	private AnimatedSprite2D RedHands;
 
 	private Dictionary<int, RPGMAnimatedSprite> Animations = [];
 
@@ -29,6 +30,7 @@ public partial class AnimationManager : Node2D
 	{
 		Battleback = GetNode<TextureRect>("../../UI/Battleback");
 		ReleaseEnergy = GetNode<AnimatedSprite2D>("../../UI/ReleaseEnergy");
+		RedHands = GetNode<AnimatedSprite2D>("../../UI/RedHands");
 
 		string data = FileAccess.GetFileAsString("res://animations/animations.json");
 		List<AnimationInfo> animationData = JsonConvert.DeserializeObject<List<AnimationInfo>>(data);
@@ -214,7 +216,24 @@ public partial class AnimationManager : Node2D
 		return tcs.Task;
 	}
 
-	private void StartAnimation(int id, Vector2 position, bool targetsEnemy)
+    public Task WaitForRedHands()
+    {
+        TaskCompletionSource tcs = new();
+        void Handle()
+        {
+            RedHands.AnimationFinished -= Handle;
+            RedHands.Visible = false;
+            tcs.SetResult();
+        }
+
+        RedHands.Visible = true;
+        AudioManager.Instance.PlaySFX("SE_red_hands", 0.8f, 0.9f);
+        RedHands.Play();
+        RedHands.AnimationFinished += Handle;
+        return tcs.Task;
+    }
+
+    private void StartAnimation(int id, Vector2 position, bool targetsEnemy)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 		{

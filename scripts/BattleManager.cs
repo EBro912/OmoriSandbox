@@ -77,6 +77,11 @@ public partial class BattleManager : Node
 				}
 			}
 		}
+
+		foreach (PartyMemberComponent match in CurrentParty.Where(x => x.Actor.Weapon.Name == "LOL Sword"))
+		{
+			match.Actor.SetState("happy", true);
+		}
 	}
 
 	public override void _Process(double delta)
@@ -862,7 +867,8 @@ public partial class BattleManager : Node
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
-				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+				// Miss text spawns a little further down
+				SpawnDamageNumber(-1, target.CenterPoint + new Vector2(0, 30), DamageType.Miss);
 				return false;
 			}
 		}

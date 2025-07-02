@@ -12,7 +12,7 @@ public partial class PartyMemberComponent : Node
 	private Label JuiceLabel;
 
 
-	private const float LerpSpeed = 100f;
+	private const float LerpSpeed = 200f;
 	private float DisplayedHP;
 	private float DisplayedJuice;
 	private float TargetHP;
