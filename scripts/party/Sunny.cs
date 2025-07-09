@@ -16,11 +16,6 @@ public class Sunny : PartyMember
     public override int BaseLuck => 5;
 
     protected override string[] EquippedSkills => ["SAttack", "CalmDown", "PepTalk"];
-
-    public override bool IsStateValid(string state)
-    {
-        return state == "neutral" || state == "hurt" || state == "sad" || state == "angry" || state == "afraid" || state == "stressed";
-    }
-
+    protected override string[] InvalidStates => ["happy", "ecstatic", "manic", "depressed", "miserable", "enraged", "furious"];
     public override bool IsRealWorld => true;
 }

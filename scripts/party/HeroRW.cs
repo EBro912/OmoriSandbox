@@ -16,14 +16,6 @@ public class HeroRW : PartyMember
     public override int BaseLuck => 10;
 
     protected override string[] EquippedSkills => ["HRWAttack", "FirstAid"];
-
-    public override bool IsStateValid(string state)
-    {
-        return state != "miserable" &&
-            state != "manic" &&
-            state != "furious" &&
-            state != "stressed";
-    }
-
+    protected override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
     public override bool IsRealWorld => true;
 }

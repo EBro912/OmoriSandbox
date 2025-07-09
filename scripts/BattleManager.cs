@@ -21,7 +21,7 @@ public partial class BattleManager : Node
 	private List<Node2D> DyingEnemies = [];
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
-	private int Energy = 0;
+	public int Energy { get; private set; } = 0;
 	private bool FollowupActive = true;
 	private bool ForceHideFollowup = false;
 
@@ -153,6 +153,8 @@ public partial class BattleManager : Node
 					break;
 			}
 		}
+
+		// TODO: refactor target selection
 
 		if (Input.IsActionJustPressed("MenuLeft"))
 		{
@@ -481,7 +483,7 @@ public partial class BattleManager : Node
 				if (c == null)
 					return int.MaxValue;
 				else
-					return CurrentParty.IndexOf(c);
+					return c.Position;
 			})
 			.ToList();
 
@@ -674,12 +676,9 @@ public partial class BattleManager : Node
 					}
 				}
 			}
-			await skill.Effect(currentAction.Actor, currentAction.Target, skill);
 		}
-		else if (currentAction.Action is Item item)
-		{
-			await item.Effect(currentAction.Actor, currentAction.Target, item);
-		}
+
+		await currentAction.Action.Effect(currentAction.Actor, currentAction.Target);
 
 		if (BattleLogManager.Instance.IsProcessingMessage)
 			SetPhase(BattlePhase.WaitForBattleLog);
@@ -687,6 +686,8 @@ public partial class BattleManager : Node
 			SetPhase(BattlePhase.PostCommand);
 	}
 
+	// TODO: refactor if possible
+	// TODO: add other followup tiers
 	private bool HandleFollowup(string direction)
 	{
 		if (Energy < 3)
@@ -1055,6 +1056,59 @@ public partial class BattleManager : Node
 		};
 	}
 
+	public void RandomEmotion(Actor who)
+	{
+		int roll = GameManager.Instance.Random.RandiRange(0, 2);
+		string state = "";
+		switch (roll)
+		{
+			case 0:
+				state = "sad";
+				switch (who.CurrentState)
+				{
+					case "miserable":
+						return;
+					case "depressed":
+						state = "miserable";
+						break;
+					case "sad":
+						state = "depressed";
+						break;
+				}
+				break;
+			case 1:
+				state = "angry";
+				switch (who.CurrentState)
+				{
+					case "furious":
+						return;
+					case "enraged":
+						state = "furious";
+						break;
+					case "angry":
+						state = "enraged";
+						break;
+				}
+				break;
+			case 2:
+				state = "happy";
+				switch (who.CurrentState)
+				{
+					case "manic":
+						return;
+					case "ecstatic":
+						state = "manic";
+						break;
+					case "happy":
+						state = "ecstatic";
+						break;
+				}
+				break;
+		}
+		if (who.IsStateValid(state))
+			who.SetState(state);
+	}
+
 	public void SpawnDamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage)
 	{
 		DamageNumber dmg = new(damage, type)
@@ -1094,9 +1148,23 @@ public partial class BattleManager : Node
 		return Enemies.Select(x => x.Actor).ToList();
 	}
 
+	/// <summary>
+	/// Gets all party members who are not toast.
+	/// </summary>
 	public List<PartyMemberComponent> GetAlivePartyMembers()
 	{
 		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
+	}
+
+	/// <summary>
+	/// Gets all party members, including ones who are toast.
+	/// </summary>
+	/// <remarks>
+	/// Should NOT be used for skill logic in most situations, use <see cref="GetAlivePartyMembers"/> instead.
+	/// </remarks>
+	public List<PartyMemberComponent> GetAllPartyMembers()
+	{
+		return CurrentParty;
 	}
 
 	public PartyMember GetPartyMember(int index)

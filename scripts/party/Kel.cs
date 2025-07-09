@@ -12,13 +12,7 @@ public class Kel : PartyMember
 
     protected override string[] EquippedSkills => ["KAttack", "Annoy", "Rebound", "Ricochet", "Flex"];
 
-    public override bool IsStateValid(string state)
-    {
-        return state != "miserable" &&
-            state != "manic" &&
-            state != "furious" &&
-            state != "stressed";
-    }
+    protected override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
 
     public override bool IsRealWorld => false;
 }

@@ -8,7 +8,7 @@ public class SlimeGirls : Enemy
 
 	protected override Stats Stats => new(5700, 1750, 57, 32, 52, 10, 95);
 
-	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "Chainsaw"];
+	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "Chainsaw", "SlimeUltimateAttack"];
 
 	public override bool IsStateValid(string state)
 	{
@@ -96,10 +96,14 @@ public class SlimeGirls : Enemy
 
 	public override void ProcessBattleConditions()
 	{
-		// TODO: slime ultimate attack
-
 		if (Stage > 2)
 			return;
+
+		if (CurrentHP < 1425 && Stage == 2)
+		{
+			BattleManager.Instance.ForceCommand(this, null, Skills["SlimeUltimateAttack"]);
+			Stage++;
+		}
 
 		if (CurrentHP < 2850 && Stage == 1)
 		{

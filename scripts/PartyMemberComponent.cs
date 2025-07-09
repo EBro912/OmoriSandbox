@@ -25,12 +25,12 @@ public partial class PartyMemberComponent : Node
 	public int Position { get; private set; }
 	public bool HasFollowup => FollowupBubbles != null;
 
-	public void SetPartyMember(PartyMember partyMember, PackedScene followup, int position, string initialState, int level, string weapon)
+	public void SetPartyMember(PartyMember partyMember, PackedScene followup, int position, string initialState, int level, string weapon, string charm)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
 		StateAnimator = GetNode<StateAnimator>("../Battlecard/StateAnimatorComponent");
-		PartyMember.Init(face, initialState, level, weapon);
+		PartyMember.Init(face, initialState, level, weapon, charm);
 		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");

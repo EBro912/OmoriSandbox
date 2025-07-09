@@ -1,8 +1,9 @@
 using Godot;
+using System.Linq;
 
 public abstract class PartyMember : Actor
 {
-	public void Init(AnimatedSprite2D face, string initialState, int level, string weapon)
+	public void Init(AnimatedSprite2D face, string initialState, int level, string weapon, string charm)
 	{
 		SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
 		if (animation == null)
@@ -26,7 +27,17 @@ public abstract class PartyMember : Actor
 			return;
 		}
 		Weapon = w;
-		AdjustedStats += Weapon.Stats;
+		
+		if (charm != null)
+		{
+			if (!Database.TryGetCharm(charm, out Charm c))
+			{
+				GD.PrintErr("Failed to find Charm: " + charm);
+				return;
+			}
+			Charm = c;
+		}
+
 		CurrentHP = CurrentStats.HP;
 		CurrentJuice = CurrentStats.Juice;
 
@@ -41,6 +52,21 @@ public abstract class PartyMember : Actor
 		}
 	}
 
+	protected override Stats GetBaseStats()
+	{
+		Stats stats = BaseStats + Weapon.Stats;
+		if (Charm != null)
+		{
+			stats += Charm.Apply();
+		}
+		return stats;
+	}
+
+	public override bool IsStateValid(string state)
+	{
+		return !(InvalidStates.Any(x => x == state) || (Charm != null && Charm.Name == "Paper Bag"));
+	}
+
 	public abstract string AnimationPath { get; }
 	public abstract int[] HPTree { get; }
 	public abstract int[] JuiceTree { get; }
@@ -48,8 +74,9 @@ public abstract class PartyMember : Actor
 	public abstract int[] DEFTree { get; }
 	public abstract int[] SPDTree { get; }
 	public abstract int BaseLuck { get; }
-	// TODO: add charms
+	public Charm Charm { get; private set; }
 	public Weapon Weapon { get; private set; }
 	protected abstract string[] EquippedSkills { get; }
+	protected abstract string[] InvalidStates { get; }
 	public abstract bool IsRealWorld { get; }
 }

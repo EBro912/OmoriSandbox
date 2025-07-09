@@ -11,11 +11,7 @@ public class Omori : PartyMember
     public override int BaseLuck => 5;
 
     protected override string[] EquippedSkills => ["OAttack", "PainfulTruth", "Shun", "Stare", "RedHands"];
-
-    public override bool IsStateValid(string state)
-    {
-        return state != "toast" && state != "afraid" && state != "stressed";
-    }
+    protected override string[] InvalidStates => ["afraid", "stressed"];
 
     public override bool IsRealWorld => false;
 

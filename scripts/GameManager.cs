@@ -58,10 +58,10 @@ public partial class GameManager : Node
 
         // Omori, Aubrey, Hero, Kel
         // TODO: properly handle less than 4 party members
-		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, "Dull Knife", 30));
-		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, "Mailbox", 30));
-		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, "Baking Pan", 30));
-		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, "Snowball", 30));
+		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, "Dull Knife", level: 30));
+		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, "Mailbox", level: 30));
+		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, "Baking Pan", level: 30));
+		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, "Snowball", level: 30));
 
         enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 275)));
 
@@ -93,7 +93,7 @@ public partial class GameManager : Node
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, string weapon, int level = 1, string startingEmotion = "neutral")
+	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, string weapon, string charm = null, int level = 1, string startingEmotion = "neutral")
 	{
 		if (!ValidPartyMembers.TryGetValue(who, out Type member))
 		{
@@ -120,7 +120,7 @@ public partial class GameManager : Node
 		}
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember((PartyMember)handle, followup, position, startingEmotion, level, weapon);
+		component.SetPartyMember((PartyMember)handle, followup, position, startingEmotion, level, weapon, charm);
 		return component;
 	}
 

@@ -11,14 +11,7 @@ public class Hero : PartyMember
     public override int BaseLuck => 5;
 
     protected override string[] EquippedSkills => ["HAttack", "Massage", "Cook", "Refresh", "HomemadeJam"];
-
-    public override bool IsStateValid(string state)
-    {
-        return state != "miserable" &&
-            state != "manic" &&
-            state != "furious" &&
-            state != "stressed";
-    }
+    protected override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
 
     public override bool IsRealWorld => false;
 }

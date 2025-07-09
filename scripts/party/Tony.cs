@@ -12,14 +12,6 @@ public class Tony : PartyMember
     public override int BaseLuck => 7;
 
     protected override string[] EquippedSkills => ["KAttack", "Ricochet", "Rebound", "Annoy", "Flex"];
-
-    public override bool IsStateValid(string state)
-    {
-        return state != "miserable" &&
-            state != "manic" &&
-            state != "furious" &&
-            state != "stressed";
-    }
-
+    protected override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
     public override bool IsRealWorld => true;
 }

@@ -16,14 +16,8 @@ public abstract class Actor
 	public Dictionary<string, Skill> Skills = [];
 	public bool IsHurt = false;
 	public int Level = 1;
-	/// <summary>
-	/// The Actor's base stats without any modifiers.
-	/// </summary>
+
 	public Stats BaseStats;
-	/// <summary>
-	/// The Actor's standalone modified stats.
-	/// </summary>
-	public Stats AdjustedStats;
 
 	public List<StatModifier> StatModifiers = [];
 
@@ -49,6 +43,8 @@ public abstract class Actor
 		}
 	}
 
+	protected virtual Stats GetBaseStats() { return BaseStats; }
+
 	/// <summary>
 	/// The Actor's base stats, any adjusted stats from weapons or buffs, and emotion stats.
 	/// </summary>
@@ -56,23 +52,24 @@ public abstract class Actor
 	{
 		get
 		{
-			Stats current = BaseStats + AdjustedStats;
+			Stats current = GetBaseStats();
+			// TODO: afraid and stressed out
 			switch (CurrentState)
 			{
 				case "happy":
 					current.LCK *= 2;
 					current.SPD = RoundedStat(current.SPD * 1.25f);
-					current.HIT -= RoundedStat(current.HIT * 0.1f);
+					current.HIT -= 10;
 					break;
 				case "ecstatic":
 					current.LCK *= 3;
 					current.SPD = RoundedStat(current.SPD * 1.5f);
-					current.HIT -= RoundedStat(current.HIT * 0.2f);
+					current.HIT -= 20;
 					break;
 				case "manic":
 					current.LCK *= 4;
 					current.SPD = RoundedStat(current.SPD * 2f);
-					current.HIT -= RoundedStat(current.HIT * 0.3f);
+					current.HIT -= 30;
 					break;
 				case "angry":
 					current.ATK = RoundedStat(current.ATK * 1.3f);
@@ -175,15 +172,16 @@ public abstract class Actor
 		return (int)Math.Round(value, MidpointRounding.AwayFromZero);
 	}
 
-	public void AddStatModifier(Modifier modifier, int tier = 1, int turns = 6)
+	public void AddStatModifier(Modifier modifier, int tier = 1, int turns = 6, bool silent = false)
 	{
 		foreach (StatModifier mod in StatModifiers)
 		{
 			if (mod.Modifier == modifier)
 			{
 				if (mod.IncreaseTier())
-					ShowStatSuccess(modifier);
-				else
+					if (!silent)
+						ShowStatSuccess(modifier);
+				else if (!silent)
 					ShowStatFail(modifier);
 				return;
 			}
@@ -314,7 +312,7 @@ public abstract class Actor
 		IsHurt = hurt;
 	}
 
-	public virtual bool IsStateValid(string state) {  return true; }
+	public virtual bool IsStateValid(string state) { return true; }
 
 	public void SetState(string state, bool silent = false)
 	{

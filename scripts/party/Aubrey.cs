@@ -11,14 +11,7 @@ public class Aubrey : PartyMember
     public override int BaseLuck => 3;
 
     protected override string[] EquippedSkills => ["AAttack", "TeamSpirit", "Beatdown", "LastResort", "MoodWrecker"];
-
-    public override bool IsStateValid(string state)
-    {
-        return state != "miserable" &&
-            state != "manic" &&
-            state != "furious" &&
-            state != "stressed";
-    }
+    protected override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
 
     public override bool IsRealWorld => false;
 }
