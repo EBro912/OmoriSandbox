@@ -92,8 +92,12 @@ public partial class AudioManager : Node
 	{
 		if (!BGMDictionary.TryGetValue(name, out AudioStream stream))
 		{
-			stream = GD.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
-			if (stream == null)
+			if (FileAccess.FileExists("res://audio/bgm/" + name + ".ogg"))
+				stream = GD.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
+			// check the custom folder too
+			else if (FileAccess.FileExists(GameManager.Instance.CustomDataPath + "/bgm/" + name + ".ogg"))
+				stream = LoadCustomBGM(GameManager.Instance.CustomDataPath + "/bgm/" + name + ".ogg");
+			else
 			{
 				GD.PrintErr("Unknown BGM: " + name);
 				return;
@@ -103,6 +107,11 @@ public partial class AudioManager : Node
 
 		BGM.Stream = stream;
 		BGM.Play();
+	}
+
+	private AudioStream LoadCustomBGM(string path)
+	{
+		return AudioStreamOggVorbis.LoadFromFile(path);
 	}
 
 	public void FadeBGMTo(float volume, float seconds = 1f)

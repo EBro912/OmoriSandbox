@@ -18,6 +18,8 @@ public partial class GameManager : Node
 	public RandomNumberGenerator Random = new();
 	public AnimationManager AnimationManager { get; private set; }
 
+	public string CustomDataPath = "user://custom/";
+
 	public static GameManager Instance { get; private set; }
 
 	public override void _PhysicsProcess(double delta)
@@ -72,7 +74,20 @@ public partial class GameManager : Node
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
-		ConfigFile config = new ConfigFile();
+		ConfigFile config = new();
+
+		if (!FileAccess.FileExists("user://config.ini"))
+		{
+			// copy default config if it doesn't exist
+			GD.PushWarning("Config file does not exist. Creating a new one using default settings...");
+			using var source = FileAccess.Open("res://assets/default_config.ini", FileAccess.ModeFlags.Read);
+			string content = source.GetAsText();
+			source.Close();
+			using var dest = FileAccess.Open("user://config.ini", FileAccess.ModeFlags.Write);
+			dest.StoreString(content);
+			dest.Close();
+		}
+
 		Error err = config.Load("user://config.ini");
 		if (err != Error.Ok)
 		{
@@ -85,10 +100,13 @@ public partial class GameManager : Node
 			string section = s.ToLower();
 			if (section == "general")
 			{
+				CustomDataPath = (string)config.GetValue(s, "custom_path");
 				AudioManager.Instance.PlayBGM((string)config.GetValue(s, "bgm"));
 				string battleback = (string)config.GetValue(s, "battleback");
-				if (!FileAccess.FileExists("res://assets/battlebacks/" + battleback + ".png"))
-					GD.PrintErr("Failed to find battleback with name: " + battleback);
+				if (FileAccess.FileExists("res://assets/battlebacks/" + battleback + ".png"))
+					BattlebackParent.Texture = GD.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
+				else if (FileAccess.FileExists(CustomDataPath + "/battlebacks/" + battleback + ".png"))
+					BattlebackParent.Texture = ImageTexture.CreateFromImage(Image.LoadFromFile(CustomDataPath + "/battlebacks/" + battleback + ".png"));
 				else
 					BattlebackParent.Texture = GD.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
 			}

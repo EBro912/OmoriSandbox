@@ -18,8 +18,8 @@
 [ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="11_eb6dy"]
 [ext_resource type="Script" uid="uid://ckd81otw7er8y" path="res://scripts/AudioManager.cs" id="11_ya4ey"]
 [ext_resource type="SpriteFrames" uid="uid://cseyj3p0lwirh" path="res://animations/red_hands.tres" id="13_og1vs"]
-[ext_resource type="Texture2D" uid="uid://bewmi21adeutt" path="res://assets/battlebacks/battleback_sw_sweetheart.png" id="13_y6deb"]
 [ext_resource type="Script" uid="uid://bcfwwj4klv2cq" path="res://scripts/GameManager.cs" id="14_a8y0u"]
+[ext_resource type="Texture2D" uid="uid://d36ge2cnq6lkj" path="res://assets/battlebacks/battleback_vf_default.png" id="14_og1vs"]
 [ext_resource type="Script" uid="uid://b0t86bflug3po" path="res://scripts/menu/PartyMenu.cs" id="17_pm3ni"]
 [ext_resource type="Script" uid="uid://cbac1p51c0gbd" path="res://scripts/menu/BattleMenu.cs" id="18_y6deb"]
 [ext_resource type="Script" uid="uid://c3w7m65ic8go4" path="res://scripts/CursorBounce.cs" id="19_0ld40"]
@@ -124,7 +124,7 @@ layout_mode = 1
 offset_left = -640.0
 offset_right = 1280.0
 offset_bottom = 480.0
-texture = ExtResource("13_y6deb")
+texture = ExtResource("14_og1vs")
 stretch_mode = 1
 
 [node name="BattleLog" type="TextureRect" parent="CanvasLayer/UI" node_paths=PackedStringArray("ImmediateLabel")]
