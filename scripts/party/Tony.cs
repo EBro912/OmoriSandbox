@@ -10,8 +10,6 @@ public class Tony : PartyMember
     public override int[] DEFTree => new[] { 4, 5, 5, 6, 7, 8, 9, 9, 10, 11, 12, 12, 13, 15, 16, 18, 19, 20, 22, 23, 24, 26, 27, 28, 29, 30, 32, 34, 36, 37, 39, 41, 42, 42, 43, 44, 46, 47, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70 };
     public override int[] SPDTree => new[] { 5, 6, 9, 12, 15, 17, 19, 20, 22, 25, 28, 30, 33, 36, 37, 40, 43, 44, 46, 49, 51, 53, 55, 58, 60, 62, 64, 66, 69, 70, 73, 75, 78, 79, 81, 84, 87, 90, 93, 96, 99, 102, 105, 108, 114, 114, 117, 120, 125, 130 };
     public override int BaseLuck => 7;
-
-    protected override string[] EquippedSkills => ["KAttack", "Ricochet", "Rebound", "Annoy", "Flex"];
     protected override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
     public override bool IsRealWorld => true;
 }

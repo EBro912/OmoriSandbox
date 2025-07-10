@@ -37,10 +37,7 @@ EnemyUI = ExtResource("8_choun")
 UIParent = NodePath("../UI")
 BattlebackParent = NodePath("../UI/Battleback")
 FPSLabel = NodePath("../UI/FPS")
-OmoriFollowup = ExtResource("4_muem4")
-AubreyFollowup = ExtResource("5_dp3eg")
-HeroFollowup = ExtResource("6_0ld40")
-KelFollowup = ExtResource("7_gqmmt")
+Followups = Array[PackedScene]([ExtResource("4_muem4"), ExtResource("5_dp3eg"), ExtResource("6_0ld40"), ExtResource("7_gqmmt")])
 
 [node name="BattleManager" type="Node" parent="CanvasLayer"]
 script = ExtResource("9_y6deb")

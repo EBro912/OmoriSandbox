@@ -3,7 +3,7 @@ using System.Linq;
 
 public abstract class PartyMember : Actor
 {
-	public void Init(AnimatedSprite2D face, string initialState, int level, string weapon, string charm)
+	public void Init(AnimatedSprite2D face, string initialState, int level, string weapon, string charm, string[] skills)
 	{
 		SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
 		if (animation == null)
@@ -28,7 +28,7 @@ public abstract class PartyMember : Actor
 		}
 		Weapon = w;
 		
-		if (charm != null)
+		if (charm != "none")
 		{
 			if (!Database.TryGetCharm(charm, out Charm c))
 			{
@@ -40,6 +40,8 @@ public abstract class PartyMember : Actor
 
 		CurrentHP = CurrentStats.HP;
 		CurrentJuice = CurrentStats.Juice;
+
+		EquippedSkills = skills;
 
 		foreach (string s in EquippedSkills)
 		{
@@ -76,7 +78,7 @@ public abstract class PartyMember : Actor
 	public abstract int BaseLuck { get; }
 	public Charm Charm { get; private set; }
 	public Weapon Weapon { get; private set; }
-	protected abstract string[] EquippedSkills { get; }
+	public string[] EquippedSkills { get; protected set; }
 	protected abstract string[] InvalidStates { get; }
 	public abstract bool IsRealWorld { get; }
 }

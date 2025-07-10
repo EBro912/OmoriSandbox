@@ -9,7 +9,7 @@ public partial class EnemyComponent : Node
 
     public Enemy Actor => Enemy;
 
-    public void SetEnemy(Enemy enemy, string initialState = "neutral")
+    public void SetEnemy(Enemy enemy, string initialState)
     {
         Enemy = enemy;
         AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");

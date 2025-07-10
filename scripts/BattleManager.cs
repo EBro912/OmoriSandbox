@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 public partial class BattleManager : Node
@@ -78,9 +79,13 @@ public partial class BattleManager : Node
 			}
 		}
 
-		foreach (PartyMemberComponent match in CurrentParty.Where(x => x.Actor.Weapon.Name == "LOL Sword"))
+		foreach (PartyMemberComponent party in CurrentParty)
 		{
-			match.Actor.SetState("happy", true);
+			if (party.Actor.Weapon.Name == "LOL Sword")
+			{
+				party.Actor.SetState("happy", true);
+			}
+			party.Actor.Charm?.StartOfBattle(party.Actor);
 		}
 	}
 
@@ -848,7 +853,11 @@ public partial class BattleManager : Node
 		if (Enemies.Count == 0)
 		{
 			SetPhase(BattlePhase.BattleOver);
-			CurrentParty.ForEach(x => x.Actor.SetState("victory", true));
+			CurrentParty.ForEach(x =>
+			{
+				if (x.Actor.CurrentState != "toast")
+					x.Actor.SetState("victory", true);
+			});
 			AudioManager.Instance.PlayBGM("xx_victory");
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 		}

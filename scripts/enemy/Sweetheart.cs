@@ -11,11 +11,14 @@ public class Sweetheart : Enemy
 
 	public override bool IsStateValid(string state)
 	{
+		if (state == "toast")
+			return true;
+
 		if (EmotionLocked)
 			return false;
 
 		return state == "neutral" || state == "sad" || state == "happy"
-			|| state == "angry" || state == "hurt" || state == "toast";
+			|| state == "angry" || state == "hurt";
 	}
 
 	// TODO: handle more boss specific stuff

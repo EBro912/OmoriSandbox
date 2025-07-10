@@ -15,8 +15,19 @@ public partial class AudioManager : Node
 	// only one instance of a sound can play at once
 	private Dictionary<string, AudioStreamPlayer> PlayingSounds = [];
 
-	public override void _Ready()
+	public override void _EnterTree()
 	{
+		Instance = this;
+	}
+
+	public void Init()
+	{
+		if (SFXDictionary.Count > 0)
+		{
+			GD.PrintErr("Attempting to re-init AudioManager, ignoring!");
+			return;
+		}
+
 		foreach (Node node in GetChildren())
 		{
 			AudioStreamPlayer player = node as AudioStreamPlayer;
@@ -35,10 +46,6 @@ public partial class AudioManager : Node
 			}
 		}
 		GD.Print("Preloaded " + SFXDictionary.Count + " SFX.");
-		
-		Instance = this;
-
-		PlayBGM("invitation");
 		// BGM.Finished += OnBGMFinish;
 	}
 

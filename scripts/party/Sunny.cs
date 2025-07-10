@@ -14,8 +14,6 @@ public class Sunny : PartyMember
     public override int[] SPDTree => [6];
 
     public override int BaseLuck => 5;
-
-    protected override string[] EquippedSkills => ["SAttack", "CalmDown", "PepTalk"];
     protected override string[] InvalidStates => ["happy", "ecstatic", "manic", "depressed", "miserable", "enraged", "furious"];
     public override bool IsRealWorld => true;
 }

@@ -7,13 +7,10 @@ public partial class GameManager : Node
 	[Export] public PackedScene BattlecardUI;
 	[Export] public PackedScene EnemyUI;
 	[Export] public Control UIParent;
-	[Export] public Control BattlebackParent;
+	[Export] public TextureRect BattlebackParent;
 	[Export] public Label FPSLabel;
 
-	[Export] public PackedScene OmoriFollowup;
-	[Export] public PackedScene AubreyFollowup;
-	[Export] public PackedScene HeroFollowup;
-	[Export] public PackedScene KelFollowup;
+	[Export] public PackedScene[] Followups;
 
 	private readonly Dictionary<string, Type> ValidPartyMembers = [];
 	private readonly Dictionary<string, Type> ValidEnemies = [];
@@ -36,6 +33,8 @@ public partial class GameManager : Node
 	{
 		Database.Init();
 
+		// these can (potentially) be file-driven instead of class based at some point
+
 		ValidPartyMembers.Add("Omori", typeof(Omori));
 		ValidPartyMembers.Add("Aubrey", typeof(Aubrey));
 		ValidPartyMembers.Add("Hero", typeof(Hero));
@@ -53,29 +52,93 @@ public partial class GameManager : Node
 		ValidEnemies.Add("HumphreyUvula", typeof(HumphreyUvula));
 		ValidEnemies.Add("AubreyEnemy", typeof(AubreyEnemy));
 
-		List<PartyMemberComponent> party = [];
-		List<EnemyComponent> enemy = [];
-
-        // Omori, Aubrey, Hero, Kel
-        // TODO: properly handle less than 4 party members
-		party.Add(SpawnPartyMember("Omori", OmoriFollowup, 1, "Dull Knife", level: 30));
-		party.Add(SpawnPartyMember("Aubrey", AubreyFollowup, 2, "Mailbox", level: 30));
-		party.Add(SpawnPartyMember("Hero", HeroFollowup, 3, "Baking Pan", level: 30));
-		party.Add(SpawnPartyMember("Kel", KelFollowup, 4, "Snowball", level: 30));
-
-        enemy.Add(SpawnEnemy("Sweetheart", new Vector2(320, 275)));
-
-        party.RemoveAll(x => x == null);
-
 		Instance = this;
 
 		AnimationManager = new();
 		AddChild(AnimationManager);
 
-		BattleManager.Instance.Init(party, enemy);
+		AudioManager.Instance.Init();
+
+		// Omori, Aubrey, Hero, Kel
+		// TODO: properly handle less than 4 party members
+		var config = LoadBattleConfig();
+
+		BattleManager.Instance.Init(config.Item1, config.Item2);
 	}
 
-	private EnemyComponent SpawnEnemy(string who, Vector2 position)
+	// TODO: replace with a GUI-based config system
+	private (List<PartyMemberComponent>, List<EnemyComponent>) LoadBattleConfig()
+	{
+		List<PartyMemberComponent> party = [];
+		List<EnemyComponent> enemy = [];
+
+		ConfigFile config = new ConfigFile();
+		Error err = config.Load("user://config.ini");
+		if (err != Error.Ok)
+		{
+			GD.PrintErr("Failed to load config: " + err);
+			return (null, null);
+		}
+
+		foreach (string s in config.GetSections())
+		{
+			string section = s.ToLower();
+			if (section == "general")
+			{
+				AudioManager.Instance.PlayBGM((string)config.GetValue(s, "bgm"));
+				string battleback = (string)config.GetValue(s, "battleback");
+				if (!FileAccess.FileExists("res://assets/battlebacks/" + battleback + ".png"))
+					GD.PrintErr("Failed to find battleback with name: " + battleback);
+				else
+					BattlebackParent.Texture = GD.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
+			}
+			else if (section.StartsWith("actor"))
+			{
+				if (party.Count >= 4)
+				{
+					GD.PushWarning("Party is full, skipping extra [actor] entry.");
+					continue;
+				}
+				PartyMemberComponent add = SpawnPartyMember(
+						(string)config.GetValue(s, "name"),
+						Followups[(int)config.GetValue(s, "position") - 1],
+						(int)config.GetValue(s, "position"),
+						(string)config.GetValue(s, "weapon"),
+						(string)config.GetValue(s, "charm"),
+						(string[])config.GetValue(s, "skills"),
+						(int)config.GetValue(s, "level"),
+						(string)config.GetValue(s, "emotion")
+					);
+
+				if (add == null)
+				{
+					GD.PrintErr("Failed to load a party member, please check the config file.");
+					continue;
+				}
+				party.Add(add);
+				GD.Print("Loaded actor: " + add.Actor.Name);
+			}
+			else if (section.StartsWith("enemy"))
+			{
+				EnemyComponent add = SpawnEnemy(
+						(string)config.GetValue(s, "name"),
+						(Vector2)config.GetValue(s, "position"),
+						(string)config.GetValue(s, "emotion")
+					);
+				if (add == null)
+				{
+					GD.PrintErr("Failed to load an enemy, please check the config file.");
+					continue;
+				}
+				enemy.Add(add);
+				GD.Print("Loaded enemy: " + add.Actor.Name);
+			}
+		}
+
+		return (party, enemy);
+	}
+
+	private EnemyComponent SpawnEnemy(string who, Vector2 position, string startingEmotion = "neutral")
 	{
 		if (!ValidEnemies.TryGetValue(who, out Type enemy))
 		{
@@ -89,11 +152,11 @@ public partial class GameManager : Node
 		node.GlobalPosition = position;
 		EnemyComponent component = new();
 		node.AddChild(component);
-		component.SetEnemy((Enemy)handle);
+		component.SetEnemy((Enemy)handle, startingEmotion);
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, string weapon, string charm = null, int level = 1, string startingEmotion = "neutral")
+	private PartyMemberComponent SpawnPartyMember(string who, PackedScene followup, int position, string weapon, string charm, string[] skills, int level = 1, string startingEmotion = "neutral")
 	{
 		if (!ValidPartyMembers.TryGetValue(who, out Type member))
 		{
@@ -120,7 +183,7 @@ public partial class GameManager : Node
 		}
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember((PartyMember)handle, followup, position, startingEmotion, level, weapon, charm);
+		component.SetPartyMember((PartyMember)handle, followup, position, startingEmotion, level, weapon, charm, skills);
 		return component;
 	}
 

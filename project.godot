@@ -13,7 +13,11 @@ config_version=5
 config/name="OmoriSandbox"
 run/main_scene="uid://dnxcj20hgcsj8"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/use_filter=false
+boot_splash/image="uid://bkfc0aptec36b"
+config/icon="uid://b71ist0rdxqnp"
+config/windows_native_icon="res://assets/icon.ico"
 
 [display]
 

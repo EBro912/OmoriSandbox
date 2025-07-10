@@ -21,7 +21,7 @@ public class Charm
     public Func<Stats> Apply { get; private set; }
 
     /// <summary>
-    /// What the charm does to it's holder at the start of the battle.
+    /// What the charm does to its holder at the start of the battle.
     /// </summary>
     /// <remarks>
     /// Mainly used for emotion effects.
