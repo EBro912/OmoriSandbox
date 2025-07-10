@@ -894,7 +894,7 @@ public partial class BattleManager : Node
 		if (target.HasStatModifier(Modifier.SweetheartLock))
 			targetState = "happy";
 		finalDamage = CalculateEmotionModifiers(selfState, targetState, finalDamage, out int effectiveness);
-		if (critical && !neverCrit)
+		if ((critical || target.HasStatModifier(Modifier.Tickle)) && !neverCrit)
 		{
 			finalDamage = (finalDamage * 1.5f) + 2;
 			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
@@ -1134,6 +1134,11 @@ public partial class BattleManager : Node
 		});
 	}
 
+	public void AddEnergy(int amount)
+	{
+		Energy = Math.Min(Energy + amount, 10);
+	}
+
 	public PartyMember GetRandomAlivePartyMember()
 	{
 		IEnumerable<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0);
@@ -1163,6 +1168,14 @@ public partial class BattleManager : Node
 	public List<PartyMemberComponent> GetAlivePartyMembers()
 	{
 		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
+	}
+
+	/// <summary>
+	/// Gets all party members who are toast.
+	/// </summary>
+	public List<PartyMemberComponent> GetDeadPartyMembers()
+	{
+		return CurrentParty.Where(x => x.Actor.CurrentState == "toast").ToList();
 	}
 
 	/// <summary>

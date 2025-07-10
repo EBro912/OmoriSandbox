@@ -1,3 +1,4 @@
+using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,23 +73,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] reads a sad poem.");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(5, self, false);
-                string state = "sad";
-                switch (target.CurrentState)
-                {
-                    case "miserable":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
-                        return;
-                    case "depressed":
-                        state = "miserable";
-                        break;
-                    case "sad":
-                        state = "depressed";
-                        break;
-                }
-                if (target.IsStateValid(state))
-                    target.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
+                MakeSad(target);
             }
         );
         Skills["LuckySlice"] = new Skill(
@@ -182,41 +167,8 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayAnimation(5, self, false);
                 GameManager.Instance.AnimationManager.PlayAnimation(19, target);
 
-                string state = "sad";
-                switch (self.CurrentState)
-                {
-                    case "miserable":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any sadder!");
-                        return;
-                    case "depressed":
-                        state = "miserable";
-                        break;
-                    case "sad":
-                        state = "depressed";
-                        break;
-                }
-                if (self.IsStateValid(state))
-                    self.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any sadder!");
-
-                state = "sad";
-                switch (target.CurrentState)
-                {
-                    case "miserable":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
-                        return;
-                    case "depressed":
-                        state = "miserable";
-                        break;
-                    case "sad":
-                        state = "depressed";
-                        break;
-                }
-                if (target.IsStateValid(state))
-                    target.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any sadder!");
+                MakeSad(self);
+                MakeSad(target);
 
                 await Task.Delay(1000);
 
@@ -480,23 +432,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] cheers on [target]!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(29, false);
-                string state = "happy";
-                switch (target.CurrentState)
-                {
-                    case "manic":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
-                        return;
-                    case "ecstatic":
-                        state = "manic";
-                        break;
-                    case "happy":
-                        state = "ecstatic";
-                        break;
-                }
-                if (target.IsStateValid(state))
-                    target.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+                MakeHappy(target);
             }
         );
         Skills["Headbutt"] = new Skill(
@@ -554,23 +490,7 @@ public class Database
                 bool miss = BattleManager.Instance.Damage(self, target, () => { return (self.CurrentStats.ATK * 2f + self.CurrentStats.LCK) - target.CurrentStats.DEF; }, false);
                 if (!miss)
                 {
-                    string state = "happy";
-                    switch (self.CurrentState)
-                    {
-                        case "manic":
-                            BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
-                            return;
-                        case "ecstatic":
-                            state = "manic";
-                            break;
-                        case "happy":
-                            state = "ecstatic";
-                            break;
-                    }
-                    if (self.IsStateValid(state))
-                        self.SetState(state);
-                    else
-                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
+                    MakeHappy(self);
                 }
 
             }
@@ -615,41 +535,8 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayAnimation(49, self, false);
                 await Task.Delay(500);
                 GameManager.Instance.AnimationManager.PlayScreenAnimation(29, false);
-                string state = "happy";
-                switch (target.CurrentState)
-                {
-                    case "manic":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
-                        return;
-                    case "ecstatic":
-                        state = "manic";
-                        break;
-                    case "happy":
-                        state = "ecstatic";
-                        break;
-                }
-                if (target.IsStateValid(state))
-                    target.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any happier!");
-
-                state = "happy";
-                switch (self.CurrentState)
-                {
-                    case "manic":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any happier!");
-                        return;
-                    case "ecstatic":
-                        state = "manic";
-                        break;
-                    case "happy":
-                        state = "ecstatic";
-                        break;
-                }
-                if (self.IsStateValid(state))
-                    self.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any happier!");
+                MakeHappy(target);
+                MakeHappy(self);
             }
         );
 
@@ -754,23 +641,7 @@ public class Database
                 GameManager.Instance.AnimationManager.PlayScreenAnimation(38, false);
                 await Task.Delay(2000);
                 BattleLogManager.Instance.QueueMessage(self, target, "KEL eggs [actor] on!");
-                string state = "angry";
-                switch (self.CurrentState)
-                {
-                    case "furious":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any angrier!");
-                        return;
-                    case "enraged":
-                        state = "furious";
-                        break;
-                    case "angry":
-                        state = "enraged";
-                        break;
-                }
-                if (self.IsStateValid(state))
-                    self.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[actor] cannot be any angrier!");
+                MakeAngry(self);
             },
             hidden: true
         );
@@ -790,23 +661,7 @@ public class Database
                 await Task.Delay(1000);
                 BattleLogManager.Instance.QueueMessage(self, target, "HERO tells [actor] to focus!");
                 self.AddStatModifier(Modifier.DefenseUp);
-                string state = "happy";
-                switch (self.CurrentState)
-                {
-                    case "manic":
-                        BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
-                        break;
-                    case "ecstatic":
-                        state = "manic";
-                        break;
-                    case "happy":
-                        state = "ecstatic";
-                        break;
-                }
-                if (self.IsStateValid(state))
-                    self.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
+                MakeHappy(self);
             },
             hidden: true
         );
@@ -870,23 +725,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] annoys [target]!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(55, false);
-                string state = "angry";
-                switch (target.CurrentState)
-                {
-                    case "furious":
-                        BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any angrier!");
-                        return;
-                    case "enraged":
-                        state = "furious";
-                        break;
-                    case "angry":
-                        state = "enraged";
-                        break;
-                }
-                if (target.IsStateValid(state))
-                    target.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self, target, "[target] cannot be any angrier!");
+                MakeAngry(target);
             }
         );
         Skills["Rebound"] = new Skill(
@@ -902,6 +741,47 @@ public class Database
                     BattleManager.Instance.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
             }
         );
+
+        Skills["RunNGun"] = new Skill(
+            name: "RUN 'N GUN",
+            description: "KEL does an attack based on his SPEED\ninstead of his ATTACK. Cost: 15",
+            target: SkillTarget.Enemy,
+            cost: 15,
+            effect: async (self, target) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(72, self, false);
+                await Task.Delay(500);
+                GameManager.Instance.AnimationManager.PlayAnimation(54, target);
+                await Task.Delay(500);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.SPD * 1.5f - target.CurrentStats.DEF; }, false);
+            }
+        );
+
+        Skills["Curveball"] = new Skill(
+            name: "CURVEBALL",
+            description: "Makes a foe feel a random EMOTION. Deals\nextra damage to foes with EMOTION. Cost: 20",
+            target: SkillTarget.Enemy,
+            cost: 20,
+            effect: async (self, target) =>
+            {
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(73, true);
+                await Task.Delay(1000);
+                GameManager.Instance.AnimationManager.PlayAnimation(67, target);
+                await Task.Delay(500);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a curveball...");
+                bool hit;
+                if (target.CurrentState != "neutral")
+                    hit = BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                else
+                    hit = BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF; }, false);
+                if (hit)
+                {
+                    BattleManager.Instance.RandomEmotion(target);
+                }
+            }
+        );
+
         Skills["Ricochet"] = new Skill(
             name: "RICOCHET",
             description: "Deals damage to a foe 3 times.\nCost: 30",
@@ -918,6 +798,124 @@ public class Database
                 BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2 - target.CurrentStats.DEF; }, false, 0.3f);
             }
         );
+
+        Skills["Megaphone"] = new Skill(
+            name: "MEGAPHONE",
+            description: "Makes all friends ANGRY.\nCost: 45",
+            target: SkillTarget.AllAllies,
+            cost: 45,
+            effect: async (self, target) =>
+            {
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(74, false);
+                await Task.Delay(1000);
+                await GameManager.Instance.AnimationManager.WaitForScreenAnimation(55, false);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] runs around and annoys everyone!");
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    MakeAngry(member.Actor);
+                }
+            }
+        );
+
+        Skills["Rally"] = new Skill(
+            name: "RALLY",
+            description: "KEL becomes HAPPY. KEL's friends recover\nsome ENERGY and JUICE. Cost: 50",
+            target: SkillTarget.Self,
+            cost: 50,
+            effect: async (self, target) =>
+            {
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(61, false);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] gets everyone pumped up!");
+                MakeHappy(self);
+                BattleLogManager.Instance.QueueMessage(self, target, "Everyone gains ENERGY!");
+                BattleManager.Instance.AddEnergy(4);
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(213, member.Actor, false);
+                    int rounded = (int)Math.Round(member.Actor.CurrentStats.MaxJuice * 0.3f, MidpointRounding.AwayFromZero);
+                    target.HealJuice(rounded);
+                    BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+                }
+                await Task.Delay(500);
+            }
+        );
+
+        Skills["Comeback"] = new Skill(
+            name: "COMEBACK",
+            description: "Makes KEL HAPPY. If SAD was removed,\nKEL gains FLEX. Cost: 25",
+            target: SkillTarget.Self,
+            cost: 25,
+            effect: async (self, target) =>
+            {
+                if (self.CurrentState == "sad" || self.CurrentState == "depressed" || self.CurrentState == "miserable")
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(76, self, false);
+                    await Task.Delay(1000);
+                    self.AddStatModifier(Modifier.Flex, turns: int.MaxValue);
+                    GameManager.Instance.AnimationManager.PlayAnimation(214, self, false);
+                }
+                else
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(75, self, false);
+                }
+                MakeHappy(self);
+            }
+        );
+
+        Skills["Tickle"] = new Skill(
+            name: "TICKLE",
+            description: "All attacks on a foe will hit right\nin the HEART for the turn. Cost: 55",
+            target: SkillTarget.Enemy,
+            cost: 55,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] tickles [target]!");
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] let their guard down!");
+                target.AddStatModifier(Modifier.Tickle, turns: 1);
+                await Task.CompletedTask;
+            }
+        );
+
+        Skills["JuiceMe"] = new Skill(
+            name: "JUICE ME",
+            description: "Heals a lot of JUICE to a friend, but\nalso hurts the friend. Cost: 10",
+            target: SkillTarget.Ally,
+            cost: 10,
+            effect: async (self, target) =>
+            {
+                string weapon = (self as PartyMember).Weapon.Name;
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] passes the " + weapon + " to [target]!");
+                GameManager.Instance.AnimationManager.PlayAnimation(123, target, false);
+                int rounded = (int)Math.Round(target.CurrentStats.MaxJuice * 0.3f, MidpointRounding.AwayFromZero);
+                target.HealJuice(rounded);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+                // can juice me miss???
+                BattleManager.Instance.Damage(self, target, () => { return target.CurrentHP * .25f; }, true, 0f, neverCrit: true);
+                await Task.CompletedTask;
+            }
+        );
+
+        Skills["Snowball"] = new Skill(
+            name: "SNOWBALL",
+            description: "Makes a foe SAD.\nAlso deals big damage to SAD foes. Cost: 20",
+            target: SkillTarget.Enemy,
+            cost: 20,
+            effect: async (self, target) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(60, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a snowball at [target]!");
+                if (target.CurrentState == "sad" || target.CurrentState == "depressed" || target.CurrentState == "miserable")
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
+                }
+                else
+                {
+                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
+                    MakeSad(target);
+                }
+            }
+        );
+
         Skills["Flex"] = new Skill(
             name: "FLEX",
             description: "KEL deals more damage next turn and increases\nHIT RATE for his next attack. Cost: 10",
@@ -1045,6 +1043,166 @@ public class Database
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(86, false);
                 target.SetState("neutral", true);
                 BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " calms down...");
+            }
+        );
+        Skills["SpicyFood"] = new Skill(
+            name: "SPICY FOOD",
+            description: "Damages a foe and makes them ANGRY.\nCost: 15",
+            target: SkillTarget.Enemy,
+            cost: 15,
+            effect: async (self, target) =>
+            {
+                await GameManager.Instance.AnimationManager.WaitForAnimation(98, target);
+                MakeAngry(target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] cooks some spicy food!");
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF; }, false, neverCrit: true);
+            }
+        );
+        Skills["Tenderize"] = new Skill(
+            name: "TENDERIZE",
+            description: "Deals big damage to a foe and reduces\ntheir DEFENSE. Cost: 30",
+            target: SkillTarget.Enemy,
+            cost: 30,
+            effect: async (self, target) =>
+            {
+                GameManager.Instance.AnimationManager.PlayScreenAnimation(86, true);
+                await Task.Delay(332);
+                GameManager.Instance.AnimationManager.PlayAnimation(124, target);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] intensely massages\n[target]!");
+                target.AddStatModifier(Modifier.DefenseDown);
+                GameManager.Instance.AnimationManager.PlayAnimation(219, target);
+                BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 4f - target.CurrentStats.DEF; }, false);
+            }
+        );
+        Skills["Smile"] = new Skill(
+           name: "SMILE",
+           description: "Acts first, reducing a foe's ATTACK.\nCost: 25",
+           target: SkillTarget.Enemy,
+           cost: 25,
+           goesFirst: true,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, "[actor] smiles.");
+               await GameManager.Instance.AnimationManager.WaitForScreenAnimation(87, false);
+               await Task.Delay(332);
+               target.AddStatModifier(Modifier.AttackDown);
+               await GameManager.Instance.AnimationManager.WaitForAnimation(219, target);
+           }
+        );
+        Skills["Dazzle"] = new Skill(
+           name: "DAZZLE",
+           description: "Acts first. Reduces all foes' ATTACK and\nmakes them HAPPY. Cost: 35",
+           target: SkillTarget.AllEnemies,
+           cost: 35,
+           goesFirst: true,
+           effect: async (self, target) =>
+           {
+               GameManager.Instance.AnimationManager.PlayAnimation(90, self, false);
+               await Task.Delay(500);
+               foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+               {
+                   BattleLogManager.Instance.QueueMessage(self, enemy, "[actor] smiles at [target]!");
+                   GameManager.Instance.AnimationManager.PlayAnimation(276, enemy);
+                   enemy.AddStatModifier(Modifier.AttackDown);
+                   MakeHappy(enemy);
+                   GameManager.Instance.AnimationManager.PlayAnimation(219, enemy);
+               }
+           }
+        );
+        Skills["FastFood"] = new Skill(
+           name: "FAST FOOD",
+           description: "Acts first, healing a friend for 40% of\ntheir HEART. Cost: 15",
+           target: SkillTarget.Ally,
+           cost: 15,
+           goesFirst: true,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, "[actor] prepares a quick meal for [target].");
+               await GameManager.Instance.AnimationManager.WaitForAnimation(85, target, false);
+               int rounded = (int)Math.Round(target.CurrentStats.MaxHP * .4f, MidpointRounding.AwayFromZero);
+               target.Heal(rounded);
+               BattleManager.Instance.SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
+               BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
+               GameManager.Instance.AnimationManager.PlayAnimation(212, target);
+               await Task.Delay(1000);
+           }
+        );
+        Skills["ShareFood"] = new Skill(
+           name: "SHARE FOOD",
+           description: "HERO and a friend recover some HEART.\nCost: 15",
+           target: SkillTarget.Ally,
+           cost: 15,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, "[actor] shares food with [target]!");
+               GameManager.Instance.AnimationManager.PlayAnimation(85, target, false);
+               GameManager.Instance.AnimationManager.PlayAnimation(85, self, false);
+
+               int rounded = (int)Math.Round(target.CurrentStats.MaxHP * .5f, MidpointRounding.AwayFromZero);
+               target.Heal(rounded);
+               BattleManager.Instance.SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
+               GameManager.Instance.AnimationManager.PlayAnimation(212, target);
+
+               rounded = (int)Math.Round(self.CurrentStats.MaxHP * .5f, MidpointRounding.AwayFromZero);
+               self.Heal(rounded);
+               BattleManager.Instance.SpawnDamageNumber(rounded, self.CenterPoint, DamageType.Heal);
+               GameManager.Instance.AnimationManager.PlayAnimation(212, self);
+               await Task.Delay(1000);
+           }
+        );
+        Skills["SnackTime"] = new Skill(
+           name: "SNACK TIME",
+           description: "Heals all friends for 40% of their HEART.\nCost: 25",
+           target: SkillTarget.AllAllies,
+           cost: 25,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, "[actor] made snacks for everyone!");
+               GameManager.Instance.AnimationManager.PlayScreenAnimation(88, false);
+               await Task.Delay(1666);
+               foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+               {
+                   BattleManager.Instance.Heal(self, member.Actor, () => { return member.Actor.CurrentStats.MaxHP * 0.4f; }, 0f);
+                   GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
+               }
+           }
+        );
+        Skills["GatorAid"] = new Skill(
+           name: "GATOR AID",
+           description: "Boosts all friends' DEFENSE.\nCost: 15",
+           target: SkillTarget.AllAllies,
+           cost: 15,
+           effect: async (self, target) =>
+           {
+               await GameManager.Instance.AnimationManager.WaitForScreenAnimation(100, false);
+               BattleLogManager.Instance.QueueMessage(self, target, "[actor] gets a little help from a friend.");
+               BattleLogManager.Instance.QueueMessage("Everyone's DEFENSE rose!");
+               foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+               {
+                    member.Actor.AddStatModifier(Modifier.DefenseUp, silent: true);
+                    GameManager.Instance.AnimationManager.PlayAnimation(214, member.Actor, false);
+               }
+           }
+        );
+        Skills["TeaTime"] = new Skill(
+            name: "TEA TIME",
+            description: "Heals some of a friend's HEART and JUICE.\nCost: 25",
+            target: SkillTarget.Ally,
+            cost: 10,
+            effect: async (self, target) =>
+            {
+                GameManager.Instance.AnimationManager.PlayAnimation(89, target, false);
+                await Task.Delay(2000);
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] brings out some tea for a break.");
+                BattleLogManager.Instance.QueueMessage(self, target, "[target] feels refreshed!");
+                int heartHeal = (int)Math.Round(target.CurrentStats.MaxHP * 0.3f, MidpointRounding.AwayFromZero);
+                target.Heal(heartHeal);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {heartHeal} HEART!");
+                BattleManager.Instance.SpawnDamageNumber(heartHeal, target.CenterPoint, DamageType.Heal);
+                int juiceHeal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.2f, MidpointRounding.AwayFromZero);
+                target.HealJuice(juiceHeal);
+                BattleManager.Instance.SpawnDamageNumber(juiceHeal, target.CenterPoint + new Vector2(0, 50), DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {juiceHeal} JUICE!");
             }
         );
         Skills["Cook"] = new Skill(
@@ -1300,23 +1458,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks sadly at [target]?");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(149, self);
-                string state = "sad";
-                switch (target.CurrentState)
-                {
-                    case "miserable":
-                        BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " cannot be any sadder!");
-                        return;
-                    case "depressed":
-                        state = "miserable";
-                        break;
-                    case "sad":
-                        state = "depressed";
-                        break;
-                }
-                if (target.IsStateValid(state))
-                    target.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " cannot be any sadder!");
+                MakeSad(target);
             },
             hidden: true
         );
@@ -1347,23 +1489,7 @@ public class Database
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(183, false);
                 foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers()) {
                     BattleManager.Instance.Damage(self, member.Actor, () => { return self.CurrentStats.ATK; }, false, 0.1f, neverCrit: true);
-                    string state = "angry";
-                    switch (member.Actor.CurrentState)
-                    {
-                        case "furious":
-                            BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
-                            continue;
-                        case "enraged":
-                            state = "furious";
-                            break;
-                        case "angry":
-                            state = "enraged";
-                            break;
-                    }
-                    if (member.Actor.IsStateValid(state))
-                        member.Actor.SetState(state);
-                    else
-                        BattleLogManager.Instance.QueueMessage(member.Actor.Name.ToUpper() + " cannot be any angrier!");
+                    MakeAngry(member.Actor);
                 }
             },
             hidden: true
@@ -1395,23 +1521,7 @@ public class Database
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] boasts about one of her\nmany, many talents!");
                 await GameManager.Instance.AnimationManager.WaitForScreenAnimation(162, false);
-                string state = "happy";
-                switch (self.CurrentState)
-                {
-                    case "manic":
-                        BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
-                        return;
-                    case "ecstatic":
-                        state = "manic";
-                        break;
-                    case "happy":
-                        state = "ecstatic";
-                        break;
-                }
-                if (self.IsStateValid(state))
-                    self.SetState(state);
-                else
-                    BattleLogManager.Instance.QueueMessage(self.Name.ToUpper() + " cannot be any happier!");
+                MakeHappy(self);
             },
             hidden: true
         );
@@ -1627,39 +1737,193 @@ public class Database
         #endregion
 
         #region SNACKS
-        Items["HOT DOG"] = new Item(
-            name: "HOT DOG",
-            description: "Better than a cold dog.\nHeals 100 HEART.",
+
+        // will most likely be file driven in the future
+
+        AddSnack("Tofu", "Soft cardboard, basically.\nHeals 5 HEART.", 5);
+        AddSnack("Candy", "A child's favorite food. Sweet!\nHeals 30 HEART.", 30);
+        AddSnack("Smores", "S'more smores, please!\nHeals 50 HEART.", 50);
+        AddSnack("Granola Bar", "A healthy stick of grain.\nHeals 60 HEART.", 60);
+        AddSnack("Bread", "A slice of life.\nHeals 60 HEART.", 60);
+        AddSnack("Nachos", "Suggested serving size: 6-8 nachos.\nHeals 75 HEART.", 75);
+        AddSnack("Chicken Wing", "Wing of chicken.\nHeals 80 HEART.", 80);
+        AddSnack("Hot Dog", "Better than a cold dog.\nHeals 100 HEART.", 100);
+        AddSnack("Waffle", "Designed to hold syrup!\nHeals 150 HEART.", 150);
+        AddSnack("Pancake", "Not designed to hold syrup...\nHeals 150 HEART.", 150);
+        AddSnack("Pizza Slice", "1/8th of a Whole pizza.\nHeals 175 HEART.", 175);
+        AddSnack("Fish Taco", "Aquatic taco.\nHeals 200 HEART.", 200);
+        AddSnack("Cheeseburger", "Contains all food groups, so it's healthy!\nHeals 250 HEART.", 250);
+
+        AddSnack("Chocolate", "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.", 0.4f);
+        AddSnack("Donut", "Circular bread with a hole in it.\nHeals 60% of HEART.", 0.6f);
+        AddSnack("Ramen", "Now that is a lot of sodium!\nHeals 80% of HEART.", 0.8f);
+        AddSnack("Spaghetti", "Wet noodles slathered with chunky sauce.\nFully heals a friend's HEART.", 1.0f);
+        AddSnack("Dino Pasta", "Pasta shaped line dinosaurs.\nFully restores a friend's HEART.", 1.0f);
+
+        AddGroupSnack("Popcorn", "9/10 dentists hate it.\nHeals 35 HEART to all friends.", 35);
+        AddGroupSnack("Fries", "From France, wherever that is...\nHeals 60 HEART to all friends.", 60);
+        AddGroupSnack("Cheese Wheel", "Delicious, yet functional.\nHeals 100 HEART to all friends.", 100);
+        AddGroupSnack("Whole Chicken", "An entire chicken, wings and all.\nHeals 175 HEART to all friends.", 175);
+        AddGroupSnack("Whole Pizza", "8/8ths of a whole pizza.\nHeals 250 HEART to all friends.", 250);
+        AddGroupSnack("Dino Clumps", "Chicken nuggets shaped like dinosaurs.\nHeals 250 HEART to all friends.", 250);
+
+        AddJuiceSnack("Plum Juice", "For seniors. Wait, that's prune juice.\nHeals 15 JUICE.", 15);
+        AddJuiceSnack("Apple Juice", "Apparently better than orange juice.\nHeals 25 JUICE.", 25);
+        AddJuiceSnack("Breadfruit Juice", "Does not taste like bread.\nHeals 50 JUICE.", 50);
+        AddJuiceSnack("Lemonade", "When life gives you lemons, make this!\nHeals 75 JUICE.", 75);
+        AddJuiceSnack("Orange Juice", "Apparently better than apple juice.\nHeals 100 JUICE.", 100);
+        AddJuiceSnack("Pineapple Juice", "Painful... Why do you drink it?\nHeals 150 JUICE.", 150);
+        AddJuiceSnack("Bottled Water", "Water in a bottle.\nHeals 100 JUICE.", 100);
+        AddJuiceSnack("Fruit Juice?", "You're not sure what fruit it is.\nHeals 75 JUICE.", 75);
+
+
+        AddJuiceSnack("Cherry Soda", "Carbonated hell sludge.\nHeals 25% of JUICE.", 0.25f);
+        AddJuiceSnack("Star Fruit Soda", "To be shared with a friend.\nHeals 35% of JUICE.", 0.35f);
+        AddJuiceSnack("Tasty Soda", "Tasty soda for thirsty people.\nHeals 50% of JUICE.", 0.5f);
+        AddJuiceSnack("Peach Soda", "A regular peach soda.\nHeals 60% of JUICE.", 0.6f);
+        AddJuiceSnack("Butt Peach Soda", "An irregular peach soda.\nHeals 61% of JUICE.", 0.61f);
+        AddJuiceSnack("Watermelon Juice", "Heavenly nectar.\nFully heals a friend's JUICE.", 1.0f);
+        AddJuiceSnack("Dino Melon Soda", "Melon soda in a dino-shaped bottle.\nFully heals a friend's JUICE.", 1.0f);
+
+        AddGroupJuiceSnack("Banana Smoothie", "A little bland, but it does the job.\nHeals 20 JUICE to all friends.", 20);
+        AddGroupJuiceSnack("Mango Smoothie", "Makes you tango!\nHeals 40 JUICE to all friends.", 40);
+        AddGroupJuiceSnack("Berry Smoothie", "A healthy smoothie that tastes like dirt.\nHeals 60 JUICE to all friends.", 60);
+        AddGroupJuiceSnack("Melon Smoothie", "Chunky green melon goodness.\nHeals 80 JUICE to all friends.", 80);
+        AddGroupJuiceSnack("S.berry Smoothie", "The default smoothie.\nHeals 100 JUICE to all friends.", 100);
+        AddGroupJuiceSnack("Dino Smoothie", "Berry smoothie in a dino-shaped cup.\nHeals 150 JUICE to all friends.", 150);
+
+        AddComboSnack("Tomato", "You say tomato, I say tomato.\nHeals 100 HEART and 50 JUICE.", 100, 50);
+        AddComboSnack("Combo Meal", "What more could you ask for?", 250, 100);
+
+        Items["Grape Soda"] = new Item(
+            name: "GRAPE SODA",
+            description: "Objectively the best soda.\nHeals 80% of JUICE.",
             target: SkillTarget.Ally,
             effect: async (self, target) =>
             {
-                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses HOT DOG!");
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses GRAPE SODA!");
                 GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
-                target.Heal(100);
-                BattleManager.Instance.SpawnDamageNumber(100, target.CenterPoint, DamageType.Heal);
-                BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 100 HEART!");
+                // grape soda uses emotion due to an oversight
+                BattleManager.Instance.HealJuice(self, target, () => { return target.CurrentStats.MaxJuice * 0.8f; });
                 await Task.CompletedTask;
             }
         );
 
-        Items["CHOCOLATE"] = new Item(
-            name: "CHOCOLATE",
-            description: "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.",
+        Items["Coffee"] = new Item(
+            name: "COFFEE",
+            description: "Bitter bean juice.\nIncreases a friend's SPEED.",
             target: SkillTarget.Ally,
             effect: async (self, target) =>
             {
-                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses CHOCOLATE!");
-                GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
-                float heal = target.CurrentStats.MaxHP * 0.4f;
-                int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
-                target.Heal(finalHeal);
-                BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
-                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses COFFEE!");
+                GameManager.Instance.AnimationManager.PlayAnimation(214, target, false);
+                // coffee heals, uses emotion, and has a variance due to an oversight
+                BattleManager.Instance.Heal(self, target, () => { return target.CurrentStats.MaxJuice * 0.1f; }, 0.2f);
+                target.AddStatModifier(Modifier.SpeedUp, 3);
                 await Task.CompletedTask;
             }
         );
 
-        Items["LIFE JAM"] = new Item(
+        Items["☐☐☐"] = new Item(
+           name: "☐☐☐",
+           description: "☐☐☐☐☐☐☐☐☐ ☐☐☐ ☐☐☐",
+           target: SkillTarget.Ally,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses ☐☐☐!");
+               GameManager.Instance.AnimationManager.PlayAnimation(215, target, false);
+               // ☐☐☐ uses emotion due to an oversight
+               BattleManager.Instance.Heal(self, target, () => { return 50; }, 0f);
+               await Task.CompletedTask;
+           }
+       );
+
+        Items["Prune Juice"] = new Item(
+            name: "PRUNE JUICE",
+            description: "This tastes horrible. Don't drink it.\nHeals 30 JUICE...probably.",
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses PRUNE JUICE!");
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
+                int total = 30;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    total = 45;
+                target.HealJuice(total);
+                BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
+                int hpLoss = (int)Math.Round(target.CurrentHP * 0.3f, MidpointRounding.AwayFromZero);
+                target.Damage(hpLoss);
+                // damaging items don't kill
+                if (target.CurrentHP == 0)
+                    target.CurrentHP = 1;
+                await Task.CompletedTask;
+            }
+        );
+
+        Items["Rotten Milk"] = new Item(
+            name: "ROTTEN MILK",
+            description: "This is bad. Don't drink it.\nHeals 10 juice + ???",
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses ROTTEN MILK!");
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
+                int total = 10;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    total = 15;
+                target.HealJuice(total);
+                BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
+                int hpLoss = (int)Math.Round(target.CurrentHP * 0.5f, MidpointRounding.AwayFromZero);
+                target.Damage(hpLoss);
+                // damaging items don't kill
+                if (target.CurrentHP == 0)
+                    target.CurrentHP = 1;
+                await Task.CompletedTask;
+            }
+        );
+
+        Items["Milk"] = new Item(
+            name: "MILK",
+            description: "Good for your bones. Heals 10 juice\nand increases DEFENSE for the battle.",
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses MILK!");
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
+                await Task.Delay(2000);
+                GameManager.Instance.AnimationManager.PlayAnimation(214, target, false);
+                int total = 10;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    total = 15;
+                target.HealJuice(total);
+                BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
+                target.AddStatModifier(Modifier.DefenseUp);
+                await Task.CompletedTask;
+            }
+        );
+
+        Items["Sno-Cone"] = new Item(
+            name: "SNO-CONE",
+            description: "Heals a friend's HEART and JUICE, and\nraises ALL STATS for the battle.",
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses SNO-CONE!");
+                await GameManager.Instance.AnimationManager.WaitForAnimation(214, target, false);
+                target.Heal(target.CurrentStats.MaxHP);
+                target.HealJuice(target.CurrentStats.MaxJuice);
+                target.AddStatModifier(Modifier.SnoCone, turns: int.MaxValue);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor]'s ATTACK rose!");
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor]'s DEFENSE rose!");
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor]'s SPEED rose!");
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor]'s LUCK rose!");
+            }
+        );
+
+        Items["Life Jam"] = new Item(
             name: "LIFE JAM",
             description: "Infused with the spirit of life.\nRevives a friend that is TOAST.",
             target: SkillTarget.DeadAlly,
@@ -1685,38 +1949,55 @@ public class Database
             }
         );
 
-        Items["LEMONADE"] = new Item(
-            name: "LEMONADE",
-            description: "When life gives you lemons, you make this!\nHeals 75 JUICE.",
-            target: SkillTarget.Ally,
-            effect: async (self, target) =>
-            {
-                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LEMONADE!");
-                GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
-                target.HealJuice(75);
-                BattleManager.Instance.SpawnDamageNumber(75, target.CenterPoint, DamageType.JuiceGain);
-                BattleLogManager.Instance.QueueMessage(self, target, "[target] recovered 75 JUICE!");
-                await Task.CompletedTask;
-            }
+        Items["Dino Jam"] = new Item(
+           name: "DINO JAM",
+           description: "Infused with the spirit of dino life.\nFully revives a friend that is TOAST.",
+           target: SkillTarget.DeadAlly,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DINO JAM!");
+               if (target.CurrentState != "toast")
+               {
+                   target = BattleManager.Instance.GetRandomDeadPartyMember();
+                   if (target == null)
+                   {
+                       BattleLogManager.Instance.QueueMessage("It had no effect.");
+                       return;
+                   }
+               }
+               await GameManager.Instance.AnimationManager.WaitForAnimation(269, target, false);
+               target.CurrentHP = target.CurrentStats.MaxHP;
+               target.SetState("neutral", true);
+               BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
+           }
         );
 
-        Items["FRIES"] = new Item(
-            name: "FRIES",
-            description: "From France, wherever that is...\nHeals 60 HEART to all friends.",
-            target: SkillTarget.AllAllies,
-            effect: async (self, target) =>
-            {
-                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses FRIES!");
-                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
-                {
-                    GameManager.Instance.AnimationManager.PlayAnimation(212, member.Actor, false);
-                    member.Actor.Heal(60);
-                    BattleManager.Instance.SpawnDamageNumber(60, member.Actor.CenterPoint, DamageType.Heal);
-                }
-                BattleLogManager.Instance.QueueMessage("Everyone recovered 60 HEART!");
-                await Task.CompletedTask;
-            }
+        Items["Jam Packets"] = new Item(
+           name: "JAM PACKETS",
+           description: "Infused with the spirit of life.\nRevives all friends that are TOAST.",
+           target: SkillTarget.AllDeadAllies,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, null, "[actor] uses JAM PACKETS!");
+               List<PartyMemberComponent> dead = BattleManager.Instance.GetDeadPartyMembers();
+               if (dead.Count == 0)
+               {
+                   BattleLogManager.Instance.QueueMessage("It had no effect.");
+                   return;
+               }
+               foreach (PartyMemberComponent member in dead)
+               {
+                   GameManager.Instance.AnimationManager.PlayAnimation(269, member.Actor, false);
+                   member.Actor.CurrentHP = member.Actor.CurrentStats.MaxHP / 4;
+                   member.Actor.SetState("neutral", true);
+                   BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] rose again!");
+               }
+               await Task.CompletedTask;
+           }
         );
+
+        // TODO: faraway town snacks
+
         #endregion
 
         #region TOYS
@@ -1744,23 +2025,7 @@ public class Database
                 AudioManager.Instance.PlaySFX("SE_airhorn", 1, 0.9f);
                 foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
-                    string state = "angry";
-                    switch (member.Actor.CurrentState)
-                    {
-                        case "furious":
-                            BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any angrier!");
-                            continue;
-                        case "enraged":
-                            state = "furious";
-                            break;
-                        case "angry":
-                            state = "enraged";
-                            break;
-                    }
-                    if (member.Actor.IsStateValid(state))
-                        member.Actor.SetState(state);
-                    else
-                        BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any angrier!");
+                    MakeAngry(member.Actor);
                 }
                 await Task.CompletedTask;
             },
@@ -1777,23 +2042,7 @@ public class Database
                 AudioManager.Instance.PlaySFX("BA_sad_level_2", 1, 0.9f);
                 foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
-                    string state = "sad";
-                    switch (member.Actor.CurrentState)
-                    {
-                        case "miserable":
-                            BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any sadder!");
-                            continue;
-                        case "depressed":
-                            state = "miserable";
-                            break;
-                        case "sad":
-                            state = "depressed";
-                            break;
-                    }
-                    if (member.Actor.IsStateValid(state))
-                        member.Actor.SetState(state);
-                    else
-                        BattleLogManager.Instance.QueueMessage(self, member.Actor, "[target] cannot be any sadder!");
+                    MakeSad(member.Actor);
                 }
                 await Task.CompletedTask;
             },
@@ -1960,5 +2209,250 @@ public class Database
         Charms["Rose Hairclip"] = new Charm("Rose Hairclip", new Stats(15, 15, 5, 5, 5, 5, 100));
         Charms["Seashell Necklace"] = new Charm("Seashell Necklace", new Stats(hp: 25, juice: 25, def: 5));
         #endregion
+    }
+
+    /// <summary>
+    /// Adds a snack that provides flat healing
+    /// </summary>
+    private static void AddSnack(string name, string description, int healing)
+    {
+        Items[name] = new Item(
+            name: name.ToUpper(),
+            description: description,
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
+                int heal = healing;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
+                target.Heal(heal);
+                BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
+                await Task.CompletedTask;
+            }
+        );
+    }
+
+    /// <summary>
+    /// Adds a snack that provides flat juice healing
+    /// </summary>
+    private static void AddJuiceSnack(string name, string description, int juice)
+    {
+        Items[name] = new Item(
+            name: name.ToUpper(),
+            description: description,
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
+                int total = juice;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
+                target.HealJuice(total);
+                BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
+                await Task.CompletedTask;
+            }
+        );
+    }
+
+    /// <summary>
+    /// Adds a snack that provides percentage-based juice healing
+    /// </summary>
+    private static void AddJuiceSnack(string name, string description, float percentage)
+    {
+        Items[name] = new Item(
+            name: name.ToUpper(),
+            description: description,
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+                GameManager.Instance.AnimationManager.PlayAnimation(213, target, false);
+                float juice = target.CurrentStats.MaxJuice * percentage;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    juice *= 1.5f;
+                int finalJuice = (int)Math.Round(juice, MidpointRounding.AwayFromZero);
+                target.HealJuice(finalJuice);
+                BattleManager.Instance.SpawnDamageNumber(finalJuice, target.CenterPoint, DamageType.JuiceGain);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalJuice} JUICE!");
+                await Task.CompletedTask;
+            }
+        );
+    }
+
+    /// <summary>
+    /// Adds a snack that provides percentage-based healing
+    /// </summary>
+    private static void AddSnack(string name, string description, float percentage)
+    {
+        Items[name] = new Item(
+            name: name.ToUpper(),
+            description: description,
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
+                float heal = target.CurrentStats.MaxHP * percentage;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    heal *= 1.5f;
+                int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
+                target.Heal(finalHeal);
+                BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
+                await Task.CompletedTask;
+            }
+        );
+    }
+
+    /// <summary>
+    /// Adds a snack that provides flat healing to all allies
+    /// </summary>
+    private static void AddGroupSnack(string name, string description, int healing)
+    {
+        Items[name] = new Item(
+           name: name.ToUpper(),
+           description: description,
+           target: SkillTarget.AllAllies,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+               int heal = healing;
+               if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                   heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
+               foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+               {
+                   GameManager.Instance.AnimationManager.PlayAnimation(212, member.Actor, false);
+                   member.Actor.Heal(heal);
+                   BattleManager.Instance.SpawnDamageNumber(heal, member.Actor.CenterPoint, DamageType.Heal);
+               }
+               BattleLogManager.Instance.QueueMessage($"Everyone recovered {heal} HEART!");
+               await Task.CompletedTask;
+           }
+       );
+    }
+
+    /// <summary>
+    /// Adds a snack that provides flat juice healing to all allies
+    /// </summary>
+    private static void AddGroupJuiceSnack(string name, string description, int juice)
+    {
+        Items[name] = new Item(
+           name: name.ToUpper(),
+           description: description,
+           target: SkillTarget.AllAllies,
+           effect: async (self, target) =>
+           {
+               BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+               int total = juice;
+               if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                   total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
+               foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+               {
+                   GameManager.Instance.AnimationManager.PlayAnimation(213, member.Actor, false);
+                   member.Actor.HealJuice(total);
+                   BattleManager.Instance.SpawnDamageNumber(total, member.Actor.CenterPoint, DamageType.JuiceGain);
+               }
+               BattleLogManager.Instance.QueueMessage($"Everyone recovered {total} JUICE!");
+               await Task.CompletedTask;
+           }
+       );
+    }
+
+    /// <summary>
+    /// A snack that provides flat healing and juice
+    /// </summary>
+    private static void AddComboSnack(string name, string description, int healing, int juice)
+    {
+        Items[name] = new Item(
+            name: name.ToUpper(),
+            description: description,
+            target: SkillTarget.Ally,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+                GameManager.Instance.AnimationManager.PlayAnimation(212, target, false);
+                int heal = healing;
+                int total = juice;
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
+                // donald compiler please come save us donald compiler please save us
+                if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+                    total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
+                target.Heal(heal);
+                target.HealJuice(total);
+                BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
+                BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
+                await Task.CompletedTask;
+            }
+        );
+    }
+
+    private static void MakeSad(Actor who)
+    {
+        string state = "sad";
+        switch (who.CurrentState)
+        {
+            case "miserable":
+                BattleLogManager.Instance.QueueMessage(null, who, "[target] cannot be any sadder!");
+                return;
+            case "depressed":
+                state = "miserable";
+                break;
+            case "sad":
+                state = "depressed";
+                break;
+        }
+        if (who.IsStateValid(state))
+            who.SetState(state);
+        else
+            BattleLogManager.Instance.QueueMessage(null, who, "[target] cannot be any sadder!");
+    }
+
+    private static void MakeHappy(Actor who)
+    {
+        string state = "happy";
+        switch (who.CurrentState)
+        {
+            case "manic":
+                BattleLogManager.Instance.QueueMessage(null, who, "[target] cannot be any happier!");
+                return;
+            case "ecstatic":
+                state = "manic";
+                break;
+            case "happy":
+                state = "ecstatic";
+                break;
+        }
+        if (who.IsStateValid(state))
+            who.SetState(state);
+        else
+            BattleLogManager.Instance.QueueMessage(null, who, "[target] cannot be any happier!");
+    }
+
+    private static void MakeAngry(Actor who)
+    {
+        string state = "angry";
+        switch (who.CurrentState)
+        {
+            case "furious":
+                BattleLogManager.Instance.QueueMessage(null, who, "[target] cannot be any angrier!");
+                return;
+            case "enraged":
+                state = "furious";
+                break;
+            case "angry":
+                state = "enraged";
+                break;
+        }
+        if (who.IsStateValid(state))
+            who.SetState(state);
+        else
+            BattleLogManager.Instance.QueueMessage(null, who, "[target] cannot be any angrier!");
     }
 }

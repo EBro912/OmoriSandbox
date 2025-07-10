@@ -38,5 +38,7 @@ public enum Modifier
     Flex,
     ReleaseEnergy,
     PlotArmor,
-    Guard
+    Guard,
+    Tickle,
+    SnoCone,
 }

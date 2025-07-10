@@ -98,6 +98,7 @@ public abstract class Actor
 			}
 
 			// TODO: try NOT to do this???
+			// needs to be refactored 
 			foreach (StatModifier modifier in StatModifiers)
 			{
 				switch (modifier.Modifier)
@@ -159,8 +160,13 @@ public abstract class Actor
 						current.DEF = RoundedStat(current.DEF * 1.25f);
 						current.LCK = RoundedStat(current.LCK * 1.25f);
 						break;
-
-				}
+					case Modifier.SnoCone:
+                        current.SPD = RoundedStat(current.SPD * 1.2f);
+                        current.ATK = RoundedStat(current.ATK * 1.2f);
+                        current.DEF = RoundedStat(current.DEF * 1.2f);
+                        current.LCK = RoundedStat(current.LCK * 1.2f);
+                        break;
+                }
 			}
 
 			return current;
