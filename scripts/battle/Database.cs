@@ -547,7 +547,7 @@ public class Database
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws her weapon!");
-                await GameManager.Instance.AnimationManager.WaitForAnimation(33, target);
+                await GameManager.Instance.AnimationManager.WaitForScreenAnimation(33, true);
                 int enemies = BattleManager.Instance.GetAllEnemies().Count;
                 foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
                 {
