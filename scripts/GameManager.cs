@@ -79,9 +79,7 @@ public partial class GameManager : Node
 		{
 			// copy default config if it doesn't exist
 			GD.PushWarning("Config file does not exist. Creating a new one using default settings...");
-			using var source = FileAccess.Open("res://assets/default_config.ini", FileAccess.ModeFlags.Read);
-			string content = source.GetAsText();
-			source.Close();
+			string content = FileAccess.GetFileAsString("res://assets/default_config.ini");
 			using var dest = FileAccess.Open("user://config.ini", FileAccess.ModeFlags.Write);
 			dest.StoreString(content);
 			dest.Close();
