@@ -105,8 +105,7 @@ public class Database
                     BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f; }, false, guaranteeCrit: true);
                 else
                     BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF; }, false, guaranteeCrit: true);
-            },
-            goesFirst: true
+            }
         );
 
         Skills["Trick"] = new Skill(
@@ -287,7 +286,7 @@ public class Database
                     multiplier = 5f;
                 foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
                 {
-                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * multiplier - target.CurrentStats.DEF; }, false);
+                    BattleManager.Instance.Damage(self, enemy, () => { return self.CurrentStats.ATK * multiplier - enemy.CurrentStats.DEF; }, false);
                 }
             }
         );
@@ -550,12 +549,15 @@ public class Database
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws her weapon!");
                 await GameManager.Instance.AnimationManager.WaitForAnimation(33, target);
                 int enemies = BattleManager.Instance.GetAllEnemies().Count;
-                if (enemies == 1)
-                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - target.CurrentStats.DEF; }, false);
-                else if (enemies == 2)
-                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF; }, false);
-                else
-                    BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF; }, false);
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+                {
+                    if (enemies == 1)
+                        BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - enemy.CurrentStats.DEF; }, false);
+                    else if (enemies == 2)
+                        BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
+                    else
+                        BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - enemy.CurrentStats.DEF; }, false);
+                }
             }
         );
 
@@ -1011,7 +1013,7 @@ public class Database
                 foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
                 {
                     // VANILLA BUG: uses Aubrey's attack instead of Hero's
-                    BattleManager.Instance.Damage(self, target, () => { return second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF; }, true);
+                    BattleManager.Instance.Damage(self, enemy, () => { return second.CurrentStats.ATK + self.CurrentStats.ATK - enemy.CurrentStats.DEF; }, true);
                 }
             },
             hidden: true
