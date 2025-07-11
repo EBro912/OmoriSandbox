@@ -42,9 +42,9 @@ public partial class AnimationManager : Node2D
 				continue;
 
             if (!string.IsNullOrWhiteSpace(info.AltTexture))
-                animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"), GD.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
+                animation = new(info.Id, info.Layer, ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"), ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
             else
-                animation = new(info.Id, info.Layer, GD.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"));
+                animation = new(info.Id, info.Layer, ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"));
 
             foreach (float[][] frame in info.Frames)
 			{

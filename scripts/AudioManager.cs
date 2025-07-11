@@ -41,7 +41,7 @@ public partial class AudioManager : Node
 			{
 				foreach (SFX sfx in sfxList)
 				{
-					SFXDictionary.TryAdd(sfx.Name, GD.Load<AudioStream>("res://audio/sfx/" + sfx.Name + ".ogg"));
+					SFXDictionary.TryAdd(sfx.Name, ResourceLoader.Load<AudioStream>("res://audio/sfx/" + sfx.Name + ".ogg"));
 				}
 			}
 		}
@@ -57,7 +57,7 @@ public partial class AudioManager : Node
 	public void PlaySFX(string name, float pitch = 1f, float volume = 1f)
 	{
 		if (!SFXDictionary.TryGetValue(name, out AudioStream stream)) {
-			stream = GD.Load<AudioStream>("res://audio/sfx/" + name + ".ogg");
+			stream = ResourceLoader.Load<AudioStream>("res://audio/sfx/" + name + ".ogg");
 			if (stream == null)
 			{
 				GD.PrintErr("Unknown SFX: " + name);
@@ -92,8 +92,8 @@ public partial class AudioManager : Node
 	{
 		if (!BGMDictionary.TryGetValue(name, out AudioStream stream))
 		{
-			if (FileAccess.FileExists("res://audio/bgm/" + name + ".ogg"))
-				stream = GD.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
+			if (ResourceLoader.Exists("res://audio/bgm/" + name + ".ogg"))
+				stream = ResourceLoader.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
 			// check the custom folder too
 			else if (FileAccess.FileExists(GameManager.Instance.CustomDataPath + "/bgm/" + name + ".ogg"))
 				stream = LoadCustomBGM(GameManager.Instance.CustomDataPath + "/bgm/" + name + ".ogg");

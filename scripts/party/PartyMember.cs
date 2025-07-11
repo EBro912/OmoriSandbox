@@ -5,7 +5,7 @@ public abstract class PartyMember : Actor
 {
 	public void Init(AnimatedSprite2D face, string initialState, int level, string weapon, string charm, string[] skills)
 	{
-		SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
+		SpriteFrames animation = ResourceLoader.Load<SpriteFrames>(AnimationPath);
 		if (animation == null)
 		{
 			GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);

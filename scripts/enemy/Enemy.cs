@@ -4,7 +4,7 @@ public abstract class Enemy : Actor
 {
     public void Init(AnimatedSprite2D sprite, string initialState)
     {
-        SpriteFrames animation = GD.Load<SpriteFrames>(AnimationPath);
+        SpriteFrames animation = ResourceLoader.Load<SpriteFrames>(AnimationPath);
         if (animation == null)
         {
             GD.PrintErr("Failed to load Sprite animations for Enemy: " + Name);

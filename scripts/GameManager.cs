@@ -103,11 +103,11 @@ public partial class GameManager : Node
 				AudioManager.Instance.PlayBGM((string)config.GetValue(s, "bgm"));
 				string battleback = (string)config.GetValue(s, "battleback");
 				if (FileAccess.FileExists("res://assets/battlebacks/" + battleback + ".png"))
-					BattlebackParent.Texture = GD.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
+					BattlebackParent.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
 				else if (FileAccess.FileExists(CustomDataPath + "/battlebacks/" + battleback + ".png"))
 					BattlebackParent.Texture = ImageTexture.CreateFromImage(Image.LoadFromFile(CustomDataPath + "/battlebacks/" + battleback + ".png"));
 				else
-					BattlebackParent.Texture = GD.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
+					GD.PrintErr("No valid battleback found: " + battleback);
 				foreach (var kv in (Godot.Collections.Dictionary<string, int>)config.GetValue(s, "snacks"))
 					items.Add(kv.Key, kv.Value);
 				foreach (var kv in (Godot.Collections.Dictionary<string, int>)config.GetValue(s, "toys"))

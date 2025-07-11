@@ -49,7 +49,7 @@ public partial class BattleManager : Node
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
 
-		DamageNumber.CacheTexture(GD.Load<Texture2D>("res://assets/system/Damage.png"));
+		DamageNumber.CacheTexture(ResourceLoader.Load<Texture2D>("res://assets/system/Damage.png"));
 
 		CallDeferred(MethodName.PreBattle);
 
