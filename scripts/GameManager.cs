@@ -102,7 +102,7 @@ public partial class GameManager : Node
 				CustomDataPath = (string)config.GetValue(s, "custom_path");
 				AudioManager.Instance.PlayBGM((string)config.GetValue(s, "bgm"));
 				string battleback = (string)config.GetValue(s, "battleback");
-				if (FileAccess.FileExists("res://assets/battlebacks/" + battleback + ".png"))
+				if (ResourceLoader.Exists("res://assets/battlebacks/" + battleback + ".png"))
 					BattlebackParent.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
 				else if (FileAccess.FileExists(CustomDataPath + "/battlebacks/" + battleback + ".png"))
 					BattlebackParent.Texture = ImageTexture.CreateFromImage(Image.LoadFromFile(CustomDataPath + "/battlebacks/" + battleback + ".png"));
