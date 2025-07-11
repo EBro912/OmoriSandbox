@@ -33,10 +33,12 @@ public partial class BattleManager : Node
 		Instance = this;
 	}
 
-	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies)
+	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies, Dictionary<string, int> items)
 	{
 		CurrentParty = party;
 		Enemies = enemies;
+		Items = items;
+		Energy = 3;
 
 		Delay = new Timer
 		{
@@ -46,18 +48,6 @@ public partial class BattleManager : Node
 		AddChild(Delay);
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
-
-		Items.Add("CHOCOLATE", 4);
-		Items.Add("LIFE JAM", 4);
-		Items.Add("HOT DOG", 4);
-		Items.Add("LEMONADE", 4);
-		Items.Add("FRIES", 4);
-
-		Items.Add("RUBBER BAND", 4);
-		Items.Add("AIR HORN", 4);
-		Items.Add("RAIN CLOUD", 4);
-
-		Energy = 3;
 
 		DamageNumber.CacheTexture(GD.Load<Texture2D>("res://assets/system/Damage.png"));
 
@@ -101,6 +91,7 @@ public partial class BattleManager : Node
 			Enemies[i].ShowInfoBox(i == CurrentEnemyTarget);
 		}
 
+		// TODO: energy bar dots
 		MenuManager.Instance.EnergyText.Text = $"{Energy:00}";
 		MenuManager.Instance.EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(Energy / 3f) * 45f, 362f, 49f);
 

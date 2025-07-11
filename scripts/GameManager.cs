@@ -63,16 +63,15 @@ public partial class GameManager : Node
 
 		// Omori, Aubrey, Hero, Kel
 		// TODO: properly handle less than 4 party members
-		var config = LoadBattleConfig();
-
-		BattleManager.Instance.Init(config.Item1, config.Item2);
+		LoadBattleConfig();
 	}
 
 	// TODO: replace with a GUI-based config system
-	private (List<PartyMemberComponent>, List<EnemyComponent>) LoadBattleConfig()
+	private void LoadBattleConfig()
 	{
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
+		Dictionary<string, int> items = [];
 
 		ConfigFile config = new();
 
@@ -92,7 +91,7 @@ public partial class GameManager : Node
 		if (err != Error.Ok)
 		{
 			GD.PrintErr("Failed to load config: " + err);
-			return (null, null);
+			return;
 		}
 
 		foreach (string s in config.GetSections())
@@ -109,6 +108,10 @@ public partial class GameManager : Node
 					BattlebackParent.Texture = ImageTexture.CreateFromImage(Image.LoadFromFile(CustomDataPath + "/battlebacks/" + battleback + ".png"));
 				else
 					BattlebackParent.Texture = GD.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
+				foreach (var kv in (Godot.Collections.Dictionary<string, int>)config.GetValue(s, "snacks"))
+					items.Add(kv.Key, kv.Value);
+				foreach (var kv in (Godot.Collections.Dictionary<string, int>)config.GetValue(s, "toys"))
+					items.Add(kv.Key, kv.Value);
 			}
 			else if (section.StartsWith("actor"))
 			{
@@ -153,7 +156,7 @@ public partial class GameManager : Node
 			}
 		}
 
-		return (party, enemy);
+		BattleManager.Instance.Init(party, enemy, items);
 	}
 
 	private EnemyComponent SpawnEnemy(string who, Vector2 position, string startingEmotion = "neutral")

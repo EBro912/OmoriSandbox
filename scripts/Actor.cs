@@ -161,12 +161,12 @@ public abstract class Actor
 						current.LCK = RoundedStat(current.LCK * 1.25f);
 						break;
 					case Modifier.SnoCone:
-                        current.SPD = RoundedStat(current.SPD * 1.2f);
-                        current.ATK = RoundedStat(current.ATK * 1.2f);
-                        current.DEF = RoundedStat(current.DEF * 1.2f);
-                        current.LCK = RoundedStat(current.LCK * 1.2f);
-                        break;
-                }
+						current.SPD = RoundedStat(current.SPD * 1.2f);
+						current.ATK = RoundedStat(current.ATK * 1.2f);
+						current.DEF = RoundedStat(current.DEF * 1.2f);
+						current.LCK = RoundedStat(current.LCK * 1.2f);
+						break;
+				}
 			}
 
 			return current;
