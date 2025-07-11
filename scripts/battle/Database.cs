@@ -143,15 +143,15 @@ public class Database
                 {
                     targets.Add(allEnemies[GameManager.Instance.Random.RandiRange(0, allEnemies.Count - 1)]);
                 }
-                foreach (Enemy enemy in allEnemies)
+                foreach (Enemy enemy in targets)
                 {
-                    BattleManager.Instance.Damage(self, target, () =>
+                    BattleManager.Instance.Damage(self, enemy, () =>
                     {
                         if (self.CurrentState == "angry" || self.CurrentState == "enraged" || self.CurrentState == "furious")
                         {
-                            return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF;
+                            return self.CurrentStats.ATK * 2.25f - enemy.CurrentStats.DEF;
                         }
-                        return self.CurrentStats.ATK * 2f - target.CurrentStats.DEF;
+                        return self.CurrentStats.ATK * 2f - enemy.CurrentStats.DEF;
                     }, false);
                 }
             }
