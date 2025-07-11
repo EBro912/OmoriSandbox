@@ -66,7 +66,7 @@ public partial class BattleLogManager : Node
 
 	public static string ParseMessage(Actor self, Actor target, string message)
 	{
-		return message.Replace("[actor]", self.Name.ToUpper()).Replace("[target]", target == null ? "" : target.Name.ToUpper());
+		return message.Replace("[actor]", self == null ? "" : self.Name.ToUpper()).Replace("[target]", target == null ? "" : target.Name.ToUpper());
 	}
 
 	private async void ProcessMessage()
