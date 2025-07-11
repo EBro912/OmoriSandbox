@@ -2001,7 +2001,7 @@ public class Database
         #endregion
 
         #region TOYS
-        Items["RUBBER BAND"] = new Item(
+        Items["Rubber Band"] = new Item(
             name: "RUBBER BAND",
             description: "Deals damage to a foe and reduces\ntheir DEFENSE.",
             target: SkillTarget.Enemy,
@@ -2015,7 +2015,61 @@ public class Database
             isToy: true
         );
 
-        Items["AIR HORN"] = new Item(
+        Items["Big Rubber Band"] = new Item(
+            name: "BIG RUBBER BAND",
+            description: "Deals big damage to a foe and reduces\ntheir DEFENSE.",
+            target: SkillTarget.Enemy,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses BIG RUBBER BAND!");
+                BattleManager.Instance.Damage(self, target, () => { return 150; }, true, 0, neverCrit: true);
+                await GameManager.Instance.AnimationManager.WaitForAnimation(219, target);
+                target.AddStatModifier(Modifier.DefenseDown);
+            },
+            isToy: true
+        );
+
+        Items["Jacks"] = new Item(
+            name: "JACKS",
+            description: "Deals small damage to all foes\nand reduces their SPEED.",
+            target: SkillTarget.AllEnemies,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses JACKS!");
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+                {
+                    GameManager.Instance.AnimationManager.PlayAnimation(122, enemy);
+                }
+                await Task.Delay(1000);
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+                {
+                    BattleManager.Instance.Damage(self, enemy, () => { return 25; }, true, 0, neverCrit: true);
+                    GameManager.Instance.AnimationManager.PlayAnimation(219, enemy);
+                    enemy.AddStatModifier(Modifier.SpeedDown, silent: true);
+                }
+                BattleLogManager.Instance.QueueMessage("All foes' SPEED fell.");
+                await Task.Delay(500);
+            },
+            isToy: true
+        );
+
+        Items["Dynamite"] = new Item(
+            name: "DYNAMITE",
+            description: "Actually dangerous...\nDeals heavy damage to all foes.",
+            target: SkillTarget.AllEnemies,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DYNAMITE!");
+                await GameManager.Instance.AnimationManager.WaitForScreenAnimation(172, true);
+                foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+                {
+                    BattleManager.Instance.Damage(self, enemy, () => { return 150; }, true, 0, neverCrit: true);
+                }
+            },
+            isToy: true
+        );
+
+        Items["Air Horn"] = new Item(
             name: "AIR HORN",
             description: "Who would invent this!?\nInflicts ANGER on all friends.",
             target: SkillTarget.AllAllies,
@@ -2032,7 +2086,7 @@ public class Database
             isToy: true
         );
 
-        Items["RAIN CLOUD"] = new Item(
+        Items["Rain Cloud"] = new Item(
             name: "RAIN CLOUD",
             description: "Angsty water droplets.\nInflicts SAD on all friends.",
             target: SkillTarget.AllAllies,
@@ -2043,6 +2097,88 @@ public class Database
                 foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
                 {
                     MakeSad(member.Actor);
+                }
+                await Task.CompletedTask;
+            },
+            isToy: true
+        );
+
+        Items["Confetti"] = new Item(
+            name: "CONFETTI",
+            description: "Small squares of colorful paper.\nInflicts HAPPY on all friends.",
+            target: SkillTarget.AllAllies,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses CONFETTI!");
+                AudioManager.Instance.PlaySFX("GEN_ta_da", 1, 0.9f);
+                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                {
+                    MakeHappy(member.Actor);
+                }
+                await Task.CompletedTask;
+            },
+            isToy: true
+        );
+
+        Items["Sparkler"] = new Item(
+            name: "SPARKLER",
+            description: "Little fires.\nInflicts HAPPY on a friend or foe.",
+            target: SkillTarget.AllyOrEnemy,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses SPARKLER!");
+                AudioManager.Instance.PlaySFX("GEN_pahpuh", 1, 0.9f);
+                MakeHappy(target);
+                await Task.CompletedTask;
+            },
+            isToy: true
+        );
+
+        Items["Poetry Book"] = new Item(
+            name: "POETRY BOOK",
+            description: "Sad words string together.\nInflicts SAD on a friend or foe.",
+            target: SkillTarget.AllyOrEnemy,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses POETRY BOOK!");
+                GameManager.Instance.AnimationManager.PlayAnimation(272, target);
+                MakeSad(target);
+                await Task.CompletedTask;
+            },
+            isToy: true
+        );
+
+        Items["Present"] = new Item(
+            name: "PRESENT",
+            description: "It's not what you wanted...\nInflicts ANGER on a friend or foe.",
+            target: SkillTarget.AllyOrEnemy,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses PRESENT!");
+                AudioManager.Instance.PlaySFX("SE_shuffle", 1, 0.9f);
+                MakeAngry(target);
+                await Task.CompletedTask;
+            },
+            isToy: true
+        );
+
+        Items["Dandelion"] = new Item(
+            name: "DANDELION",
+            description: "Has a calming effect.\nRemoves emotion from a friend or foe.",
+            target: SkillTarget.AllyOrEnemy,
+            effect: async (self, target) =>
+            {
+                BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DANDELION!");
+                AudioManager.Instance.PlaySFX("BA_calm_down", 1, 0.9f);
+                // this should be changed once boss specific/special states are improved
+                if (target.CurrentState == "neutral" || target.HasStatModifier(Modifier.SweetheartLock))
+                {
+                    BattleLogManager.Instance.QueueMessage("It had no effect.");
+                }
+                else
+                {
+                    BattleLogManager.Instance.QueueMessage(self, target, "[target] feels NEUTRAL.");
+                    target.SetState("neutral", true);
                 }
                 await Task.CompletedTask;
             },

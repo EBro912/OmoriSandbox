@@ -900,6 +900,8 @@ public partial class BattleManager : Node
 			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
+		// flex currently works with items
+		// not sure if that is intentional or not
 		if (self.HasStatModifier(Modifier.Flex))
 		{
 			finalDamage *= 2.5f;
