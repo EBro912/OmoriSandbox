@@ -193,7 +193,8 @@ public abstract class Actor
 			}
 		}
 		StatModifiers.Add(new StatModifier(modifier, tier, turns));
-		ShowStatSuccess(modifier);
+		if (!silent)
+			ShowStatSuccess(modifier);
 	}
 
 	public void RemoveStatModifier(Modifier modifier)
@@ -256,10 +257,6 @@ public abstract class Actor
 	public void DecreaseStatTurnCounter()
 	{
 		StatModifiers.ForEach(x => x.DecreaseTurn());
-		if (this is Omori && HasStatModifier(Modifier.PlotArmor))
-		{
-
-		}
 		StatModifiers.RemoveAll(x =>
 		{
 			if (this is Omori omori && x.Modifier == Modifier.PlotArmor)

@@ -123,10 +123,12 @@ public partial class BattleManager : Node
 					{
 						if (Commands[^1].Action is Item item)
 						{
-							if (!Items.ContainsKey(item.Name))
-								Items.Add(item.Name, 1);
+                            // Capitalize the item name for dictionary lookup
+                            string name = item.Name.Capitalize();
+                            if (!Items.ContainsKey(name))
+								Items.Add(name, 1);
 							else
-								Items[item.Name]++;
+								Items[name]++;
 						}
 						Commands.RemoveAt(Commands.Count - 1);
 						CurrentPartyMember--;
@@ -362,9 +364,11 @@ public partial class BattleManager : Node
 		}
 
 		Item i = SelectedAction as Item;
-		Items[i.Name]--;
-		if (Items[i.Name] == 0)
-			Items.Remove(i.Name);
+		// convert item name to CamelCase for dictionary lookup
+		string name = i.Name.Capitalize();
+		Items[name]--;
+		if (Items[name] == 0)
+			Items.Remove(name);
 
 		AudioManager.Instance.PlaySFX("SYS_select");
 		SetPhase(BattlePhase.TargetSelection);
@@ -614,7 +618,8 @@ public partial class BattleManager : Node
 			if (Commands[CommandIndex].Action is Item item)
 			{
 				// refund items if the character died before using it
-				Items[item.Name]++;
+				string name = item.Name.Capitalize();
+                Items[name]++;
 			}
 			CommandIndex++;
 			if (CommandIndex >= Commands.Count)
