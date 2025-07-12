@@ -552,11 +552,11 @@ public class Database
                 foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
                 {
                     if (enemies == 1)
-                        BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 3f - enemy.CurrentStats.DEF; }, false);
+                        BattleManager.Instance.Damage(self, enemy, () => { return self.CurrentStats.ATK * 3f - enemy.CurrentStats.DEF; }, false);
                     else if (enemies == 2)
-                        BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
+                        BattleManager.Instance.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2.5f - enemy.CurrentStats.DEF; }, false);
                     else
-                        BattleManager.Instance.Damage(self, target, () => { return self.CurrentStats.ATK * 2f - enemy.CurrentStats.DEF; }, false);
+                        BattleManager.Instance.Damage(self, enemy, () => { return self.CurrentStats.ATK * 2f - enemy.CurrentStats.DEF; }, false);
                 }
             }
         );
