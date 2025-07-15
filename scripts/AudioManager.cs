@@ -7,8 +7,8 @@ public partial class AudioManager : Node
 
 	private readonly List<AudioStreamPlayer> AudioPlayers = [];
 
-	private readonly Dictionary<string, AudioStream> SFXDictionary = [];
-	private readonly Dictionary<string, AudioStream> BGMDictionary = [];
+	private readonly Dictionary<string, AudioStreamOggVorbis> SFXDictionary = [];
+	private readonly Dictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
 
 	public static AudioManager Instance { get; private set; }
 
@@ -41,7 +41,7 @@ public partial class AudioManager : Node
 			{
 				foreach (SFX sfx in sfxList)
 				{
-					SFXDictionary.TryAdd(sfx.Name, ResourceLoader.Load<AudioStream>("res://audio/sfx/" + sfx.Name + ".ogg"));
+					SFXDictionary.TryAdd(sfx.Name, ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/sfx/" + sfx.Name + ".ogg"));
 				}
 			}
 		}
@@ -56,8 +56,8 @@ public partial class AudioManager : Node
 
 	public void PlaySFX(string name, float pitch = 1f, float volume = 1f)
 	{
-		if (!SFXDictionary.TryGetValue(name, out AudioStream stream)) {
-			stream = ResourceLoader.Load<AudioStream>("res://audio/sfx/" + name + ".ogg");
+		if (!SFXDictionary.TryGetValue(name, out AudioStreamOggVorbis stream)) {
+			stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/sfx/" + name + ".ogg");
 			if (stream == null)
 			{
 				GD.PrintErr("Unknown SFX: " + name);
@@ -90,10 +90,10 @@ public partial class AudioManager : Node
 
 	public void PlayBGM(string name)
 	{
-		if (!BGMDictionary.TryGetValue(name, out AudioStream stream))
+		if (!BGMDictionary.TryGetValue(name, out AudioStreamOggVorbis stream))
 		{
 			if (ResourceLoader.Exists("res://audio/bgm/" + name + ".ogg"))
-				stream = ResourceLoader.Load<AudioStream>("res://audio/bgm/" + name + ".ogg");
+				stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + name + ".ogg");
 			// check the custom folder too
 			else if (FileAccess.FileExists(GameManager.Instance.CustomDataPath + "/bgm/" + name + ".ogg"))
 				stream = LoadCustomBGM(GameManager.Instance.CustomDataPath + "/bgm/" + name + ".ogg");
@@ -102,16 +102,20 @@ public partial class AudioManager : Node
 				GD.PrintErr("Unknown BGM: " + name);
 				return;
 			}
-			BGMDictionary.Add(name, stream);
+            stream.Loop = true;
+            // TOOD: allow custom BGM to have a loop offset
+            stream.LoopOffset = 0d;
+            BGMDictionary.Add(name, stream);
 		}
 
 		BGM.Stream = stream;
 		BGM.Play();
 	}
 
-	private AudioStream LoadCustomBGM(string path)
+	private AudioStreamOggVorbis LoadCustomBGM(string path)
 	{
-		return AudioStreamOggVorbis.LoadFromFile(path);
+		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
+		return stream;
 	}
 
 	public void FadeBGMTo(float volume, float seconds = 1f)

@@ -36,7 +36,7 @@ BattlecardUI = ExtResource("5_tefeu")
 EnemyUI = ExtResource("8_choun")
 UIParent = NodePath("../UI")
 BattlebackParent = NodePath("../UI/Battleback")
-FPSLabel = NodePath("../UI/FPS")
+FPSLabel = NodePath("../UI/HBoxContainer/FPS")
 Followups = Array[PackedScene]([ExtResource("4_muem4"), ExtResource("5_dp3eg"), ExtResource("6_0ld40"), ExtResource("7_gqmmt")])
 
 [node name="BattleManager" type="Node" parent="CanvasLayer"]
@@ -92,16 +92,27 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="FPS" type="Label" parent="CanvasLayer/UI"]
-top_level = true
-layout_mode = 0
-offset_left = 1.0
-offset_top = -1.0
-offset_right = 41.0
-offset_bottom = 22.0
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI"]
+z_index = 200
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -10.0
+offset_right = 76.0
+grow_vertical = 0
+
+[node name="FPS" type="Label" parent="CanvasLayer/UI/HBoxContainer"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 10
 text = "0"
+
+[node name="Version" type="Label" parent="CanvasLayer/UI/HBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 10
+text = "OmoriSandbox v0.3.0"
 
 [node name="ReleaseEnergy" type="AnimatedSprite2D" parent="CanvasLayer/UI"]
 visible = false

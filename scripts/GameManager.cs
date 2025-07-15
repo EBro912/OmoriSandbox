@@ -72,6 +72,7 @@ public partial class GameManager : Node
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 		Dictionary<string, int> items = [];
+		int FollowupTier = -1;
 
 		ConfigFile config = new();
 
@@ -110,7 +111,8 @@ public partial class GameManager : Node
 					items.Add(kv.Key, kv.Value);
 				foreach (var kv in (Godot.Collections.Dictionary<string, int>)config.GetValue(s, "toys"))
 					items.Add(kv.Key, kv.Value);
-			}
+				FollowupTier = (int)config.GetValue(s, "followup_tier");
+            }
 			else if (section.StartsWith("actor"))
 			{
 				if (party.Count >= 4)
@@ -154,7 +156,17 @@ public partial class GameManager : Node
 			}
 		}
 
-		BattleManager.Instance.Init(party, enemy, items);
+		if (FollowupTier == -1)
+		{
+			GD.PushWarning("Followup Tier not set in config, defaulting to 1.");
+			FollowupTier = 1;
+        }
+		else
+		{
+			GD.Print("Using Followup Tier " + FollowupTier);
+        }
+
+		BattleManager.Instance.Init(party, enemy, items, FollowupTier);
 	}
 
 	private EnemyComponent SpawnEnemy(string who, Vector2 position, string startingEmotion = "neutral")

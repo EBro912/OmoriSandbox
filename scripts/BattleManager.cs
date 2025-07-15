@@ -25,20 +25,22 @@ public partial class BattleManager : Node
 	public int Energy { get; private set; } = 0;
 	private bool FollowupActive = true;
 	private bool ForceHideFollowup = false;
+	private int FollowupTier = 1;
 
-	public static BattleManager Instance { get; private set; }
+    public static BattleManager Instance { get; private set; }
 
 	public override void _EnterTree()
 	{
 		Instance = this;
 	}
 
-	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies, Dictionary<string, int> items)
+	public void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies, Dictionary<string, int> items, int followupTier)
 	{
 		CurrentParty = party;
 		Enemies = enemies;
 		Items = items;
 		Energy = 3;
+		FollowupTier = followupTier;
 
 		Delay = new Timer
 		{
@@ -123,9 +125,9 @@ public partial class BattleManager : Node
 					{
 						if (Commands[^1].Action is Item item)
 						{
-                            // Capitalize the item name for dictionary lookup
-                            string name = item.Name.Capitalize();
-                            if (!Items.ContainsKey(name))
+							// Capitalize the item name for dictionary lookup
+							string name = item.Name.Capitalize();
+							if (!Items.ContainsKey(name))
 								Items.Add(name, 1);
 							else
 								Items[name]++;
@@ -173,7 +175,7 @@ public partial class BattleManager : Node
 						CurrentEnemyTarget = Enemies.Count - 1;
 					return;
 				}
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.AllyNotSelf || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
 				{
 					switch (CurrentPartyMemberTarget)
 					{
@@ -214,7 +216,7 @@ public partial class BattleManager : Node
 						CurrentEnemyTarget = 0;
 					return;
 				}
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.AllyNotSelf || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
 				{
 					switch (CurrentPartyMemberTarget)
 					{
@@ -246,7 +248,7 @@ public partial class BattleManager : Node
 			}
 			if (Phase == BattlePhase.TargetSelection)
 			{
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.AllyNotSelf || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
 				{
 					AudioManager.Instance.PlaySFX("SYS_move");
 					switch (CurrentPartyMemberTarget)
@@ -279,7 +281,7 @@ public partial class BattleManager : Node
 			}
 			if (Phase == BattlePhase.TargetSelection)
 			{
-				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
+				if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.AllyNotSelf || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
 				{
 					AudioManager.Instance.PlaySFX("SYS_move");
 					switch (CurrentPartyMemberTarget)
@@ -533,6 +535,7 @@ public partial class BattleManager : Node
 		switch (SelectedAction.Target)
 		{
 			case SkillTarget.Ally:
+			case SkillTarget.AllyNotSelf:
 			case SkillTarget.DeadAlly:
 				// keep selection box on current ally for ally targeting
 				CurrentPartyMemberTarget = CurrentPartyMember;
@@ -570,7 +573,13 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
 		}
-		
+
+		if (SelectedAction.Target == SkillTarget.AllyNotSelf && CurrentPartyMemberTarget == CurrentPartyMember)
+		{
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
+
 		AudioManager.Instance.PlaySFX("SYS_select");
 		switch (SelectedAction.Target)
 		{
@@ -578,6 +587,7 @@ public partial class BattleManager : Node
 				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, CurrentParty[CurrentPartyMember].Actor, SelectedAction));
 				break;
 			case SkillTarget.Ally:
+			case SkillTarget.AllyNotSelf:
 			case SkillTarget.DeadAlly:
 				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, CurrentParty[CurrentPartyMemberTarget].Actor, SelectedAction));
 				break;
@@ -619,7 +629,7 @@ public partial class BattleManager : Node
 			{
 				// refund items if the character died before using it
 				string name = item.Name.Capitalize();
-                Items[name]++;
+				Items[name]++;
 			}
 			CommandIndex++;
 			if (CommandIndex >= Commands.Count)
@@ -687,8 +697,7 @@ public partial class BattleManager : Node
 			SetPhase(BattlePhase.PostCommand);
 	}
 
-	// TODO: refactor if possible
-	// TODO: add other followup tiers
+	// TODO: refactor
 	private bool HandleFollowup(string direction)
 	{
 		if (Energy < 3)
@@ -699,13 +708,13 @@ public partial class BattleManager : Node
 		{
 			case 1:
 				if (direction == "up") {
-					if (Database.TryGetSkill("AttackAgain1", out Skill skill))
+					if (Database.TryGetSkill($"AttackAgain{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				if (direction == "right")
 				{
-					if (Database.TryGetSkill("Trip1", out Skill skill))
+					if (Database.TryGetSkill($"Trip{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
@@ -713,7 +722,7 @@ public partial class BattleManager : Node
 				{
 					if (Energy == 10 && CurrentParty.All(x => x.Actor.CurrentState != "toast"))
 					{
-						if (Database.TryGetSkill("ReleaseEnergy1", out Skill skill))
+						if (Database.TryGetSkill($"ReleaseEnergy{FollowupTier}", out Skill skill))
 							ForceCommand(current.Actor, null, skill);
 						return true;
 					}
@@ -724,7 +733,7 @@ public partial class BattleManager : Node
 				{
 					if (GetPartyMember(2).CurrentState == "toast")
 						return false;
-					if (Database.TryGetSkill("LookAtHero1", out Skill skill))
+					if (Database.TryGetSkill($"LookAtHero{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
@@ -732,13 +741,13 @@ public partial class BattleManager : Node
 				{
 					if (GetPartyMember(3).CurrentState == "toast")
 						return false;
-					if (Database.TryGetSkill("LookAtKel1", out Skill skill))
+					if (Database.TryGetSkill($"LookAtKel{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
 				if (direction == "down")
 				{
-					if (Database.TryGetSkill("LookAtOmori1", out Skill skill))
+					if (Database.TryGetSkill($"LookAtOmori{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
@@ -748,7 +757,7 @@ public partial class BattleManager : Node
 				{
 					if (GetPartyMember(1).CurrentState == "toast")
 						return false;
-					if (Database.TryGetSkill("CallAubrey1", out Skill skill))
+					if (Database.TryGetSkill($"CallAubrey{FollowupTier}", out Skill skill))
 					{
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 						ForceHideFollowup = true;
@@ -757,7 +766,7 @@ public partial class BattleManager : Node
 				}
 				if (direction == "left")
 				{
-					if (Database.TryGetSkill("CallOmori1", out Skill skill))
+					if (Database.TryGetSkill($"CallOmori{FollowupTier}", out Skill skill))
 					{
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 						ForceHideFollowup = true;
@@ -768,7 +777,7 @@ public partial class BattleManager : Node
 				{
 					if (GetPartyMember(3).CurrentState == "toast")
 						return false;
-					if (Database.TryGetSkill("CallKel1", out Skill skill))
+					if (Database.TryGetSkill($"CallKel{FollowupTier}", out Skill skill))
 					{
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 						ForceHideFollowup = true;
@@ -779,7 +788,7 @@ public partial class BattleManager : Node
 			case 4:
 				if (direction == "down")
 				{
-					if (Database.TryGetSkill("PassToOmori1", out Skill skill))
+					if (Database.TryGetSkill($"PassToOmori{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
@@ -787,7 +796,7 @@ public partial class BattleManager : Node
 				{
 					if (GetPartyMember(1).CurrentState == "toast")
 						return false;
-					if (Database.TryGetSkill("PassToAubrey1", out Skill skill))
+					if (Database.TryGetSkill($"PassToAubrey{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
@@ -795,7 +804,7 @@ public partial class BattleManager : Node
 				{
 					if (GetPartyMember(2).CurrentState == "toast")
 						return false;
-					if (Database.TryGetSkill("PassToHero1", out Skill skill))
+					if (Database.TryGetSkill($"PassToHero{FollowupTier}", out Skill skill))
 						ForceCommand(current.Actor, Commands[CommandIndex].Target, skill);
 					return true;
 				}
@@ -858,6 +867,14 @@ public partial class BattleManager : Node
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 		}
 		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
+		{
+			SetPhase(BattlePhase.BattleOver);
+			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was defeated...");
+		}
+		PartyMemberComponent omori = CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.CurrentState == "toast");
+		// if any omori is toast, the battle is over
+		// this may change in the future
+		if (omori != null)
 		{
 			SetPhase(BattlePhase.BattleOver);
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was defeated...");
@@ -941,7 +958,7 @@ public partial class BattleManager : Node
 		if (target.CurrentJuice - juiceLost < 0)
 		{
 			juiceLost = target.CurrentJuice;
-			rounded = Math.Abs(target.CurrentJuice - juiceLost);
+			rounded += Math.Abs(target.CurrentJuice - juiceLost);
 			target.CurrentJuice = 0;
 		}
 		else
