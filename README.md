@@ -39,7 +39,7 @@ As of writing, any other customization, such as custom party members, enemies, i
 The following features are currently missing and/or not fully functional in the Sandbox, and will be periodically added through updates. This list may shrink or grow at any time depending on updates and bug reports:
 ### Missing
 - [ ] Dots animation on the Energy Bar
-- [ ] Tier 2 and 3 Followups
+- [x] Tier 2 and 3 Followups
 - [ ] Omori's special skills (Vertigo, Cripple, Suffocate)
 - [ ] Some Screen Tint/Wave Effects
 - [ ] Faraway Town Snacks and Toys
@@ -49,7 +49,7 @@ The following features are currently missing and/or not fully functional in the 
 ### Partially Functional
 - [ ] Afraid and Stressed Out
 - [ ] Party sizes below 4
-- [ ] Skills that use the `<Not User>` tag
+- [x] Skills that use the `<Not User>` tag
 - [ ] Boss-Specific Behavior
 - [ ] Game Over
 - [ ] Skill/Item descriptions that use character names
@@ -78,7 +78,9 @@ After installation, simply clone the repository and open the project folder in G
 If you need any other assets from the game that the Sandbox currently does not provide, you must retrieve them yourself from a valid copy of Omori.
 
 When you are ready to submit your contribution, please open a pull request in the **Pull Requests** tab with a detailed description of what your PR accomplishes. While any contributions are welcome, PRs that target anything in the **To-Dos** section will most likely take priority. 
-Please refrain from modifying anything that impacts the core functionality of the Sandbox, including logos, important filepaths, modifications of vanilla assets, and anything else that negatively impacts the goal of  100% accuracy. Any PRs that are deemed to do so will be rejected.
+Please refrain from modifying anything that impacts the core functionality of the Sandbox, including logos, important filepaths, modifications of vanilla assets, and anything else that negatively impacts the goal of 100% accuracy. Any PRs that are deemed to do so will be rejected.
 
 ## Third Party Assets
-The assets used by the project were obtained via a legitimate copy of Omori, and are only meant to be used as fair-use and free of charge for this project alone. You may not use the assets contained within this project for any other purpose. If you are the owner of these assets and would like them removed from the repository, please contact me on Discord at `alltoasters` or submit an issue in the **Issues** tab.
+The assets used by the project were obtained via a legitimate copy of Omori, and are only meant to be used as fair-use and free of charge for this project alone. You may not use the assets contained within this project for any other purpose.
+This project is in no way meant to replace the original game, it is for practice, speedrunning, and educational purposes only. It is heavily recommended that you purchase and play through Omori before using this program.
+If you are the owner of the aforementioned assets and would like them removed from the repository, please contact me on Discord at `alltoasters` or submit an issue in the **Issues** tab.
