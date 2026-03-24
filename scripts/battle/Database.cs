@@ -232,61 +232,61 @@ public class Database
 
 		#region ENEMIES
 		Enemies.Add("LostSproutMole", () => new LostSproutMole());
-		Enemies.Add("LostSproutMole (KC)", () => new LostSproutMoleKC());
+		Enemies.Add("LostSproutMole (King Crawler)", () => new LostSproutMoleKC());
 		Enemies.Add("ForestBunny?", () => new ForestBunnyQuestion());
 		Enemies.Add("Sweetheart", () => new Sweetheart());
-		Enemies.Add("Sweetheart (Alt)", () => new SweetheartAlt());
+		Enemies.Add("Sweetheart (Boss Rush)", () => new SweetheartAlt());
 		Enemies.Add("SlimeGirls", () => new SlimeGirls());
-		Enemies.Add("SlimeGirls (Alt)", () => new SlimeGirlsAlt());
+		Enemies.Add("SlimeGirls (Boss Rush)", () => new SlimeGirlsAlt());
 		Enemies.Add("AubreyEnemy", () => new AubreyEnemy());
 		Enemies.Add("BigStrongTree", () => new BigStrongTree());
 		Enemies.Add("DownloadWindow", () => new DownloadWindow());
-		Enemies.Add("DownloadWindow (Alt)", () => new DownloadWindowAlt());
+		Enemies.Add("DownloadWindow (Boss Rush)", () => new DownloadWindowAlt());
 		Enemies.Add("SpaceExBoyfriend", () => new SpaceExBoyfriend());
-		Enemies.Add("SpaceExBoyfriend (Alt)", () => new SpaceExBoyfriendAlt());
+		Enemies.Add("SpaceExBoyfriend (Boss Rush)", () => new SpaceExBoyfriendAlt());
 		Enemies.Add("GatorGuyJawsum", () => new GatorGuyJawsum());
-		Enemies.Add("GatorGuyJawsum (Alt)", () => new GatorGuyJawsumAlt());
+		Enemies.Add("GatorGuyJawsum (Boss Rush)", () => new GatorGuyJawsumAlt());
 		Enemies.Add("MrJawsum", () => new MrJawsum());
-		Enemies.Add("MrJawsum (Alt)", () => new MrJawsumAlt());
+		Enemies.Add("MrJawsum (Boss Rush)", () => new MrJawsumAlt());
 		Enemies.Add("FearOfSpiders", () => new FearOfSpiders());
 		Enemies.Add("UnbreadTwins", () => new UnbreadTwins());
-		Enemies.Add("UnbreadTwins (Alt)", () => new UnbreadTwinsAlt());
+		Enemies.Add("UnbreadTwins (Boss Rush)", () => new UnbreadTwinsAlt());
 		Enemies.Add("BunBunny", () => new BunBunny());
 		Enemies.Add("Creepypasta", () => new Creepypasta());
 		Enemies.Add("Slice", () => new Slice());
-		Enemies.Add("Slice (Alt)", () => new SliceAlt());
+		Enemies.Add("Slice (Boss Rush)", () => new SliceAlt());
 		Enemies.Add("Sourdough", () => new Sourdough());
-		Enemies.Add("Sourdough (Alt)", () => new SourdoughAlt());
+		Enemies.Add("Sourdough (Boss Rush)", () => new SourdoughAlt());
 		Enemies.Add("Sesame", () => new Sesame());
-		Enemies.Add("Sesame (Alt)", () => new SesameAlt());
+		Enemies.Add("Sesame (Boss Rush)", () => new SesameAlt());
 		Enemies.Add("LivingBread", () => new LivingBread());
 		Enemies.Add("Boss", () => new Boss());
 		Enemies.Add("YeOldSprout", () => new YeOldSprout());
-		Enemies.Add("YeOldSprout (Alt)", () => new YeOldSproutAlt());
+		Enemies.Add("YeOldSprout (Boss Rush)", () => new YeOldSproutAlt());
 		Enemies.Add("Mutantheart", () => new Mutantheart());
 		Enemies.Add("NefariousChip", () => new NefariousChip());
 		Enemies.Add("TheEarth", () => new TheEarth());
-		Enemies.Add("TheEarth (Alt)", () => new TheEarthAlt());
+		Enemies.Add("TheEarth (Pluto)", () => new TheEarthAlt());
 		Enemies.Add("Perfectheart", () => new Perfectheart());
 		Enemies.Add("Roboheart", () => new Roboheart());
 		Enemies.Add("FearOfHeights", () => new FearOfHeights());
 		Enemies.Add("SpaceExHusband", () => new SpaceExHusband());
 		Enemies.Add("SirMaximusI", () => new SirMaximusI());
-		Enemies.Add("SirMaximusI (Alt)", () => new SirMaximusIAlt());
+		Enemies.Add("SirMaximusI (Boss Rush)", () => new SirMaximusIAlt());
 		Enemies.Add("SirMaximusII", () => new SirMaximusII());
-		Enemies.Add("SirMaximusII (Alt)", () => new SirMaximusIIAlt());
+		Enemies.Add("SirMaximusII (Boss Rush)", () => new SirMaximusIIAlt());
 		Enemies.Add("SirMaximusIII", () => new SirMaximusIII());
-		Enemies.Add("SirMaximusIII (Alt)", () => new SirMaximusIIIAlt());
+		Enemies.Add("SirMaximusIII (Boss Rush)", () => new SirMaximusIIIAlt());
 		Enemies.Add("FearOfDrowning", () => new FearOfDrowning());
 		Enemies.Add("PlutoExpanded", () => new PlutoExpanded());
-		Enemies.Add("PlutoExpanded (Alt)", () => new PlutoExpandedAlt());
+		Enemies.Add("PlutoExpanded (Boss Rush)", () => new PlutoExpandedAlt());
 		Enemies.Add("PlutoExpandedAndEarth", () => new PlutoExpandedEarth());
 		Enemies.Add("KingCrawler", () => new KingCrawler());
-		Enemies.Add("KingCrawler (Alt)", () => new KingCrawlerAlt());
+		Enemies.Add("KingCrawler (Boss Rush)", () => new KingCrawlerAlt());
 		Enemies.Add("KiteKid", () => new KiteKid());
-		Enemies.Add("KiteKid (Alt)", () => new KiteKidAlt());
+		Enemies.Add("KiteKid (Epilogue)", () => new KiteKidAlt());
 		Enemies.Add("KidsKite", () => new KidsKite());
-		Enemies.Add("KidsKite (Alt)", () => new KidsKiteAlt());
+		Enemies.Add("KidsKite (Epilogue)", () => new KidsKiteAlt());
 		Enemies.Add("Pluto", () => new Pluto());
 		Enemies.Add("LeftArm", () => new LeftArm());
 		Enemies.Add("RightArm", () => new RightArm());
@@ -308,7 +308,7 @@ public class Database
 		Enemies.Add("HumphreyGrande", () => new HumphreyGrande());
 		Enemies.Add("HumphreyFace", () => new HumphreyFace());
 		Enemies.Add("Angel", () => new Angel());
-		Enemies.Add("Angel (Alt)", () => new AngelAlt());
+		Enemies.Add("Angel (Two Days Left)", () => new AngelAlt());
 		Enemies.Add("Charlene", () => new Charlene());
 		Enemies.Add("TheMaverick", () => new TheMaverick());
 		Enemies.Add("Kim", () => new Kim());
@@ -346,7 +346,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 
 		Skills["SadPoem"] = new Skill(
@@ -919,7 +920,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 		
 		Skills["SRWAltAttack"] = new Skill(
@@ -934,7 +936,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 
 		Skills["CalmDown"] = new Skill(
@@ -1019,7 +1022,7 @@ public class Database
 				target.AddStatModifier("Encore");
 				await AnimationManager.Instance.WaitForEncore();
 			}
-		).WithCustomRequirement(actor => !actor.HasStatModifier("Encore"));
+		).WithCustomRequirement(actor => !actor.HasStatModifier("Encore") && actor.CurrentState is not ("afraid" or "stressed"));
 		
 		Skills["Cherish"] = new Skill(
 			name: "CHERISH",
@@ -1064,7 +1067,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 
 		Skills["BodySlam"] = new Skill(
@@ -1354,7 +1358,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 		Skills["PepTalk"] = new Skill(
 			name: "PEP TALK",
@@ -1413,6 +1418,20 @@ public class Database
 			},
 			priority: SkillPriority.First
 		);
+		
+		Skills["CounterAttack"] = new Skill(
+			name: "CounterAttack",
+			description: "Counter Attack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(28, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] swings back!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			},
+			hidden: true
+		);
 
 		Skills["PowerHit"] = new Skill(
 			name: "POWER HIT",
@@ -1437,6 +1456,7 @@ public class Database
 			cost: 10,
 			effect: async (self, target) =>
 			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				AnimationManager.Instance.PlayAnimation(45, target);
 				await Task.Delay(500);
 				AnimationManager.Instance.PlayAnimation(28, target);
@@ -1780,7 +1800,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 
 		Skills["Homerun"] = new Skill(
@@ -1815,7 +1836,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 		Skills["Annoy"] = new Skill(
 			name: "ANNOY",
@@ -2071,20 +2093,22 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 
 		Skills["Encourage"] = new Skill(
 			name: "ENCOURAGE",
-			description: "[actor] encourages a friend.\nRaises their attack. No cost.",
-			target: SkillTarget.Ally,
+			description: "[actor] encourages [first].\nRaises their attack. No cost.",
+			target: SkillTarget.Self,
 			cost: 0,
-			effect: async (self, target) =>
+			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] gives some encouragement!");
-				AnimationManager.Instance.PlayAnimation(214, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] gives some encouragement!");
+				PartyMember first = BattleManager.Instance.GetPartyMember(0);
+				AnimationManager.Instance.PlayAnimation(214, first);
 				await Task.Delay(1000);
-				target.AddStatModifier("AttackUp");
+				first.AddTierStatModifier("AttackUp", 3);
 			}
 		);
 		Skills["PassToOmori1"] = new Skill(
@@ -2274,7 +2298,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 		Skills["Massage"] = new Skill(
 			name: "MASSAGE",
@@ -2780,7 +2805,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 			},
-			hidden: true
+			hidden: true,
+			showFollowups: true
 		);
 
 		Skills["FirstAid"] = new Skill(
@@ -4277,6 +4303,7 @@ public class Database
 				 if (target.CurrentHP > 1)
 					 damage = target.CurrentHP - 1;
 				 target.Damage(damage);
+				 BattleManager.Instance.AddEnergy(1);
 				 AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
 				 BattleManager.Instance.SpawnDamageNumber(damage, target.CenterPoint);
 			 },
@@ -7017,7 +7044,7 @@ public class Database
 			.WithStateIcons(new StateIcon("bnw_-1spd", "Speed Down 1: x0.8 SPD"), new StateIcon("bnw_-2spd", "Speed Down 2: x0.5 SPD"), new StateIcon("bnw_-3spd", "Speed Down 3: x0.25 SPD")));
 
 		Modifiers.Add("ReleaseEnergy", () => new StatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f)));
-		Modifiers.Add("ReleaseEnergyBasil", () => new StatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f))
+		Modifiers.Add("ReleaseEnergyBasil", () => new ReleaseEnergyBasilStatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f))
 			.WithStateIcons(new StateIcon("bnw_regen", "HP Regen: 10% HEART/turn"), new StateIcon("bnw_regenmana", "Mana Regen: 5% JUICE/turn")));
 		Modifiers.Add("ReleaseEnergyBasilBonus",
 			() => new StatModifier(4, new StatBonus(StatType.SPD, 1.2f), new StatBonus(StatType.ATK, 1.2f),
@@ -7059,8 +7086,6 @@ public class Database
 		#endregion
 
 		#region SNACKS
-
-		// will most likely be file driven in the future
 
 		AddSnack("Tofu", "Soft cardboard, basically.\nHeals 5 HEART.", 5, 0);
 		AddSnack("Candy", "A child's favorite food. Sweet!\nHeals 30 HEART.", 30, 17);
@@ -7569,60 +7594,58 @@ public class Database
 		#endregion
 
 		#region WEAPONS
-		Weapons["Shiny Knife"] = new Weapon("Shiny Knife", new Stats(atk: 5, hit: 100));
-		Weapons["Knife"] = new Weapon("Shiny Knife", new Stats(atk: 7, spd:2, hit: 100));
-		Weapons["Dull Knife"] = new Weapon("Dull Knife", new Stats(atk: 9, spd: 4, lck: 2, hit: 100));
-		Weapons["Rusty Knife"] = new Weapon("Rusty Knife", new Stats(atk: 11, def: 2, spd: 6, lck: 4, hit: 100));
-		Weapons["Red Knife"] = new Weapon("Red Knife", new Stats(atk: 13, def: 6, spd: 6, lck: 6, hit: 100));
+		Weapons["Shiny Knife"] = new Weapon("Shiny Knife", new StatBonus(StatType.ATK, 5), new StatBonus(StatType.HIT, 100));
+		Weapons["Knife"] = new Weapon("Shiny Knife", new StatBonus(StatType.ATK, 7), new StatBonus(StatType.SPD, 2), new StatBonus(StatType.HIT, 100));
+		Weapons["Dull Knife"] = new Weapon("Dull Knife", new StatBonus(StatType.ATK, 9), new StatBonus(StatType.SPD, 4), new StatBonus(StatType.LCK, 2), new StatBonus(StatType.HIT, 100));
+		Weapons["Rusty Knife"] = new Weapon("Rusty Knife", new StatBonus(StatType.ATK, 11), new StatBonus(StatType.DEF, 2), new StatBonus(StatType.SPD, 6), new StatBonus(StatType.LCK, 4), new StatBonus(StatType.HIT, 100));
+		Weapons["Red Knife"] = new Weapon("Red Knife", new StatBonus(StatType.ATK, 13), new StatBonus(StatType.DEF, 6), new StatBonus(StatType.SPD, 6), new StatBonus(StatType.LCK, 6), new StatBonus(StatType.HIT, 100));
 
-		Weapons["Fly Swatter"] = new Weapon("Fly Swatter", new Stats(atk: 1, hit: 1000));
-		Weapons["Steak Knife"] = new Weapon("Steak Knife", new Stats(atk: 30, hit: 25));
-		Weapons["Hands"] = new Weapon("Hands", new Stats(atk: 2, hit: 95));
-		Weapons["Steak Knife"] = new Weapon("Steak Knife", new Stats(atk: 30, hit: 25));
-		Weapons["Steak Knife"] = new Weapon("Steak Knife", new Stats(atk: 30, hit: 25));
+		Weapons["Fly Swatter"] = new Weapon("Fly Swatter", new StatBonus(StatType.ATK, 1), new StatBonus(StatType.HIT, 1000));
+		Weapons["Steak Knife"] = new Weapon("Steak Knife", new StatBonus(StatType.ATK, 30), new StatBonus(StatType.HIT, 25));
+		Weapons["Hands"] = new Weapon("Hands", new StatBonus(StatType.ATK, 2), new StatBonus(StatType.HIT, 95));
 		// potential todo: other violin variants?
-		Weapons["Violin"] = new Weapon("Violin", new Stats(atk: 14, hit: 1000));
+		Weapons["Violin"] = new Weapon("Violin", new StatBonus(StatType.ATK, 14), new StatBonus(StatType.HIT, 1000));
 
-		Weapons["Stuffed Toy"] = new Weapon("Stuffed Toy", new Stats(atk: 4, hit: 100));
-		Weapons["Comet Hammer"] = new Weapon("Comet Hammer", new Stats(atk: 6, lck: 2, hit: 100));
-		Weapons["Body Pillow"] = new Weapon("Body Pillow", new Stats(hp: 10, atk: 8, hit: 100));
-		Weapons["Pool Noodle"] = new Weapon("Pool Noodle", new Stats(atk: -5, def: -5, spd: -5, lck: -5, hit: 100));
-		Weapons["Cool Noodle"] = new Weapon("Cool Noodle", new Stats(atk: 15, hit: 100));
-		Weapons["Hero's Trophy"] = new Weapon("Hero's Trophy", new Stats(atk: 10, def: 5, hit: 100));
-		Weapons["Mailbox"] = new Weapon("Mailbox", new Stats(atk: 12, hit: 100));
-		Weapons["Baguette"] = new Weapon("Baguette", new Stats(atk: 10, def: 10, hit: 100));
-		Weapons["Sweetheart Bust"] = new Weapon("Sweetheart Bust", new Stats(atk: 20, spd: -30, hit: 75));
-		Weapons["Baseball Bat"] = new Weapon("Baseball Bat", new Stats(hp: 10, atk: 20, spd: 10, lck: 10, hit: 100));
+		Weapons["Stuffed Toy"] = new Weapon("Stuffed Toy", new StatBonus(StatType.ATK, 4), new StatBonus(StatType.HIT, 100));
+		Weapons["Comet Hammer"] = new Weapon("Comet Hammer", new StatBonus(StatType.ATK, 6), new StatBonus(StatType.LCK, 2), new StatBonus(StatType.HIT, 100));
+		Weapons["Body Pillow"] = new Weapon("Body Pillow", new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.ATK, 8), new StatBonus(StatType.HIT, 100));
+		Weapons["Pool Noodle"] = new Weapon("Pool Noodle", new StatBonus(StatType.ATK, -5), new StatBonus(StatType.DEF, -5), new StatBonus(StatType.SPD, -5), new StatBonus(StatType.LCK, -5), new StatBonus(StatType.HIT, 100));
+		Weapons["Cool Noodle"] = new Weapon("Cool Noodle", new StatBonus(StatType.ATK, 15), new StatBonus(StatType.HIT, 100));
+		Weapons["Hero's Trophy"] = new Weapon("Hero's Trophy", new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, 5), new StatBonus(StatType.HIT, 100));
+		Weapons["Mailbox"] = new Weapon("Mailbox", new StatBonus(StatType.ATK, 12), new StatBonus(StatType.HIT, 100));
+		Weapons["Baguette"] = new Weapon("Baguette", new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, 10), new StatBonus(StatType.HIT, 100));
+		Weapons["Sweetheart Bust"] = new Weapon("Sweetheart Bust", new StatBonus(StatType.ATK, 20), new StatBonus(StatType.SPD, -30), new StatBonus(StatType.HIT, 75));
+		Weapons["Baseball Bat"] = new Weapon("Baseball Bat", new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.ATK, 20), new StatBonus(StatType.SPD, 10), new StatBonus(StatType.LCK, 10), new StatBonus(StatType.HIT, 100));
 
-		Weapons["Nail Bat"] = new Weapon("Nail Bat", new Stats(atk: 3, hit: 95));
+		Weapons["Nail Bat"] = new Weapon("Nail Bat", new StatBonus(StatType.ATK, 3), new StatBonus(StatType.HIT, 95));
 
-		Weapons["Rubber Ball"] = new Weapon("Rubber Ball", new Stats(atk: 3, hit: 100));
-		Weapons["Meteor Ball"] = new Weapon("Meteor Ball", new Stats(atk: 4, lck: 2, hit: 100));
-		Weapons["Blood Orange"] = new Weapon("Blood Orange", new Stats(juice: 30, atk: 6, hit: 100));
-		Weapons["Jack"] = new Weapon("Jack", new Stats(atk: 12, def: -6, lck: -6, hit: 100));
-		Weapons["Beach Ball"] = new Weapon("Beach Ball", new Stats(atk: 10, spd: 25, hit: 100));
-		Weapons["Coconut"] = new Weapon("Coconut", new Stats(juice: 50, atk: 8, hit: 100));
-		Weapons["Globe"] = new Weapon("Globe", new Stats(atk: 10, hit: 1000));
-		Weapons["Chicken Ball"] = new Weapon("Chicken Ball", new Stats(spd: 200, hit: 100));
-		Weapons["Snowball"] = new Weapon("Snowball", new Stats(atk: 13, hit: 100));
-		Weapons["Basketball"] = new Weapon("Basketball", new Stats(juice: 50, atk: 15, spd: 100, lck: 15, hit: 100));
+		Weapons["Rubber Ball"] = new Weapon("Rubber Ball", new StatBonus(StatType.ATK, 3), new StatBonus(StatType.HIT, 100));
+		Weapons["Meteor Ball"] = new Weapon("Meteor Ball", new StatBonus(StatType.ATK, 4), new StatBonus(StatType.LCK, 2), new StatBonus(StatType.HIT, 100));
+		Weapons["Blood Orange"] = new Weapon("Blood Orange", new StatBonus(StatType.MaxJuice, 30), new StatBonus(StatType.ATK, 6), new StatBonus(StatType.HIT, 100));
+		Weapons["Jack"] = new Weapon("Jack", new StatBonus(StatType.ATK, 12), new StatBonus(StatType.DEF, -6), new StatBonus(StatType.LCK, -6), new StatBonus(StatType.HIT, 100));
+		Weapons["Beach Ball"] = new Weapon("Beach Ball", new StatBonus(StatType.ATK, 10), new StatBonus(StatType.SPD, 25), new StatBonus(StatType.HIT, 100));
+		Weapons["Coconut"] = new Weapon("Coconut", new StatBonus(StatType.MaxJuice, 50), new StatBonus(StatType.ATK, 8), new StatBonus(StatType.HIT, 100));
+		Weapons["Globe"] = new Weapon("Globe", new StatBonus(StatType.ATK, 10), new StatBonus(StatType.HIT, 1000));
+		Weapons["Chicken Ball"] = new Weapon("Chicken Ball", new StatBonus(StatType.SPD, 200), new StatBonus(StatType.HIT, 100));
+		Weapons["Snowball"] = new Weapon("Snowball", new StatBonus(StatType.ATK, 13), new StatBonus(StatType.HIT, 100));
+		Weapons["Basketball"] = new Weapon("Basketball", new StatBonus(StatType.MaxJuice, 50), new StatBonus(StatType.ATK, 15), new StatBonus(StatType.SPD, 100), new StatBonus(StatType.LCK, 15), new StatBonus(StatType.HIT, 100));
 
-		Weapons["Basketball (Real World)"] = new Weapon("Basketball", new Stats(atk: 2, hit: 95));
+		Weapons["Basketball (Real World)"] = new Weapon("Basketball", new StatBonus(StatType.ATK, 2), new StatBonus(StatType.HIT, 95));
 
-		Weapons["Spatula"] = new Weapon("Spatula", new Stats(atk: 4, hit: 100));
-		Weapons["Rolling Pin"] = new Weapon("Rolling Pin", new Stats(hp: 10, atk: 12, def: 12, hit: 100));
-		Weapons["Teapot"] = new Weapon("Teapot", new Stats(juice: 30, atk: 6, hit: 100));
-		Weapons["Frying Pan"] = new Weapon("Frying Pan", new Stats(hp: 30, atk: 7, hit: 100));
-		Weapons["Blender"] = new Weapon("Blender", new Stats(juice: 30, atk: 7, hit: 100));
-		Weapons["Baking Pan"] = new Weapon("Baking Pan", new Stats(hp: 10, atk: 6, hit: 100));
-		Weapons["Tenderizer"] = new Weapon("Tenderizer", new Stats(atk: 30, hit: 100));
-		Weapons["LOL Sword"] = new Weapon("LOL Sword", new Stats(juice: 10, atk: 14, hit: 100));
-		Weapons["Ol' Reliable"] = new Weapon("Ol' Reliable", new Stats(hp: 20, juice: 20, atk: 20, hit: 100));
-		Weapons["Shucker"] = new Weapon("Shucker", new Stats(atk: 10, hit: 100));
+		Weapons["Spatula"] = new Weapon("Spatula", new StatBonus(StatType.ATK, 4), new StatBonus(StatType.HIT, 100));
+		Weapons["Rolling Pin"] = new Weapon("Rolling Pin", new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.ATK, 12), new StatBonus(StatType.DEF, 12), new StatBonus(StatType.HIT, 100));
+		Weapons["Teapot"] = new Weapon("Teapot", new StatBonus(StatType.MaxJuice, 30), new StatBonus(StatType.ATK, 6), new StatBonus(StatType.HIT, 100));
+		Weapons["Frying Pan"] = new Weapon("Frying Pan", new StatBonus(StatType.MaxHP, 30), new StatBonus(StatType.ATK, 7), new StatBonus(StatType.HIT, 100));
+		Weapons["Blender"] = new Weapon("Blender", new StatBonus(StatType.MaxJuice, 30), new StatBonus(StatType.ATK, 7), new StatBonus(StatType.HIT, 100));
+		Weapons["Baking Pan"] = new Weapon("Baking Pan", new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.ATK, 6), new StatBonus(StatType.HIT, 100));
+		Weapons["Tenderizer"] = new Weapon("Tenderizer", new StatBonus(StatType.ATK, 30), new StatBonus(StatType.HIT, 100));
+		Weapons["LOL Sword"] = new Weapon("LOL Sword", new StatBonus(StatType.MaxJuice, 10), new StatBonus(StatType.ATK, 14), new StatBonus(StatType.HIT, 100));
+		Weapons["Ol' Reliable"] = new Weapon("Ol' Reliable", new StatBonus(StatType.MaxHP, 20), new StatBonus(StatType.MaxJuice, 20), new StatBonus(StatType.ATK, 20), new StatBonus(StatType.HIT, 100));
+		Weapons["Shucker"] = new Weapon("Shucker", new StatBonus(StatType.ATK, 10), new StatBonus(StatType.HIT, 100));
 
-		Weapons["Fist"] = new Weapon("Fist", new Stats(atk: 1, hit: 95));
+		Weapons["Fist"] = new Weapon("Fist", new StatBonus(StatType.ATK, 1), new StatBonus(StatType.HIT, 95));
 
-		Weapons["Garden Shears"] = new Weapon("Garden Shears", new Stats(atk: 13, def: 6, spd: 6, lck: 6, hit: 100));
+		Weapons["Garden Shears"] = new Weapon("Garden Shears", new StatBonus(StatType.ATK, 13), new StatBonus(StatType.DEF, 6), new StatBonus(StatType.SPD, 6), new StatBonus(StatType.LCK, 6), new StatBonus(StatType.HIT, 100));
 		#endregion
 
 		#region CHARMS

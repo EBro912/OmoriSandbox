@@ -10,7 +10,7 @@ namespace OmoriSandbox.Battle.Modifier;
 public sealed class SpaceExHusbandStatModifier : StatModifier
 {
     /// <inheritdoc/>
-    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
         if (phase is not DamagePhase.PreApply) 
             return;

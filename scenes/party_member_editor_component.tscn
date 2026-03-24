@@ -1,46 +1,59 @@
-[gd_scene load_steps=6 format=3 uid="uid://5jek8whi4if3"]
+[gd_scene format=3 uid="uid://5jek8whi4if3"]
 
 [ext_resource type="Script" uid="uid://d352ejxpp4onk" path="res://scripts/PartyMemberEditorComponent.cs" id="1_4xkt2"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="2_pn8h2"]
 [ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="3_nfq3q"]
+[ext_resource type="StyleBox" uid="uid://ividp3svjft4" path="res://assets/tab_selected.tres" id="3_q8c5q"]
 [ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_r4oqs"]
 [ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="5_r4oqs"]
+[ext_resource type="PackedScene" uid="uid://chwhfaladnv86" path="res://scenes/stat_adjustment_editor.tscn" id="6_pf1e0"]
 
-[node name="PartyMemberEditorComponent" type="MarginContainer" node_paths=PackedStringArray("ActorDropdown", "WeaponDropdown", "CharmDropdown", "EmotionDropdown", "LevelSlider", "LevelSliderValue", "DisableFollowups", "AttackSkill", "Skills", "RemoveButton")]
-offset_right = 200.0
-offset_bottom = 300.0
+[node name="PartyMemberEditorComponent" type="TabContainer" unique_id=268931947 node_paths=PackedStringArray("ActorDropdown", "WeaponDropdown", "CharmDropdown", "EmotionDropdown", "LevelSlider", "LevelSliderValue", "DisableFollowups", "AttackSkill", "Skills", "RemoveButton", "FilterEquippableCheckbox", "StatAdjustmentEditor")]
+offset_right = 297.0
+offset_bottom = 318.0
 mouse_filter = 2
+theme_override_styles/panel = ExtResource("3_nfq3q")
+theme_override_styles/tab_unselected = ExtResource("3_nfq3q")
+theme_override_styles/tab_hovered = ExtResource("4_r4oqs")
+theme_override_styles/tab_selected = ExtResource("3_q8c5q")
+current_tab = 0
+script = ExtResource("1_4xkt2")
+ActorDropdown = NodePath("Edit/VBoxContainer/Actor/ActorDropdown")
+WeaponDropdown = NodePath("Edit/VBoxContainer/Weapon/WeaponDropdown")
+CharmDropdown = NodePath("Edit/VBoxContainer/Charm/CharmDropdown")
+EmotionDropdown = NodePath("Edit/VBoxContainer/Emotion/EmotionDropdown")
+LevelSlider = NodePath("Edit/VBoxContainer/Level/LevelSlider")
+LevelSliderValue = NodePath("Edit/VBoxContainer/Level/LevelSliderValue")
+DisableFollowups = NodePath("Edit/VBoxContainer/DisableFollowups")
+AttackSkill = NodePath("Edit/VBoxContainer/AttackSkill/Skill")
+Skills = [NodePath("Edit/VBoxContainer/Skills/Skill1/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill2/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill3/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill4/Skill")]
+RemoveButton = NodePath("Edit/VBoxContainer/Remove")
+FilterEquippableCheckbox = NodePath("Edit/VBoxContainer/Weapon/EquippableFilter")
+StatAdjustmentEditor = NodePath("Adjust Stats")
+
+[node name="Edit" type="MarginContainer" parent="." unique_id=1862961856]
+layout_mode = 2
 theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 2
-script = ExtResource("1_4xkt2")
-ActorDropdown = NodePath("VBoxContainer/Actor/ActorDropdown")
-WeaponDropdown = NodePath("VBoxContainer/Weapon/WeaponDropdown")
-CharmDropdown = NodePath("VBoxContainer/Charm/CharmDropdown")
-EmotionDropdown = NodePath("VBoxContainer/Emotion/EmotionDropdown")
-LevelSlider = NodePath("VBoxContainer/Level/LevelSlider")
-LevelSliderValue = NodePath("VBoxContainer/Level/LevelSliderValue")
-DisableFollowups = NodePath("VBoxContainer/DisableFollowups")
-AttackSkill = NodePath("VBoxContainer/AttackSkill/Skill")
-Skills = [NodePath("VBoxContainer/Skills/Skill1/Skill"), NodePath("VBoxContainer/Skills/Skill2/Skill"), NodePath("VBoxContainer/Skills/Skill3/Skill"), NodePath("VBoxContainer/Skills/Skill4/Skill")]
-RemoveButton = NodePath("VBoxContainer/Remove")
+metadata/_tab_index = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="Edit" unique_id=1016703592]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Actor" type="HBoxContainer" parent="VBoxContainer"]
+[node name="Actor" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1675562863]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Actor"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Actor" unique_id=359302637]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Actor"
 
-[node name="ActorDropdown" type="OptionButton" parent="VBoxContainer/Actor"]
+[node name="ActorDropdown" type="OptionButton" parent="Edit/VBoxContainer/Actor" unique_id=1677581080]
 layout_mode = 2
 mouse_filter = 1
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -50,17 +63,17 @@ theme_override_styles/pressed = ExtResource("5_r4oqs")
 theme_override_styles/hover = ExtResource("4_r4oqs")
 allow_reselect = true
 
-[node name="Weapon" type="HBoxContainer" parent="VBoxContainer"]
+[node name="Weapon" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1755184840]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Weapon"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Weapon" unique_id=391536015]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Weapon"
 
-[node name="WeaponDropdown" type="OptionButton" parent="VBoxContainer/Weapon"]
+[node name="WeaponDropdown" type="OptionButton" parent="Edit/VBoxContainer/Weapon" unique_id=1443756394]
 layout_mode = 2
 mouse_filter = 1
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -70,17 +83,23 @@ theme_override_styles/pressed = ExtResource("5_r4oqs")
 theme_override_styles/hover = ExtResource("4_r4oqs")
 allow_reselect = true
 
-[node name="Charm" type="HBoxContainer" parent="VBoxContainer"]
+[node name="EquippableFilter" type="CheckBox" parent="Edit/VBoxContainer/Weapon" unique_id=1221573643]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_pn8h2")
+theme_override_font_sizes/font_size = 20
+text = "Filter Equipable"
+
+[node name="Charm" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1862563242]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Charm"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Charm" unique_id=1492281844]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Charm"
 
-[node name="CharmDropdown" type="OptionButton" parent="VBoxContainer/Charm"]
+[node name="CharmDropdown" type="OptionButton" parent="Edit/VBoxContainer/Charm" unique_id=1047148717]
 layout_mode = 2
 mouse_filter = 1
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -90,17 +109,17 @@ theme_override_styles/pressed = ExtResource("5_r4oqs")
 theme_override_styles/hover = ExtResource("4_r4oqs")
 allow_reselect = true
 
-[node name="Emotion" type="HBoxContainer" parent="VBoxContainer"]
+[node name="Emotion" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1852216511]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Emotion"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Emotion" unique_id=32217143]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Emotion"
 
-[node name="EmotionDropdown" type="OptionButton" parent="VBoxContainer/Emotion"]
+[node name="EmotionDropdown" type="OptionButton" parent="Edit/VBoxContainer/Emotion" unique_id=876509477]
 layout_mode = 2
 mouse_filter = 1
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -110,49 +129,49 @@ theme_override_styles/pressed = ExtResource("5_r4oqs")
 theme_override_styles/hover = ExtResource("4_r4oqs")
 allow_reselect = true
 
-[node name="Level" type="HBoxContainer" parent="VBoxContainer"]
+[node name="Level" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=17995948]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Level"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Level" unique_id=56727887]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Level"
 
-[node name="LevelSlider" type="HSlider" parent="VBoxContainer/Level"]
+[node name="LevelSlider" type="HSlider" parent="Edit/VBoxContainer/Level" unique_id=1584705926]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 1
 rounded = true
 
-[node name="LevelSliderValue" type="Label" parent="VBoxContainer/Level"]
+[node name="LevelSliderValue" type="Label" parent="Edit/VBoxContainer/Level" unique_id=1947992207]
 layout_mode = 2
 text = "1"
 
-[node name="DisableFollowups" type="CheckBox" parent="VBoxContainer"]
+[node name="DisableFollowups" type="CheckBox" parent="Edit/VBoxContainer" unique_id=1995409961]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Disable Followups"
 
-[node name="Label" type="Label" parent="VBoxContainer"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer" unique_id=1430212832]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 15
 text = "Tip: Use the \"Skill Search\" tab to lookup skill names"
 
-[node name="AttackSkill" type="HBoxContainer" parent="VBoxContainer"]
+[node name="AttackSkill" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1942616275]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/AttackSkill"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/AttackSkill" unique_id=558553795]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Attack Skill"
 
-[node name="Skill" type="LineEdit" parent="VBoxContainer/AttackSkill"]
+[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/AttackSkill" unique_id=604065078]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -162,20 +181,20 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Skills" type="GridContainer" parent="VBoxContainer"]
+[node name="Skills" type="GridContainer" parent="Edit/VBoxContainer" unique_id=1418035052]
 layout_mode = 2
 columns = 2
 
-[node name="Skill1" type="HBoxContainer" parent="VBoxContainer/Skills"]
+[node name="Skill1" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=1120849218]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Skills/Skill1"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill1" unique_id=1198715156]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Skill 1"
 
-[node name="Skill" type="LineEdit" parent="VBoxContainer/Skills/Skill1"]
+[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill1" unique_id=1777181344]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -185,16 +204,16 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Skill2" type="HBoxContainer" parent="VBoxContainer/Skills"]
+[node name="Skill2" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=4588135]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Skills/Skill2"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill2" unique_id=1079742488]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Skill 2"
 
-[node name="Skill" type="LineEdit" parent="VBoxContainer/Skills/Skill2"]
+[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill2" unique_id=322083867]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -204,16 +223,16 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Skill3" type="HBoxContainer" parent="VBoxContainer/Skills"]
+[node name="Skill3" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=1885213063]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Skills/Skill3"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill3" unique_id=785022810]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Skill 3"
 
-[node name="Skill" type="LineEdit" parent="VBoxContainer/Skills/Skill3"]
+[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill3" unique_id=1790147799]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -223,16 +242,16 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Skill4" type="HBoxContainer" parent="VBoxContainer/Skills"]
+[node name="Skill4" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=1655305609]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/Skills/Skill4"]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill4" unique_id=226036246]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Skill 4"
 
-[node name="Skill" type="LineEdit" parent="VBoxContainer/Skills/Skill4"]
+[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill4" unique_id=526587798]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -242,7 +261,7 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Remove" type="Button" parent="VBoxContainer"]
+[node name="Remove" type="Button" parent="Edit/VBoxContainer" unique_id=1148579905]
 layout_mode = 2
 mouse_filter = 1
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -251,3 +270,8 @@ theme_override_styles/normal = ExtResource("3_nfq3q")
 theme_override_styles/pressed = ExtResource("5_r4oqs")
 theme_override_styles/hover = ExtResource("4_r4oqs")
 text = "Remove"
+
+[node name="Adjust Stats" parent="." unique_id=862740600 instance=ExtResource("6_pf1e0")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1

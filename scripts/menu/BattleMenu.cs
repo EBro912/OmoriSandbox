@@ -33,7 +33,7 @@ internal partial class BattleMenu : Menu
 	protected override void MoveCursor(Vector2I direction)
 	{
 		int old = CursorIndex;
-		// the omori battle menu has no wrapping
+		// omori menus have no wrapping
 		// pressing left or right simply increments/decrements the index
 		if (direction == Vector2.Left)
 			CursorIndex = Math.Max(CursorIndex - 1, 0);

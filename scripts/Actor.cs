@@ -29,7 +29,6 @@ public abstract class Actor
 	/// </summary>
 	public event EventHandler OnDamaged;
 	
-
 	/// <summary>
 	/// The name of the actor.
 	/// </summary>
@@ -73,7 +72,7 @@ public abstract class Actor
 	/// </summary>
 	public int CurrentHP
 	{
-		get { return _CurrentHP; }
+		get => _CurrentHP;
 		set
 		{
 			_CurrentHP = value;
@@ -88,7 +87,7 @@ public abstract class Actor
     /// </summary>
     public int CurrentJuice
 	{
-		get { return _CurrentJuice; }
+		get => _CurrentJuice;
 		set
 		{
 			_CurrentJuice = value;

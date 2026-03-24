@@ -20,4 +20,5 @@ internal sealed class AubreyRW : PartyMember
     public override int BaseLuck => 5;
     public override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
     public override bool IsRealWorld => true;
+    public override string[] EquippableWeapons => ["Nail Bat"];
 }

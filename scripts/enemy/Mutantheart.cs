@@ -56,14 +56,14 @@ internal sealed class Mutantheart : Enemy
     {
         if (CurrentHP <= 0)
         {
-            DialogueManager.Instance.QueueMessage(this, "[font_size=18][wave freq=10.0]Bloooohhhh...");
+            DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bloooohhhh...");
             await DialogueManager.Instance.WaitForDialogue();
             return;
         }
 
         if (CurrentHP < 3500 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "[font_size=18][wave freq=10.0]Bluh?");
+            DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bluh?");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
@@ -74,9 +74,9 @@ internal sealed class Mutantheart : Enemy
         DesiredState = DesireableStates[GameManager.Instance.Random.RandiRange(0, DesireableStates.Length - 1)];
         string message = DesiredState switch
         {
-            "happy" => @"[font_size=18][wave freq=10.0]HAPPY...\. please!",
-            "sad" => @"[font_size=18][wave freq=10.0]SAD...\. please...",
-            "angry" => @"[font_size=18][wave freq=10.0]ANGRY...\. please.",
+            "happy" => @"[font_size=22][wave freq=10.0]HAPPY...\. please!",
+            "sad" => @"[font_size=22][wave freq=10.0]SAD...\. please...",
+            "angry" => @"[font_size=22][wave freq=10.0]ANGRY...\. please.",
         };
         DialogueManager.Instance.QueueMessage(this, message);
         await DialogueManager.Instance.WaitForDialogue();
@@ -95,14 +95,14 @@ internal sealed class Mutantheart : Enemy
         }
         if (failed)
         {
-            DialogueManager.Instance.QueueMessage(this, @"[font_size=18][shake rate=20]Bleh...\| Wrong!");
+            DialogueManager.Instance.QueueMessage(this, @"[font_size=22][shake rate=20]Bleh...\| Wrong!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }
 
     public override async Task OnStartOfBattle()
     {
-        DialogueManager.Instance.QueueMessage(this, @"[font_size=18]H...\! Henno...");
+        DialogueManager.Instance.QueueMessage(this, @"[font_size=22]H...\! Henno...");
         await DialogueManager.Instance.WaitForDialogue();
     }
 

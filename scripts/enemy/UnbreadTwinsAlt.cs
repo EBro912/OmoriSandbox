@@ -13,7 +13,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
     protected override Stats Stats => new(10000, 5000, 90, 1, 80, 10, 95);
     protected override string[] EquippedSkills => ["UBTAttack", "UBTDoNothing", "UBTCheerUp", "UBTCook", "UBTBakeBread"];
 
-    private static readonly string[] SpawnPool = ["Slice (Alt)", "Sourdough (Alt)", "Sesame (Alt)"];
+    private static readonly string[] SpawnPool = ["Slice (Boss Rush)", "Sourdough (Boss Rush)", "Sesame (Boss Rush)"];
     private bool EmotionLocked = false;
     private int Stage = 0;
 

@@ -11,7 +11,7 @@ public sealed class GuardStatModifier : StatModifier
     public GuardStatModifier(int turns, params StatBonus[] bonuses) : base(turns, bonuses) { }
     
     /// <inheritdoc/>
-    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
         if (phase is DamagePhase.PreRounding && !isAttacking)
             damage *= 0.5f;

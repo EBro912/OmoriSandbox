@@ -61,10 +61,10 @@ internal class DiscordManager
         DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
     }
 
-    public void SetEditingPreset()
+    public void SetEditingPreset(GameModeType mode)
     {
         if (DiscordDisabled) return;
-        Activity.Details = "Editing a Preset";
+        Activity.Details = $"Editing a {(mode is GameModeType.Normal ? "Normal" : "Boss Rush")} Preset";
         DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
     }
 

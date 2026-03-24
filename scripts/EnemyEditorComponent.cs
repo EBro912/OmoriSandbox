@@ -33,7 +33,7 @@ internal partial class EnemyEditorComponent : Control
 
 	private AnimatedSprite2D Animator;
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "furious", "manic", "miserable", "furious", "manic", "afraid", "stressed"];
+	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "furious", "manic", "miserable", "afraid", "stressed"];
 
 	public override void _EnterTree()
 	{
@@ -105,7 +105,7 @@ internal partial class EnemyEditorComponent : Control
 		SpriteFrames animation = enemy.Animation;
 		if (animation == null)
 		{
-			GD.PrintErr("Failed to load animations for Enemy: " + Name);
+			GD.PrintErr("Failed to load animations for Enemy: " + who);
 			return;
 		}
 		

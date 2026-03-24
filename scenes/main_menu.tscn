@@ -19,11 +19,12 @@
 [ext_resource type="PackedScene" uid="uid://kajtkfbt0k6k" path="res://scenes/keybind.tscn" id="14_5pajh"]
 [ext_resource type="StyleBox" uid="uid://ividp3svjft4" path="res://assets/tab_selected.tres" id="15_7b55j"]
 [ext_resource type="Script" uid="uid://b6h3l1listplj" path="res://scripts/AnimationViewer.cs" id="17_j7ex8"]
+[ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="18_gw5y6"]
 [ext_resource type="PackedScene" uid="uid://cjovmomtfkxhh" path="res://scenes/battleback_bgm_editor_component.tscn" id="19_8egab"]
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1040890594]
 
-[node name="MainMenuManager" type="Node" parent="." unique_id=593666081 node_paths=PackedStringArray("VersionLabel", "Logo", "OmoriFace", "ModListParent", "ShowModsButton", "MainMenu", "Editor", "PlayButton", "ConfigureButton", "SettingsButton", "QuitButton", "MainControls", "Settings", "EditorSettingsContainer", "NewPresetContainer", "LoadExistingButton", "NormalPresetButton", "BossRushPresetButton", "ModFolderButton", "ModsLoaded", "GithubButton", "TitlePresetDropdown")]
+[node name="MainMenuManager" type="Node" parent="." unique_id=593666081 node_paths=PackedStringArray("VersionLabel", "Logo", "OmoriFace", "ModListParent", "ShowModsButton", "MainMenu", "Editor", "PlayButton", "ConfigureButton", "SettingsButton", "QuitButton", "MainControls", "Settings", "EditorSettingsContainer", "NewPresetContainer", "LoadExistingButton", "NormalPresetButton", "BossRushPresetButton", "ModFolderButton", "ModsLoaded", "GithubButton", "CreditsButton", "CreditsBackButton", "CreditsPanel", "TitlePresetDropdown")]
 script = ExtResource("1_wu84c")
 VersionLabel = NodePath("../Main/Version")
 Logo = NodePath("../Main/Logo")
@@ -46,7 +47,10 @@ NormalPresetButton = NodePath("../Main/MainControls/NewPreset/Normal")
 BossRushPresetButton = NodePath("../Main/MainControls/NewPreset/BossRush")
 ModFolderButton = NodePath("../Main/ModsLoadedList/VBoxContainer/ModFolder")
 ModsLoaded = NodePath("../Main/ModsLoaded")
-GithubButton = NodePath("../Main/Github")
+GithubButton = NodePath("../Main/HBoxContainer/GithubButton")
+CreditsButton = NodePath("../Main/HBoxContainer/CreditsButton")
+CreditsBackButton = NodePath("../Main/Credits/BackButton")
+CreditsPanel = NodePath("../Main/Credits")
 TitlePresetDropdown = NodePath("../Main/MainControls/HBoxContainer/PresetDropdown")
 
 [node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "StageTabs", "MainTabs")]
@@ -325,7 +329,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 anchors_preset = 7
 anchor_left = 0.5
@@ -350,6 +354,7 @@ FullscreenCheckbox = NodePath("ScrollContainer/VBoxContainer/Fullscreen")
 BattlelogSpeedSlider = NodePath("ScrollContainer/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
 ActionDelaySlider = NodePath("ScrollContainer/VBoxContainer/ActionDelaySlider/DelaySlider")
 ShowFPSCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowFPS")
+PreventRunCheckbox = NodePath("ScrollContainer/VBoxContainer/RequireTwoRunInputs")
 DisableDamageLimitCheckbox = NodePath("ScrollContainer/VBoxContainer/DisableDamageLimit")
 DisableStatLimitCheckbox = NodePath("ScrollContainer/VBoxContainer/DisableStatLimit")
 ShowMoreInfoCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowMoreInfo")
@@ -360,6 +365,7 @@ InfiniteBuffsDebuffsCheckbox = NodePath("ScrollContainer/VBoxContainer/InfiniteB
 VertigoUsesAtkCheckbox = NodePath("ScrollContainer/VBoxContainer/VertigoUsesAtk")
 ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
+EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
 KeybindGrid = NodePath("ScrollContainer/VBoxContainer/KeybindsContainer")
 ResetKeybindsButton = NodePath("ScrollContainer/VBoxContainer/ResetBindsButton")
 BackButton = NodePath("BackButton")
@@ -378,6 +384,7 @@ size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 40
 text = "Settings"
+horizontal_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Main/Settings" unique_id=580906904]
 layout_mode = 1
@@ -411,7 +418,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Fullscreen"
 
 [node name="MasterSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1996218175]
@@ -588,8 +595,17 @@ size_flags_horizontal = 4
 tooltip_text = "Shows an FPS counter next to the watermark"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show FPS"
+
+[node name="RequireTwoRunInputs" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=773435890]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Makes Run require two select inputs in succession"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Prevent Accidental Run"
 
 [node name="DisableDamageLimit" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1436946514]
 layout_mode = 2
@@ -597,7 +613,7 @@ size_flags_horizontal = 4
 tooltip_text = "Disables the 9999 damage limit"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Damage Limit"
 
 [node name="DisableStatLimit" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1171902192]
@@ -606,7 +622,7 @@ size_flags_horizontal = 4
 tooltip_text = "Disables the 999 stat limit"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Stat Limit"
 
 [node name="ShowMoreInfo" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1355482956]
@@ -615,7 +631,7 @@ size_flags_horizontal = 4
 tooltip_text = "Shows detailed stat info for all actors"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show More Info"
 
 [node name="ShowStateIcons" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=406312013]
@@ -624,7 +640,7 @@ size_flags_horizontal = 4
 tooltip_text = "Shows icons for certain stat modifiers for party members"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show State Icons"
 
 [node name="UseConsoleDef" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1799805994]
@@ -633,7 +649,7 @@ size_flags_horizontal = 4
 tooltip_text = "Uses the console version Defense Up values of 10%/20%/30%"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Console Defense Up Stats"
 
 [node name="UseConsoleSpd" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1950223518]
@@ -642,16 +658,16 @@ size_flags_horizontal = 4
 tooltip_text = "Uses the console version Speed Up 3 value of 200%"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Console Speed Up 3 Stat"
 
 [node name="InfiniteBuffsDebuffs" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2009039002]
 layout_mode = 2
 size_flags_horizontal = 4
-tooltip_text = "Makes ATK/DEF/SPD buffs/debuffs infinite"
+tooltip_text = "Makes ATK/DEF/SPD buffs/debuffs never expire"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Infinite Buffs/Debuffs"
 
 [node name="VertigoUsesAtk" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1067448616]
@@ -660,7 +676,7 @@ size_flags_horizontal = 4
 tooltip_text = "Makes Vertigo damage use ATK instead of SPD"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Vertigo Uses ATK Stat"
 
 [node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1655251340]
@@ -669,7 +685,7 @@ size_flags_horizontal = 4
 tooltip_text = "Makes Toys affected by emotion damage"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Toys Use Emotion Damage"
 
 [node name="SpaceExHusbandReleaseEnergy" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=852665377]
@@ -678,8 +694,17 @@ size_flags_horizontal = 4
 tooltip_text = "Makes Space-Ex Husband vulnerable to Release Energy while neutral"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(0.3779188, 0.37791887, 0.37791884, 1)
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Space Ex-Husband Vulnerable to Release Energy"
+
+[node name="EnableDebugDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1791260836]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Enables the 'Debug Damage' keybind, which multiplies all damage by 10 when held"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Enable Debug Damage"
 
 [node name="HSeparator2" type="HSeparator" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1237328606]
 layout_mode = 2
@@ -746,6 +771,11 @@ layout_mode = 2
 AssociatedAction = "ToggleFullscreen"
 DefaultKey = 4194335
 
+[node name="DebugDamage" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=422631332 instance=ExtResource("14_5pajh")]
+layout_mode = 2
+AssociatedAction = "DebugDamage"
+DefaultKey = 4194325
+
 [node name="ResetBindsButton" type="Button" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1809692072]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -779,38 +809,190 @@ theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Back"
 
-[node name="Credits" type="Label" parent="Main" unique_id=1901488074]
+[node name="Credits" type="Panel" parent="Main" unique_id=838962774]
+visible = false
+offset_left = 120.0
+offset_top = 19.0
+offset_right = 520.0
+offset_bottom = 458.0
+theme_override_styles/panel = ExtResource("10_1ajci")
+
+[node name="Credits" type="Label" parent="Main/Credits" unique_id=1631957177]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -54.0
+offset_right = 54.0
+offset_bottom = 40.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 40
+text = "Credits"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Main/Credits" unique_id=1787869706]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = 42.0
+offset_right = -4.0
+offset_bottom = -47.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Credits/ScrollContainer" unique_id=390606415]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Credits Entry" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=1051618319]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry" unique_id=1859190136]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "Developer"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry" unique_id=762437084]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "EBro912 A.K.A. alltoasters"
+horizontal_alignment = 1
+
+[node name="Credits Entry3" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=344049966]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry3" unique_id=91619608]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "OMORI and Assets"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry3" unique_id=216428856]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "OMOCAT & Team"
+horizontal_alignment = 1
+
+[node name="Credits Entry2" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=1046103190]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry2" unique_id=918016951]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "UI Design"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry2" unique_id=1185841944]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Krob"
+horizontal_alignment = 1
+
+[node name="Credits Entry4" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=247219291]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry4" unique_id=383477810]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "Playtesters"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry4" unique_id=1148676390]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Triploon, terrarian_insanity, chubberz, Krob
+tomatoradio, sheep28., joshi_texo
+luzzythedegenerate, valtenec3049"
+horizontal_alignment = 1
+
+[node name="Credits Entry5" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=1735054778]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry5" unique_id=1197939043]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "Special Thanks"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry5" unique_id=1596416588]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Members of the Omori Modding Hub Discord
+Members of the OmoriSandbox Discord
+Reported Issues by Users on Github
+Players like You. Thank You!"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="Main/Credits" unique_id=1164745742]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = -40.0
+offset_right = 24.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Back"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Main" unique_id=166694676]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -73.0
-offset_top = -38.0
-offset_right = -2.0
-offset_bottom = -2.0
+offset_left = -90.0
+offset_top = -30.0
+offset_right = -8.0
+offset_bottom = -6.0
 grow_horizontal = 0
 grow_vertical = 0
+
+[node name="CreditsButton" type="Button" parent="Main/HBoxContainer" unique_id=516513301]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 14
-text = "Developed by EBro912
-Discord: alltoasters
-UI Elements by Krob
-OMORI and assets by OMOCAT"
-horizontal_alignment = 2
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Credits"
 
-[node name="Github" type="Button" parent="Main" unique_id=2001055790]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -38.0
-offset_top = -89.0
-offset_right = -2.0
-offset_bottom = -67.0
-grow_horizontal = 0
-grow_vertical = 0
+[node name="GithubButton" type="Button" parent="Main/HBoxContainer" unique_id=2001055790]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = ExtResource("10_1ajci")
@@ -823,12 +1005,11 @@ visible = false
 
 [node name="BattlebackPreview" type="TextureRect" parent="Editor" unique_id=1716454215]
 z_index = -99
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_right = 640.0
+offset_bottom = 480.0
 texture = ExtResource("8_tbmy8")
+stretch_mode = 1
+script = ExtResource("18_gw5y6")
 
 [node name="Actors" type="Control" parent="Editor" unique_id=356720867]
 layout_mode = 3
@@ -836,10 +1017,10 @@ anchors_preset = 0
 
 [node name="AddActor1" type="Control" parent="Editor/Actors" unique_id=733542454]
 anchors_preset = 0
-offset_left = 20.0
-offset_top = 306.0
-offset_right = 20.0
-offset_bottom = 306.0
+offset_left = 14.0
+offset_top = 305.0
+offset_right = 14.0
+offset_bottom = 305.0
 
 [node name="Button" type="Button" parent="Editor/Actors/AddActor1" unique_id=1272779007]
 z_index = -4
@@ -858,9 +1039,9 @@ text = "+ Add Actor"
 
 [node name="AddActor2" type="Control" parent="Editor/Actors" unique_id=537589086]
 anchors_preset = 0
-offset_left = 20.0
+offset_left = 14.0
 offset_top = 5.0
-offset_right = 20.0
+offset_right = 14.0
 offset_bottom = 5.0
 
 [node name="Button" type="Button" parent="Editor/Actors/AddActor2" unique_id=549463261]
@@ -880,10 +1061,10 @@ text = "+ Add Actor"
 
 [node name="AddActor3" type="Control" parent="Editor/Actors" unique_id=270945661]
 anchors_preset = 0
-offset_left = 506.0
-offset_top = 306.0
-offset_right = 506.0
-offset_bottom = 306.0
+offset_left = 512.0
+offset_top = 305.0
+offset_right = 512.0
+offset_bottom = 305.0
 
 [node name="Button" type="Button" parent="Editor/Actors/AddActor3" unique_id=299385391]
 z_index = -4
@@ -902,9 +1083,9 @@ text = "+ Add Actor"
 
 [node name="AddActor4" type="Control" parent="Editor/Actors" unique_id=2112485558]
 anchors_preset = 0
-offset_left = 506.0
+offset_left = 512.0
 offset_top = 5.0
-offset_right = 506.0
+offset_right = 512.0
 offset_bottom = 5.0
 
 [node name="Button" type="Button" parent="Editor/Actors/AddActor4" unique_id=1397715445]
@@ -1337,7 +1518,7 @@ theme_override_styles/read_only = ExtResource("10_1ajci")
 editable = false
 wrap_mode = 1
 
-[node name="Animation Viewer" type="MarginContainer" parent="Editor/SettingsTabs/Tools" unique_id=1276891189 node_paths=PackedStringArray("AnimationIdSelector", "PlayButton", "PreviewRoot")]
+[node name="Animation Viewer" type="MarginContainer" parent="Editor/SettingsTabs/Tools" unique_id=1276891189 node_paths=PackedStringArray("AnimationIdSelector", "PlayButton", "PreviewRoot", "LayerSelector")]
 visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 5
@@ -1348,6 +1529,7 @@ script = ExtResource("17_j7ex8")
 AnimationIdSelector = NodePath("VBoxContainer/VBoxContainer/HBoxContainer/SpinBox")
 PlayButton = NodePath("VBoxContainer/VBoxContainer/HBoxContainer/Play")
 PreviewRoot = NodePath("PreviewRoot")
+LayerSelector = NodePath("VBoxContainer/VBoxContainer/HBoxContainer/SpinBox2")
 metadata/_tab_index = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1248640258]
@@ -1358,13 +1540,6 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 30
 text = "Animation Viewer"
-horizontal_alignment = 1
-
-[node name="Note" type="Label" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer" unique_id=807930305]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 18
-text = "Note: Animation previews are drawn on the top layer"
 horizontal_alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer" unique_id=733397580]
@@ -1393,6 +1568,27 @@ theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Play"
+
+[node name="Label2" type="Label" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=1296058347]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Layer"
+horizontal_alignment = 1
+
+[node name="SpinBox2" type="SpinBox" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=1910916136]
+layout_mode = 2
+min_value = -100.0
+value = 10.0
+rounded = true
+
+[node name="Layers" type="Label" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer/VBoxContainer" unique_id=576956947]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Common Layers: 10: Top Layer 
+                    0: Party Layer 
+                   -4: Enemy Layer"
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
 

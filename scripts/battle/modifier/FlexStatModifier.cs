@@ -11,11 +11,15 @@ public sealed class FlexStatModifier : StatModifier
     public FlexStatModifier(params StatBonus[] bonuses) : base(bonuses) { }
     
     /// <inheritdoc/>
-    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
-        if (phase is DamagePhase.PreJuice && isAttacking)
+        if (phase is DamagePhase.PreJuice && isAttacking && !neverMiss)
         {
             damage *= 2.5f;
+        }
+        
+        if (phase is DamagePhase.PreApply && isAttacking && damage > 0 && !neverMiss)
+        {
             attacker.RemoveStatModifier("Flex");
         }
     }

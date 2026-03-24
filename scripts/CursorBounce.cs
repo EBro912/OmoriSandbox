@@ -1,6 +1,8 @@
 using Godot;
+using OmoriSandbox.Actors;
 
 namespace OmoriSandbox;
+
 internal partial class CursorBounce : Sprite2D
 {
 	[Export] private BounceDirection Direction = BounceDirection.Horizontal;

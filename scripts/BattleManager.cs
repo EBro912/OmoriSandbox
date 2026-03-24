@@ -8,7 +8,6 @@ using OmoriSandbox.Menu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using OmoriSandbox.Extensions;
@@ -32,7 +31,7 @@ public partial class BattleManager : Node
 	private int CurrentStage = -1;
 
 	private GameModeType GameType = GameModeType.Normal;
-	private BattlePhase Phase = BattlePhase.PreBattle;
+	internal BattlePhase Phase { get; private set; } = BattlePhase.PreBattle;
 	private int CurrentPartyMember = -1;
 	private int CurrentEnemyTarget = -1;
 	private int CurrentPartyMemberTarget = -1;
@@ -42,10 +41,26 @@ public partial class BattleManager : Node
 	private List<Node2D> DyingEnemies = [];
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
+	private int _Energy = 0;
+
 	/// <summary>
 	/// The amount of Energy the party currently has.
 	/// </summary>
-	public int Energy { get; private set; } = 0;
+	public int Energy
+	{
+		get => _Energy;
+		private set
+		{
+			_Energy = value;
+			EnergyChanged?.Invoke(this, EventArgs.Empty);
+		}
+	}
+	
+	/// <summary>
+	/// Fired whenever the Energy value changes.
+	/// </summary>
+	public event EventHandler EnergyChanged;
+	
 	private bool FollowupActive = false;
 	private bool FollowupSelected = false;
 	private bool ForceHideFollowup = false;
@@ -53,6 +68,10 @@ public partial class BattleManager : Node
 	private bool UseBasilReleaseEnergy = false;
 	private bool UseBasilFollowups = false;
 	private bool DamageNumbersDisabled = false;
+	private bool DebugDamageHeld = false;
+
+	private bool RestartQueued = false;
+	private float RestartTimer = 1;
 
 	/// <summary>
 	/// Whether a battle is currently ongoing.
@@ -142,6 +161,7 @@ public partial class BattleManager : Node
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
 
 		BattleLogManager.Instance.Visible = true;
+		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
 
 		Delay = new Timer
 		{
@@ -177,6 +197,8 @@ public partial class BattleManager : Node
 
 	private void SummonEnemiesForStage(List<BattlePresetEnemy> enemies)
 	{
+		GameManager.Instance.DespawnEnemies();
+		Enemies.Clear();
 		foreach (BattlePresetEnemy enemy in enemies)
 			SummonEnemy(enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, enemy.FallsOffScreen, (int)enemy.Layer);
 	}
@@ -185,6 +207,7 @@ public partial class BattleManager : Node
 	{
 		foreach (PartyMemberComponent p in CurrentParty)
 			await p.Actor.OnStartOfBattle();
+		// use for loop here since collection may be modified by summoned enemies
 		for (int i = 0; i < Enemies.Count; i++)
 			await Enemies[i].Actor.OnStartOfBattle();
 		SetPhase(BattlePhase.FightRun);
@@ -196,21 +219,18 @@ public partial class BattleManager : Node
 			return;
 
 		EnergyDots.Tick(delta);
-
-		CurrentParty.ForEach(x =>
+		
+		foreach (PartyMemberComponent member in CurrentParty)
 		{
-			if (Phase == BattlePhase.TargetSelection)
-				x.SelectionBoxVisible = x.Position == CurrentPartyMemberTarget;
-			else if (Phase == BattlePhase.PlayerCommand)
-				x.SelectionBoxVisible = CurrentPartyMember > -1 && x.Actor == CurrentParty[CurrentPartyMember].Actor;
-			else
-				x.SelectionBoxVisible = false;
-		});
-
-		for (int i = 0; i < Enemies.Count; i++)
-		{
-			Enemies[i].ShowInfoBox(i == CurrentEnemyTarget);
+			member.SelectionBoxVisible = Phase switch
+			{
+				BattlePhase.TargetSelection => member.Position == CurrentPartyMemberTarget,
+				BattlePhase.PlayerCommand => CurrentPartyMember > -1 && member.Actor == CurrentParty[CurrentPartyMember].Actor,
+				_ => false
+			};
 		}
+		
+		DebugDamageHeld = Input.IsActionPressed("DebugDamage");
 
 		if (Input.IsActionJustPressed("Accept"))
 		{
@@ -263,8 +283,10 @@ public partial class BattleManager : Node
 							Items[name]++;
 					}
 					else
-						targetMenu = SelectedAction.Name.EndsWith("Attack") ? MenuState.Battle : MenuState.Skill;
+						targetMenu = SelectedAction.Name == CurrentParty[CurrentPartyMember].Actor.EquippedSkills[0] ? MenuState.Battle : MenuState.Skill;
 					AudioManager.Instance.PlaySFX("sys_cancel");
+					if (CurrentEnemyTarget > -1)
+						Enemies[CurrentEnemyTarget].ShowInfoBox(false);
 					CurrentEnemyTarget = -1;
 					CurrentPartyMemberTarget = -1;
 					MenuManager.Instance.ShowMenu(targetMenu);
@@ -306,11 +328,13 @@ public partial class BattleManager : Node
 				{
 					CurrentPartyMemberTarget = -1;
 					CurrentEnemyTarget = 0;
+					Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 					MenuManager.Instance.MoveDownOpenMenus(false);
 				}
 				else
 				{
 					CurrentPartyMemberTarget = CurrentParty.First(x => x != null).Position;
+					Enemies[CurrentEnemyTarget].ShowInfoBox(false);
 					CurrentEnemyTarget = -1;
 					MenuManager.Instance.MoveUpOpenMenus(false);
 				}
@@ -319,23 +343,52 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionJustPressed("Restart"))
 		{
+			if (!RestartQueued)
+			{
+				RestartLabel.Visible = true;
+				RestartLabel.Text = "Restarting...";
+				RestartTimer = 1;
+			}
+		}
+
+		if (Input.IsActionJustReleased("Restart"))
+		{
+			if (!RestartQueued)
+			{
+				RestartLabel.Visible = false;
+				RestartTimer = 1;
+			}
+		}
+		
+		if (Input.IsActionPressed("Restart"))
+		{
 			// don't allow restarts during the setup phase
 			// prevents stuff from breaking
 			if (Phase is BattlePhase.PreBattle)
 				return;
-			
-			// if the restart is requested during a turn, queue it to prevent anything breaking
-			if (Phase is BattlePhase.PreCommand or
-				BattlePhase.CommandExecute or
-				BattlePhase.WaitForBattleLog or
-				BattlePhase.PostCommand or
-				BattlePhase.EnemyDying)
-				RestartLabel.Visible = true;
-			else
+
+			if (!RestartQueued)
 			{
-				// otherwise, just reset immediately
-				Reset();
-				ReloadPreset();
+				RestartTimer -= (float)delta;
+				if (RestartTimer <= 0)
+				{
+					// if the restart is requested during a turn, queue it to prevent anything breaking
+					if (Phase is BattlePhase.PreCommand or
+						BattlePhase.CommandExecute or
+						BattlePhase.WaitForBattleLog or
+						BattlePhase.PostCommand or
+						BattlePhase.EnemyDying)
+					{
+						RestartQueued = true;
+						RestartLabel.Text = "Restart Queued";
+					}
+					else
+					{
+						// otherwise, just reset immediately
+						Reset();
+						ReloadPreset();
+					}
+				}
 			}
 		}
 	}
@@ -346,7 +399,7 @@ public partial class BattleManager : Node
 		{
 			if (HandleFollowup(direction))
 			{
-				ProcessFollowupSuccess();
+				ProcessFollowupSuccess(direction);
 			}
 		}
 		if (Phase == BattlePhase.TargetSelection)
@@ -354,10 +407,15 @@ public partial class BattleManager : Node
 			if (SelectedAction.Target == SkillTarget.Enemy || 
 				(SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentEnemyTarget > -1)
 				&& Enemies.Count > 1
-				&& (direction == InputDirection.Left || direction == InputDirection.Right))
+				&& (direction is InputDirection.Left or InputDirection.Right))
 			{
+				int old = CurrentEnemyTarget;
+				Enemies[old].ShowInfoBox(false);
 				CurrentEnemyTarget = SelectEnemy(CurrentEnemyTarget, direction);
-				AudioManager.Instance.PlaySFX("SYS_move");
+				Enemies[CurrentEnemyTarget].ShowInfoBox(true);
+				// only play a sound if the cursor actually moves
+				if (CurrentEnemyTarget != old)
+					AudioManager.Instance.PlaySFX("SYS_move");
 				return;
 			}
 			if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.AllyNotSelf || SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
@@ -365,8 +423,11 @@ public partial class BattleManager : Node
 				int target = SelectPartyMember(CurrentPartyMemberTarget, direction);
 				if (target > -1)
 				{
-					AudioManager.Instance.PlaySFX("SYS_move");
+					int old = CurrentPartyMemberTarget;
 					CurrentPartyMemberTarget = target;
+					// only play a sound if the cursor actually moves
+					if (CurrentPartyMemberTarget != old)
+						AudioManager.Instance.PlaySFX("SYS_move");
 				}
 			}
 		}
@@ -418,6 +479,10 @@ public partial class BattleManager : Node
 		CurrentParty.Clear();
 		Enemies.Clear();
 		Items.Clear();
+		CurrentPartyMember = -1;
+		CurrentEnemyTarget = -1;
+		CurrentPartyMemberTarget = -1;
+		CommandIndex = -1;
 		Commands.Clear();
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
 		MenuManager.Instance.ClearLastSelected();
@@ -433,6 +498,8 @@ public partial class BattleManager : Node
 		ProcessedStartOfTurn = false;
 		ProcessedEndOfTurn = false;
 		RestartLabel.Visible = false;
+		RestartQueued = false;
+		RestartTimer = 1;
 		IsBattling = false;
 	}
 
@@ -505,13 +572,13 @@ public partial class BattleManager : Node
 		return true;
 	}
 
-	internal void OnSelectItem(Item item)
+	internal bool OnSelectItem(Item item)
 	{
 		SelectedAction = item;
-		if ((SelectedAction.Target == SkillTarget.DeadAlly || SelectedAction.Target == SkillTarget.AllDeadAllies) && !CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies && CurrentParty.All(x => x.Actor.CurrentState != "toast"))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
-			return;
+			return false;
 		}
 
 		Item i = SelectedAction as Item;
@@ -523,6 +590,7 @@ public partial class BattleManager : Node
 		AudioManager.Instance.PlaySFX("SYS_select");
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		SetPhase(BattlePhase.TargetSelection);
+		return true;
 	}
 
 	private void SetPhase(BattlePhase phase)
@@ -572,7 +640,7 @@ public partial class BattleManager : Node
 		switch (Phase)
 		{
 			case BattlePhase.PreCommand:
-				if (RestartLabel.Visible)
+				if (RestartQueued)
 				{
 					Reset();
 					ReloadPreset();
@@ -616,7 +684,9 @@ public partial class BattleManager : Node
 						}
 					}
 					
-					if (Commands[CommandIndex].Actor is PartyMember && Commands[CommandIndex].Action.Name.EndsWith("Attack"))
+					if (Commands[CommandIndex].Actor is PartyMember 
+						&& Commands[CommandIndex].Action is Skill skill
+						&& skill.ShowFollowups)
 					{
 						PartyMemberComponent component = CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor);
 						if (component.HasFollowup)
@@ -664,9 +734,7 @@ public partial class BattleManager : Node
 			.ThenBy(x =>
 			{
 				PartyMemberComponent c = CurrentParty.FirstOrDefault(y => y.Actor == x.Actor);
-				if (c == null)
-					return int.MaxValue;
-				return c.Position;
+				return c?.Position ?? int.MaxValue;
 			})
 			.ToList();
 
@@ -692,8 +760,9 @@ public partial class BattleManager : Node
 				member.Actor.Charm?.StartOfTurn(member.Actor);
 			}
 			
-			for (int i = 0; i < Enemies.Count; i++)
-				await Enemies[i].Actor.ProcessStartOfTurn();
+			foreach (EnemyComponent e in Enemies)
+				await e.Actor.ProcessStartOfTurn();
+
 			ProcessedStartOfTurn = true;
 		}
 		GameManager.Instance.DiscordManager.SetBattling(Enemies.Count);
@@ -730,8 +799,10 @@ public partial class BattleManager : Node
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 		{
 			Stats stats = CurrentParty[CurrentPartyMember].Actor.CurrentStats;
+			Charm charm = CurrentParty[CurrentPartyMember].Actor.Charm;
 			BattleLogManager.Instance.ClearAndShowMessage($"What will {CurrentParty[CurrentPartyMember].Actor.Name.ToUpper()} do?" + 
-														  $"\n(ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK})");
+														  $"[font_size=20]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}]" +
+														  $"\n[Weapon: {CurrentParty[CurrentPartyMember].Actor.Weapon.Name}, Charm: {(charm == null ? "None" : charm.Name)}]");
 		}
 		else
 			BattleLogManager.Instance.ClearAndShowMessage("What will " + CurrentParty[CurrentPartyMember].Actor.Name.ToUpper() + " do?");
@@ -751,6 +822,7 @@ public partial class BattleManager : Node
 				return;
 			case SkillTarget.Enemy:
 				CurrentEnemyTarget++;
+				Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				MenuManager.Instance.MoveDownOpenMenus(false);
 				return;
@@ -828,6 +900,8 @@ public partial class BattleManager : Node
 				break;
 		}
 
+		if (CurrentEnemyTarget > -1)
+			Enemies[CurrentEnemyTarget].ShowInfoBox(false);
 		CurrentEnemyTarget = -1;
 		CurrentPartyMemberTarget = -1;
 		CurrentPartyMember++;
@@ -970,7 +1044,7 @@ public partial class BattleManager : Node
 
 				currentAction.Actor.CurrentJuice -= skillCost;
 			}
-			if (currentAction.Actor is PartyMember && currentAction.Action.Name.EndsWith("Attack") && !(currentAction.Actor.CurrentState == "afraid" || currentAction.Actor.CurrentState == "stressed"))
+			if (currentAction.Actor is PartyMember && skill.ShowFollowups && currentAction.Actor.CurrentState is not ("afraid" or "stressed"))
 			{
 				if (ForceHideFollowup)
 				{
@@ -981,7 +1055,18 @@ public partial class BattleManager : Node
 					PartyMemberComponent component = CurrentParty.First(x => x.Actor == currentAction.Actor);
 					if (component.HasFollowup)
 					{
-						component.FadeInFollowups();
+						HashSet<InputDirection> disabledDirections = [];
+						foreach (var entry in FollowupTable)
+						{
+							if (entry.Key.Position != component.Position) continue;
+							PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == entry.Value.Target);
+							bool disabled = target == null || target.Actor.CurrentState == "toast";
+							if (entry.Value.SkillName.StartsWith("ReleaseEnergy") && CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+								disabled = true;
+							if (disabled)
+								disabledDirections.Add(entry.Key.Direction);
+						}
+						component.FadeInFollowups(disabledDirections);
 						FollowupActive = true;
 					}
 				}
@@ -1060,7 +1145,7 @@ public partial class BattleManager : Node
 	/// <param name="skill">The skill that is being forced.</param>
 	public void ForceCommand(Actor self, IReadOnlyList<Actor> targets, Skill skill)
 	{
-		if (self is PartyMember && skill.Name.EndsWith("Attack"))
+		if (self is PartyMember && skill.ShowFollowups)
 			// if the forced skill is an attack, hide the followup bubbles
 			ForceHideFollowup = true;
 		if (CommandIndex == Commands.Count)
@@ -1069,11 +1154,11 @@ public partial class BattleManager : Node
 			Commands.Insert(CommandIndex + 1, new BattleCommand(self, targets, skill));
 	}
 
-	private void ProcessFollowupSuccess()
+	private void ProcessFollowupSuccess(InputDirection direction)
 	{
 		FollowupSelected = true;
 		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
-		CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor).FadeOutFollowups();
+		CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor).FadeOutFollowupsExcept(direction);
 		if (Commands[CommandIndex + 1].Action.Name.Contains("Release Energy"))
 			Energy = 0;
 		else
@@ -1187,6 +1272,7 @@ public partial class BattleManager : Node
 							x.Actor.SetState("neutral", true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();
+						x.UpdateStateIcons();
 					});
 					AudioManager.Instance.PlayBGM(Stages[CurrentStage].BGM, 0.05f, (float)Stages[CurrentStage].BGMPitch);
 					if (previousBGM == Stages[CurrentStage].BGM)
@@ -1280,7 +1366,7 @@ public partial class BattleManager : Node
 			targetState = (target.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
 		}
 
-		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false);
+		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
@@ -1291,7 +1377,7 @@ public partial class BattleManager : Node
 
 		// even though we know if the attack is a crit or not at this stage, pass false
 		// this may change in the future depending on feedback and use case
-		ApplyOverrides(DamagePhase.PreCrit, ref damage, self, target, false);
+		ApplyOverrides(DamagePhase.PreCrit, ref damage, self, target, false, neverMiss);
 		
 		if (critical)
 		{
@@ -1300,18 +1386,18 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 		
-		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical);
+		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical, neverMiss);
 
 		if (critical)
 		{
 			damage += 1.5f;
 		}
 		
-		ApplyOverrides(DamagePhase.PreVariance, ref damage, self, target, critical);
+		ApplyOverrides(DamagePhase.PreVariance, ref damage, self, target, critical, neverMiss);
 
 		damage = CalculateVariance(damage, variance);
 
-		ApplyOverrides(DamagePhase.PreRounding, ref damage, self, target, critical);
+		ApplyOverrides(DamagePhase.PreRounding, ref damage, self, target, critical, neverMiss);
 		
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 				
@@ -1320,7 +1406,7 @@ public partial class BattleManager : Node
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
 			rounded = 9999;
 
-		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical);
+		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
 		
 		int juiceLost = 0;
 		switch (target.CurrentState)
@@ -1339,7 +1425,9 @@ public partial class BattleManager : Node
 				break;
 		}
 		target.CurrentJuice -= juiceLost;
-				
+		
+		if (ShouldDoDebugDamage())
+			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
@@ -1347,7 +1435,7 @@ public partial class BattleManager : Node
 		
 		rounded = (float)Math.Round(rounded, MidpointRounding.AwayFromZero);
 		
-		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical);
+		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
 
 		int roundedInt = (int)rounded;
 		target.Damage(roundedInt);
@@ -1381,17 +1469,17 @@ public partial class BattleManager : Node
 			SpawnDamageNumber(juiceLost, target.CenterPoint, DamageType.JuiceLoss);
 		}
 		
-		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical);
+		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 
 		return roundedInt;
 	}
 
-	private void ApplyOverrides(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isCritical)
+	private void ApplyOverrides(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isCritical, bool neverMiss)
 	{
 		foreach (StatModifier mod in attacker.StatModifiers.Values)
-			mod.OverrideDamage(phase, ref damage, attacker, defender, true, isCritical);
+			mod.OverrideDamage(phase, ref damage, attacker, defender, true, isCritical, neverMiss);
 		foreach (StatModifier mod in defender.StatModifiers.Values)
-			mod.OverrideDamage(phase, ref damage, attacker, defender, false, isCritical);
+			mod.OverrideDamage(phase, ref damage, attacker, defender, false, isCritical, neverMiss);
 	}
 
 	/// <summary>
@@ -1437,14 +1525,14 @@ public partial class BattleManager : Node
 			targetState = (target.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
 		}
 
-		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false);
+		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
 		damage = CalculateEmotionModifiers(selfState, targetState, damage, out _);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
 		
-		ApplyOverrides(DamagePhase.PreCrit, ref damage, self, target, false);
+		ApplyOverrides(DamagePhase.PreCrit, ref damage, self, target, false, neverMiss);
 		
 		if (critical)
 		{
@@ -1453,34 +1541,36 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 		
-		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical);
+		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical, neverMiss);
 
 		if (critical)
 		{
 			damage += 1.5f;
 		}
 		
-		ApplyOverrides(DamagePhase.PreVariance, ref damage, self, target, critical);
+		ApplyOverrides(DamagePhase.PreVariance, ref damage, self, target, critical, neverMiss);
 
 		damage = CalculateVariance(damage, variance);
 
-		ApplyOverrides(DamagePhase.PreRounding, ref damage, self, target, critical);
+		ApplyOverrides(DamagePhase.PreRounding, ref damage, self, target, critical, neverMiss);
 		
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 				
+		if (ShouldDoDebugDamage())
+			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
 			rounded = 9999;
 		
-		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical);
-		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical);
+		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
 		
 		int roundedInt = (int)rounded;
 		target.DamageJuice(roundedInt);
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
 		BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
-		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical);
+		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 		return roundedInt;
 	}
 
@@ -1729,39 +1819,47 @@ public partial class BattleManager : Node
 		Energy = Math.Min(Energy + amount, 10);
 	}
 
-	/// <returns>A random alive <see cref="PartyMember"/>.</returns>
-	public PartyMember GetRandomAlivePartyMember()
+	/// <summary>
+	/// Returns true if "Enable Debug Damage" is enabled and if the user is holding down the Debug Damage key.
+	/// </summary>
+	public bool ShouldDoDebugDamage()
 	{
-		IEnumerable<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0);
-		return alive.ElementAt(GameManager.Instance.Random.RandiRange(0, alive.Count() - 1)).Actor;
-	}
-	
-	/// <returns>Returns a random alive <see cref="PartyMember"/> that's not the provided actor.</returns>
-	public PartyMember GetRandomUniqueAlivePartyMember(Actor not)
-	{
-		IEnumerable<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0 && x.Actor != not);
-		return alive.ElementAt(GameManager.Instance.Random.RandiRange(0, alive.Count() - 1)).Actor;
+		return DebugDamageHeld && SettingsMenuManager.Instance.EnableDebugDamage;
 	}
 
-	/// <returns>A random <see cref="PartyMember"/> that is toast.</returns>
+	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>
+	public PartyMember GetRandomAlivePartyMember()
+	{
+		List<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
+		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
+	}
+	
+	/// <returns>Returns a random alive <see cref="PartyMember"/> that's not the provided actor, or null if no match is found.</returns>
+	public PartyMember GetRandomUniqueAlivePartyMember(Actor not)
+	{
+		List<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0 && x.Actor != not).ToList();
+		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
+	}
+
+	/// <returns>A random <see cref="PartyMember"/> that is toast, or null if none is found.</returns>
 	public PartyMember GetRandomDeadPartyMember()
 	{
 		PartyMemberComponent result = CurrentParty.FirstOrDefault(x => x.Actor.CurrentHP <= 0);
 		return result?.Actor;
 	}
 
-	/// <returns>A random alive <see cref="Enemy"/>.</returns>
+	/// <returns>A random alive <see cref="Enemy"/>, or null if none is found.</returns>
 	public Enemy GetRandomAliveEnemy()
 	{
-		IEnumerable<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0);
-		return alive.ElementAt(GameManager.Instance.Random.RandiRange(0, alive.Count() - 1)).Actor;
+		List<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0).ToList();
+		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
-	/// <returns>A random alive <see cref="Enemy"/> that's not the provided actor.</returns>
+	/// <returns>A random alive <see cref="Enemy"/> that's not the provided actor, or null if none is found.</returns>
 	public Enemy GetRandomAliveUniqueEnemy(Actor not)
 	{
-		IEnumerable<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0 && x.Actor != not);
-		return alive.ElementAt(GameManager.Instance.Random.RandiRange(0, alive.Count() - 1)).Actor;
+		List<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0 && x.Actor != not).ToList();
+		return alive.Count == 0 ? null :  alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
 	/// <returns>All currently alive <see cref="Enemy"/>s.</returns>
@@ -1815,8 +1913,7 @@ public partial class BattleManager : Node
 	/// <param name="index"></param>
 	public PartyMember GetPartyMember(int index)
 	{
-		// eh who needs bounds checks these days
-		return CurrentParty[Math.Clamp(index, 0, 3)].Actor;
+		return CurrentParty.ElementAtOrDefault(Math.Clamp(index, 0, 3))?.Actor;
 	}
 
 	/// <summary>
@@ -1831,9 +1928,7 @@ public partial class BattleManager : Node
 	public PartyMember GetPartyMemberAtPosition(int position)
 	{
 		PartyMemberComponent member = CurrentParty.FirstOrDefault(x => x.Position == position);
-		if (member == null)
-			return null;
-		return member.Actor;
+		return member?.Actor;
 	}
 
 	/// <summary>

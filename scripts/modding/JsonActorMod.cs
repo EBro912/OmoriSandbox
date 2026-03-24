@@ -14,4 +14,5 @@ internal struct JsonActorMod
     public string[] InvalidStates { get; set; }
     public bool RealWorld { get; set; }
     public bool PlotArmor { get; set; }
+    public string[] EquippableWeapons { get; set; }
 }

@@ -1,15 +1,18 @@
 using Godot;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Modifier;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
 
 public partial class EnemyInfoBox : Control
 {
-	internal protected Enemy Enemy;
+	protected Enemy Enemy;
 
 	[Export] private NinePatchRect Infobox;
 	[Export] private Label NameLabel;
 	[Export] private TextureProgressBar HPBar;
+	[Export] private FlowContainer StateIcons;
 	
 	internal virtual void SetEnemy(Enemy enemy)
 	{
@@ -25,6 +28,29 @@ public partial class EnemyInfoBox : Control
 	internal virtual void Show(bool show)
 	{
 		HPBar.Value = Enemy.CurrentHP;
+		if (SettingsMenuManager.Instance.ShowStateIcons)
+			UpdateStateIcons();
 		Visible = show;
+	}
+	
+	private void UpdateStateIcons()
+	{
+		// this may need to be optimized, not the best practice to fully replace nodes
+		foreach (Node child in StateIcons.GetChildren())
+			child.Free();
+		
+		foreach (StatModifier modifier in Enemy.StatModifiers.Values)
+		{
+			StateIcon[] icons = modifier.GetStateIcons();
+			foreach (StateIcon icon in icons)
+			{
+				TextureRect rect = new()
+				{
+					Texture = ResourceLoader.Load<Texture2D>($"res://assets/stateicons/{icon.AssetName}.png"),
+					TooltipText = icon.Description
+				};
+				StateIcons.AddChild(rect);
+			}
+		}
 	}
 }

@@ -11,7 +11,7 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class PartyMember : Actor
 {
-	internal void Init(AnimatedSprite2D face, string initialState, int level, string weapon, string charm, string[] skills)
+	internal void Init(AnimatedSprite2D face, BattlePresetActor actor)
 	{
 		SpriteFrames animation = Animation;
         if (animation == null)
@@ -22,38 +22,38 @@ public abstract class PartyMember : Actor
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = initialState;
+		Sprite.Animation = actor.Emotion;
 		Sprite.Play();
-		SetState(initialState, true);
+		SetState(actor.Emotion, true);
 		
         // init stats
-        Level = level;
-        int idx = level - 1;
-		BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0);
-		if (!Database.TryGetWeapon(weapon, out Weapon w))
+        Level = actor.Level;
+        int idx = actor.Level - 1;
+		BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats;
+		if (!Database.TryGetWeapon(actor.Weapon, out Weapon w))
 		{
-			GD.PrintErr("Failed to find Weapon: " + weapon);
+			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
 			return;
 		}
 		Weapon = w;
 		
-		if (!charm.Equals("none", System.StringComparison.CurrentCultureIgnoreCase))
+		if (!actor.Charm.Equals("none", System.StringComparison.CurrentCultureIgnoreCase))
 		{
-			if (!Database.TryGetCharm(charm, out Charm c))
+			if (!Database.TryGetCharm(actor.Charm, out Charm c))
 			{
-				GD.PrintErr("Failed to find Charm: " + charm);
+				GD.PrintErr("Failed to find Charm: " + actor.Charm);
 				return;
 			}
 			Charm = c;
 		}
 
-		if (initialState == "toast")
+		if (actor.Emotion == "toast")
 			CurrentHP = 0;
 		else
 			CurrentHP = CurrentStats.MaxHP;
 		CurrentJuice = CurrentStats.MaxJuice;
 
-		EquippedSkills = skills;
+		EquippedSkills = actor.Skills;
 
 		foreach (string s in EquippedSkills)
 		{
@@ -62,7 +62,8 @@ public abstract class PartyMember : Actor
 
 			if (Database.TryGetSkill(s, out var skill))
 			{
-				Skills.Add(s, skill);
+				if (!Skills.TryAdd(s, skill)) 
+					GD.PushWarning($"Actor {Name} already has skill {s} equipped! Skipping...");
 				continue;
 			}
 			GD.PrintErr("Unknown skill: " + s);
@@ -75,7 +76,8 @@ public abstract class PartyMember : Actor
 	/// <returns></returns>
 	protected override Stats GetBaseStats()
 	{
-		Stats stats = BaseStats + Weapon.Stats;
+		Stats stats = BaseStats;
+		Weapon.Apply(ref stats);
 		Charm?.Apply(ref stats);
 		return stats;
 	}
@@ -136,6 +138,11 @@ public abstract class PartyMember : Actor
 	/// A list of skills IDs that this actor has equipped.
 	/// </summary>
 	public string[] EquippedSkills { get; protected set; }
+	/// <summary>
+	/// A list of Weapons that this actor can equip in the base game.<br/>
+	/// Mainly used for the "Filter Equippable" setting in the editor.
+	/// </summary>
+	public virtual string[] EquippableWeapons { get; protected set; } = [];
 	/// <summary>
 	/// A list of invalid states this party member cannot feel. Used in <see cref="IsStateValid(string)"/>
 	/// </summary>

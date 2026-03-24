@@ -88,7 +88,7 @@ internal sealed class Perfectheart : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        DialogueManager.Instance.QueueMessage(this, @"Remember, children...\! You brought this upon yourselves!");
+        DialogueManager.Instance.QueueMessage(this, @"[br]Remember, children...\! You brought this upon yourselves!");
         await DialogueManager.Instance.WaitForDialogue();
     }
 

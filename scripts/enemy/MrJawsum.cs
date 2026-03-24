@@ -93,7 +93,7 @@ internal sealed class MrJawsum : Enemy
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory) {
-            DialogueManager.Instance.QueueMessage("[shake amp=50.0][font_size=36]JAWHAW[font_size=48]HAW[font_size=60]HAW!!!");
+            DialogueManager.Instance.QueueMessage("[shake amp=50.0][font_size=40]JAWHAW[font_size=52]HAW[font_size=64]HAW!!!");
             DialogueManager.Instance.QueueMessage(this, "That's what happens when you mess with MR. JAWSUM!");
             await DialogueManager.Instance.WaitForDialogue();
         }

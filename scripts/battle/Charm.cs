@@ -100,9 +100,9 @@ public class Charm
     }
 
     /// <summary>
-    /// Applies this Charm's statbonuses to the provided <see cref="Stats"/>
+    /// Applies this Charm's statbonuses to the provided <see cref="Stats"/>.
     /// </summary>
-    /// <param name="stats"></param>
+    /// <param name="stats">A reference to the <see cref="Stats"/> to modify.</param>
     public void Apply(ref Stats stats)
     {
         foreach (StatBonus bonus in Stats)

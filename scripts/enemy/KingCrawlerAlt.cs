@@ -70,7 +70,7 @@ internal sealed class KingCrawlerAlt : Enemy
         if (SproutMole == null || SproutMole.Actor.CurrentState == "toast")
         {
             SproutMole =
-                BattleManager.Instance.SummonEnemy("LostSproutMole (KC)", CenterPoint - new Vector2(100, 0), layer: Layer + 1);
+                BattleManager.Instance.SummonEnemy("LostSproutMole (King Crawler)", CenterPoint - new Vector2(100, 0), layer: Layer + 1);
             DialogueManager.Instance.QueueMessage("A SPROUT MOLE appears!");
             await DialogueManager.Instance.WaitForDialogue();
         }

@@ -103,7 +103,8 @@ public class StatModifier
     /// <param name="defender">The <see cref="Actor"/> that is defending in the calculation.</param>
     /// <param name="isAttacking">The attack context from whenever this function is called.<br/>For instance, this value will be <c>true</c> whenever the <paramref name="attacker"/>'s modifiers are being calculated.</param>
     /// <param name="isCritical">Whether the damage is currently a critical. This will always be <c>false</c> for pre-crit phases such as <c>PreEmotion</c></param>
-    public virtual void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical) { }
+    /// <param name="neverMiss">Whether the damage is set to never miss. Similar to the Certain Hit damage type in RPGMaker.</param>
+    public virtual void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss) { }
     
     /// <summary>
     /// Allows modifying the cost of skills.

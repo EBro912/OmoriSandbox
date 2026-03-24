@@ -40,20 +40,27 @@ internal partial class MenuManager : Node
 			{ MenuState.Toy, ToyMenu }
 		};
 
+		BattleManager.Instance.EnergyChanged += RefreshEnergy;
 		Instance = this;
+	}
+
+	private void RefreshEnergy(object sender, EventArgs e)
+	{
+		EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
+		EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 362f, 48f);
 	}
 
 	public void ShowButtons(bool realWorld)
 	{
 		if (realWorld)
 		{
-			PartyMenu.RegionRect = new Rect2(653f, FightRunOffsetRW, 362f, 81f);
-			BattleMenu.RegionRect = new Rect2(653f, BattleOffsetRW, 362f, 81f);
+			PartyMenu.RegionRect = new Rect2(653f, FightRunOffsetRW, 362f, 83f);
+			BattleMenu.RegionRect = new Rect2(653f, BattleOffsetRW, 362f, 83f);
 		}
 		else
 		{
-			PartyMenu.RegionRect = new Rect2(653f, FightRunOffset, 362f, 81f);
-			BattleMenu.RegionRect = new Rect2(653f, BattleOffset, 362f, 81f);
+			PartyMenu.RegionRect = new Rect2(653f, FightRunOffset, 362f, 83f);
+			BattleMenu.RegionRect = new Rect2(653f, BattleOffset, 362f, 83f);
 		}
 	}
 
@@ -123,9 +130,6 @@ internal partial class MenuManager : Node
 			else if (Input.IsActionJustPressed("MenuRight"))
 				CurrentMenu.OnInput(Vector2I.Right);
 		}
-
-		EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
-		EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 362f, 48f);
 	}
 
 	public void Select()

@@ -33,9 +33,18 @@ public struct Stats
     }
 
     public static Stats operator +(Stats a, Stats b) {
-        Stats result = new(a.HP + b.HP, a.Juice + b.Juice, a.ATK + b.ATK, a.DEF + b.DEF, a.SPD + b.SPD, a.LCK + b.LCK, a.HIT + b.HIT);
-        result.MaxHP = a.HP + b.HP;
-        result.MaxJuice = a.Juice + b.Juice;
+        Stats result = new(
+            Math.Max(0, a.HP + b.HP), 
+            Math.Max(0, a.Juice + b.Juice), 
+            Math.Max(0, a.ATK + b.ATK), 
+            Math.Max(0, a.DEF + b.DEF), 
+            Math.Max(0, a.SPD + b.SPD), 
+            Math.Max(0, a.LCK + b.LCK), 
+            Math.Max(0, a.HIT + b.HIT))
+            {
+                MaxHP = Math.Max(0, a.HP + b.HP),
+                MaxJuice = Math.Max(0, a.Juice + b.Juice)
+            };
         return result;
     }
 #pragma warning restore CS1591
@@ -66,8 +75,7 @@ public struct Stats
     /// <param name="value">The value to set the stat to.</param>"
     public void SetStat(StatType stat, int value)
     {
-        if (!SettingsMenuManager.Instance.DisableStatLimit)
-            value = Math.Clamp(value, 0, 999);
+        value = SettingsMenuManager.Instance.DisableStatLimit ? Math.Max(0, value) : Math.Clamp(value, 0, 999);
         switch (stat)
         {
             case StatType.MaxHP: MaxHP = value; break;

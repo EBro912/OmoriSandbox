@@ -65,6 +65,7 @@ internal partial class SettingsMenuManager : Control
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
 		BGMSlider.Value = (float)config.GetValue("Settings", "BGMVolume", 0.5f);
 		ShowFPSCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowFPS", true);
+		PreventRunCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PreventAccidentalRun", false);
 		DisableDamageLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableDamageLimit", false);
 		DisableStatLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableStatLimit", false);
 		ShowMoreInfoCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowMoreInfo", false);
@@ -75,6 +76,7 @@ internal partial class SettingsMenuManager : Control
 		VertigoUsesAtkCheckbox.ButtonPressed =  (bool)config.GetValue("Settings", "VertigoUsesAtk", false);
 		ToysUseEmotionDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ToysUseEmotionDamage", false);
 		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
+		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 		
@@ -118,6 +120,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", (int)BattlelogSpeedSlider.Value);
 		config.SetValue("Settings", "ActionDelay", (int)ActionDelaySlider.Value);
 		config.SetValue("Settings", "ShowFPS", ShowFPSCheckbox.ButtonPressed);
+		config.SetValue("Settings", "PreventAccidentalRun", PreventRunCheckbox.ButtonPressed);
 		config.SetValue("Settings", "DisableDamageLimit", DisableDamageLimitCheckbox.ButtonPressed);
 		config.SetValue("Settings", "DisableStatLimit", DisableStatLimitCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ShowMoreInfo", ShowMoreInfoCheckbox.ButtonPressed);
@@ -128,6 +131,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "VertigoUsesAtk", VertigoUsesAtkCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
+		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
 
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
@@ -157,6 +161,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", 3);
 		config.SetValue("Settings", "ActionDelay", 3);
 		config.SetValue("Settings", "ShowFPS", true);
+		config.SetValue("Settings", "PreventAccidentalRun", false);
 		config.SetValue("Settings", "DisableDamageLimit", false);
 		config.SetValue("Settings", "DisableStatLimit", false);
 		config.SetValue("Settings", "ShowMoreInfo", false);
@@ -167,6 +172,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "VertigoUsesAtk", false);
 		config.SetValue("Settings", "ToysUseEmotionDamage", false);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
+		config.SetValue("Settings", "EnableDebugDamage", false);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -188,6 +194,7 @@ internal partial class SettingsMenuManager : Control
 
 	public static SettingsMenuManager Instance;
 	public bool ShowFPS => ShowFPSCheckbox.ButtonPressed;
+	public bool PreventAccidentalRun => PreventRunCheckbox.ButtonPressed;
 	public bool DisableDamageLimit => DisableDamageLimitCheckbox.ButtonPressed;
 	public bool DisableStatLimit => DisableStatLimitCheckbox.ButtonPressed;
 	public bool ShowMoreInfo => ShowMoreInfoCheckbox.ButtonPressed;
@@ -198,6 +205,7 @@ internal partial class SettingsMenuManager : Control
 	public bool VertigoUsesAtk => VertigoUsesAtkCheckbox.ButtonPressed;
 	public bool ToysUseEmotionDamage =>  ToysUseEmotionDamageCheckbox.ButtonPressed;
 	public bool SpaceExHusbandReleaseEnergy =>  SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
+	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
 
@@ -211,6 +219,7 @@ internal partial class SettingsMenuManager : Control
 	[Export] private HSlider BattlelogSpeedSlider;
 	[Export] private HSlider ActionDelaySlider;
 	[Export] private CheckBox ShowFPSCheckbox;
+	[Export] private CheckBox PreventRunCheckbox;
 	[Export] private CheckBox DisableDamageLimitCheckbox;
 	[Export] private CheckBox DisableStatLimitCheckbox;
 	[Export] private CheckBox ShowMoreInfoCheckbox;
@@ -221,6 +230,7 @@ internal partial class SettingsMenuManager : Control
 	[Export] private CheckBox VertigoUsesAtkCheckbox;
 	[Export] private CheckBox ToysUseEmotionDamageCheckbox;
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
+	[Export] private CheckBox EnableDebugDamageCheckbox;
 	[Export] private GridContainer KeybindGrid;
 	[Export] private Button ResetKeybindsButton;
 	[Export] private Button BackButton;

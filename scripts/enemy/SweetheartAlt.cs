@@ -142,7 +142,7 @@ internal sealed class SweetheartAlt : Enemy
 			EmotionLocked = false;
 			DialogueManager.Instance.QueueMessage(this, "Hmph! I see you are still standing.");
 			DialogueManager.Instance.QueueMessage(this, "Cockroaches are resilient, I suppose!");
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=36]OHOHOH[font_size=48]OHOHOHO!!");
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
 			await DialogueManager.Instance.WaitForDialogue();
 			ForceState("SweetheartManic", "manic");
 			DialogueManager.Instance.QueueMessage("SWEETHEART became MANIC!");
@@ -156,7 +156,7 @@ internal sealed class SweetheartAlt : Enemy
     {
         if (!victory)
 		{
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=36]OHOHOH[font_size=48]OHOHOHO!!");
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
 			DialogueManager.Instance.QueueMessage(this, @"This was child's play!\! You're all nothing but a bunch of lowly peasants!");
 			DialogueManager.Instance.QueueMessage(this, "[br]To [color=#64f7ed]THE DUNGEON[/color] with you!");
             await DialogueManager.Instance.WaitForDialogue();

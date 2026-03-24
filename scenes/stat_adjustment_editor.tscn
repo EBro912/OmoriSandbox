@@ -1,0 +1,277 @@
+[gd_scene format=3 uid="uid://chwhfaladnv86"]
+
+[ext_resource type="Script" uid="uid://bm571ylvux7tn" path="res://scripts/StatAdjustmentEditor.cs" id="1_35yh7"]
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_83ih8"]
+[ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="2_xf5lx"]
+[ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="3_35yh7"]
+[ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_okig5"]
+
+[node name="StatAdjustmentEditor" type="MarginContainer" unique_id=862740600 node_paths=PackedStringArray("PresetDropdown", "AddButton", "ResetButton", "HeartBox", "JuiceBox", "ATKBox", "DEFBox", "SPDBox", "LCKBox", "HITBox", "HeartLabel", "JuiceLabel", "ATKLabel", "DEFLabel", "SPDLabel", "LCKLabel", "HITLabel")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -343.0
+offset_bottom = -162.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 2
+script = ExtResource("1_35yh7")
+PresetDropdown = NodePath("VBoxContainer/HBoxContainer/PresetDropdown")
+AddButton = NodePath("VBoxContainer/HBoxContainer/Add")
+ResetButton = NodePath("VBoxContainer/Reset")
+HeartBox = NodePath("VBoxContainer/StatAdjuster/Heart/Input")
+JuiceBox = NodePath("VBoxContainer/StatAdjuster/Juice/Input")
+ATKBox = NodePath("VBoxContainer/StatAdjuster/ATK/Input")
+DEFBox = NodePath("VBoxContainer/StatAdjuster/DEF/Input")
+SPDBox = NodePath("VBoxContainer/StatAdjuster/SPD/Input")
+LCKBox = NodePath("VBoxContainer/StatAdjuster/LCK/Input")
+HITBox = NodePath("VBoxContainer/StatAdjuster/HIT/Input")
+HeartLabel = NodePath("VBoxContainer/BaseStats/Heart")
+JuiceLabel = NodePath("VBoxContainer/BaseStats/Juice")
+ATKLabel = NodePath("VBoxContainer/BaseStats/ATK")
+DEFLabel = NodePath("VBoxContainer/BaseStats/DEF")
+SPDLabel = NodePath("VBoxContainer/BaseStats/SPD")
+LCKLabel = NodePath("VBoxContainer/BaseStats/LCK")
+HITLabel = NodePath("VBoxContainer/BaseStats/HIT")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1533613556]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=1198183125]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 28
+text = "Current Stats"
+horizontal_alignment = 1
+
+[node name="BaseStats" type="GridContainer" parent="VBoxContainer" unique_id=572608902]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 12
+columns = 3
+
+[node name="Heart" type="Label" parent="VBoxContainer/BaseStats" unique_id=1399677786]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "Heart: 0"
+
+[node name="Juice" type="Label" parent="VBoxContainer/BaseStats" unique_id=1284283362]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "Juice: 0"
+
+[node name="ATK" type="Label" parent="VBoxContainer/BaseStats" unique_id=591968839]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "ATK: 0"
+
+[node name="DEF" type="Label" parent="VBoxContainer/BaseStats" unique_id=1992690117]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "DEF: 0"
+
+[node name="SPD" type="Label" parent="VBoxContainer/BaseStats" unique_id=680680201]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "SPD: 0"
+
+[node name="LCK" type="Label" parent="VBoxContainer/BaseStats" unique_id=266826770]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "LCK: 0"
+
+[node name="HIT" type="Label" parent="VBoxContainer/BaseStats" unique_id=489228626]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "HIT: 0"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=68896515]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/HBoxContainer" unique_id=1809705780]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "Presets:"
+
+[node name="PresetDropdown" type="OptionButton" parent="VBoxContainer/HBoxContainer" unique_id=173048870]
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_xf5lx")
+theme_override_styles/pressed = ExtResource("3_35yh7")
+theme_override_styles/hover = ExtResource("4_okig5")
+selected = 0
+allow_reselect = true
+item_count = 8
+popup/item_0/text = "Branch Coral"
+popup/item_0/id = 0
+popup/item_1/text = "Berly"
+popup/item_1/id = 1
+popup/item_2/text = "Pluto"
+popup/item_2/id = 2
+popup/item_3/text = "Scarebro"
+popup/item_3/id = 3
+popup/item_4/text = "Mush"
+popup/item_4/id = 4
+popup/item_5/text = "Mari's Cookie"
+popup/item_5/id = 5
+popup/item_6/text = "Basil Flower"
+popup/item_6/id = 6
+popup/item_7/text = "Club Sandwich"
+popup/item_7/id = 7
+
+[node name="Add" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=1261472950]
+layout_mode = 2
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_xf5lx")
+theme_override_styles/pressed = ExtResource("3_35yh7")
+theme_override_styles/hover = ExtResource("4_okig5")
+text = "Add"
+
+[node name="StatAdjuster" type="GridContainer" parent="VBoxContainer" unique_id=488627953]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+columns = 2
+
+[node name="Heart" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=827146298]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/Heart" unique_id=269539389]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "Heart:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/Heart" unique_id=1151563704]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="Juice" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=82060597]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/Juice" unique_id=695599508]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "Juice:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/Juice" unique_id=1649137607]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="ATK" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=730813296]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/ATK" unique_id=992162079]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "ATK:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/ATK" unique_id=531471784]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="DEF" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=985673376]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/DEF" unique_id=315074701]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "DEF:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/DEF" unique_id=223969096]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="SPD" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=670186238]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/SPD" unique_id=1348072984]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "SPD:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/SPD" unique_id=348286672]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="LCK" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=372613251]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/LCK" unique_id=1557680079]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "LCK:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/LCK" unique_id=1240992656]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="HIT" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=1306844335]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/HIT" unique_id=2092389637]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "HIT:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/HIT" unique_id=1664237593]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="Reset" type="Button" parent="VBoxContainer" unique_id=496531390]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_xf5lx")
+theme_override_styles/pressed = ExtResource("3_35yh7")
+theme_override_styles/hover = ExtResource("4_okig5")
+text = "Reset"

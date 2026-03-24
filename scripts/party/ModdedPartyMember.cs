@@ -33,4 +33,5 @@ internal class ModdedPartyMember : PartyMember
     public override string Name => JsonActor.Name;
 
     public override bool HasPlotArmor => JsonActor.PlotArmor;
+    public override string[] EquippableWeapons => JsonActor.EquippableWeapons;
 }

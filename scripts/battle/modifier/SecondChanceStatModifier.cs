@@ -11,7 +11,7 @@ public sealed class SecondChanceStatModifier : StatModifier
 
     /// <inheritdoc/>
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking,
-        bool isCritical)
+        bool isCritical, bool neverMiss)
     {
         if (phase is not DamagePhase.PostApply)
             return;

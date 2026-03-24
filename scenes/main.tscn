@@ -27,8 +27,10 @@
 [ext_resource type="Texture2D" uid="uid://d36ge2cnq6lkj" path="res://assets/battlebacks/battleback_vf_default.png" id="14_og1vs"]
 [ext_resource type="SpriteFrames" uid="uid://bqqlfuslvq0co" path="res://animations/release_energy_basil.tres" id="15_vxglm"]
 [ext_resource type="Script" uid="uid://b0t86bflug3po" path="res://scripts/menu/PartyMenu.cs" id="17_pm3ni"]
+[ext_resource type="Script" uid="uid://cpbjggf3ky6a6" path="res://scripts/BattlebackManager.cs" id="18_txyw0"]
 [ext_resource type="Script" uid="uid://cbac1p51c0gbd" path="res://scripts/menu/BattleMenu.cs" id="18_y6deb"]
 [ext_resource type="Script" uid="uid://co38b7eed26qs" path="res://scripts/menu/SkillMenu.cs" id="19_og1vs"]
+[ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="19_vc5cj"]
 [ext_resource type="Script" uid="uid://bnnng1lk81pyg" path="res://scripts/menu/ItemMenu.cs" id="21_2wyq8"]
 [ext_resource type="Texture2D" uid="uid://cx8spaqhfx12l" path="res://assets/pictures/Snaley.png" id="22_5he1u"]
 [ext_resource type="Script" uid="uid://clg2gcav7pm8q" path="res://scripts/DialogueManager.cs" id="22_5q0nq"]
@@ -59,6 +61,9 @@ viewport_path = NodePath("BattleCanvas/UI/Battleback/FullScreenEffects/SubViewpo
 [node name="BattleCanvas" type="CanvasLayer" parent="." unique_id=845179420]
 layer = 0
 
+[node name="BattlebackManager" type="Node" parent="BattleCanvas" unique_id=2099075600]
+script = ExtResource("18_txyw0")
+
 [node name="ModManager" type="Node" parent="BattleCanvas" unique_id=1949733735]
 script = ExtResource("2_j8jky")
 
@@ -88,9 +93,6 @@ SnackMenu = NodePath("../UI/SnackMenu")
 ToyMenu = NodePath("../UI/ToyMenu")
 EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
-
-[node name="BGM" type="AudioStreamPlayer" parent="BattleCanvas" unique_id=1290275943]
-bus = &"BGM"
 
 [node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("Battleback", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
 script = ExtResource("12_5q0nq")
@@ -148,6 +150,9 @@ bus = &"SFX"
 [node name="AudioStreamPlayer11" type="AudioStreamPlayer" parent="BattleCanvas/AudioManager" unique_id=1209410735]
 bus = &"SFX"
 
+[node name="BGM" type="AudioStreamPlayer" parent="BattleCanvas" unique_id=1290275943]
+bus = &"BGM"
+
 [node name="UI" type="Control" parent="BattleCanvas" unique_id=1860860966]
 layout_mode = 3
 anchors_preset = 15
@@ -193,6 +198,7 @@ offset_right = 1280.0
 offset_bottom = 480.0
 texture = ExtResource("14_og1vs")
 stretch_mode = 1
+script = ExtResource("19_vc5cj")
 
 [node name="FullScreenEffects" type="Node2D" parent="BattleCanvas/UI/Battleback" unique_id=143668311]
 z_as_relative = false
@@ -293,6 +299,7 @@ color = Color(0, 0, 0, 0)
 [node name="SubViewport" type="SubViewport" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=2079552982]
 disable_3d = true
 transparent_bg = true
+anisotropic_filtering_level = 2
 size = Vector2i(640, 480)
 render_target_update_mode = 4
 
@@ -325,7 +332,7 @@ Font = ExtResource("10_choun")
 Icon = NodePath("Icon")
 metadata/_edit_use_anchors_ = true
 
-[node name="Immediate" type="Label" parent="BattleCanvas/UI/BattleLog" unique_id=1125130019]
+[node name="Immediate" type="RichTextLabel" parent="BattleCanvas/UI/BattleLog" unique_id=955638223]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -336,8 +343,12 @@ offset_right = -11.0
 offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 24
+theme_override_fonts/normal_font = ExtResource("10_choun")
+theme_override_font_sizes/normal_font_size = 24
+bbcode_enabled = true
+scroll_active = false
+shortcut_keys_enabled = false
+visible_characters_behavior = 1
 
 [node name="Icon" type="Sprite2D" parent="BattleCanvas/UI/BattleLog" unique_id=1266921557]
 visible = false
@@ -475,6 +486,7 @@ position = Vector2(320, 360)
 texture = ExtResource("4_tipki")
 region_enabled = true
 region_rect = Rect2(0, 0, 362, 48)
+region_filter_clip_enabled = true
 
 [node name="EnergyAmount" type="Label" parent="BattleCanvas/UI/Energy" unique_id=315724617]
 offset_left = 145.0
@@ -502,7 +514,7 @@ z_index = -1
 position = Vector2(320, 529)
 texture = ExtResource("4_tipki")
 region_enabled = true
-region_rect = Rect2(653, 375, 362, 81)
+region_rect = Rect2(653, 375, 362, 83)
 script = ExtResource("17_pm3ni")
 CursorSprite = NodePath("Cursor")
 
@@ -597,7 +609,7 @@ theme_override_font_sizes/font_size = 20
 [node name="Cursor" parent="BattleCanvas/UI/SkillMenu" unique_id=504568155 instance=ExtResource("24_qkpxi")]
 visible = true
 
-[node name="SnackMenu" type="Sprite2D" parent="BattleCanvas/UI" unique_id=1266031113 node_paths=PackedStringArray("ItemLabels", "CostText", "CursorSprite")]
+[node name="SnackMenu" type="Sprite2D" parent="BattleCanvas/UI" unique_id=1266031113 node_paths=PackedStringArray("ItemLabels", "CostText", "PageUpSprite", "PageDownSprite", "CursorSprite")]
 visible = false
 position = Vector2(320, 537)
 texture = ExtResource("9_85g3d")
@@ -605,6 +617,8 @@ flip_v = true
 script = ExtResource("21_2wyq8")
 ItemLabels = [NodePath("Skill1"), NodePath("Skill3"), NodePath("Skill2"), NodePath("Skill4")]
 CostText = NodePath("Cost/Value")
+PageUpSprite = NodePath("PageUp")
+PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
 
 [node name="Line2D" type="Line2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1771852216]
@@ -667,7 +681,22 @@ theme_override_font_sizes/font_size = 20
 [node name="Cursor" parent="BattleCanvas/UI/SnackMenu" unique_id=494831219 instance=ExtResource("24_qkpxi")]
 visible = true
 
-[node name="ToyMenu" type="Sprite2D" parent="BattleCanvas/UI" unique_id=1834603877 node_paths=PackedStringArray("ItemLabels", "CostText", "CursorSprite")]
+[node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1837749994]
+visible = false
+position = Vector2(165, -8)
+texture = ExtResource("26_kmb1v")
+flip_v = true
+region_enabled = true
+region_rect = Rect2(151, 111, 10, 5)
+
+[node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1410525238]
+visible = false
+position = Vector2(165, 40)
+texture = ExtResource("26_kmb1v")
+region_enabled = true
+region_rect = Rect2(151, 111, 10, 5)
+
+[node name="ToyMenu" type="Sprite2D" parent="BattleCanvas/UI" unique_id=1834603877 node_paths=PackedStringArray("ItemLabels", "CostText", "PageUpSprite", "PageDownSprite", "CursorSprite")]
 visible = false
 position = Vector2(320, 537)
 texture = ExtResource("9_85g3d")
@@ -675,6 +704,8 @@ flip_v = true
 script = ExtResource("21_2wyq8")
 ItemLabels = [NodePath("Skill1"), NodePath("Skill3"), NodePath("Skill2"), NodePath("Skill4")]
 CostText = NodePath("Cost/Value")
+PageUpSprite = NodePath("PageUp")
+PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
 
 [node name="Line2D" type="Line2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1504635930]
@@ -736,6 +767,21 @@ theme_override_font_sizes/font_size = 20
 
 [node name="Cursor" parent="BattleCanvas/UI/ToyMenu" unique_id=1265284258 instance=ExtResource("24_qkpxi")]
 visible = true
+
+[node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1293085651]
+visible = false
+position = Vector2(165, -8)
+texture = ExtResource("26_kmb1v")
+flip_v = true
+region_enabled = true
+region_rect = Rect2(151, 111, 10, 5)
+
+[node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1558395907]
+visible = false
+position = Vector2(165, 40)
+texture = ExtResource("26_kmb1v")
+region_enabled = true
+region_rect = Rect2(151, 111, 10, 5)
 
 [node name="MenuButtons" type="HBoxContainer" parent="BattleCanvas/UI" unique_id=977401127]
 visible = false

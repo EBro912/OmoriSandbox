@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -9,6 +10,8 @@ internal partial class ItemMenu : Menu
 {
 	[Export] public Label[] ItemLabels;
 	[Export] public Label CostText;
+	[Export] private Sprite2D PageUpSprite;
+	[Export] private Sprite2D PageDownSprite;
 	private readonly List<(Item, int)> Items = [];
 	private List<(Item, int)> DisplayedItems = [];
 	public int Page { get; private set; } = 0;
@@ -18,6 +21,8 @@ internal partial class ItemMenu : Menu
 
 	public override void OnOpen(SelectionMemory memory)
 	{
+		PageUpSprite.Visible = false;
+		PageDownSprite.Visible = false;
 		// make sure our previous selection is in-bounds
 		// if an item gets removed due to running out of stock, the previous data may be invalid
 		if (memory.SavedState == MenuState.Snack && 
@@ -67,6 +72,9 @@ internal partial class ItemMenu : Menu
 			UpdateCursor();
 			return;
 		}
+
+		PageUpSprite.Visible = Page > 0;
+		PageDownSprite.Visible = Page < Mathf.CeilToInt((float)Items.Count / 4) - 1;
 		int start = Page * 4;
 		int end = Mathf.Min(start + 4, Items.Count);
 		DisplayedItems = Items.GetRange(start, end - start);
@@ -84,7 +92,8 @@ internal partial class ItemMenu : Menu
 	protected override void MoveCursor(Vector2I direction)
 	{
 		if (Empty) return;
-		if (direction.Y > 0 && Page < Mathf.CeilToInt((float)Items.Count / 4) - 1 && CursorIndex > 1)
+		if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;
+		if (direction == Vector2.Down && Page < Mathf.CeilToInt((float)Items.Count / 4) - 1 && CursorIndex > 1)
 		{
 			Page++;
 			CursorIndex -= 2;
@@ -92,7 +101,7 @@ internal partial class ItemMenu : Menu
             UpdatePage();
 			return;
 		}
-		if (direction.Y < 0 && Page > 0 && CursorIndex < 2)
+		if (direction == Vector2.Up && Page > 0 && CursorIndex < 2)
 		{
 			Page--;
 			CursorIndex += 2;
@@ -102,13 +111,22 @@ internal partial class ItemMenu : Menu
 		}
 
 		int old = CursorIndex;
-		int x = CursorIndex % 2;
-		int y = CursorIndex / 2;
-		x = (x + direction.X + GridSize.X) % GridSize.X;
-		y = (y + direction.Y + GridSize.Y) % GridSize.Y;
-		int newIndex = y * GridSize.X + x;
-		newIndex = Mathf.Min(newIndex, DisplayedItems.Count - 1);
-		CursorIndex = newIndex;
+		// omori menus have no wrapping
+		// pressing left or right simply increments/decrements the index
+		if (direction == Vector2.Left)
+			CursorIndex = Math.Max(CursorIndex - 1, 0);
+		else if (direction == Vector2.Right)
+			CursorIndex = Math.Min(CursorIndex + 1, DisplayedItems.Count - 1);
+		else if (direction == Vector2.Up)
+		{
+			if (CursorIndex > 1)
+				CursorIndex -= 2;
+		}
+		else if (direction == Vector2.Down)
+		{
+			if (CursorIndex < 2 && DisplayedItems.Count > 2)
+				CursorIndex = Math.Min(CursorIndex + 2, DisplayedItems.Count - 1);
+		}
 		if (CursorIndex != old)
 		{
 			UpdateCursor();
@@ -123,16 +141,19 @@ internal partial class ItemMenu : Menu
 		(Item, int) i = DisplayedItems[CursorIndex];
 		CostText.Text = "x" + i.Item2;
 		if (i.Item1.SpriteIndex > -1)
-			BattleLogManager.Instance.ClearAndShowMessageWithIcon($"{i.Item1.Name}\n{i.Item1.Description}", i.Item1.SpritesheetPath, i.Item1.SpriteIndex);
+			BattleLogManager.Instance.ClearAndShowMessageWithIcon(
+				$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}", i.Item1.SpritesheetPath,
+				i.Item1.SpriteIndex);
 		else
-			BattleLogManager.Instance.ClearAndShowMessage($"{i.Item1.Name}\n{i.Item1.Description}");
+			BattleLogManager.Instance.ClearAndShowMessage(
+				$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}");
 	}
 
 	protected override void OnSelect()
 	{
 		if (Empty) return;
 		Item selected = DisplayedItems[CursorIndex].Item1;
-        BattleManager.Instance.OnSelectItem(selected);
-		CursorSprite.StopBounce();
+        if (BattleManager.Instance.OnSelectItem(selected))
+			CursorSprite.StopBounce();
 	}
 }

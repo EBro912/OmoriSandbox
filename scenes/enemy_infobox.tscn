@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bn0phwk0eicrr"]
+[gd_scene format=3 uid="uid://bn0phwk0eicrr"]
 
 [ext_resource type="Texture2D" uid="uid://5cmotqcbts7s" path="res://assets/system/enemy_box.png" id="1_k3cq7"]
 [ext_resource type="Script" uid="uid://dvaljgrpvl6d8" path="res://scripts/EnemyInfoBox.cs" id="1_nwc6p"]
@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="5_ackq1"]
 [ext_resource type="Texture2D" uid="uid://q4jxuj12jmru" path="res://assets/system/bsys_cursor.png" id="6_soglw"]
 
-[node name="AboveHead" type="Control" node_paths=PackedStringArray("Infobox", "NameLabel", "HPBar")]
+[node name="AboveHead" type="Control" unique_id=1383543178 node_paths=PackedStringArray("Infobox", "NameLabel", "HPBar", "StateIcons")]
 z_index = 100
 z_as_relative = false
 layout_mode = 3
@@ -19,8 +19,9 @@ script = ExtResource("1_nwc6p")
 Infobox = NodePath("Infobox")
 NameLabel = NodePath("Infobox/Name")
 HPBar = NodePath("Infobox/Health")
+StateIcons = NodePath("StateIcons")
 
-[node name="Infobox" type="NinePatchRect" parent="."]
+[node name="Infobox" type="NinePatchRect" parent="." unique_id=950750561]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 1
 anchors_preset = -1
@@ -37,7 +38,7 @@ patch_margin_top = 6
 patch_margin_right = 6
 patch_margin_bottom = 26
 
-[node name="Name" type="Label" parent="Infobox"]
+[node name="Name" type="Label" parent="Infobox" unique_id=853852187]
 custom_minimum_size = Vector2(145, 0)
 layout_mode = 1
 anchors_preset = 5
@@ -52,7 +53,7 @@ theme_override_fonts/font = ExtResource("2_nwc6p")
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 
-[node name="Health" type="TextureProgressBar" parent="Infobox"]
+[node name="Health" type="TextureProgressBar" parent="Infobox" unique_id=1712390937]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -69,11 +70,31 @@ value = 100.0
 texture_under = ExtResource("3_2w3pu")
 texture_progress = ExtResource("4_7ftv4")
 
-[node name="Heart" type="Sprite2D" parent="Infobox/Health"]
+[node name="Heart" type="Sprite2D" parent="Infobox/Health" unique_id=265779773]
 position = Vector2(-10, 6)
 texture = ExtResource("5_ackq1")
 
-[node name="Cursor" type="Sprite2D" parent="."]
+[node name="Cursor" type="Sprite2D" parent="." unique_id=494038988]
 rotation = -1.5708
 texture = ExtResource("6_soglw")
 flip_h = true
+
+[node name="StateIcons" type="HFlowContainer" parent="." unique_id=1546377707]
+z_index = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -58.0
+offset_top = -128.0
+offset_right = 58.0
+offset_bottom = -63.999985
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(58, 0)
+theme_override_constants/h_separation = -4
+theme_override_constants/v_separation = -4
+alignment = 1
+reverse_fill = true

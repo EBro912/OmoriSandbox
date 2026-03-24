@@ -33,7 +33,7 @@ internal sealed class KiteKidAlt : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        KidsKite = BattleManager.Instance.SummonEnemy("KidsKite (Alt)", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
+        KidsKite = BattleManager.Instance.SummonEnemy("KidsKite (Epilogue)", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
         DialogueManager.Instance.QueueMessage(this, "We are one with the wind!");
         DialogueManager.Instance.QueueMessage(this, "As long as it blows, we are unbeatable!");
         await DialogueManager.Instance.WaitForDialogue();

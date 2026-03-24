@@ -1,7 +1,6 @@
 using System;
 using Godot;
 using OmoriSandbox.Extensions;
-using OmoriSandbox.Modding;
 using Range = Godot.Range;
 
 namespace OmoriSandbox.Editor;
@@ -16,12 +15,12 @@ internal partial class BattlebackBGMEditorComponent : Control
         }
     }
 
-    public void Init(AudioStreamPlayer bgmPreview, TextureRect battlebackPreview)
+    public void Init(AudioStreamPlayer bgmPreview, BattlebackDisplayComponent battlebackPreview)
     {
 	    BGMPreview = bgmPreview;
 	    BattlebackPreview = battlebackPreview;
 	    
-        foreach (string battleback in ModManager.Instance.Battlebacks.Keys)
+        foreach (string battleback in BattlebackManager.Instance.GetAllBattlebacks())
         {
             BattlebackDropdown.AddItem(battleback);
         }
@@ -30,14 +29,7 @@ internal partial class BattlebackBGMEditorComponent : Control
         {
             BGMDropdown.AddItem(bgm);
         }
-
-        foreach (string battleback in ResourceLoader.ListDirectory("res://assets/battlebacks"))
-        {
-            BattlebackDropdown.AddItem(StringExtensions.GetBaseName(battleback));
-        }
         
-        foreach (string bgm in ResourceLoader.ListDirectory("res://audio/bgm"))
-            BGMDropdown.AddItem(StringExtensions.GetBaseName(bgm));
         BGMDropdown.Selected = BGMDropdown.GetItemIndex("battle_vf");
         if (!BGMPreview.Playing && AudioManager.Instance.TryGetBGM("battle_vf", out AudioStreamOggVorbis stream))
         {
@@ -54,17 +46,8 @@ internal partial class BattlebackBGMEditorComponent : Control
 		BattlebackDropdown.ItemSelected += (idx) =>
 		{
 			string battleback = BattlebackDropdown.GetItemText((int)idx);
-			if (ResourceLoader.Exists("res://assets/battlebacks/" + battleback + ".png"))
-				BattlebackPreview.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/" + battleback + ".png");
-			else if (ModManager.Instance.Battlebacks.TryGetValue(battleback, out Texture2D texture))
-				BattlebackPreview.Texture = texture;
-			else
-			{
-				BattlebackPreview.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/battleback_vf_default.png");
-				GD.PushWarning($"Failed to load battleback {battleback}, falling back to default.");
-			}		
+			BattlebackPreview.SetBattleback(battleback);	
 		};
-		
 				
 		BGMDropdown.ItemSelected += (idx) =>
 		{
@@ -165,10 +148,8 @@ internal partial class BattlebackBGMEditorComponent : Control
 
     public void Reset()
     {
-	    BattlebackDropdown.Selected = BattlebackDropdown.GetItemIndex("battleback_vf_default");
-	    BattlebackDropdown.EmitSignal("item_selected", BattlebackDropdown.Selected);
-	    BGMDropdown.Selected = BGMDropdown.GetItemIndex("battle_vf");
-	    BGMDropdown.EmitSignal("item_selected", BGMDropdown.Selected);
+	    SelectedBattleback = "battleback_vf_default";
+	    SelectedBGM = "battle_vf";
     }
 
     public string SelectedBattleback
@@ -176,17 +157,15 @@ internal partial class BattlebackBGMEditorComponent : Control
 	    get => BattlebackDropdown.GetItemText(BattlebackDropdown.Selected);
 	    set
 	    {
-		    if (ResourceLoader.Exists("res://assets/battlebacks/" + value + ".png"))
-			    BattlebackPreview.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/" + value + ".png");
-		    else if (ModManager.Instance.Battlebacks.TryGetValue(value, out Texture2D texture))
-			    BattlebackPreview.Texture = texture;
-		    else
+		    int index = BattlebackDropdown.GetItemIndex(value);
+		    if (index == -1)
 		    {
-			    BattlebackPreview.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/battleback_vf_default.png");
 			    GD.PushWarning($"Failed to load battleback {value}, falling back to default.");
 			    value = "battleback_vf_default";
+			    index = BattlebackDropdown.GetItemIndex(value);
 		    }
-		    BattlebackDropdown.Selected = BattlebackDropdown.GetItemIndex(value);
+		    BattlebackDropdown.Selected = index;
+		    BattlebackPreview.SetBattleback(value);
 	    }
     }
 
@@ -203,7 +182,6 @@ internal partial class BattlebackBGMEditorComponent : Control
 			    BGMDropdown.Selected = BGMDropdown.GetItemIndex(value);
 		    }
 
-		    // I fucking love air conditioning
 		    BGMDropdown.EmitSignal(OptionButton.SignalName.ItemSelected, [BGMDropdown.Selected]);
 	    }
     }
@@ -221,7 +199,7 @@ internal partial class BattlebackBGMEditorComponent : Control
 
     private bool PreviewingBGM = false;
     private AudioStreamPlayer BGMPreview;
-    private TextureRect BattlebackPreview;
+    private BattlebackDisplayComponent BattlebackPreview;
     [Export] private OptionButton BattlebackDropdown;
     [Export] private OptionButton BGMDropdown;
     [Export] private SpinBox BGMPitch;

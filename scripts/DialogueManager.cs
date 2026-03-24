@@ -1,7 +1,6 @@
 using System;
 using Godot;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OmoriSandbox.Actors;
@@ -32,6 +31,7 @@ public partial class DialogueManager : Node2D
 	private bool WaitingForInput = false;
 	private bool IsTyping = false;
 	private bool WaitingForAnimation = false;
+	private bool WaitingForTimer = false;
 	private bool WaitingForChoice = false;
 	private double CharTimer = 0;
 	private int CurrentMessageLength = 0;
@@ -55,26 +55,28 @@ public partial class DialogueManager : Node2D
 
 	public override void _Process(double delta)
 	{
+		if (!Visible)
+			return;
+		
 		if (IsTyping)
 		{
+			if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
+			{
+				SkipForward();
+				return;
+			}
+
 			CharTimer += delta;
 			if (CharTimer >= TEXT_SPEED)
 			{
 				CharTimer = 0;
 				TypeChar();
 			}
-
-			if (Input.IsActionJustPressed("Back"))
-			{
-				if (Text.VisibleCharacters < CurrentMessageLength)
-				{
-					int index = PauseIndices.FirstOrDefault(x => x.Key >= Text.VisibleCharacters && x.Value is PauseType.Input).Key;
-					if (index == -1)
-						index = CurrentMessageLength;
-					while (Text.VisibleCharacters < index)
-						TypeChar();
-				}
-			}
+		}
+		else if (WaitingForTimer)
+		{
+			if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
+				SkipForward();
 		}
 		else if (WaitingForInput)
 		{
@@ -205,7 +207,7 @@ public partial class DialogueManager : Node2D
 	private string BuildHeader(FontType font)
 	{
 		StringBuilder sb = new();
-		sb.Append("[font_size=24]");
+		sb.Append("[font_size=28]");
 		sb.Append(font is FontType.Normal
 			? "[font=res://fonts/OMORI_GAME2.ttf]"
 			: "[font=res://fonts/OMORI_GAME.ttf]");
@@ -273,6 +275,34 @@ public partial class DialogueManager : Node2D
 		return sb.ToString();
 	}
 
+	private void SkipForward()
+	{
+		IsTyping = false;
+		WaitingForTimer = false;
+
+		int target = CurrentMessageLength;
+		foreach (var pause in PauseIndices)
+		{
+			if (pause.Key >= Text.VisibleCharacters && pause.Value is PauseType.Input && pause.Key < target)
+				target = pause.Key;
+		}
+
+		if (target < CurrentMessageLength)
+		{
+			// skip to just past the pause marker
+			Text.VisibleCharacters = target + 1;
+			WaitForInput();
+		}
+		else
+		{
+			Text.VisibleCharacters = CurrentMessageLength;
+			if (HasChoice)
+				WaitForChoice();
+			else
+				WaitForInput();
+		}
+	}
+
 	private void WaitForInput()
 	{
 		WaitingForInput = true;
@@ -281,8 +311,11 @@ public partial class DialogueManager : Node2D
 
 	private void WaitForTimer(double duration)
 	{
+		WaitingForTimer = true;
 		GetTree().CreateTimer(duration).Timeout += () =>
 		{
+			if (!WaitingForTimer) return;
+			WaitingForTimer = false;
 			IsTyping = true;
 		};
 	}
@@ -412,6 +445,7 @@ public partial class DialogueManager : Node2D
 		WaitingForAnimation = false;
 		WaitingForInput = false;
 		WaitingForChoice = false;
+		WaitingForTimer = false;
 		IsTyping = false;
 		Cursor.Visible = false;
 		CharsTillSound = 2;

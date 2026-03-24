@@ -16,7 +16,7 @@ public partial class AudioManager : Node
 	private readonly List<AudioStreamPlayer> AudioPlayers = [];
 
 	private readonly Dictionary<string, AudioStreamOggVorbis> SFXDictionary = [];
-	private readonly Dictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
+	private readonly SortedDictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
 
 	public static AudioManager Instance { get; private set; }
 
@@ -63,7 +63,18 @@ public partial class AudioManager : Node
 				}
 			}
 		}
-		GD.Print($"Preloaded {SFXDictionary.Count} SFX. ({failedPreloads} failures)");
+		GD.Print($"Preloaded {SFXDictionary.Count} animation SFX. ({failedPreloads} failures)");
+		
+		// preload bgm
+		foreach (string bgm in ResourceLoader.ListDirectory("res://audio/bgm"))
+		{
+			AudioStreamOggVorbis stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + bgm);
+			stream.Loop = true;
+			stream.LoopOffset = 0;
+			BGMDictionary.Add(bgm.GetBaseName(), stream);
+		}
+
+		GD.Print($"Preloaded {BGMDictionary.Count} vanilla BGM.");
 	}
 
 	internal void PlaySFX(SFX sfx)

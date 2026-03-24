@@ -26,19 +26,27 @@ internal partial class PartyMenu : Menu
 		base.OnOpen(memory);
     }
 
+    private bool WaitForSecondRun = false;
+
 	protected override void OnSelect()
 	{
 		CursorSprite.StopBounce();
+		AudioManager.Instance.PlaySFX("SYS_select");
 		if (CursorIndex == 0)
 		{
+			WaitForSecondRun = false;
 			BattleManager.Instance.OnFightSelected();
-			AudioManager.Instance.PlaySFX("SYS_select");        
 		}
 		else
 		{
+			if (SettingsMenuManager.Instance.PreventAccidentalRun && !WaitForSecondRun)
+			{
+				WaitForSecondRun = true;
+				CursorSprite.StartBounce();
+				return;
+			}
 			BattleManager.Instance.Reset();
 			MainMenuManager.Instance.ReturnToTitle();
-			AudioManager.Instance.PlaySFX("SYS_select");
 		}
 	}
 

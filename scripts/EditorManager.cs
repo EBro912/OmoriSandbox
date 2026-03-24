@@ -151,7 +151,7 @@ internal partial class EditorManager : Node
 			BGMPreview.Stop();
 			if (tab == -1)
 			{
-				BattlebackPreview.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/battleback_vf_default.png");
+				BattlebackPreview.SetDefaultBattleback();
 				return;
 			}
 			for (int i = 0; i < StageTabs.GetTabCount(); i++)
@@ -195,6 +195,7 @@ internal partial class EditorManager : Node
 		BattlebackBGMEditor.Visible = EditorMode is GameModeType.Normal;
 		MainTabs.SetTabHidden(EnemiesTabIdx, EditorMode is GameModeType.BossRush);
 		MainTabs.SetTabHidden(BossRushTabIdx, EditorMode is GameModeType.Normal);
+		GameManager.Instance.DiscordManager.SetEditingPreset(EditorMode);
 	}
 
 	private void PreSave()
@@ -308,7 +309,8 @@ internal partial class EditorManager : Node
 					Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
 					FollowupsDisabled = editor.DisableFollowups.ButtonPressed,
 					Skills = skills,
-					Position = editor.ActorPosition
+					Position = editor.ActorPosition,
+					AdjustedStats = editor.GetAdjustedStats()
 				};
 				actors.Add(actor);
 			}
@@ -401,8 +403,7 @@ internal partial class EditorManager : Node
 	{
 		if (PresetDropdown.Selected == -1)
 			return;
-
-		ResetToDefault();
+		
 		string presetName = PresetDropdown.GetItemText(PresetDropdown.Selected);
 		string path = "user://presets/" + presetName + ".json";
 		if (!FileAccess.FileExists(path))
@@ -430,6 +431,7 @@ internal partial class EditorManager : Node
 			return;
 		}
 
+		ResetToDefault();
 		SetEditorMode(preset.Type);
 		if (EditorMode is GameModeType.Normal)
 		{
@@ -589,7 +591,12 @@ internal partial class EditorManager : Node
 		string path = "user://presets/" + preset + ".json";
 		if (FileAccess.FileExists(path))
 		{
-			DirAccess access = DirAccess.Open("user://presets");
+			using DirAccess access = DirAccess.Open("user://presets");
+			if (access == null)
+			{
+				GD.PrintErr("Failed to open presets directory");
+				return;
+			}
 			Error err = access.Remove(preset + ".json");
 			if (err == Error.Ok)
 			{
@@ -629,7 +636,7 @@ internal partial class EditorManager : Node
 		foreach (Control control in AddActorControls)
 		{
 			if (control.GetChildCount() > 1)
-				control.GetChild<Control>(1).QueueFree();
+				control.GetChild<Control>(1).Free();
 		}
 
 		// remove party member tabs
@@ -637,7 +644,7 @@ internal partial class EditorManager : Node
 		{
 			if (child is PartyMemberEditorComponent editor)
 			{
-				editor.QueueFree();
+				editor.Free();
 			}
 		}
 
@@ -646,7 +653,7 @@ internal partial class EditorManager : Node
 		{
 			if (child is EnemyEditorComponent editor)
 			{
-				editor.QueueFree();
+				editor.Free();
 			}
 		}
 		
@@ -655,7 +662,7 @@ internal partial class EditorManager : Node
 		{
 			if (child is BossRushStageEditorComponent editor)
 			{
-				editor.QueueFree();
+				editor.Free();
 			}
 		}
 
@@ -664,7 +671,7 @@ internal partial class EditorManager : Node
 		{
 			if (child is AnimatedSprite2D sprite)
 			{
-				sprite.QueueFree();
+				sprite.Free();
 			}
 		}
 
@@ -673,7 +680,7 @@ internal partial class EditorManager : Node
 		{
 			if (child is HBoxContainer container)
 			{
-				container.QueueFree();
+				container.Free();
 			}
 		}
 		
@@ -708,7 +715,7 @@ internal partial class EditorManager : Node
 	public static EditorManager Instance;
 	
     [Export] private AudioStreamPlayer BGMPreview;
-    [Export] private TextureRect BattlebackPreview;
+    [Export] private BattlebackDisplayComponent BattlebackPreview;
     [Export] private Control[] AddActorControls;
     [Export] private Control AddEnemyControl;
     [Export] private PackedScene PartyMemberEditor;

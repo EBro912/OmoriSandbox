@@ -36,9 +36,9 @@ internal sealed class MrJawsumAlt : Enemy
     internal void SpawnGatorGuy()
     {
         if (GatorGuys.Count == 0)
-           GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Alt)", new Vector2(CenterPoint.X - 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
+           GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)", new Vector2(CenterPoint.X - 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
         else if (GatorGuys.Count == 1)
-            GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Alt)", new Vector2(CenterPoint.X + 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
+            GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)", new Vector2(CenterPoint.X + 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
         else
         {
             GD.PushWarning("Tried to summon more than 2 gator guys!");
@@ -93,7 +93,7 @@ internal sealed class MrJawsumAlt : Enemy
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory) {
-            DialogueManager.Instance.QueueMessage("[shake amp=50.0][font_size=36]JAWHAW[font_size=48]HAW[font_size=60]HAW!!!");
+            DialogueManager.Instance.QueueMessage("[shake amp=50.0][font_size=40]JAWHAW[font_size=52]HAW[font_size=64]HAW!!!");
             DialogueManager.Instance.QueueMessage(this, "That's what happens when you mess with MR. JAWSUM!");
             await DialogueManager.Instance.WaitForDialogue();
         }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://buor8j7mu5dmb"]
+[gd_scene format=3 uid="uid://buor8j7mu5dmb"]
 
 [ext_resource type="Texture2D" uid="uid://5cmotqcbts7s" path="res://assets/system/enemy_box.png" id="1_wby51"]
 [ext_resource type="Script" uid="uid://gdsdknpc8e2e" path="res://scripts/EnemyMoreInfoBox.cs" id="2_dt8gn"]
@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="6_wl8cr"]
 [ext_resource type="Texture2D" uid="uid://cm4s47h547fbp" path="res://assets/system/enemy_box_juice.png" id="7_dt8gn"]
 
-[node name="AboveHead" type="Control" node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "DEFLabel", "LCKLabel", "Infobox", "NameLabel", "HPBar")]
+[node name="AboveHead" type="Control" unique_id=1300360389 node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "DEFLabel", "LCKLabel", "HITLabel", "Infobox", "NameLabel", "HPBar", "StateIcons")]
 z_index = 100
 z_as_relative = false
 layout_mode = 3
@@ -26,18 +26,20 @@ ATKLabel = NodePath("Infobox/ATKLabel")
 SPDLabel = NodePath("Infobox/SPDLabel")
 DEFLabel = NodePath("Infobox/DEFLabel")
 LCKLabel = NodePath("Infobox/LCKLabel")
+HITLabel = NodePath("Infobox/HITLabel")
 Infobox = NodePath("Infobox")
 NameLabel = NodePath("Infobox/Name")
 HPBar = NodePath("Infobox/Health")
+StateIcons = NodePath("StateIcons")
 
-[node name="Infobox" type="NinePatchRect" parent="."]
+[node name="Infobox" type="NinePatchRect" parent="." unique_id=1123494069]
 custom_minimum_size = Vector2(225, 0)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -112.0
-offset_top = -86.0
+offset_top = -91.0
 offset_right = 113.0
 offset_bottom = -11.0
 grow_horizontal = 2
@@ -48,7 +50,7 @@ patch_margin_top = 30
 patch_margin_right = 6
 patch_margin_bottom = 2
 
-[node name="Name" type="Label" parent="Infobox"]
+[node name="Name" type="Label" parent="Infobox" unique_id=4236578]
 custom_minimum_size = Vector2(145, 0)
 layout_mode = 1
 anchors_preset = 5
@@ -63,7 +65,7 @@ theme_override_fonts/font = ExtResource("2_wl8cr")
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 
-[node name="Health" type="TextureProgressBar" parent="Infobox"]
+[node name="Health" type="TextureProgressBar" parent="Infobox" unique_id=38995492]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -80,7 +82,7 @@ value = 100.0
 texture_under = ExtResource("3_dve8j")
 texture_progress = ExtResource("4_5yeuq")
 
-[node name="HealthLabel" type="Label" parent="Infobox/Health"]
+[node name="HealthLabel" type="Label" parent="Infobox/Health" unique_id=2034176762]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -88,22 +90,23 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -92.5
-offset_top = -6.0
+offset_top = -8.0
 offset_right = -3.0
-offset_bottom = 6.0
+offset_bottom = 7.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "0/0"
 horizontal_alignment = 2
 
-[node name="Heart" type="Sprite2D" parent="Infobox/Health"]
+[node name="Heart" type="Sprite2D" parent="Infobox/Health" unique_id=93596877]
 position = Vector2(-10, 6)
 texture = ExtResource("5_dt8gn")
 
-[node name="Juice" type="TextureProgressBar" parent="Infobox"]
+[node name="Juice" type="TextureProgressBar" parent="Infobox" unique_id=1622406112]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -120,7 +123,7 @@ value = 100.0
 texture_under = ExtResource("6_5yeuq")
 texture_progress = ExtResource("7_dt8gn")
 
-[node name="JuiceLabel" type="Label" parent="Infobox/Juice"]
+[node name="JuiceLabel" type="Label" parent="Infobox/Juice" unique_id=1602260082]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -128,90 +131,135 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -92.0
-offset_top = -6.0
+offset_top = -8.0
 offset_right = -2.5
-offset_bottom = 6.0
+offset_bottom = 7.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "0/0"
 horizontal_alignment = 2
 
-[node name="Juice" type="Sprite2D" parent="Infobox/Juice"]
+[node name="Juice" type="Sprite2D" parent="Infobox/Juice" unique_id=95368810]
 position = Vector2(-10, 6)
 texture = ExtResource("6_wl8cr")
 
-[node name="ATKLabel" type="Label" parent="Infobox"]
+[node name="ATKLabel" type="Label" parent="Infobox" unique_id=194802123]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 6.0
-offset_top = -2.5
-offset_right = 95.5
-offset_bottom = 13.5
+offset_left = 4.0
+offset_top = -6.0
+offset_right = 93.5
+offset_bottom = 13.0
 grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "ATK: 0"
 
-[node name="SPDLabel" type="Label" parent="Infobox"]
+[node name="SPDLabel" type="Label" parent="Infobox" unique_id=30853541]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 6.0
-offset_top = 12.5
-offset_right = 95.5
-offset_bottom = 28.5
+offset_left = 4.0
+offset_top = 9.0
+offset_right = 93.5
+offset_bottom = 28.0
 grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "SPD: 0"
 
-[node name="DEFLabel" type="Label" parent="Infobox"]
+[node name="DEFLabel" type="Label" parent="Infobox" unique_id=1810615813]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -95.0
-offset_top = -2.5
-offset_right = -5.5
-offset_bottom = 13.5
+offset_left = -93.0
+offset_top = -11.0
+offset_right = -3.5
+offset_bottom = 8.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "DEF: 0"
 horizontal_alignment = 2
 
-[node name="LCKLabel" type="Label" parent="Infobox"]
+[node name="LCKLabel" type="Label" parent="Infobox" unique_id=1513342139]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -95.0
-offset_top = 12.5
-offset_right = -5.5
-offset_bottom = 28.5
+offset_left = -93.0
+offset_top = 2.0
+offset_right = -3.5
+offset_bottom = 21.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "LCK: 0"
 horizontal_alignment = 2
 
-[node name="Cursor" type="Sprite2D" parent="."]
+[node name="HITLabel" type="Label" parent="Infobox" unique_id=1856701847]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = 16.0
+offset_right = -3.5
+offset_bottom = 35.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "HIT: 0"
+horizontal_alignment = 2
+
+[node name="Cursor" type="Sprite2D" parent="." unique_id=1285840323]
 rotation = -1.5708
 texture = ExtResource("6_3bapk")
 flip_h = true
+
+[node name="StateIcons" type="HFlowContainer" parent="." unique_id=188964995]
+z_index = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -58.0
+offset_top = -155.0
+offset_right = 58.0
+offset_bottom = -90.999985
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(58, 0)
+theme_override_constants/h_separation = -4
+theme_override_constants/v_separation = -4
+alignment = 1
+reverse_fill = true

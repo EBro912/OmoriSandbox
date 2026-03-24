@@ -467,7 +467,7 @@ public partial class AnimationManager : Node
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="target"/>.<br/>
-	/// Use <see cref="WaitForAnimation(int, Actor, bool)"/> if you want to wait for the animation to finish.
+	/// Use <see cref="WaitForAnimation(int, Actor)"/> if you want to wait for the animation to finish.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
@@ -478,20 +478,32 @@ public partial class AnimationManager : Node
 	}
 
 	/// <summary>
+	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/>.<br/>
+	/// Use <see cref="WaitForAnimation(int, Vector2, bool)"/> if you want to wait for the animation to finish.
+	/// </summary>
+	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
+	/// <param name="position">The coordinates to play the animation at.</param>
+	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
+	public void PlayAnimation(int id, Vector2 position, bool targetsEnemy)
+	{
+		StartAnimation(id, position, targetsEnemy);
+	}
+
+	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the screen.<br/>
 	/// Use <see cref="WaitForScreenAnimation(int, bool)"/> if you want to wait for the animation to finish.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
-	/// <param name="targetsEnemy">Whether or not this animation targets an enemy.<br/>
+	/// <param name="targetsEnemy">Whether this animation targets an enemy.<br/>
 	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
 	public void PlayScreenAnimation(int id, bool targetsEnemy)
 	{
-		StartAnimation(id, new Vector2(315, 240), targetsEnemy);
+		StartAnimation(id, new Vector2(320, 240), targetsEnemy);
 	}
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="target"/>, and waits for it to finish.<br/>
-	/// Use <see cref="PlayAnimation(int, Actor, bool)"/> if you want the animation to play without waiting.
+	/// Use <see cref="PlayAnimation(int, Actor)"/> if you want the animation to play without waiting.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
@@ -500,6 +512,19 @@ public partial class AnimationManager : Node
 	public async Task WaitForAnimation(int id, Actor target)
 	{
 		PlayAnimation(id, target);
+		await ToSignal(this, SignalName.AnimationFinished);
+	}
+
+	/// <summary>
+	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/> and waits for it to finish.<br/>
+	/// Use <see cref="PlayAnimation(int, Vector2, bool)"/> if you want the animation to play without waiting.
+	/// </summary>
+	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
+	/// <param name="position">The coordinates to play the animation at.</param>
+	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
+	public async Task WaitForAnimation(int id, Vector2 position, bool targetsEnemy)
+	{
+		PlayAnimation(id, position, targetsEnemy);
 		await ToSignal(this, SignalName.AnimationFinished);
 	}
 
@@ -524,8 +549,11 @@ public partial class AnimationManager : Node
 	public async Task WaitForReleaseEnergy()
 	{
 		ReleaseEnergy.Visible = true;
+		ReleaseEnergy.Modulate = Colors.Transparent;
 		AudioManager.Instance.PlaySFX("BA_release_energy", 1, 0.9f);
 		ReleaseEnergy.Play();
+		Tween tween = GetTree().CreateTween();
+		tween.TweenProperty(ReleaseEnergy, "modulate:a", 1f, 0.5f);
 		await ToSignal(ReleaseEnergy, AnimatedSprite2D.SignalName.AnimationFinished);
 		ReleaseEnergy.Visible = false;
 	}
@@ -785,11 +813,6 @@ public partial class AnimationManager : Node
 			return;
 		}
 
-		Vector2 drawPosition = position - new Vector2(96f, 96f);
-		// hack fix for the headbutt curtain animation
-		if (id == 30)
-			drawPosition += new Vector2(6f, 0f);
-
 		int index = 0;
 		switch (animation.Layer)
 		{
@@ -809,12 +832,12 @@ public partial class AnimationManager : Node
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 
-		PlayingAnimation playing = new(animation, drawPosition, index);
+		PlayingAnimation playing = new(animation, position, index);
 		AddChild(playing);
 		PlayingAnimations.Add(playing);
 	}
 
-	internal PlayingAnimation PreviewAnimation(int id)
+	internal PlayingAnimation PreviewAnimation(int id, int layer)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 			return null;
@@ -824,7 +847,7 @@ public partial class AnimationManager : Node
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 
-		PlayingAnimation playing = new(animation, new Vector2(219, 144), 10);
+		PlayingAnimation playing = new(animation, new Vector2(320, 240), layer);
 		PlayingAnimations.Add(playing);
 		return playing;
 	}

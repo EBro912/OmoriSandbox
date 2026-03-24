@@ -41,7 +41,8 @@ public abstract class Enemy : Actor
 		{
 			if (Database.TryGetSkill(s, out var skill))
 			{
-				Skills.Add(s, skill);
+				if (!Skills.TryAdd(s, skill)) 
+					GD.PushWarning($"Actor {Name} already has skill {s} equipped! Skipping...");
 				continue;
 			}
 			GD.PrintErr("Unknown skill: " + s);

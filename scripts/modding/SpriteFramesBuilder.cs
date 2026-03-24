@@ -32,6 +32,8 @@ public class SpriteFramesBuilder
         Width = width;
         Height = height;
         Columns = texture.GetWidth() / Width;
+        if (Columns == 0)
+            GD.PushError("Loaded atlas with zero columns! Double check the width and height!\nuser://mods/" + atlasPath);
     }
 
     /// <summary>
@@ -39,7 +41,7 @@ public class SpriteFramesBuilder
     /// </summary>
     /// <param name="emotion">The emotion this animation corresponds to.</param>
     /// <param name="fps">The FPS of the animation.</param>
-    /// <param name="indices">A list of indices into the atlas. Index 0 would be the top left of your altas, and increments going left to right.</param>
+    /// <param name="indices">A list of indices into the atlas. Index 0 would be the top left of your atlas, and increments going left to right.</param>
     /// <returns></returns>
     public SpriteFramesBuilder AddEmotion(string emotion, double fps, params int[] indices)
     {
@@ -48,6 +50,7 @@ public class SpriteFramesBuilder
             GD.PushWarning($"SpriteFrames already has an animation named {emotion}, skipping!");
             return this;
         }
+        
         spriteFrames.AddAnimation(emotion);
         spriteFrames.SetAnimationSpeed(emotion, fps);
         spriteFrames.SetAnimationLoop(emotion, true);

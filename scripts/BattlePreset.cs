@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using OmoriSandbox.Battle;
 
 namespace OmoriSandbox;
 
@@ -34,6 +35,7 @@ internal class BattlePresetActor
     public bool FollowupsDisabled { get; set; } = false;
     public string[] Skills { get; set; } = ["OAttack", "", "", "", ""];
     [JsonRequired] public int Position { get; set; }
+    public Stats AdjustedStats { get; set; } = new();
 }
 
 internal class BattlePresetEnemy

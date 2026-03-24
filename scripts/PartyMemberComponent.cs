@@ -1,6 +1,7 @@
 using Godot;
 using OmoriSandbox.Actors;
 using System;
+using System.Collections.Generic;
 using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox;
@@ -35,7 +36,7 @@ public partial class PartyMemberComponent : Node
     /// </summary>
     public int Position { get; private set; }
     /// <summary>
-    /// Whether or not the <see cref="Actors.PartyMember"/> has a followup.
+    /// Whether the <see cref="Actors.PartyMember"/> has a followup.
     /// </summary>
     public bool HasFollowup => FollowupBubbles != null;
 
@@ -45,29 +46,29 @@ public partial class PartyMemberComponent : Node
 	    OneShot = true
     };
 
-    internal void SetPartyMember(PartyMember partyMember, PackedScene followup, int position, string initialState, int level, string weapon, string charm, string[] skills)
+    internal void SetPartyMember(PartyMember partyMember, PackedScene followup, BattlePresetActor actor)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
 		StateAnimator = GetNode<StateAnimator>("../Battlecard/StateAnimatorComponent");
-		if (initialState == "hurt" || initialState == "victory")
-			initialState = "neutral";
-		PartyMember.Init(face, initialState, level, weapon, charm, skills);
+		if (actor.Emotion is "hurt" or "victory")
+			actor.Emotion = "neutral";
+		PartyMember.Init(face, actor);
 		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");
 		JuiceBar = GetNode<TextureProgressBar>("../Battlecard/Juice");
 		SelectedBox = GetNode<TextureRect>("../SelectedCard");
 		StateIcons = GetNode<HFlowContainer>("../StateIcons");
-		if (position % 2 == 0)
+		if (actor.Position % 2 == 0)
 		{
 			StateIcons.Position = new Vector2(0, -65);
 			StateIcons.ReverseFill = true;
 		}
 
-		HPBar.MaxValue = PartyMember.CurrentHP;
+		HPBar.MaxValue = PartyMember.CurrentStats.MaxHP;
 		HPBar.Value = PartyMember.CurrentHP;
-		JuiceBar.MaxValue = PartyMember.CurrentJuice;
+		JuiceBar.MaxValue = PartyMember.CurrentStats.MaxJuice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
 		TargetHP = PartyMember.CurrentHP;
@@ -81,7 +82,7 @@ public partial class PartyMemberComponent : Node
 			FollowupBubbles = bubbles;
 		}
 
-		Position = position;
+		Position = actor.Position;
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 		PartyMember.OnStateChanged += StateChanged;
@@ -91,10 +92,10 @@ public partial class PartyMemberComponent : Node
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
 		AddChild(HurtTimer);
 		
-		PartyMember.Sprite.Animation = initialState;
-		PartyMember.CurrentState = initialState;
+		PartyMember.Sprite.Animation = actor.Emotion;
+		PartyMember.CurrentState = actor.Emotion;
 		// delay this call to let everything initialize
-		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, initialState);
+		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, actor.Emotion);
 	}
 
 	private void StateChanged(object sender, EventArgs e)
@@ -163,14 +164,19 @@ public partial class PartyMemberComponent : Node
 		set => SelectedBox.Visible = value;
 	}
 
-    internal void FadeInFollowups()
+    internal void FadeInFollowups(HashSet<InputDirection> disabledDirections = null)
 	{
-		FollowupBubbles.ShowBubbles();
+		FollowupBubbles.ShowBubbles(disabledDirections);
 	}
 
     internal void FadeOutFollowups()
 	{
 		FollowupBubbles.HideBubbles();
+	}
+
+    internal void FadeOutFollowupsExcept(InputDirection selected)
+	{
+		FollowupBubbles.HideBubblesExcept(selected);
 	}
 
 }

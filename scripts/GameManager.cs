@@ -59,18 +59,89 @@ namespace OmoriSandbox;
  - Fix followups (party and bosses) with less than 4 party members - done (needs testing for bosses)
  */
 
-internal partial class GameManager : Node
+ /* Playtesting changes:
+ - Make Alt. boss names more descriptive - done
+ - Fix duplicate skill entries - done
+ - Investigate a fix for certain textures like the energy bar 0 - done i think
+ - Fix font size in skill descriptions, title 28 description 20/22 - done
+ - Hide infoboxes on quick restart - done
+ - Reword infinite buffs/debuffs tooltip - done
+ - Permanent stat upgrades (TBD) - in testing
+ - Apply attack/skill/snack/toy menu pathing to other menus - potentially done
+ - Confirmation for running/quick restart - done
+ - Import preset as battle stage
+ - King Carnivore and Boss rush humphrey
+ - Spawning enemies in the editor initalizes them, this breaks things like HumphreyFace
+ - Have a toggleable list of weapons to only show weapons equipable by that actor - done
+ - Aubrey's speed stats are wrong, check others - potentially done
+ - Enemies that don't fall off the screen in boss rush persist over stages - done
+ - Skills can be selected during targeting - done
+ - State icons persist over boss rush phases - potentially done
+ - Humphrey transitions break if he changes phase at the start of the turn
+ - Loading a regular preset after loading a boss rush preset messes up the battleback - done
+ - If another damage number spawns on top of another, shift existing ones up - done
+ - Revert text sizing - done
+ - Only X works to skip text, Z does nothing - done
+ - Can't skip text after an input pause - done
+ - Follow-up bubbles are inaccurate: the selected follow-up bubble should stay on screen until the basic attack finishes - done
+ - PH's Exploit has wrong battletext: it says "EMOTION" while it should say "EMOTIONS" - done
+ - State icons don't show for enemies - done
+ - Omori's basic attack has a noticeable delay between the animation finishing and the skill dealing damage
+ - Release Energy's animation should fade in, currently it cuts with no fade - done
+ - Twirl has no battletext (should be "<user> attacks <target>!") - done
+ - Encore should not work with afraid - done
+ - Revisit font sizing and outlining throughout game
+ - Add a method to play animations at specific coordinates - done
+ - Backgrounds exactly the size of the screen repeat on the edges - not actually an issue?
+ - Aubrey's Counter Attack uses wrong battletext; should be "AUBREY swings back!" - done
+ - Boss Rush Pluto Expanded doesn't use his Expand Further skill at 50% HP (I haven't tested the normal version)
+ - Important note about force actions:
+	 - Whenever an enemy is forced to use a skill by an event and they have NOT acted yet, the enemy will use the forced skill and then immediately act from their normal AI.
+	 - Example:
+	   - Slime Girls HP is below 75%
+	   - Slime Girls are forced to use "SELF ANGRY" by a troop event
+	   - Slime Girls will use a skill from their normal AI, regardless of their speed
+	 - Note that follow-ups can interrupt this and attack between the enemy's actions:
+	   - Omori attacks Slime Girls and activates Trip follow-up. The basic attack brings them below 75% HP.
+	   - Slime Girls are forced to use "SELF ANGRY" by a troop event
+	   - Omori's Trip skill activates
+	   - Slime Girls will use a skill from their normal AI, regardless of their speed
+ - Flex should ignore certain hit - done
+ - Flex shouldn't be removed if the attack does 0 damage - done
+ - Make Encourage only target the leader - done
+ - Reset screen tint on battle start - done
+ - Add flag to allow modded animations to loop
+ - Add layer selector to animation viewer - done
+ - Fix certain broken animations - done?
+ - Add thematic dialogue (Sweetheart donut, Pluto flex)
+ - Improve what is considered a basic attack/followup - done
+ - Extract battlebacks into a battleback manager and potentially support animated ones - done
+ - Make weapons use StatBonus - done
+ - Make followup arrows transparent if the target is invalid - done
+ - Adding a non-hidden skill as the basic attack skill breaks the skill menu - fixed?
+ - Revamp credits screen - done
+ - Grey tint on victory
+ - 10x damage on holding shift - done
+ */
+
+/// <summary>
+/// The main Game Manager.
+/// </summary>
+public partial class GameManager : Node
 {
 	public const string Version = "OmoriSandbox v1.0.0 (dev build)";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
-	[Export] private TextureRect BattlebackParent;
+	[Export] private BattlebackDisplayComponent BattlebackParent;
 	[Export] private Label FPSLabel;
 	[Export] private Node Party;
 
 	[Export] private PackedScene[] Followups;
 
+	/// <summary>
+	/// A random number generator.
+	/// </summary>
 	public RandomNumberGenerator Random = new();
 	internal DiscordManager DiscordManager { get; private set; }
 	public static GameManager Instance { get; private set; }
@@ -102,17 +173,13 @@ internal partial class GameManager : Node
 		DiscordManager.Shutdown();
 	}
 
-	internal void SetBattleback(string name)
+	/// <summary>
+	/// Sets the battleback.
+	/// </summary>
+	/// <param name="name">The name of the battleback to set.</param>
+	public void SetBattleback(string name)
 	{
-		if (ResourceLoader.Exists("res://assets/battlebacks/" + name + ".png"))
-			BattlebackParent.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/" + name + ".png");
-		else if (ModManager.Instance.Battlebacks.TryGetValue(name, out Texture2D texture))
-			BattlebackParent.Texture = texture;
-		else
-		{
-			BattlebackParent.Texture = ResourceLoader.Load<Texture2D>("res://assets/battlebacks/battleback_vf_default.png");
-			GD.PushWarning($"Failed to load battleback {name}, falling back to default.");
-		}
+		BattlebackParent.SetBattleback(name);
 	}
 
 	internal void LoadBattlePreset(BattlePreset preset)
@@ -189,7 +256,12 @@ internal partial class GameManager : Node
 		{
 			child.QueueFree();
 		}
+		
+		DespawnEnemies();
+	}
 
+	internal void DespawnEnemies()
+	{
 		// skip the first child as the first child is the FullscreenEffects
 		foreach (Node child in BattlebackParent.GetChildren().Skip(1))
 		{
@@ -220,15 +292,15 @@ internal partial class GameManager : Node
 		Party.AddChild(card);
 		card.Position = actor.Position switch
 		{
-			0 => new Vector2(20, 306),
-			1 => new Vector2(20, 5),
-			2 => new Vector2(506, 306),
-			3 => new Vector2(506, 5),
+			0 => new Vector2(14, 305),
+			1 => new Vector2(14, 5),
+			2 => new Vector2(512, 305),
+			3 => new Vector2(512, 5),
 			_ => card.Position
 		};
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember(instance, followup, actor.Position, actor.Emotion, actor.Level, actor.Weapon, actor.Charm, actor.Skills);
+		component.SetPartyMember(instance, followup, actor);
 		return component;
 	}
 }

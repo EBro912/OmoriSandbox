@@ -20,4 +20,5 @@ internal sealed class Sunny : PartyMember
     public override int BaseLuck => 5;
     public override string[] InvalidStates => ["happy", "ecstatic", "manic", "depressed", "miserable", "enraged", "furious"];
     public override bool IsRealWorld => true;
+    public override string[] EquippableWeapons => ["Fly Swatter", "Steak Knife", "Hands", "Violin"];
 }

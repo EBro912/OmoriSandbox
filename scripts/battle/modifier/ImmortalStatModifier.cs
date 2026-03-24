@@ -10,8 +10,7 @@ public sealed class ImmortalStatModifier : StatModifier
     public ImmortalStatModifier(params StatBonus[] bonuses) : base(bonuses) { }
 
     /// <inheritdoc/>
-    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking,
-        bool isCritical)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
         if (phase is not DamagePhase.PostApply)
             return;

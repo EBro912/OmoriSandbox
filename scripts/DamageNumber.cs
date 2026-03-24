@@ -6,7 +6,7 @@ namespace OmoriSandbox;
 
 internal partial class DamageNumber : Node2D
 {
-    private static HashSet<Vector2> DamageNumbers = [];
+    private static Dictionary<Vector2, DamageNumber> DamageNumbers = [];
     
     private int[] Digits;
     private DamageType DamageType;
@@ -25,10 +25,20 @@ internal partial class DamageNumber : Node2D
         Critical = critical;
         ZAsRelative = false;
         ZIndex = 5;
-        while (DamageNumbers.Contains(position))
-            position.Y += 40;
         Position = position;
-        DamageNumbers.Add(position);
+        if (DamageNumbers.TryGetValue(Position, out DamageNumber number))
+            ShiftUp(number);
+        DamageNumbers[Position] = this;
+    }
+
+    private void ShiftUp(DamageNumber number)
+    {
+        DamageNumbers.Remove(number.Position);
+        Vector2 newPos = number.Position + new Vector2(0, -40);
+        if (DamageNumbers.TryGetValue(newPos, out DamageNumber otherNumber))
+            ShiftUp(otherNumber);
+        number.Position = newPos;
+        DamageNumbers[newPos] = number;
     }
 
     // since we spawn in damage numbers we need to cache this texture from elsewhere

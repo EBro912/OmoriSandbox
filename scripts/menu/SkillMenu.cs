@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -14,9 +15,9 @@ internal partial class SkillMenu : Menu
 	private List<Vector2I> Positions = [new(-145, 5), new(25, 5), new(-145, 25), new(25, 25)];
 
 	private Vector2I GridSize = new(2, 2);
-	private Actor Actor;
+	private PartyMember Actor;
 
-	public void Populate(Actor actor)
+	public void Populate(PartyMember actor)
 	{
 		Skills.Clear();
 		Actor = actor;
@@ -26,6 +27,11 @@ internal partial class SkillMenu : Menu
 		int idx = 0;
         foreach (Skill s in actor.Skills.Values.Where(x => !x.Hidden))
 		{
+			// since Actor.Skills is a dictionary, we need to check here if the skill is the PartyMember's attack skill,
+			// i.e. the first one in their skill list
+			// OrderedDictionary doesn't accept types for whatever reason...
+			if (s.Name == actor.EquippedSkills[0])
+				continue;
 			if (idx > 3)
 				break;
 			SkillLabels[idx].Text = s.Name;
@@ -51,20 +57,30 @@ internal partial class SkillMenu : Menu
         if (Empty) return;
         Skill s = Skills[CursorIndex];
 		CostText.Text = s.Cost(Actor).ToString();
-		BattleLogManager.Instance.ClearAndShowMessage($"{s.Name}\n{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
+		BattleLogManager.Instance.ClearAndShowMessage($"[font_size=28]{s.Name}\n[font_size=20]{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
 	}
 
 	protected override void MoveCursor(Vector2I direction)
 	{
         if (Empty) return;
+        if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;
         int old = CursorIndex;
-        int x = CursorIndex % 2;
-		int y = CursorIndex / 2;
-		x = (x + direction.X + GridSize.X) % GridSize.X;
-		y = (y + direction.Y + GridSize.Y) % GridSize.Y;
-		int newIndex = y * GridSize.X + x;
-		newIndex = Mathf.Min(newIndex, Skills.Count - 1);
-		CursorIndex = newIndex;
+        // omori menus have no wrapping
+        // pressing left or right simply increments/decrements the index
+        if (direction == Vector2.Left)
+	        CursorIndex = Math.Max(CursorIndex - 1, 0);
+        else if (direction == Vector2.Right)
+	        CursorIndex = Math.Min(CursorIndex + 1, Skills.Count - 1);
+        else if (direction == Vector2.Up)
+        {
+	        if (CursorIndex > 1)
+		        CursorIndex -= 2;
+        }
+        else if (direction == Vector2.Down)
+        {
+	        if (CursorIndex < 2 && Skills.Count > 2)
+		        CursorIndex = Math.Min(CursorIndex + 2, Skills.Count - 1);
+        }
 		if (CursorIndex != old)
 		{
 			UpdateCursor();

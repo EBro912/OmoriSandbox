@@ -13,6 +13,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 	[Export] private Label SPDLabel;
 	[Export] private Label DEFLabel;
 	[Export] private Label LCKLabel;
+	[Export] private Label HITLabel;
 
 	internal override void SetEnemy(Enemy enemy)
 	{
@@ -25,6 +26,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		SPDLabel.Text = $"SPD: {Enemy.BaseStats.SPD}";
 		DEFLabel.Text = $"DEF: {Enemy.BaseStats.DEF}";
 		LCKLabel.Text = $"LCK: {Enemy.BaseStats.LCK}";
+		HITLabel.Text = $"HIT: {Enemy.BaseStats.HIT}";
 	}
 	
 	internal override void Show(bool show)
@@ -38,5 +40,6 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		SPDLabel.Text = $"SPD: {stats.SPD}";
 		DEFLabel.Text = $"DEF: {stats.DEF}";
 		LCKLabel.Text = $"LCK: {stats.LCK}";
+		HITLabel.Text = $"HIT: {stats.HIT}";
 	}
 }

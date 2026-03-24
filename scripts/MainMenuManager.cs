@@ -98,6 +98,24 @@ internal partial class MainMenuManager : Node
 			Settings.Visible = true;
 		};
 
+		CreditsButton.Pressed += () =>
+		{
+			MainControls.Visible = false;
+			Logo.Visible = false;
+			OmoriFace.Visible = false;
+			CreditsPanel.Visible = true;
+			CreditsButton.GetParent<Control>().Visible = false;
+		};
+
+		CreditsBackButton.Pressed += () =>
+		{
+			MainControls.Visible = true;
+			Logo.Visible = true;
+			OmoriFace.Visible = true;
+			CreditsPanel.Visible = false;
+			CreditsButton.GetParent<Control>().Visible = true;
+		};
+
 		QuitButton.Pressed += () =>
 		{
 			if (QuitButton.Text == "Back")
@@ -153,7 +171,6 @@ internal partial class MainMenuManager : Node
 		AudioManager.Instance.StopBGM();
 		MainMenu.Visible = false;
 		Editor.Visible = true;
-		GameManager.Instance.DiscordManager.SetEditingPreset();
 	}
 
 	public void AddModListEntry(ModMetadata data, Texture2D icon = null)
@@ -222,5 +239,8 @@ internal partial class MainMenuManager : Node
 	[Export] private Button ModFolderButton;
 	[Export] private Label ModsLoaded;
 	[Export] private Button GithubButton;
+	[Export] private Button CreditsButton;
+	[Export] private Button CreditsBackButton;
+	[Export] private Panel CreditsPanel;
 	[Export] private OptionButton TitlePresetDropdown;
 }

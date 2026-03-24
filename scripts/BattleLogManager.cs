@@ -19,7 +19,7 @@ public partial class BattleLogManager : Control
 	[Signal] public delegate void FinishedLoggingEventHandler();
 
 	[Export] private PackedScene LogLine;
-	[Export] private Label ImmediateLabel;
+	[Export] private RichTextLabel ImmediateLabel;
 	[Export] private Font Font;
 	[Export] private Sprite2D Icon;
 
@@ -73,7 +73,7 @@ public partial class BattleLogManager : Control
 	/// <summary>
 	/// Queues a message to be displayed in the battle log.
 	/// </summary>
-	/// <param name="message">The message to display. Occurences of the \n character will split the message up into different logs.</param>
+	/// <param name="message">The message to display. Occurrences of the \n character will split the message up into different logs.</param>
 	public void QueueMessage(string message)
 	{
 		MessageQueue.Enqueue(message);
@@ -83,8 +83,8 @@ public partial class BattleLogManager : Control
 	}
 
 	/// <summary>
-	/// Immediately shows a message in the battle log, bypassing the queue.<br/>
-	/// Will automatically resize the font to fit the message in the box.
+	/// Immediately shows a message in the battle log.<br/>
+	/// Accepts Godot BBCode for formatting.
 	/// </summary>
 	/// <param name="message">The message to display.</param>
 	public void ShowMessage(string message)
@@ -92,17 +92,11 @@ public partial class BattleLogManager : Control
 		ImmediateLabel.Size = NO_ICON;
 		Icon.Visible = false;
 		ImmediateLabel.Text = message;
-		int fontSize = 24;
-		while (Font.GetMultilineStringSize(ImmediateLabel.Text, ImmediateLabel.HorizontalAlignment, -1, fontSize).X > ImmediateLabel.Size.X)
-		{
-			fontSize--;
-		}
-		ImmediateLabel.AddThemeFontSizeOverride("font_size", fontSize);
 	}
 
 	/// <summary>
-	/// Immediately shows a message in the battle log, bypassing the queue.<br/>
-	/// Also shows an item icon from the specified <see cref="spritesheetPath"/>.
+	/// Immediately shows a message in the battle log, as well as an item icon from the specified <see cref="spritesheetPath"/>.<br/>
+	/// Accepts Godot BBCode for formatting.
 	/// </summary>
 	/// <param name="message">The message to display.</param>
 	/// <param name="spritesheetPath">The path to the spritesheet to use.</param>
@@ -118,12 +112,6 @@ public partial class BattleLogManager : Control
 		Icon.RegionEnabled = true;
 		Icon.RegionRect = new Rect2(column * ICON_SIZE, row * ICON_SIZE, ICON_SIZE, ICON_SIZE);
 		ImmediateLabel.Text = message;
-		int fontSize = 24;
-		while (Font.GetMultilineStringSize(ImmediateLabel.Text, ImmediateLabel.HorizontalAlignment, -1, fontSize).X > ImmediateLabel.Size.X)
-		{
-			fontSize--;
-		}
-		ImmediateLabel.AddThemeFontSizeOverride("font_size", fontSize);
 	}
 
 	/// <summary>

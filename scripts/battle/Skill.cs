@@ -22,6 +22,10 @@ public class Skill : BattleAction
 	/// Whether this skill is hidden in the skill menu.
 	/// </summary>
 	public bool Hidden { get; private set; }
+	/// <summary>
+	/// Whether this skill causes the followup bubbles to appear when used by a <see cref="PartyMember"/>.
+	/// </summary>
+	public bool ShowFollowups { get; private set; }
 
 	/// <summary>
 	/// Whether the given <param name="actor"> meets the requirements to use this skill.</param>
@@ -62,11 +66,12 @@ public class Skill : BattleAction
 	/// <param name="cost">How much juice this skill costs to use.</param>
 	/// <param name="hidden">Whether this skill should show up in the actor's skill list.</param>
 	/// <param name="priority">The priority of the skill during turn order calculation.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal)
+	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false)
 		: base(name, description, target, priority, effect)
 	{
 		BaseCost = cost;
 		Hidden = hidden;
+		ShowFollowups = showFollowups;
 	}
 	
 	/// <summary>
@@ -79,11 +84,12 @@ public class Skill : BattleAction
 	/// <param name="cost">How much juice this skill costs to use.</param>
 	/// <param name="hidden">Whether this skill should show up in the actor's skill list.</param>
 	/// <param name="priority">The priority of the skill during turn order calculation.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal)
+	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false)
 		: base(name, description, target, priority, effect)
 	{
 		BaseCost = cost;
 		Hidden = hidden;
+		ShowFollowups = showFollowups;
 	}
 
 	/// <summary>
