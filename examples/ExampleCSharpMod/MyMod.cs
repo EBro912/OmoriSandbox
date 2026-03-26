@@ -3,7 +3,7 @@ using OmoriSandbox.Modding;
 
 namespace OmoriSandboxSampleMod
 {
-    public class MyMod : Mod
+    public partial class MyMod : Mod
     {
         public override void OnLoad()
         {

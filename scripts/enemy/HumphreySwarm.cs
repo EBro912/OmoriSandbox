@@ -85,11 +85,8 @@ internal sealed class HumphreySwarm : Enemy
         DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]The final fight as just begun!\| But can you win if we work as one?[/wave]");
         await DialogueManager.Instance.WaitForDialogue();
         await AnimationManager.Instance.WaitForHumphreySwarm();
-        EnemyComponent grande = BattleManager.Instance.SummonEnemy("HumphreyGrande", CenterPoint, fallsOffScreen: false, layer: Layer);
+        EnemyComponent grande = BattleManager.Instance.TransformEnemy(this, "HumphreyGrande");
         grande.Actor.AddStatModifier("Immortal");
-        RemoveStatModifier("Immortal");
-        CurrentHP = 0;
-        SetState("toast", true);
         await Task.Delay(2500);
         await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
     }

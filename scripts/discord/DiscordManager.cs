@@ -71,7 +71,7 @@ internal class DiscordManager
     public void SetBattling(int enemies)
     {
         if (DiscordDisabled) return;
-        Activity.Details = $"Battling {enemies} Enemies";
+        Activity.Details = enemies == 1 ? "Battling 1 Enemy" : $"Battling {enemies} Enemies";
         DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
     }
 

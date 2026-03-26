@@ -43,13 +43,10 @@ internal sealed class HumphreyGrande : Enemy
             BattleLogManager.Instance.ClearBattleLog();
             foreach (PartyMember member in SelectAllTargets())
                 BattleManager.Instance.Damage(this, member, () => member.CurrentStats.MaxHP * 0.25f, true, 0.5f, neverCrit: true);
-            EnemyComponent face = BattleManager.Instance.SummonEnemy("HumphreyFace", CenterPoint, fallsOffScreen: false, layer: Layer);
+            EnemyComponent face = BattleManager.Instance.TransformEnemy(this, "HumphreyFace");
             // face gets a turn after spawning
             BattleCommand command = face.Actor.ProcessAI();
             BattleManager.Instance.ForceCommand(face.Actor, command.Targets, command.Action as Skill);
-            RemoveStatModifier("Immortal");
-            CurrentHP = 0;
-            SetState("toast", true);
             await Task.Delay(2000);
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }

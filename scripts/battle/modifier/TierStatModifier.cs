@@ -46,7 +46,7 @@ public class TierStatModifier : StatModifier
 
 	/// <summary>
 	/// Represents a tiered stat bonus with a turn counter. Defaults to starting at tier 1.
-	/// Use <see cref="SetTier(int)"/> to modify the modifier's tier.
+	/// Use <see cref="ApplyTier(int)"/> to modify the modifier's tier.
 	/// </summary>
 	/// <param name="turns">The number of turns to give this stat bonus for.</param>
 	/// <param name="bonuses">A list of stat bonuses. Each index of is list is mapped to the stat to provide at that tier.</param>
@@ -90,32 +90,35 @@ public class TierStatModifier : StatModifier
 	}
 	
 	/// <summary>
-	/// Directly sets the tier of the stat modifier.
+	/// Applies a tier to this stat modifier.
 	/// </summary>
-	/// <param name="tier">The tier to set this stat modifier to.</param>
-	/// <returns>If the change is successful.</returns>
-	public bool SetTier(int tier)
+	/// <param name="tier">The tier to apply.</param>
+	/// <returns>True if the tier was changed or the turn counter was refreshed.</returns>
+	public bool ApplyTier(int tier)
 	{
-		if (Tier == MaxTier)
+		tier = Math.Min(tier, MaxTier);
+		if (tier < Tier)
 			return false;
-		Tier = Math.Min(tier, MaxTier);
-		return true;
-	}
-
-	/// <summary>
-	/// Increases the tier of this stat modifier by one. Also resets the turns left counter.
-	/// </summary>
-	/// <returns>If the increase is successful.</returns>
-	public bool IncreaseTier()
-	{
-		if (Tier < MaxTier)
+		if (tier > Tier)
 		{
-			Tier++;
+			Tier = tier;
 			TurnsLeft = MaxTurns;
 			return true;
 		}
+		// tier == Tier (same tier applied)
+		if (Tier == MaxTier)
+		{
+			TurnsLeft = MaxTurns; // at max, just refresh
+			return true;
+		}
+		Tier++;
+		TurnsLeft = MaxTurns;
+		return true;
+	}
 
-		return false;
+	internal void WithTier(int tier)
+	{
+		Tier = Math.Min(tier, MaxTier);
 	}
 
 	/// <inheritdoc/>

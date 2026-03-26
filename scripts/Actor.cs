@@ -134,7 +134,7 @@ public abstract class Actor
 		{
 			if (m is TierStatModifier tier)
 			{
-				bool success = tier.IncreaseTier();
+				bool success = tier.ApplyTier(1);
 				if (success)
 				{
                     GD.Print("Increased tier of " + modifier + " on " + Name + " to " + tier.CurrentTier);
@@ -143,8 +143,7 @@ public abstract class Actor
 					ShowStatMessage(success ? tier.SuccessMessage : tier.FailureMessage);
 				return;
 			}
-			m.SetMaxTurns(turns);
-			m.SetTurnsLeft(turns);
+			m.RefreshTurns();
 			GD.Print("Refreshed modifier " + modifier + " on " + Name);
 		}
 		else
@@ -158,7 +157,6 @@ public abstract class Actor
 
 			if (turns > -1)
 			{
-				mod.SetMaxTurns(turns);
 				mod.SetTurnsLeft(turns);
 			}
 
@@ -189,11 +187,10 @@ public abstract class Actor
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m))
 		{
 			TierStatModifier existing = m as TierStatModifier;
-			bool success = existing.CurrentTier < tier ? existing.SetTier(tier) : existing.IncreaseTier();
+			bool success = existing.ApplyTier(tier);
 			if (success)
 			{
                 GD.Print("Increased tier of " + modifier + " on " + Name + " to " + existing.CurrentTier);
-                existing.SetTurnsLeft(turns);
 			}
 			if (!silent && existing.SuccessMessage != null)
 			{
@@ -201,7 +198,7 @@ public abstract class Actor
 			}
 			return;
 		}
-		t.SetTier(tier);
+		t.WithTier(tier);
 		t.SetTurnsLeft(turns);
 		StatModifiers.Add(modifier, t);
 		t.OnAdd(this);

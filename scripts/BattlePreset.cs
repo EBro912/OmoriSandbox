@@ -12,6 +12,7 @@ internal class BattlePreset
     public string BGM { get; set; } = "battle_vf";
     public double BGMPitch { get; set; } = 1d;
     public double BGMLoopPoint { get; set; } = 0d;
+    public int StartingEnergy { get; set; } = 3;
     public int FollowupTier { get; set; } = 1;
     public bool BasilFollowups { get; set; } = false;
     public bool BasilReleaseEnergy { get; set; } = false;

@@ -3,6 +3,7 @@ using Godot;
 using OmoriSandbox.Animation;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace OmoriSandbox;
 
@@ -237,13 +238,38 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/>.
 	/// </summary>
-	/// <param name="volume">The volume to fade the BGM to.</param>
+	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 2.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public void FadeBGMTo(float volume, float seconds = 1f)
 	{
+		volume = Math.Clamp(volume, 0.001f, 2f);
 		float target = Mathf.LinearToDb(volume);
-		Tween tween = CreateTween();
-		tween.TweenProperty(BGM, "volume_db", target, seconds);
+		if (seconds == 0f)
+			BGM.VolumeDb = target;
+		else
+		{
+			Tween tween = CreateTween();
+			tween.TweenProperty(BGM, "volume_db", target, seconds);
+		}
+	}
+
+	/// <summary>
+	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
+	/// </summary>
+	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 2.0.</param>
+	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
+	public async Task WaitForFadeBGMTo(float volume, float seconds = 1f)
+	{
+		volume = Math.Clamp(volume, 0.001f, 2f);
+		float target = Mathf.LinearToDb(volume);
+		if (seconds == 0f)
+			BGM.VolumeDb = target;
+		else
+		{
+			Tween tween = CreateTween();
+			tween.TweenProperty(BGM, "volume_db", target, seconds);
+			await ToSignal(tween, Tween.SignalName.Finished);
+		}
 	}
 
 	private void OnSFXFinish(AudioStreamPlayer player)

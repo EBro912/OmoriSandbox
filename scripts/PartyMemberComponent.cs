@@ -148,10 +148,11 @@ public partial class PartyMemberComponent : Node
 			StateIcon[] icons = modifier.GetStateIcons();
 			foreach (StateIcon icon in icons)
 			{
+				string tooltip = modifier.TurnsLeft > -1 ? icon.Description + "\nTurns Left: " + modifier.TurnsLeft : icon.Description;
 				TextureRect rect = new()
 				{
 					Texture = ResourceLoader.Load<Texture2D>($"res://assets/stateicons/{icon.AssetName}.png"),
-					TooltipText = icon.Description
+					TooltipText = tooltip
 				};
 				StateIcons.AddChild(rect);
 			}

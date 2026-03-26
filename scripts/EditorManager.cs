@@ -110,6 +110,7 @@ internal partial class EditorManager : Node
 			Results.Text = string.Join(", ", results);
 		};
 
+		StartingEnergySlider.ValueChanged += (value) => StartingEnergyValue.Text = value.ToString();
 		FollowupTierSlider.ValueChanged += (value) => FollowupTierValue.Text = value.ToString();
 
 		AddStageButton.Pressed += () =>
@@ -262,6 +263,7 @@ internal partial class EditorManager : Node
 		{
 			Type = EditorMode,
 			Name = PresetInput.Text,
+			StartingEnergy = (int)StartingEnergySlider.Value,
 			FollowupTier = (int)FollowupTierSlider.Value,
 			BasilFollowups = BasilFollowupsCheckbox.ButtonPressed,
 			BasilReleaseEnergy = BasilReleaseEnergyCheckbox.ButtonPressed,
@@ -441,6 +443,7 @@ internal partial class EditorManager : Node
 			BattlebackBGMEditor.BGMLoopPointValue = preset.BGMLoopPoint;
 		}
 
+		StartingEnergySlider.Value = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTierSlider.Value = Math.Clamp(preset.FollowupTier, 1, 3);
 		BasilFollowupsCheckbox.ButtonPressed = preset.BasilFollowups;
 		BasilReleaseEnergyCheckbox.ButtonPressed = preset.BasilReleaseEnergy;
@@ -725,6 +728,8 @@ internal partial class EditorManager : Node
     [Export] private TabContainer ActorTabs;
     [Export] private TabContainer EnemyTabs;
     [Export] private BattlebackBGMEditorComponent BattlebackBGMEditor;
+    [Export] private HSlider StartingEnergySlider;
+    [Export] private Label StartingEnergyValue;
     [Export] private HSlider FollowupTierSlider;
     [Export] private Label FollowupTierValue;
     [Export] private CheckBox BasilFollowupsCheckbox;

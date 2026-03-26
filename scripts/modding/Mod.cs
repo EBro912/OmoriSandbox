@@ -9,7 +9,7 @@ namespace OmoriSandbox.Modding;
 /// <summary>
 /// The base mod class that all mods must inherit from.
 /// </summary>
-public abstract class Mod
+public abstract partial class Mod : Node
 {
     /// <summary>
     /// Fired whenever the mod is first loaded. Equivalent to Godot's _Ready function.

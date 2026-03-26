@@ -77,7 +77,7 @@ namespace OmoriSandbox;
  - Enemies that don't fall off the screen in boss rush persist over stages - done
  - Skills can be selected during targeting - done
  - State icons persist over boss rush phases - potentially done
- - Humphrey transitions break if he changes phase at the start of the turn
+ - Humphrey transitions break if he changes phase at the start of the turn - in testing
  - Loading a regular preset after loading a boss rush preset messes up the battleback - done
  - If another damage number spawns on top of another, shift existing ones up - done
  - Revert text sizing - done
@@ -122,6 +122,16 @@ namespace OmoriSandbox;
  - Revamp credits screen - done
  - Grey tint on victory
  - 10x damage on holding shift - done
+ - Enemies die before using their battle conditions
+ - Pluto transition
+ - Speed should be recalculated after every turn
+ - Applying a lower tier buff to a tiered buff should not refresh the buff, while a greater or equal tier buff upgrades and/or refreshes - in testing
+ - Add turn count to state icon hover - done
+ - Abstract SpriteFramesBuilder
+ - Game speedup with timescale
+ - Select sound plays twice on multi-target actions - fixed?
+ - Fix sizing of skill/snack/toy menu
+ - Add wait for bgm fade - done
  */
 
 /// <summary>

@@ -18,6 +18,7 @@ internal partial class ItemMenu : Menu
 	private List<Vector2I> Positions = [new Vector2I(-145, 5), new Vector2I(25, 5), new Vector2I(-145, 25), new Vector2I(25, 25)];
 
 	private Vector2I GridSize = new(2, 2);
+	private int MaxPage => Math.Max(0, (Items.Count - 3) / 2);
 
 	public override void OnOpen(SelectionMemory memory)
 	{
@@ -25,20 +26,20 @@ internal partial class ItemMenu : Menu
 		PageDownSprite.Visible = false;
 		// make sure our previous selection is in-bounds
 		// if an item gets removed due to running out of stock, the previous data may be invalid
-		if (memory.SavedState == MenuState.Snack && 
-			Items.Count > 0 && 
+		if (memory.SavedState == MenuState.Snack &&
+			Items.Count > 0 &&
 			!Items[0].Item1.IsToy &&
-			memory.SavedPage <= Mathf.CeilToInt((float)Items.Count / 4) - 1 &&
+			memory.SavedPage <= MaxPage &&
 			memory.SavedIndex < Items.Count)
 		{
 			CursorIndex = memory.SavedIndex;
 			Page = memory.SavedPage;
         }
-		else if (memory.SavedState == MenuState.Toy && 
-			Items.Count > 0 && 
+		else if (memory.SavedState == MenuState.Toy &&
+			Items.Count > 0 &&
 			Items[0].Item1.IsToy &&
-            memory.SavedPage <= Mathf.CeilToInt((float)Items.Count / 4) - 1 &&
-            memory.SavedIndex < Items.Count)
+			memory.SavedPage <= MaxPage &&
+			memory.SavedIndex < Items.Count)
 		{
             CursorIndex = memory.SavedIndex;
             Page = memory.SavedPage;
@@ -74,8 +75,8 @@ internal partial class ItemMenu : Menu
 		}
 
 		PageUpSprite.Visible = Page > 0;
-		PageDownSprite.Visible = Page < Mathf.CeilToInt((float)Items.Count / 4) - 1;
-		int start = Page * 4;
+		PageDownSprite.Visible = Page < MaxPage;
+		int start = Page * 2;
 		int end = Mathf.Min(start + 4, Items.Count);
 		DisplayedItems = Items.GetRange(start, end - start);
 		for (int i = 0; i < DisplayedItems.Count; i++)
@@ -93,20 +94,20 @@ internal partial class ItemMenu : Menu
 	{
 		if (Empty) return;
 		if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;
-		if (direction == Vector2.Down && Page < Mathf.CeilToInt((float)Items.Count / 4) - 1 && CursorIndex > 1)
+		if (direction == Vector2.Down && Page < MaxPage && CursorIndex > 1)
 		{
 			Page++;
 			CursorIndex -= 2;
-            AudioManager.Instance.PlaySFX("SYS_move");
-            UpdatePage();
+			AudioManager.Instance.PlaySFX("SYS_move");
+			UpdatePage();
 			return;
 		}
 		if (direction == Vector2.Up && Page > 0 && CursorIndex < 2)
 		{
 			Page--;
 			CursorIndex += 2;
-            AudioManager.Instance.PlaySFX("SYS_move");
-            UpdatePage();
+			AudioManager.Instance.PlaySFX("SYS_move");
+			UpdatePage();
 			return;
 		}
 
@@ -114,9 +115,31 @@ internal partial class ItemMenu : Menu
 		// omori menus have no wrapping
 		// pressing left or right simply increments/decrements the index
 		if (direction == Vector2.Left)
-			CursorIndex = Math.Max(CursorIndex - 1, 0);
+		{
+			if (CursorIndex > 0)
+				CursorIndex--;
+			else if (Page > 0)
+			{
+				Page--;
+				CursorIndex = 1;
+				AudioManager.Instance.PlaySFX("SYS_move");
+				UpdatePage();
+				return;
+			}
+		}
 		else if (direction == Vector2.Right)
-			CursorIndex = Math.Min(CursorIndex + 1, DisplayedItems.Count - 1);
+		{
+			if (CursorIndex < DisplayedItems.Count - 1)
+				CursorIndex++;
+			else if (Page < MaxPage)
+			{
+				Page++;
+				CursorIndex -= 1;
+				AudioManager.Instance.PlaySFX("SYS_move");
+				UpdatePage();
+				return;
+			}
+		}
 		else if (direction == Vector2.Up)
 		{
 			if (CursorIndex > 1)

@@ -4302,10 +4302,7 @@ public class Database
 				 int damage = 1;
 				 if (target.CurrentHP > 1)
 					 damage = target.CurrentHP - 1;
-				 target.Damage(damage);
-				 BattleManager.Instance.AddEnergy(1);
-				 AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
-				 BattleManager.Instance.SpawnDamageNumber(damage, target.CenterPoint);
+				 BattleManager.Instance.Damage(self, target, () => damage, variance: 0f, neverCrit: true, ignoreEmotion: true);
 			 },
 			 hidden: true
 		);
@@ -6545,7 +6542,6 @@ public class Database
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] appears everywhere!");
-				BattleLogManager.Instance.QueueMessage(self, "[actor] appears and attacks!");
 				foreach (Actor target in targets)
 				{
 					BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.3f, false,
@@ -7266,7 +7262,7 @@ public class Database
 
 		Items["Sno-Cone"] = new Item(
 			name: "SNO-CONE",
-			description: "Heals a friend's HEART and JUICE, and\nraises ALL STATS for the battle.",
+			description: "Heals a friend's HEART and JUICE, and raises ALL STATS for the battle.",
 			target: SkillTarget.Ally,
 			effect: async (self, target) =>
 			{
@@ -7347,7 +7343,7 @@ public class Database
 		   effect: async (self, targets) =>
 		   {
 			   BattleLogManager.Instance.QueueMessage(self, "[actor] uses JAM PACKETS!");
-			   if (!targets.Any(x => x.CurrentState == "toast"))
+			   if (targets.All(x => x.CurrentState != "toast"))
 			   {
 				   BattleLogManager.Instance.QueueMessage("It had no effect.");
 				   return;

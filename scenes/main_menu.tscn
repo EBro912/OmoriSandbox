@@ -53,7 +53,7 @@ CreditsBackButton = NodePath("../Main/Credits/BackButton")
 CreditsPanel = NodePath("../Main/Credits")
 TitlePresetDropdown = NodePath("../Main/MainControls/HBoxContainer/PresetDropdown")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -66,6 +66,8 @@ BattleCard = ExtResource("5_rtw2f")
 ActorTabs = NodePath("../Editor/SettingsTabs/Actors/VBoxContainer/ActorTabs")
 EnemyTabs = NodePath("../Editor/SettingsTabs/Enemies/VBoxContainer/EnemyTabs")
 BattlebackBGMEditor = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/BattlebackBGMEditor")
+StartingEnergySlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy/HSlider")
+StartingEnergyValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy/Label2")
 FollowupTierSlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/HSlider")
 FollowupTierValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/Label2")
 BasilFollowupsCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/BasilFollowups")
@@ -1179,6 +1181,33 @@ horizontal_alignment = 1
 [node name="BattlebackBGMEditor" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1531111807 instance=ExtResource("19_8egab")]
 layout_mode = 2
 
+[node name="StartingEnergy" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1037305604]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy" unique_id=1523255579]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Starting Energy"
+
+[node name="HSlider" type="HSlider" parent="Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy" unique_id=1982168777]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+max_value = 10.0
+value = 3.0
+rounded = true
+
+[node name="Label2" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy" unique_id=1760165633]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "3"
+horizontal_alignment = 1
+
 [node name="FollowupTier" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=740844864]
 layout_mode = 2
 
@@ -1191,6 +1220,8 @@ text = "Followup Tier"
 [node name="HSlider" type="HSlider" parent="Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier" unique_id=1008282489]
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 min_value = 1.0
 max_value = 3.0
 value = 1.0

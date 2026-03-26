@@ -128,9 +128,12 @@ public class StatModifier
         TurnsLeft = Math.Min(turnsLeft, MaxTurns);
     }
 
-    internal void SetMaxTurns(int turns)
+    /// <summary>
+    /// Refreshes the turn counter to the max turns.
+    /// </summary>
+    public void RefreshTurns()
     {
-        MaxTurns = turns;
+        TurnsLeft = MaxTurns;
     }
 
     /// <summary>
