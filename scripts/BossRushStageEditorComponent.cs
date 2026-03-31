@@ -55,7 +55,7 @@ internal partial class BossRushStageEditorComponent : Control
                 Enemies.AddChild(editor);
                 editor.Init(enemySprite, enemy.EnemyDropdown.GetItemText(enemy.EnemyDropdown.Selected), 
                     new Vector2((float)enemy.XPosBox.Value, (float)enemy.YPosBox.Value), enemy.EmotionDropdown.GetItemText(enemy.EmotionDropdown.Selected), 
-                    (int)enemy.LayerBox.Value, enemy.FallsOffScreenCheckbox.ButtonPressed);
+                    (int)enemy.LayerBox.Value, enemy.FallsOffScreenCheckbox.ButtonPressed, enemy.GrayscaleOnDefeatCheckbox.ButtonPressed);
             }
         }
     }

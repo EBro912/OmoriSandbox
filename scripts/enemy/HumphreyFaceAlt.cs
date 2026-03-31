@@ -6,11 +6,11 @@ using OmoriSandbox.Battle;
 
 namespace OmoriSandbox.Actors;
 
-internal sealed class HumphreyFace : Enemy
+internal sealed class HumphreyFaceAlt : Enemy
 {
 	public override string Name => "HUMPHREY";
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_face.tres");
-	protected override Stats Stats => new(6000, 3000, 63, 5, 35, 10, 95);
+	protected override Stats Stats => new(10000, 3000, 110, 50, 115, 10, 95);
 	protected override string[] EquippedSkills => ["HUFChomp", "HUFDoNothing", "HUFSwallow"];
 	
 	public override bool IsStateValid(string state)

@@ -90,27 +90,29 @@ public class TierStatModifier : StatModifier
 	}
 	
 	/// <summary>
-	/// Applies a tier to this stat modifier.
+	/// Applies a tier to this stat modifier, following base game stacking rules.
 	/// </summary>
 	/// <param name="tier">The tier to apply.</param>
 	/// <returns>True if the tier was changed or the turn counter was refreshed.</returns>
 	public bool ApplyTier(int tier)
 	{
 		tier = Math.Min(tier, MaxTier);
-		if (tier < Tier)
-			return false;
 		if (tier > Tier)
 		{
 			Tier = tier;
 			TurnsLeft = MaxTurns;
 			return true;
 		}
-		// tier == Tier (same tier applied)
 		if (Tier == MaxTier)
 		{
-			TurnsLeft = MaxTurns; // at max, just refresh
-			return true;
+			if (tier == MaxTier)
+			{
+				TurnsLeft = MaxTurns;
+				return true;
+			}
+			return false; 
 		}
+		// not at max, any tier application increases by 1
 		Tier++;
 		TurnsLeft = MaxTurns;
 		return true;

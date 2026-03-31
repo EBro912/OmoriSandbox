@@ -32,19 +32,28 @@ internal partial class KeybindButton : Control
 
         if (@event is InputEventKey keyEvent && keyEvent.Pressed)
         {
-            foreach (InputEvent ev in InputMap.ActionGetEvents(AssociatedAction))
-                InputMap.ActionEraseEvent(AssociatedAction, ev);
-            InputMap.ActionAddEvent(AssociatedAction, keyEvent);
             CurrentKey = keyEvent.Keycode;
+            UpdateKeybind();
             KeyButton.Text = OS.GetKeycodeString(CurrentKey);
             WaitingForInput = false;
         }
+    }
+
+    private void UpdateKeybind()
+    {
+        foreach (InputEvent ev in InputMap.ActionGetEvents(AssociatedAction))
+            InputMap.ActionEraseEvent(AssociatedAction, ev);
+        InputMap.ActionAddEvent(AssociatedAction, new InputEventKey
+        {
+            Keycode = CurrentKey
+        });
     }
 
     public void SetKey(Key key)
     {
         CurrentKey = key;
         KeyButton.Text = OS.GetKeycodeString(CurrentKey);
+        UpdateKeybind();
     }
 
     public void Reset()

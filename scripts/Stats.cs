@@ -34,7 +34,7 @@ public struct Stats
 
     public static Stats operator +(Stats a, Stats b) {
         Stats result = new(
-            Math.Max(0, a.HP + b.HP), 
+            Math.Max(1, a.HP + b.HP), 
             Math.Max(0, a.Juice + b.Juice), 
             Math.Max(0, a.ATK + b.ATK), 
             Math.Max(0, a.DEF + b.DEF), 
@@ -42,7 +42,7 @@ public struct Stats
             Math.Max(0, a.LCK + b.LCK), 
             Math.Max(0, a.HIT + b.HIT))
             {
-                MaxHP = Math.Max(0, a.HP + b.HP),
+                MaxHP = Math.Max(1, a.HP + b.HP),
                 MaxJuice = Math.Max(0, a.Juice + b.Juice)
             };
         return result;
@@ -75,7 +75,12 @@ public struct Stats
     /// <param name="value">The value to set the stat to.</param>"
     public void SetStat(StatType stat, int value)
     {
-        value = SettingsMenuManager.Instance.DisableStatLimit ? Math.Max(0, value) : Math.Clamp(value, 0, 999);
+        if (stat is StatType.MaxHP)
+            value = Math.Max(1, value);
+        else if (stat is StatType.MaxJuice)
+            value = Math.Max(0, value);
+        else
+            value = SettingsMenuManager.Instance.DisableStatLimit ? Math.Max(0, value) : Math.Clamp(value, 0, 999);
         switch (stat)
         {
             case StatType.MaxHP: MaxHP = value; break;

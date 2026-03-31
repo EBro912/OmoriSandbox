@@ -160,9 +160,6 @@ internal sealed class UnbreadTwins : Enemy
             GD.PushWarning("Tried to summon more than 2 breads!");
             return;
         }
-        // in the Unbread Twins fight, the spawned enemy acts immediately after being spawned
-        BattleCommand command = enemy.Actor.ProcessAI();
-        BattleManager.Instance.ForceCommand(enemy.Actor, command.Targets, command.Action as Skill);
         SpawnedBread.Add(enemy);
     }
 }

@@ -4,6 +4,7 @@ using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Extensions;
 using System.Linq;
+using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Editor;
 internal partial class PartyMemberEditorComponent : Control
@@ -30,6 +31,7 @@ internal partial class PartyMemberEditorComponent : Control
 	private Weapon SelectedWeapon;
 	private Charm SelectedCharm;
 	private Stats BaseStats;
+	private StatModifier Emotion;
 
 	public int ActorPosition { get; private set; }
 
@@ -42,8 +44,18 @@ internal partial class PartyMemberEditorComponent : Control
 			ActorDropdown.AddItem(member);
 
 		ActorDropdown.Selected = ActorDropdown.GetItemIndex("Omori");
-		ActorDropdown.ItemSelected += (idx) => Populate(ActorDropdown.GetItemText((int)idx));
-		EmotionDropdown.ItemSelected += (idx) => UpdateState(EmotionDropdown.GetItemText((int)idx));
+		ActorDropdown.ItemSelected += (idx) =>
+		{
+			Populate(ActorDropdown.GetItemText((int)idx));
+			FilterWeapons(FilterEquippableCheckbox.ButtonPressed);
+			RefreshSelected((int)LevelSlider.Value - 1);
+			RecalculateStats();
+		};
+		EmotionDropdown.ItemSelected += (idx) =>
+		{
+			UpdateState(EmotionDropdown.GetItemText((int)idx));
+			RecalculateStats();
+		};
 
 		foreach (string weapon in Database.GetAllWeaponNames())
 			WeaponDropdown.AddItem(weapon);
@@ -67,13 +79,7 @@ internal partial class PartyMemberEditorComponent : Control
 
 		FilterEquippableCheckbox.Toggled += (toggled) =>
 		{
-			WeaponDropdown.Clear();
-			IEnumerable<string> weapons = Database.GetAllWeaponNames();
-			if (toggled && EquippableWeapons.Length > 0)
-				weapons = weapons.Where(w => EquippableWeapons.Contains(w));
-			foreach (string weapon in weapons)
-				WeaponDropdown.AddItem(weapon);
-			SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
+			FilterWeapons(toggled);
 			RecalculateStats();
 		};
 
@@ -109,10 +115,7 @@ internal partial class PartyMemberEditorComponent : Control
 		WeaponDropdown.Selected = 0;
 		// charms are optional so we can leave it unselected
 		Populate("Omori");
-		BaseStats = new Stats(SelectedPartyMember.HPTree[0], SelectedPartyMember.JuiceTree[0], 
-			SelectedPartyMember.ATKTree[0], SelectedPartyMember.DEFTree[0],SelectedPartyMember.SPDTree[0], SelectedPartyMember.BaseLuck, 0);
-		SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
-		SelectCharm(CharmDropdown.GetItemText(CharmDropdown.Selected));
+		RefreshSelected(0);
 		RecalculateStats();
 	}
 
@@ -145,6 +148,7 @@ internal partial class PartyMemberEditorComponent : Control
 		EmotionDropdown.Selected = EmotionDropdown.GetItemIndex(emotion);
 		DisableFollowups.ButtonPressed = followupsDisabled;
 		LevelSlider.SetValueNoSignal(level);
+		LevelSliderValue.Text = level.ToString();
 		UpdateState(emotion);
 		if (skills.Length > 0)
 		{
@@ -157,10 +161,7 @@ internal partial class PartyMemberEditorComponent : Control
 		}
 
 		int index = level - 1;
-		BaseStats = new Stats(SelectedPartyMember.HPTree[index], SelectedPartyMember.JuiceTree[index], 
-			SelectedPartyMember.ATKTree[index], SelectedPartyMember.DEFTree[index],SelectedPartyMember.SPDTree[index], SelectedPartyMember.BaseLuck, 0);
-		SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
-		SelectCharm(CharmDropdown.GetItemText(CharmDropdown.Selected));
+		RefreshSelected(index);
 		RecalculateStats();
 	}
 
@@ -196,8 +197,10 @@ internal partial class PartyMemberEditorComponent : Control
 		Face.SpriteFrames = animation;
 		Face.Play("neutral");
 		Animator.SetState("neutral");
+		Emotion = null;
 
 		LevelSlider.SetValueNoSignal(1);
+		LevelSliderValue.Text = "1";
 		LevelSlider.MinValue = 1;
 		LevelSlider.MaxValue = SelectedPartyMember.HPTree.Length;
 
@@ -209,11 +212,12 @@ internal partial class PartyMemberEditorComponent : Control
 		EquippableWeapons = SelectedPartyMember.EquippableWeapons;
 	}
 
-	public void UpdateState(string state)
+	private void UpdateState(string state)
 	{
 		Face.Animation = state;
 		if (state != "hurt")
 			Animator.SetState(state);
+		Emotion = state is "neutral" ? null : Database.CreateModifier(state.Capitalize());
 	}
 
 	public Stats GetAdjustedStats()
@@ -221,14 +225,38 @@ internal partial class PartyMemberEditorComponent : Control
 		return StatAdjustmentEditor.GetStats();
 	}
 
+	private void FilterWeapons(bool toggled)
+	{
+		string original = WeaponDropdown.GetItemText(WeaponDropdown.Selected);
+		WeaponDropdown.Clear();
+		IEnumerable<string> weapons = Database.GetAllWeaponNames();
+		if (toggled && EquippableWeapons != null && EquippableWeapons.Length > 0)
+			weapons = weapons.Where(w => EquippableWeapons.Contains(w));
+		foreach (string weapon in weapons)
+			WeaponDropdown.AddItem(weapon);
+		int index = WeaponDropdown.GetItemIndex(original);
+		if (index != -1)
+			WeaponDropdown.Selected = index;
+		SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
+	}
+
 	private void RecalculateStats()
 	{
 		Stats stats = BaseStats + StatAdjustmentEditor.GetStats();
 		SelectedWeapon.Apply(ref stats);
 		SelectedCharm?.Apply(ref stats);
+		Emotion?.ApplyStats(ref stats);
 		HealthLabel.Text = $"{stats.MaxHP}/{stats.MaxHP}";
 		JuiceLabel.Text = $"{stats.MaxJuice}/{stats.MaxJuice}";
 		StatAdjustmentEditor.UpdateStats(stats);
+	}
+
+	private void RefreshSelected(int index)
+	{
+		BaseStats = new Stats(SelectedPartyMember.HPTree[index], SelectedPartyMember.JuiceTree[index], 
+			SelectedPartyMember.ATKTree[index], SelectedPartyMember.DEFTree[index],SelectedPartyMember.SPDTree[index], SelectedPartyMember.BaseLuck, 0);
+		SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
+		SelectCharm(CharmDropdown.GetItemText(CharmDropdown.Selected));
 	}
 
 	private void SelectWeapon(string name)

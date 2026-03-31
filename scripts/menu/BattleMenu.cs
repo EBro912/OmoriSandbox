@@ -3,14 +3,47 @@ using Godot;
 
 namespace OmoriSandbox.Menu;
 
-internal partial class BattleMenu : Menu
+internal partial class BattleMenu : Menu, ISkinnableMenu
 {
+	[Export] private Sprite2D AttackSprite;
+	[Export] private Sprite2D SkillSprite;
+	[Export] private Sprite2D SnackSprite;
+	[Export] private Sprite2D ToySprite;
+	
+	protected override Vector2 OpenPosition => new(320, 480);
+	protected override Vector2 ClosedPosition => new(320, 575);
+	
 	private Vector2I GridSize = new(2, 2);
+
+	public void SetSkinMode(MenuSkinMode mode)
+	{
+		switch (mode)
+		{
+			case MenuSkinMode.Dreamworld:
+				AttackSprite.RegionRect = new Rect2(653, 130, 180, 40);
+				SkillSprite.RegionRect = new Rect2(835, 130, 180, 40);
+				SnackSprite.RegionRect = new Rect2(653, 172, 180, 40);
+				ToySprite.RegionRect = new Rect2(835, 172, 180, 40);
+				break;
+			case MenuSkinMode.Faraway:
+				AttackSprite.RegionRect = new Rect2(653, 212, 180, 40);
+				SkillSprite.RegionRect = new Rect2(835, 212, 180, 40);
+				SnackSprite.RegionRect = new Rect2(653, 254, 180, 40);
+				ToySprite.RegionRect = new Rect2(835, 254, 180, 40);
+				break;
+			case MenuSkinMode.Blackspace:
+				GD.PrintErr("MenuSkinMode.Blackspace unimplemented for BattleMenu.");
+				break;
+			default:
+				GD.PrintErr("Unknown MenuSkinMode: " + mode);
+				break;
+		}
+	}
 
 	public override void _Ready()
 	{
 		Options = ["Attack", "Skill", "Snack", "Toy"];
-		CursorPositions = [new Vector2I(-155, -20), new Vector2I(35, -20), new Vector2I(-155, 20), new Vector2I(35, 20)];
+		CursorPositions = [new Vector2I(-153, -72), new Vector2I(35, -72), new Vector2I(-153, -27), new Vector2I(35, -27)];
 	}
 
     public override void OnOpen(SelectionMemory memory)
@@ -76,38 +109,8 @@ internal partial class BattleMenu : Menu
 		AudioManager.Instance.PlaySFX("SYS_select");
 	}
 
-    public override void MoveUp(bool immediate)
-    {
-        Tween?.Kill();
-        if (immediate)
-        {
-            Position = new Vector2(Position.X, 429);
-        }
-        else
-        {
-            Tween = CreateTween();
-            Tween.TweenProperty(this, "position", new Vector2(Position.X, 429), 0.2f).SetTrans(Tween.TransitionType.Sine);
-        }
-    }
-
-    public override void MoveDown(MenuState newState, bool immediate, bool noHide = false)
-    {
-		// don't move down the battle menu for these three states
-		// recreates the "slide over" effect from the original game
-		if (newState is MenuState.Skill or MenuState.Snack or MenuState.Toy)
-			return;	
-
-        Tween?.Kill();
-        if (immediate)
-        {
-            Position = new Vector2(Position.X, 529);
-			Visible = noHide;
-        }
-        else
-        {
-            Tween = CreateTween();
-            Tween.TweenProperty(this, "position", new Vector2(Position.X, 529), 0.2f).SetTrans(Tween.TransitionType.Sine);
-			Tween.TweenCallback(Callable.From(() => Visible = noHide));
-        }
-    }
+	protected override bool ShouldCloseVisually(MenuState newState)
+	{
+		return newState is MenuState.Battle or MenuState.None or MenuState.Party;
+	}
 }

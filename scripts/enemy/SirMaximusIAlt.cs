@@ -64,20 +64,11 @@ internal sealed class SirMaximusIAlt : Enemy
     }
     
     private bool UltimateAttack = false;
-    
+
     public override async Task ProcessBattleConditions()
     {
-        if (UltimateAttack)
-        {
-            RemoveStatModifier("Immortal");
-            CurrentHP = 0;
-            return;
-        }
-        
         if (CurrentHP <= 0 && !UltimateAttack)
         {
-            CurrentHP = 1;
-            AddStatModifier("Immortal");
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();
             switch (SelectAllEnemies().Count)

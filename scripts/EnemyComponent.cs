@@ -24,11 +24,11 @@ public partial class EnemyComponent : Node
 	/// </summary>
 	public Enemy Actor => Enemy;
 
-	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, int layer)
+	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer)
 	{
 		Enemy = enemy;
 		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
-		Enemy.Init(sprite, initialState, fallsOffScreen, layer);
+		Enemy.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer);
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox_moreinfo.tscn")
 				.Instantiate<EnemyMoreInfoBox>();

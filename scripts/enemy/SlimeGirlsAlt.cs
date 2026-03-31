@@ -12,7 +12,7 @@ internal sealed class SlimeGirlsAlt : Enemy
 
 	protected override Stats Stats => new(8000, 4000, 100, 70, 90, 10, 95);
 
-	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "ChainsawAlt", "SlimeUltimateAttack"];
+	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "ChainsawAlt", "SlimeUltimateAttack", "SGSelfAngry"];
 
 	public override bool IsStateValid(string state)
 	{
@@ -105,8 +105,7 @@ internal sealed class SlimeGirlsAlt : Enemy
 			DialogueManager.Instance.QueueMessage("MARINA", CenterPoint, @"You know what that means.\! It's time to get serious!");
 			DialogueManager.Instance.QueueMessage("MOLLY", CenterPoint, "Oh...[br]I'm having so much fun~!");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("angry");
-			BattleLogManager.Instance.ClearAndShowMessage("SLIME GIRLS becomes ANGRIER!");
+			BattleManager.Instance.ForceCommand(this, this, Skills["SGSelfAngry"]);
 			Stage = 1;
 		}
 		

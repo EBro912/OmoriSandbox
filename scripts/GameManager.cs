@@ -70,7 +70,7 @@ namespace OmoriSandbox;
  - Apply attack/skill/snack/toy menu pathing to other menus - potentially done
  - Confirmation for running/quick restart - done
  - Import preset as battle stage
- - King Carnivore and Boss rush humphrey
+ - King Carnivore and Boss rush humphrey - done
  - Spawning enemies in the editor initalizes them, this breaks things like HumphreyFace
  - Have a toggleable list of weapons to only show weapons equipable by that actor - done
  - Aubrey's speed stats are wrong, check others - potentially done
@@ -90,7 +90,7 @@ namespace OmoriSandbox;
  - Release Energy's animation should fade in, currently it cuts with no fade - done
  - Twirl has no battletext (should be "<user> attacks <target>!") - done
  - Encore should not work with afraid - done
- - Revisit font sizing and outlining throughout game
+ - Revisit font sizing and outlining throughout game - in testing
  - Add a method to play animations at specific coordinates - done
  - Backgrounds exactly the size of the screen repeat on the edges - not actually an issue?
  - Aubrey's Counter Attack uses wrong battletext; should be "AUBREY swings back!" - done
@@ -120,18 +120,23 @@ namespace OmoriSandbox;
  - Make followup arrows transparent if the target is invalid - done
  - Adding a non-hidden skill as the basic attack skill breaks the skill menu - fixed?
  - Revamp credits screen - done
- - Grey tint on victory
+ - Grey tint on victory - in testing
  - 10x damage on holding shift - done
- - Enemies die before using their battle conditions
- - Pluto transition
- - Speed should be recalculated after every turn
+ - Enemies die before using their battle conditions - in testing
+ - Pluto transition - done
+ - Speed should be recalculated after every turn - in testing
  - Applying a lower tier buff to a tiered buff should not refresh the buff, while a greater or equal tier buff upgrades and/or refreshes - in testing
  - Add turn count to state icon hover - done
- - Abstract SpriteFramesBuilder
+ - Abstract SpriteFramesBuilder - done
  - Game speedup with timescale
- - Select sound plays twice on multi-target actions - fixed?
- - Fix sizing of skill/snack/toy menu
+ - Select sound plays twice on multi-target actions - fixed? 
+ - Fix sizing of skill/snack/toy menu - done
  - Add wait for bgm fade - done
+ - Stat adjustments should take emotion into account - done?
+ - Support custom state icons - done
+ - Load presets from a mod's preset folder
+ - Tiered stat modifiers are broken
+ - Priority skills are broken
  */
 
 /// <summary>
@@ -146,6 +151,7 @@ public partial class GameManager : Node
 	[Export] private BattlebackDisplayComponent BattlebackParent;
 	[Export] private Label FPSLabel;
 	[Export] private Node Party;
+	[Export] private Material GreyscaleMaterial;
 
 	[Export] private PackedScene[] Followups;
 
@@ -190,6 +196,15 @@ public partial class GameManager : Node
 	public void SetBattleback(string name)
 	{
 		BattlebackParent.SetBattleback(name);
+	}
+
+	/// <summary>
+	/// Enables/disables a greyscale filter on the battleback and enemies.
+	/// </summary>
+	/// <param name="enabled">Whether the greyscale filter should be enabled.</param>
+	public void SetBattlebackGreyscale(bool enabled)
+	{
+		BattlebackParent.Material = enabled ? GreyscaleMaterial : null;
 	}
 
 	internal void LoadBattlePreset(BattlePreset preset)
@@ -282,6 +297,8 @@ public partial class GameManager : Node
 	internal EnemyComponent SpawnEnemy(BattlePresetEnemy enemy, Vector2 position)
 	{
 		Enemy instance = Database.CreateEnemy(enemy.Name);
+		if (instance == null)
+			return null;
 		Node2D node = EnemyNode.Instantiate<Node2D>();
 		BattlebackParent.AddChild(node);
 		GD.Print("Spawning enemy at: " + enemy.Position);
@@ -289,7 +306,7 @@ public partial class GameManager : Node
 		EnemyComponent component = new();
 		node.AddChild(component);
 		node.ZIndex -= (int)enemy.Layer;
-		component.SetEnemy(instance, enemy.Emotion, enemy.FallsOffScreen, (int)enemy.Layer);
+		component.SetEnemy(instance, enemy.Emotion, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, (int)enemy.Layer);
 		return component;
 	}
 

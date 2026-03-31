@@ -2,6 +2,7 @@ using Godot;
 using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
+using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox;
@@ -149,12 +150,19 @@ public partial class PartyMemberComponent : Node
 			foreach (StateIcon icon in icons)
 			{
 				string tooltip = modifier.TurnsLeft > -1 ? icon.Description + "\nTurns Left: " + modifier.TurnsLeft : icon.Description;
-				TextureRect rect = new()
+				if (Database.TryGetStateIcon(icon.AssetName, out Texture2D texture))
 				{
-					Texture = ResourceLoader.Load<Texture2D>($"res://assets/stateicons/{icon.AssetName}.png"),
-					TooltipText = tooltip
-				};
-				StateIcons.AddChild(rect);
+					TextureRect rect = new()
+					{
+						Texture = texture,
+						TooltipText = tooltip
+					};
+					StateIcons.AddChild(rect);
+				}
+				else
+				{
+					GD.PrintErr("Unknown state icon texture: " + icon.AssetName);
+				}
 			}
 		}
 	}

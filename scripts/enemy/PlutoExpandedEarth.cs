@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,59 +17,13 @@ internal sealed class PlutoExpandedEarth : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "hurt" || state == "toast" || state == "sad" || state == "angry" || state == "happy";
+        return state is "neutral" or "hurt" or "toast" or "sad" or "angry" or "happy";
     }
 
     private EnemyComponent Earth;
 
     public override BattleCommand ProcessAI()
     {
-        if (Charging)
-        {
-            int turns = GetStatModifierTurnsLeft("PlutoCharging");
-            // use fake skills to show the charging dialogue
-            // the effects are split into func objects to silence the compiler
-            Func<Actor, Actor, Task> effect;
-            switch (turns)
-            {
-                case 2:
-                    effect = async (self, _) =>
-                    {
-                        DialogueManager.Instance.QueueMessage("PLUTO", self.CenterPoint,
-                            @"I am glad to have met each of you...\! and watch you all grow.");
-                        DialogueManager.Instance.QueueMessage("PLUTO", self.CenterPoint,
-                            @"I have recognized your strength...\! and will see you as children no longer.");
-                        DialogueManager.Instance.QueueMessage("PLUTO continues charging his ultimate attack...");
-                        await DialogueManager.Instance.WaitForDialogue();
-                    };
-                    return new BattleCommand(this, this,
-                        new Skill("PlutoDialogue", "PlutoDialogue", SkillTarget.Self, effect, 0));
-                case 1:
-                    foreach (PartyMember target in SelectAllTargets())
-                        target.AddStatModifier("PlutoBuff");
-                    effect = async (self, _) =>
-                    {
-                        DialogueManager.Instance.QueueMessage("PLUTO", self.CenterPoint,
-                            @"This fight is mine to win...\! You cannot escape my judgement!");
-                        DialogueManager.Instance.QueueMessage("PLUTO finishes charging his ultimate attack!");
-                        await DialogueManager.Instance.WaitForDialogue();
-                    };
-                    return new BattleCommand(this, this,
-                        new Skill("PlutoDialogue", "PlutoDialogue", SkillTarget.Self, effect, 0));
-                default:
-                    Charging = false;
-                    effect = async (self, _) =>
-                    {
-                        DialogueManager.Instance.QueueMessage("PLUTO", self.CenterPoint,
-                            @"I hope we meet again in the next life.\! Goodbye.");
-                        await DialogueManager.Instance.WaitForDialogue();
-                        BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["PEMeteor"]);
-                    };
-                    return new BattleCommand(this, this,
-                        new Skill("PlutoDialogue", "PlutoDialogue", SkillTarget.Self, effect, 0));
-             }
-        }
-        
         IReadOnlyList<PartyMember> party = SelectAllTargets();
         if (party.Any(x => x.HasStatModifier("PlutoBuff")))
             return new BattleCommand(this, party, Skills["PEMeteor"]);
@@ -97,11 +50,59 @@ internal sealed class PlutoExpandedEarth : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
+    public override async Task ProcessStartOfCommands()
+    {
+        if (Charging)
+        {
+            int turns = GetStatModifierTurnsLeft("PlutoCharging");
+            switch (turns)
+            {
+                case 2:
+                    DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                        @"I am glad to have met each of you...\! and watch you all grow.");
+                    DialogueManager.Instance.QueueMessage("PLUTO continues charging his ultimate attack...");
+                    await DialogueManager.Instance.WaitForDialogue();
+                    AnimationManager.Instance.PlayAnimation(218, this);
+                    break;
+                case 1:
+                    DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                        @"I have recognized your strength...\! and will see you as children no longer.");
+                    DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                        @"This fight is mine to win...\! You cannot escape my judgement!");
+                    DialogueManager.Instance.QueueMessage("PLUTO finishes charging his ultimate attack!");
+                    await DialogueManager.Instance.WaitForDialogue();
+                    foreach (PartyMember target in SelectAllTargets())
+                        target.AddStatModifier("PlutoBuff");
+                    break;
+                default:
+                    DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                        @"I hope we meet again in the next life.\! Goodbye.");
+                    await DialogueManager.Instance.WaitForDialogue();
+                    Charging = false;
+                    Stunned = false;
+                    break;
+            }
+        }
+    }
+
     private bool HasSpoken = false;
     private bool HasThrownEarth = false;
     private bool Charging = false;
+    private bool HasMentionedFlex = false;
     public override async Task ProcessBattleConditions()
     {
+        if (!HasMentionedFlex)
+        {
+            PartyMember flexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"));
+            if (flexed != null)
+            {
+                DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                    $"Impressive progress, young {flexed.Name.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
+                await DialogueManager.Instance.WaitForDialogue();
+                HasMentionedFlex = true;
+            }
+        }
+        
         if (CurrentHP <= 0)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Unbelievable...\! Even at full power...\! I have been bested.");
@@ -132,6 +133,7 @@ internal sealed class PlutoExpandedEarth : Enemy
             AddStatModifier("PlutoCharging");
             AnimationManager.Instance.PlayAnimation(218, this);
             Charging = true;
+            Stunned = true;
             HasSpoken = true;
         }
     }

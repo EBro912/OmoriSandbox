@@ -133,6 +133,7 @@ internal partial class ModManager : Node
 				"battlebacks" => LoadBattlebacks(dirName),
 				"enemies" => LoadEnemies(dirName),
 				"animations" => LoadAnimations(dirName),
+				"stateicons" => LoadStateIcons(dirName),
 				_ => true
 			};
 			if (!success)
@@ -363,6 +364,21 @@ internal partial class ModManager : Node
 			AnimationManager.Instance.LoadModded(root);
 		if (FileAccess.FileExists(path + "/Animations.jsond"))
 			AnimationManager.Instance.LoadDeltaPatch(root);
+		return true;
+	}
+
+	private bool LoadStateIcons(string root)
+	{
+		string path = "user://mods/" + root + "/stateicons";
+		foreach (string file in DirAccess.GetFilesAt(path))
+		{
+			if (file.EndsWith(".png"))
+			{
+				Texture2D texture = ImageTexture.CreateFromImage(Image.LoadFromFile(path + "/" + file));
+				Database.AddStateIcon(file.GetBaseName(), texture);
+			}
+		}
+
 		return true;
 	}
 }

@@ -39,6 +39,11 @@ internal partial class SettingsMenuManager : Control
 			AudioManager.Instance.PlaySFX("BA_basic_attack_omori");
 		};
 
+		RestartHoldTimeSlider.ValueChanged += value =>
+		{
+			RestartHoldTimeLabel.Text = $"{value:0.00}";
+		};
+
 		ResetKeybindsButton.Pressed += () =>
 		{
 			foreach (Node node in KeybindGrid.GetChildren())
@@ -79,7 +84,8 @@ internal partial class SettingsMenuManager : Control
 		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
-		
+
+		RestartHoldTimeSlider.Value = (double)config.GetValue("Keybinds", "RestartHoldTime", 1d);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -132,7 +138,8 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
-
+		
+		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -173,6 +180,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ToysUseEmotionDamage", false);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
+		config.SetValue("Keybinds", "RestartHoldTime", 1d);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -208,6 +216,7 @@ internal partial class SettingsMenuManager : Control
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
+	public double RestartHoldTime => RestartHoldTimeSlider.Value;
 
 	[Export] private TextureRect Logo;
 	[Export] private AnimatedSprite2D OmoriFace;
@@ -231,6 +240,8 @@ internal partial class SettingsMenuManager : Control
 	[Export] private CheckBox ToysUseEmotionDamageCheckbox;
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
+	[Export] private HSlider RestartHoldTimeSlider;
+	[Export] private Label RestartHoldTimeLabel;
 	[Export] private GridContainer KeybindGrid;
 	[Export] private Button ResetKeybindsButton;
 	[Export] private Button BackButton;

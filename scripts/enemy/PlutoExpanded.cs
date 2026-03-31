@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -44,8 +45,21 @@ internal sealed class PlutoExpanded : Enemy
     }
 
     private bool HasSpoken = false;
+    private bool HasMentionedFlex = false;
     public override async Task ProcessBattleConditions()
     {
+        if (!HasMentionedFlex)
+        {
+            PartyMember flexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"));
+            if (flexed != null)
+            {
+                DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                    $"Impressive progress, young {flexed.Name.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
+                await DialogueManager.Instance.WaitForDialogue();
+                HasMentionedFlex = true;
+            }
+        }
+
         if (CurrentHP <= 0)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Hm.\! Well done, children.\![br]You've come a long way.");
@@ -60,6 +74,7 @@ internal sealed class PlutoExpanded : Enemy
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "You have all gotten stronger.");
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"But...\! so have I.");
             await DialogueManager.Instance.WaitForDialogue();
+            BattleManager.Instance.ForceCommand(this, this, Skills["PEExpandFurther"]);
             HasSpoken = true;
         }
     }

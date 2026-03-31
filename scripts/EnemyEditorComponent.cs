@@ -7,33 +7,19 @@ namespace OmoriSandbox.Editor;
 
 internal partial class EnemyEditorComponent : Control
 {
-	[Export]
-	public OptionButton EnemyDropdown { get; private set; }
-
-	[Export]
-	public OptionButton EmotionDropdown { get; private set; }
-
-	[Export]
-	public SpinBox XPosBox { get; private set; }
-
-	[Export]
-	public SpinBox YPosBox { get; private set; }
-
-	[Export]
-	public SpinBox LayerBox { get; private set; }
-
-	[Export]
-	public CheckBox FallsOffScreenCheckbox { get; private set; }
-
-	[Export]
-	private CheckBox VisibleCheckbox;
-
-	[Export]
-	private Button RemoveButton;
+	[Export] public OptionButton EnemyDropdown { get; private set; }
+	[Export] public OptionButton EmotionDropdown { get; private set; }
+	[Export] public SpinBox XPosBox { get; private set; }
+	[Export] public SpinBox YPosBox { get; private set; }
+	[Export] public SpinBox LayerBox { get; private set; }
+	[Export] public CheckBox FallsOffScreenCheckbox { get; private set; }
+	[Export] public CheckBox GrayscaleOnDefeatCheckbox { get; private set; }
+	[Export] private CheckBox VisibleCheckbox;
+	[Export] private Button RemoveButton;
 
 	private AnimatedSprite2D Animator;
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "furious", "manic", "miserable", "afraid", "stressed"];
+	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "furious", "manic", "miserable", "afraid", "stressed", "hurt", "toast"];
 
 	public override void _EnterTree()
 	{
@@ -72,10 +58,10 @@ internal partial class EnemyEditorComponent : Control
 	{
 		if (!enemy.Position.StartsWith("Vector2"))
 			enemy.Position = "Vector2" + enemy.Position;
-		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen);
+		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat);
 	}
 
-	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen)
+	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen, bool grayscaleOnDefeat)
 	{
 		Animator = animator;
 		Animator.Centered = true;
@@ -96,6 +82,7 @@ internal partial class EnemyEditorComponent : Control
 		Animator.GlobalPosition = position;
 		UpdateState(emotion);
 		FallsOffScreenCheckbox.ButtonPressed = fallsOffScreen;
+		GrayscaleOnDefeatCheckbox.ButtonPressed = grayscaleOnDefeat;
 	}
 
 	public void Populate(string who)
@@ -136,5 +123,6 @@ internal partial class EnemyEditorComponent : Control
 	public void UpdateState(string state)
 	{
 		Animator.Animation = state;
+		Animator.Play();
 	}
 }

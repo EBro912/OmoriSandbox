@@ -35,10 +35,15 @@ public partial class BattleManager : Node
 	private int CurrentPartyMember = -1;
 	private int CurrentEnemyTarget = -1;
 	private int CurrentPartyMemberTarget = -1;
-	private List<BattleCommand> Commands = [];
-	private int CommandIndex = -1;
+	private readonly Dictionary<Actor, BattleCommand> PlayerCommands = new();
+	private readonly HashSet<Actor> ActedThisTurn = [];
+	private readonly List<BattleCommand> ForcedCommands = [];
+	private BattleCommand PendingFollowup = null;
+	private readonly List<Actor> PriorityActors = [];
+	private readonly HashSet<EnemyComponent> DeferredDeathEnemies = [];
+	private BattleCommand CurrentCommand = null;
 	private Timer Delay;
-	private List<Node2D> DyingEnemies = [];
+	private readonly List<Node2D> DyingEnemies = [];
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
 	private int _Energy = 0;
@@ -71,15 +76,15 @@ public partial class BattleManager : Node
 	private bool DebugDamageHeld = false;
 
 	private bool RestartQueued = false;
-	private float RestartTimer = 1;
+	private double RestartTimer;
 
 	/// <summary>
 	/// Whether a battle is currently ongoing.
 	/// </summary>
 	public bool IsBattling { get; private set; } = false;
 
-	// TODO: This is a poor way to do this, should probably be improved
 	private bool ProcessedStartOfTurn = false;
+	private bool ProcessedStartOfCommands = false;
 	private bool ProcessedEndOfTurn = false;
 
 	public static BattleManager Instance { get; private set; }
@@ -236,7 +241,7 @@ public partial class BattleManager : Node
 
 		DebugDamageHeld = Input.IsActionPressed("DebugDamage");
 
-		Engine.TimeScale = Input.IsActionPressed("SpeedUp") ? 10d : 1d;
+		// Engine.TimeScale = Input.IsActionPressed("SpeedUp") ? 10d : 1d;
 
 		if (Input.IsActionJustPressed("Accept"))
 		{
@@ -268,14 +273,15 @@ public partial class BattleManager : Node
 						}
 					} while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast");
 
-					if (Commands[^1].Action is Item item)
+					Actor prev = CurrentParty[CurrentPartyMember].Actor;
+					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
 					{
 						string name = CaptializeItemName(item);
 						if (!Items.TryAdd(name, 1))
 							Items[name]++;
 					}
 
-					Commands.RemoveAt(Commands.Count - 1);
+					PlayerCommands.Remove(prev);
 					AudioManager.Instance.PlaySFX("sys_cancel");
 					MenuManager.Instance.ShowMenu(MenuState.Battle);
 					SetPhase(BattlePhase.PlayerCommand);
@@ -357,7 +363,7 @@ public partial class BattleManager : Node
 			{
 				RestartLabel.Visible = true;
 				RestartLabel.Text = "Restarting...";
-				RestartTimer = 1;
+				RestartTimer = SettingsMenuManager.Instance.RestartHoldTime;
 			}
 		}
 
@@ -366,7 +372,7 @@ public partial class BattleManager : Node
 			if (!RestartQueued)
 			{
 				RestartLabel.Visible = false;
-				RestartTimer = 1;
+				RestartTimer = SettingsMenuManager.Instance.RestartHoldTime;
 			}
 		}
 
@@ -496,8 +502,15 @@ public partial class BattleManager : Node
 		CurrentPartyMember = -1;
 		CurrentEnemyTarget = -1;
 		CurrentPartyMemberTarget = -1;
-		CommandIndex = -1;
-		Commands.Clear();
+		PlayerCommands.Clear();
+		ActedThisTurn.Clear();
+		ForcedCommands.Clear();
+		PendingFollowup = null;
+		PriorityActors.Clear();
+		DeferredDeathEnemies.Clear();
+		CurrentCommand = null;
+		GameManager.Instance.SetBattlebackGreyscale(false);
+		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
 		MenuManager.Instance.ClearLastSelected();
 		EnergyBar.Visible = false;
@@ -510,6 +523,7 @@ public partial class BattleManager : Node
 		AudioManager.Instance.Reset();
 		Phase = BattlePhase.PreBattle;
 		ProcessedStartOfTurn = false;
+		ProcessedStartOfCommands = false;
 		ProcessedEndOfTurn = false;
 		RestartLabel.Visible = false;
 		RestartQueued = false;
@@ -668,13 +682,21 @@ public partial class BattleManager : Node
 					return;
 				}
 
-				GD.Print("Command Index: " + CommandIndex);
-				if (CommandIndex >= Commands.Count)
+				if (!ProcessedStartOfCommands)
+				{
+					foreach (EnemyComponent enemy in Enemies.ToList())
+						await enemy.Actor.ProcessStartOfCommands();
+					ProcessedStartOfCommands = true;
+				}
+
+				CurrentCommand = GetNextAction();
+				if (CurrentCommand == null)
 				{
 					EndOfTurn();
 				}
 				else
 				{
+					GD.Print("Next action: " + CurrentCommand.Action.Name + " by " + CurrentCommand.Actor.Name);
 					SetPhase(BattlePhase.CommandExecute);
 				}
 
@@ -706,11 +728,11 @@ public partial class BattleManager : Node
 					}
 				}
 
-				if (Commands[CommandIndex].Actor is PartyMember
-				    && Commands[CommandIndex].Action is Skill skill
+				if (CurrentCommand.Actor is PartyMember
+				    && CurrentCommand.Action is Skill skill
 				    && skill.ShowFollowups)
 				{
-					PartyMemberComponent component = CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor);
+					PartyMemberComponent component = CurrentParty.First(x => x.Actor == CurrentCommand.Actor);
 					if (component.HasFollowup)
 					{
 						component.FadeOutFollowups();
@@ -723,17 +745,47 @@ public partial class BattleManager : Node
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
 					enemy.Actor.SetHurt(false);
+					if (enemy.Actor.GrayscaleOnDefeat && enemy.Actor.CurrentHP == 0)
+					{
+						AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
+						AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
+						GameManager.Instance.SetBattlebackGreyscale(true);
+						await Task.Delay(750);
+					}
 					await enemy.Actor.ProcessBattleConditions();
+					// enemy may have been removed during ProcessBattleConditions
+					if (!Enemies.Contains(enemy))
+						continue;
 					if (enemy.Actor.CurrentHP == 0)
+					{
+						if (ForcedCommands.Any(f => f.Actor == enemy.Actor))
+						{
+							// defer death until all forced commands for this enemy have executed
+							DeferredDeathEnemies.Add(enemy);
+						}
+						else
+						{
+							enemy.Actor.SetState("toast", true);
+							if (enemy.Actor.FallsOffScreen)
+								DyingEnemies.Add(enemy.GetParent<Node2D>());
+							Enemies.Remove(enemy);
+						}
+					}
+				}
+				// resolve deferred deaths whose forced commands have all been consumed
+				foreach (EnemyComponent enemy in DeferredDeathEnemies.ToList())
+				{
+					if (ForcedCommands.All(f => f.Actor != enemy.Actor) && enemy.Actor.CurrentHP == 0)
 					{
 						enemy.Actor.SetState("toast", true);
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
 						Enemies.Remove(enemy);
 					}
+					
+					DeferredDeathEnemies.Remove(enemy);
 				}
 
-				CommandIndex++;
 				if (DyingEnemies.Count > 0)
 					SetPhase(BattlePhase.EnemyDying);
 				else
@@ -742,27 +794,99 @@ public partial class BattleManager : Node
 			}
 		}
 	}
-
-	private void PrepareCommandExecution()
+	
+	private BattleCommand GetNextAction()
 	{
-		MenuManager.Instance.ShowMenu(MenuState.None);
-		foreach (EnemyComponent enemy in Enemies)
+		// forced commands have the highest priority
+		while (ForcedCommands.Count > 0)
 		{
-			// Add an empty action for each enemy so the sorting below still works
-			Commands.Add(new BattleCommand(enemy.Actor, enemy.Actor, new EmptyAction()));
+			BattleCommand forced = ForcedCommands[0];
+			ForcedCommands.RemoveAt(0);
+			// skip forced commands whose actor has died since being queued
+			if (!(IsInvalidTarget(forced.Actor) || forced.Actor.Stunned))
+				return forced;
 		}
 
-		Commands = Commands.OrderByDescending(x => x.Action.Priority)
-			.ThenByDescending(x => x.Actor.CurrentStats.SPD)
-			.ThenBy(x =>
+		// followups
+		if (PendingFollowup != null)
+		{
+			BattleCommand followup = PendingFollowup;
+			PendingFollowup = null;
+			if (!(IsInvalidTarget(followup.Actor) || followup.Actor.Stunned))
+				return followup;
+		}
+
+		// priority actors, post-forced command actors or mid-battle spawns who haven't had their normal turn
+		while (PriorityActors.Count > 0)
+		{
+			Actor actor = PriorityActors[0];
+			PriorityActors.RemoveAt(0);
+			if (ActedThisTurn.Contains(actor) || IsInvalidTarget(actor) || actor.Stunned) 
+				continue;
+			BattleCommand cmd = ResolveCommandForActor(actor);
+			if (cmd != null)
+				return cmd;
+		}
+
+		// regular turn order
+		foreach (PartyMemberComponent member in CurrentParty)
+		{
+			if (!ActedThisTurn.Contains(member.Actor)
+			    && (IsInvalidTarget(member.Actor) || !PlayerCommands.ContainsKey(member.Actor)))
 			{
-				PartyMemberComponent c = CurrentParty.FirstOrDefault(y => y.Actor == x.Actor);
+				if (PlayerCommands.TryGetValue(member.Actor, out BattleCommand refundCmd)
+				    && refundCmd.Action is Item item)
+				{
+					string name = CaptializeItemName(item);
+					if (!Items.TryAdd(name, 1))
+						Items[name]++;
+				}
+				ActedThisTurn.Add(member.Actor);
+			}
+		}
+
+		List<Actor> candidates = [];
+		foreach (PartyMemberComponent member in CurrentParty)
+		{
+			if (!ActedThisTurn.Contains(member.Actor) && !IsInvalidTarget(member.Actor)
+			    && PlayerCommands.ContainsKey(member.Actor) && !member.Actor.Stunned)
+				candidates.Add(member.Actor);
+		}
+		foreach (EnemyComponent enemy in Enemies)
+		{
+			if (!ActedThisTurn.Contains(enemy.Actor) && !IsInvalidTarget(enemy.Actor) && !enemy.Actor.Stunned)
+				candidates.Add(enemy.Actor);
+		}
+
+		if (candidates.Count == 0)
+			return null;
+
+		Actor next = candidates
+			.OrderByDescending(a =>
+			{
+				if (a is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
+					return cmd.Action.Priority;
+				return SkillPriority.Normal;
+			})
+			.ThenByDescending(a => a.CurrentStats.SPD)
+			.ThenBy(a =>
+			{
+				PartyMemberComponent c = CurrentParty.FirstOrDefault(y => y.Actor == a);
 				return c?.Position ?? int.MaxValue;
 			})
-			.ToList();
+			.First();
 
-		CommandIndex = 0;
-		GD.Print("Preparing to process " + Commands.Count + " commands...");
+		return ResolveCommandForActor(next);
+	}
+
+	private BattleCommand ResolveCommandForActor(Actor actor)
+	{
+		ActedThisTurn.Add(actor);
+		if (actor is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
+			return cmd;
+		if (actor is Enemy enemy)
+			return enemy.ProcessAI();
+		return null;
 	}
 
 	private async void HandleFightRun()
@@ -770,9 +894,16 @@ public partial class BattleManager : Node
 		CurrentPartyMember = -1;
 		CurrentEnemyTarget = -1;
 		CurrentPartyMemberTarget = -1;
-		CommandIndex = -1;
-		Commands.Clear();
+		PlayerCommands.Clear();
+		ActedThisTurn.Clear();
+		ForcedCommands.Clear();
+		PendingFollowup = null;
+		PriorityActors.Clear();
+		DeferredDeathEnemies.Clear();
+		CurrentCommand = null;
 		ProcessedEndOfTurn = false;
+		ProcessedStartOfCommands = false;
+		GameManager.Instance.SetBattlebackGreyscale(false);
 		if (!ProcessedStartOfTurn)
 		{
 			foreach (PartyMemberComponent member in CurrentParty.Where(x => x.Actor.CurrentState != "toast"))
@@ -818,7 +949,7 @@ public partial class BattleManager : Node
 			if (CurrentPartyMember >= CurrentParty.Count)
 			{
 				BattleLogManager.Instance.ClearBattleLog();
-				PrepareCommandExecution();
+				MenuManager.Instance.ShowMenu(MenuState.None);
 				SetPhase(BattlePhase.PreCommand);
 				return;
 			}
@@ -907,43 +1038,42 @@ public partial class BattleManager : Node
 			return;
 		}
 		
+		Actor actor = CurrentParty[CurrentPartyMember].Actor;
 		switch (SelectedAction.Target)
 		{
 			case SkillTarget.Self:
-				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor,
-					CurrentParty[CurrentPartyMember].Actor, SelectedAction));
+				PlayerCommands[actor] = new BattleCommand(actor, actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select");
 				break;
 			case SkillTarget.Ally:
 			case SkillTarget.AllyNotSelf:
 			case SkillTarget.DeadAlly:
-				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor,
-					CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction));
+				PlayerCommands[actor] = new BattleCommand(actor,
+					CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select");
 				break;
 			case SkillTarget.Enemy:
-				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor,
-					Enemies[CurrentEnemyTarget].Actor, SelectedAction));
+				PlayerCommands[actor] = new BattleCommand(actor,
+					Enemies[CurrentEnemyTarget].Actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select");
 				break;
 			case SkillTarget.AllyOrEnemy:
 				if (CurrentEnemyTarget > -1)
-					Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor,
-						Enemies[CurrentEnemyTarget].Actor, SelectedAction));
+					PlayerCommands[actor] = new BattleCommand(actor,
+						Enemies[CurrentEnemyTarget].Actor, SelectedAction);
 				else
-					Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor,
-						CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction));
+					PlayerCommands[actor] = new BattleCommand(actor,
+						CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select");
 				break;
 			// select all party members for now, these will be resolved later
 			case SkillTarget.AllAllies:
 			case SkillTarget.AllDeadAllies:
-				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor,
-					GetAllPartyMembers().Select(x => x.Actor).ToList(), SelectedAction));
+				PlayerCommands[actor] = new BattleCommand(actor,
+					GetAllPartyMembers().Select(x => x.Actor).ToList(), SelectedAction);
 				break;
 			case SkillTarget.AllEnemies:
-				Commands.Add(new BattleCommand(CurrentParty[CurrentPartyMember].Actor, GetAllEnemies(),
-					SelectedAction));
+				PlayerCommands[actor] = new BattleCommand(actor, GetAllEnemies(), SelectedAction);
 				break;
 			default:
 				GD.PrintErr("Unhandled SelectTarget case: " + SelectedAction.Target);
@@ -959,7 +1089,7 @@ public partial class BattleManager : Node
 		if (CurrentPartyMember >= CurrentParty.Count)
 		{
 			BattleLogManager.Instance.ClearBattleLog();
-			PrepareCommandExecution();
+			MenuManager.Instance.ShowMenu(MenuState.None);
 			SetPhase(BattlePhase.PreCommand);
 		}
 		else
@@ -971,35 +1101,11 @@ public partial class BattleManager : Node
 
 	private async void HandleCommandExecute()
 	{
-		while (IsInvalidTarget(Commands[CommandIndex].Actor))
+		BattleCommand currentAction = CurrentCommand;
+
+		if (currentAction.Action is EmptyAction)
 		{
-			if (Commands[CommandIndex].Action is Item item)
-			{
-				// refund items if the character died before using it
-				string name = CaptializeItemName(item);
-				Items[name]++;
-			}
-
-			CommandIndex++;
-			if (CommandIndex >= Commands.Count)
-			{
-				EndOfTurn();
-				return;
-			}
-		}
-
-		BattleCommand currentAction = Commands[CommandIndex];
-
-		if (currentAction.Actor is Enemy enemy && currentAction.Action is EmptyAction)
-		{
-			// overwrite the empty enemy skill with an actual command
-			currentAction = enemy.ProcessAI();
-			Commands[CommandIndex] = currentAction;
-			if (currentAction.Action is EmptyAction)
-			{
-				// if the action is still empty, something went wrong
-				GD.PushWarning("ProcessAI for enemy " + enemy.Name + " returned an EmptyAction. This is a problem!");
-			}
+			GD.PushWarning("HandleCommandExecute received an EmptyAction from " + currentAction.Actor.Name + ". This is a problem!");
 		}
 
 		BattleLogManager.Instance.ClearBattleLog();
@@ -1158,7 +1264,7 @@ public partial class BattleManager : Node
 		if (Energy < 3 || !FollowupActive || ForceHideFollowup || !EnergyBar.Visible || FollowupSelected)
 			return false;
 
-		PartyMemberComponent current = CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor);
+		PartyMemberComponent current = CurrentParty.First(x => x.Actor == CurrentCommand.Actor);
 		if (!FollowupTable.TryGetValue((current.Position, direction), out var pair))
 			return false;
 
@@ -1190,11 +1296,16 @@ public partial class BattleManager : Node
 		if (!Database.TryGetSkill(name, out Skill skill))
 			return false;
 
-		// we already checked for this but oh well
+		// in base game, followups go after any other forced actions
 		if (skill.Target is SkillTarget.AllEnemies)
-			ForceCommand(current.Actor, GetAllEnemies(), skill);
+			PendingFollowup = new BattleCommand(current.Actor, GetAllEnemies(), skill);
 		else
-			ForceCommand(current.Actor, Commands[CommandIndex].Targets, skill);
+			PendingFollowup = new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
+
+		// prevent followup bubbles from showing again if the followup itself is an attack
+		if (skill.ShowFollowups)
+			ForceHideFollowup = true;
+
 		return true;
 	}
 
@@ -1220,18 +1331,20 @@ public partial class BattleManager : Node
 		if (self is PartyMember && skill.ShowFollowups)
 			// if the forced skill is an attack, hide the followup bubbles
 			ForceHideFollowup = true;
-		if (CommandIndex == Commands.Count)
-			Commands.Add(new BattleCommand(self, targets, skill));
-		else
-			Commands.Insert(CommandIndex + 1, new BattleCommand(self, targets, skill));
+		// insert at index 0 so newest forced commands execute first
+		ForcedCommands.Insert(0, new BattleCommand(self, targets, skill));
+		// if this actor hasn't had their normal turn, queue them for a priority turn after forced commands
+		// mimics base game behavior
+		if (!ActedThisTurn.Contains(self) && !PriorityActors.Contains(self))
+			PriorityActors.Add(self);
 	}
 
 	private void ProcessFollowupSuccess(InputDirection direction)
 	{
 		FollowupSelected = true;
 		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
-		CurrentParty.First(x => x.Actor == Commands[CommandIndex].Actor).FadeOutFollowupsExcept(direction);
-		if (Commands[CommandIndex + 1].Action.Name.Contains("Release Energy"))
+		CurrentParty.First(x => x.Actor == CurrentCommand.Actor).FadeOutFollowupsExcept(direction);
+		if (PendingFollowup.Action.Name.Contains("Release Energy"))
 			Energy = 0;
 		else
 			Energy -= 3;
@@ -1258,8 +1371,8 @@ public partial class BattleManager : Node
 			ProcessedEndOfTurn = true;
 		}
 
-		// if any commands were added during the ProcessEndOfTurn, we need to run those still
-		if (CommandIndex < Commands.Count)
+		// if any forced commands or priority actors were added during ProcessEndOfTurn, run those still
+		if (ForcedCommands.Count > 0 || PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a)))
 		{
 			SetPhase(BattlePhase.PreCommand);
 			return;
@@ -1283,10 +1396,10 @@ public partial class BattleManager : Node
 		tween.TweenInterval(0.75f);
 		// we need to call a standalone tween property here to make the above delay work
 		// otherwise, all the falling tweens will run parallel to the interval, essentially defeating the purpose
-		tween.TweenProperty(DyingEnemies[0], "position", DyingEnemies[0].Position + new Vector2(0, 400f), 0.50f);
+		tween.TweenProperty(DyingEnemies[0], "position", new Vector2(DyingEnemies[0].Position.X, 600f), 0.50f);
 		foreach (Node2D enemy in DyingEnemies.Skip(1))
 		{
-			tween.Parallel().TweenProperty(enemy, "position", enemy.Position + new Vector2(0, 400f), 0.50f);
+			tween.Parallel().TweenProperty(enemy, "position", new Vector2(enemy.Position.X, 600f), 0.50f);
 		}
 
 		tween.TweenCallback(Callable.From(EnemiesDoneDying));
@@ -1904,6 +2017,15 @@ public partial class BattleManager : Node
 		};
 		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, position);
 		Enemies.Add(enemy);
+
+		// mid-battle spawns automatically get an immediate turn via PriorityActors
+		if (Phase is BattlePhase.PreCommand or BattlePhase.CommandExecute
+		    or BattlePhase.WaitForBattleLog or BattlePhase.PostCommand or BattlePhase.EnemyDying)
+		{
+			if (!PriorityActors.Contains(enemy.Actor))
+				PriorityActors.Add(enemy.Actor);
+		}
+
 		return enemy;
 	}
 	
@@ -1943,6 +2065,84 @@ public partial class BattleManager : Node
 	public bool ShouldDoDebugDamage()
 	{
 		return DebugDamageHeld && SettingsMenuManager.Instance.EnableDebugDamage;
+	}
+	
+	/// <summary>
+	/// Makes the given <see cref="Actor"/> sad, if possible. Increases the tier if the actor is already sad.
+	/// </summary>
+	/// <param name="who">The <see cref="Actor"/> to make sad.</param>
+	public void MakeSad(Actor who)
+	{
+		string state = "sad";
+		string current = who.CurrentState;
+		switch (current)
+		{
+			case "miserable":
+				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get SADDER!");
+				return;
+			case "depressed":
+				state = "miserable";
+				break;
+			case "sad":
+				state = "depressed";
+				break;
+		}
+		if (who.IsStateValid(state))
+			who.SetState(state);
+		else
+			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get SADDER!");
+	}
+
+	/// <summary>
+	/// Makes the given <see cref="Actor"/> happy, if possible. Increases the tier if the actor is already happy.
+	/// </summary>
+	/// <param name="who">The <see cref="Actor"/> to make happy.</param>
+	public void MakeHappy(Actor who)
+	{
+		string state = "happy";
+		string current = who.CurrentState;
+		switch (current)
+		{
+			case "manic":
+				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get HAPPIER!");
+				return;
+			case "ecstatic":
+				state = "manic";
+				break;
+			case "happy":
+				state = "ecstatic";
+				break;
+		}
+		if (who.IsStateValid(state))
+			who.SetState(state);
+		else
+			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get HAPPIER!");
+	}
+
+	/// <summary>
+	/// Makes the given <see cref="Actor"/> angry, if possible. Increases the tier if the actor is already angry.
+	/// </summary>
+	/// <param name="who">The <see cref="Actor"/> to make angry.</param>
+	public void MakeAngry(Actor who)
+	{
+		string state = "angry";
+		string current = who.CurrentState;
+		switch (current)
+		{
+			case "furious":
+				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get ANGRIER!");
+				return;
+			case "enraged":
+				state = "furious";
+				break;
+			case "angry":
+				state = "enraged";
+				break;
+		}
+		if (who.IsStateValid(state))
+			who.SetState(state);
+		else
+			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get ANGRIER!");
 	}
 
 	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>
@@ -1999,9 +2199,7 @@ public partial class BattleManager : Node
 	/// <returns>The <see cref="BattleCommand"/> that is currently being processed.</returns>
 	public BattleCommand GetCurrentCommand()
 	{
-		if (CommandIndex < 0 || CommandIndex >= Commands.Count)
-			return null;
-		return Commands[CommandIndex];
+		return CurrentCommand;
 	}
 
 	/// <summary>

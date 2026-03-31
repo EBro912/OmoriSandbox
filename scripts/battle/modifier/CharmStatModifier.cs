@@ -4,6 +4,7 @@ namespace OmoriSandbox.Battle.Modifier;
 
 /// <summary>
 /// The modifier used by the Charm skill.
+/// Forces the affected enemy to target a specific <see cref="PartyMember"/>.
 /// </summary>
 public sealed class CharmStatModifier : StatModifier
 {
@@ -11,9 +12,5 @@ public sealed class CharmStatModifier : StatModifier
     /// <summary>
     /// The <see cref="PartyMember"/> that the enemy will target.
     /// </summary>
-    public PartyMember CharmedBy { get; private set; }
-    public override void OnAdd(Actor actor)
-    {
-        CharmedBy = actor as PartyMember;
-    }
+    public PartyMember CharmedBy { get; set; }
 }

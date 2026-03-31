@@ -6,11 +6,11 @@ using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 
-internal sealed class HumphreyGrande : Enemy
+internal sealed class HumphreyGrandeAlt : Enemy
 {
     public override string Name => "HUMPHREY GRANDE";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_grande.tres");
-    protected override Stats Stats => new(3700, 425, 68, 30, 1, 10, 95);
+    protected override Stats Stats => new(9000, 4000, 100, 25, 1, 10, 95);
     protected override string[] EquippedSkills => ["HUGAttack"];
     
     public override bool IsStateValid(string state)
@@ -25,7 +25,7 @@ internal sealed class HumphreyGrande : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 370)
+        if (CurrentHP < 900)
         {
             DialogueManager.Instance.QueueMessage("HUMPHREY", CenterPoint, @"[wave freq=10.0]Just a warning... it's about to get smelly!\| It's time for you all to get in my belly![/wave]");
             await DialogueManager.Instance.WaitForDialogue();
@@ -37,7 +37,7 @@ internal sealed class HumphreyGrande : Enemy
             BattleLogManager.Instance.ClearBattleLog();
             foreach (PartyMember member in SelectAllTargets())
                 BattleManager.Instance.Damage(this, member, () => member.CurrentStats.MaxHP * 0.25f, true, 0.5f, neverCrit: true);
-            BattleManager.Instance.TransformEnemy(this, "HumphreyFace");
+            BattleManager.Instance.TransformEnemy(this, "HumphreyFace (Boss Rush)");
             await Task.Delay(2000);
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }

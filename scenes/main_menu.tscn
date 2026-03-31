@@ -21,6 +21,8 @@
 [ext_resource type="Script" uid="uid://b6h3l1listplj" path="res://scripts/AnimationViewer.cs" id="17_j7ex8"]
 [ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="18_gw5y6"]
 [ext_resource type="PackedScene" uid="uid://cjovmomtfkxhh" path="res://scenes/battleback_bgm_editor_component.tscn" id="19_8egab"]
+[ext_resource type="Texture2D" uid="uid://b75xtstrsgcbh" path="res://assets/system/bsys_battlelog.png" id="22_1dfpl"]
+[ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="23_qywvv"]
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1040890594]
 
@@ -70,10 +72,10 @@ StartingEnergySlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/S
 StartingEnergyValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy/Label2")
 FollowupTierSlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/HSlider")
 FollowupTierValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/Label2")
-BasilFollowupsCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/BasilFollowups")
-BasilReleaseEnergyCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/BasilReleaseEnergy")
-DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/DisableDialogue")
-DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/DisableDamageNumbers")
+BasilFollowupsCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/BasilFollowups")
+BasilReleaseEnergyCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/BasilReleaseEnergy")
+DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/DisableDialogue")
+DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/DisableDamageNumbers")
 AddItemButton = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/AddItemButton")
 ItemContainer = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/ScrollContainer/ItemsContainer")
 SearchInput = NodePath("../Editor/SettingsTabs/Tools/Skill Search/VBoxContainer/HBoxContainer/SearchInput")
@@ -331,7 +333,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 anchors_preset = 7
 anchor_left = 0.5
@@ -368,6 +370,8 @@ VertigoUsesAtkCheckbox = NodePath("ScrollContainer/VBoxContainer/VertigoUsesAtk"
 ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
 EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
+RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelay/HSlider")
+RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelay/Label")
 KeybindGrid = NodePath("ScrollContainer/VBoxContainer/KeybindsContainer")
 ResetKeybindsButton = NodePath("ScrollContainer/VBoxContainer/ResetBindsButton")
 BackButton = NodePath("BackButton")
@@ -719,6 +723,38 @@ size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Keybinds"
+
+[node name="BattlelogSpeed2" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1563829350]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Restart Hold Time (Seconds)"
+
+[node name="RestartDelay" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1703591324]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+alignment = 1
+
+[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelay" unique_id=2043672742]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+min_value = 0.25
+max_value = 3.0
+step = 0.25
+value = 1.0
+scrollable = false
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelay" unique_id=1478018613]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "1.00"
 
 [node name="KeybindsContainer" type="GridContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=58266562]
 layout_mode = 2
@@ -1233,28 +1269,36 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1"
 
-[node name="BasilFollowups" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1442207599]
+[node name="GridContainer" type="GridContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=2018227542]
+layout_mode = 2
+columns = 2
+
+[node name="BasilFollowups" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=1442207599]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Basil Followups"
 
-[node name="BasilReleaseEnergy" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=756327374]
+[node name="BasilReleaseEnergy" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=756327374]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Basil Release Energy"
 
-[node name="DisableDialogue" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1424746557]
+[node name="DisableDialogue" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=1424746557]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Dialogue"
 
-[node name="DisableDamageNumbers" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1427138058]
+[node name="DisableDamageNumbers" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=1427138058]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Damage Numbers"
 
 [node name="Save" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1068584530]
@@ -1642,3 +1686,52 @@ theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Return to Title"
+
+[node name="UIPreview" type="Control" parent="Editor" unique_id=1935063543]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BattleLog" type="TextureRect" parent="Editor/UIPreview" unique_id=2143046872]
+z_index = -1
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -178.0
+offset_right = 178.0
+offset_bottom = 88.0
+grow_horizontal = 2
+texture = ExtResource("22_1dfpl")
+metadata/_edit_use_anchors_ = true
+
+[node name="Energy" type="Sprite2D" parent="Editor/UIPreview" unique_id=636751327]
+z_index = -4
+position = Vector2(320, 360)
+texture = ExtResource("23_qywvv")
+region_enabled = true
+region_rect = Rect2(0, 0, 362, 48)
+region_filter_clip_enabled = true
+
+[node name="EnergyAmount" type="Label" parent="Editor/UIPreview/Energy" unique_id=1633251323]
+offset_left = 145.0
+offset_top = -13.0
+offset_right = 168.0
+offset_bottom = 11.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.501961)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "00"
+horizontal_alignment = 1
+
+[node name="BattleMenu" type="Sprite2D" parent="Editor/UIPreview" unique_id=1646232816]
+z_index = -1
+position = Vector2(320, 429)
+texture = ExtResource("23_qywvv")
+region_enabled = true
+region_rect = Rect2(653, 130, 362, 82)

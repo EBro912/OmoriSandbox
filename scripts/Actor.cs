@@ -95,6 +95,11 @@ public abstract class Actor
 		}
 	}
 
+	/// <summary>
+	/// Whether the actor is currently stunned. Setting this value to true will cause their actions to be skipped.
+	/// </summary>
+	public bool Stunned = false;
+
 
 	/// <summary>
 	/// The actor's base stats without any modifiers.

@@ -72,7 +72,9 @@ public partial class AnimationManager : Node
 
 			RPGMAnimatedSprite animation = new(info.Id, info.Layer,
 				missingTexture ? null : ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"),
-				missingAltTexture ? null : ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
+				missingAltTexture
+					? null
+					: ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.AltTexture}.png"));
 
 			foreach (float[][] frame in info.Frames)
 			{
@@ -81,21 +83,26 @@ public partial class AnimationManager : Node
 				{
 					frames.Add(new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6]));
 				}
+
 				animation.CreateFrame(frames);
 			}
+
 			foreach (SFXInfo sfx in info.SFX)
 			{
 				animation.SetFrameSFX(sfx.Frame, new SFX(sfx.Name, sfx.Pitch, sfx.Volume));
 			}
+
 			foreach (ShakeInfo shake in info.Shake)
 			{
 				animation.SetFrameShake(shake.Frame, shake.Power, shake.Speed, shake.Duration);
 			}
+
 			if (!Animations.TryAdd(info.Id, animation))
 			{
 				GD.PrintErr("Unable to add animation ID " + info.Id + ", is there a duplicate?");
 			}
 		}
+
 		GD.Print($"Loaded {Animations.Count} animations");
 	}
 
@@ -117,7 +124,8 @@ public partial class AnimationManager : Node
 			attempted++;
 			if (Animations.ContainsKey(animation.Id))
 			{
-				GD.PushWarning($"{root}: Skipping modded animation {animation.Name} as ID {animation.Id} is already taken.");
+				GD.PushWarning(
+					$"{root}: Skipping modded animation {animation.Name} as ID {animation.Id} is already taken.");
 				continue;
 			}
 
@@ -134,16 +142,19 @@ public partial class AnimationManager : Node
 				texture = LoadModTexture(root, animation.Animation1Name);
 				if (texture == null)
 				{
-					GD.PrintErr($"{root}: Unable to find texture {animation.Animation1Name}.png for modded animation {animation.Id}.");
+					GD.PrintErr(
+						$"{root}: Unable to find texture {animation.Animation1Name}.png for modded animation {animation.Id}.");
 					continue;
 				}
 			}
+
 			if (!missingAltTexture)
 			{
 				altTexture = LoadModTexture(root, animation.Animation2Name);
 				if (altTexture == null)
 				{
-					GD.PrintErr($"{root}: Unable to find alt texture {animation.Animation2Name}.png for modded animation {animation.Id}.");
+					GD.PrintErr(
+						$"{root}: Unable to find alt texture {animation.Animation2Name}.png for modded animation {animation.Id}.");
 					continue;
 				}
 			}
@@ -163,13 +174,16 @@ public partial class AnimationManager : Node
 				else
 				{
 					if (!LoadModSFX(root, timing.Se.Name))
-						GD.PrintErr($"{root}: Unable to find SFX {timing.Se.Name}.ogg for modded animation {animation.Id}.");
+						GD.PrintErr(
+							$"{root}: Unable to find SFX {timing.Se.Name}.ogg for modded animation {animation.Id}.");
 					anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
 				}
 			}
+
 			Animations.Add(animation.Id, anim);
 			total++;
 		}
+
 		GD.Print($"{root}: Converted {total}/{attempted} RPGM animations");
 	}
 
@@ -198,6 +212,7 @@ public partial class AnimationManager : Node
 					list = [];
 					grouped[id] = list;
 				}
+
 				list.Add((JObject)op);
 			}
 		}
@@ -217,7 +232,7 @@ public partial class AnimationManager : Node
 			{
 				string[] segments = op["path"].ToString().TrimStart('/').Split('/');
 				if (segments.Length < 2) continue;
-				
+
 				switch (segments[1])
 				{
 					case "name":
@@ -246,6 +261,7 @@ public partial class AnimationManager : Node
 							cellDict = [];
 							frameCellData[frameIdx] = cellDict;
 						}
+
 						cellDict[cellIdx] = cell;
 						break;
 					}
@@ -257,7 +273,7 @@ public partial class AnimationManager : Node
 
 			// skip blank entries
 			if (frameData.Count == 0 && frameCellData.Count == 0 && timingData.Count == 0
-				&& textureName == null && altTextureName == null)
+			    && textureName == null && altTextureName == null)
 				continue;
 
 			attempted++;
@@ -266,7 +282,7 @@ public partial class AnimationManager : Node
 				GD.PushWarning($"{root}: Skipping delta-patched animation as ID {id} is already taken.");
 				continue;
 			}
-			
+
 			int layer = 0;
 			if (name != null)
 			{
@@ -274,7 +290,7 @@ public partial class AnimationManager : Node
 				if (match != null)
 					int.TryParse(match.GetString(1), out layer);
 			}
-			
+
 			Texture2D texture = null;
 			Texture2D altTexture = null;
 
@@ -287,12 +303,14 @@ public partial class AnimationManager : Node
 					continue;
 				}
 			}
+
 			if (altTextureName != null)
 			{
 				altTexture = LoadModTexture(root, altTextureName);
 				if (altTexture == null)
 				{
-					GD.PrintErr($"{root}: Unable to find alt texture {altTextureName}.png for delta-patched animation {id}.");
+					GD.PrintErr(
+						$"{root}: Unable to find alt texture {altTextureName}.png for delta-patched animation {id}.");
 					continue;
 				}
 			}
@@ -304,7 +322,7 @@ public partial class AnimationManager : Node
 			}
 
 			RPGMAnimatedSprite anim = new(id, layer, texture, altTexture);
-			
+
 			int maxFrame = 0;
 			if (frameData.Count > 0)
 				maxFrame = Math.Max(maxFrame, frameData.Keys.Max() + 1);
@@ -318,12 +336,13 @@ public partial class AnimationManager : Node
 					frames = cells.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6])).ToList();
 				else
 					frames = [];
-				
+
 				if (frameCellData.TryGetValue(i, out SortedDictionary<int, float[]> cellPatches))
 				{
 					foreach (var (cellIdx, cellData) in cellPatches)
 					{
-						Frame newFrame = new((int)cellData[0], cellData[1], cellData[2], cellData[3], cellData[4], cellData[5] == 1, cellData[6]);
+						Frame newFrame = new((int)cellData[0], cellData[1], cellData[2], cellData[3], cellData[4],
+							cellData[5] == 1, cellData[6]);
 						while (frames.Count <= cellIdx)
 							frames.Add(new Frame());
 						frames[cellIdx] = newFrame;
@@ -332,11 +351,11 @@ public partial class AnimationManager : Node
 
 				anim.CreateFrame(frames);
 			}
-			
+
 			foreach (Timings timing in timingData)
 			{
 				if (timing.Se == null)
-					 continue;
+					continue;
 				if (timing.Se.Name == "ft_doShake")
 					anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
 				else
@@ -415,12 +434,15 @@ public partial class AnimationManager : Node
 					EmitSignal(SignalName.AnimationFinished);
 					return;
 				}
+
 				continue;
 			}
+
 			if (PlayingAnimations[i].Animation.TryGetFrameSFX(PlayingAnimations[i].CurrentFrame, out List<SFX> sfx))
 			{
 				sfx.ForEach(AudioManager.Instance.PlaySFX);
 			}
+
 			if (PlayingAnimations[i].Animation.TryGetFrameShake(PlayingAnimations[i].CurrentFrame, out Shake shake))
 			{
 				InitShake(shake);
@@ -543,6 +565,57 @@ public partial class AnimationManager : Node
 	}
 
 	/// <summary>
+	/// Plays the given <paramref name="animationName"/> from the <see cref="SpriteFrames"/> at the specified <paramref name="position"/>.
+	/// </summary>
+	/// <param name="frames">The <see cref="SpriteFrames"/> to use.</param>
+	/// <param name="animationName">The animation from the <see cref="SpriteFrames"/> to play.</param>
+	/// <param name="position">The position to show the animation at.</param>
+	/// <param name="layer">The layer to show the animation on.</param>
+	public void PlaySpriteFrames(SpriteFrames frames, string animationName, Vector2 position, int layer = 0)
+	{
+		AnimatedSprite2D sprite = new()
+		{
+			SpriteFrames = frames,
+			Animation = animationName,
+			Position = position,
+			ZIndex = layer
+		};
+		sprite.SpriteFrames.SetAnimationLoop(animationName, false);
+		AddChild(sprite);
+		sprite.Play();
+		void Finished()
+		{
+			sprite.AnimationFinished -= Finished;
+			RemoveChild(sprite);
+		}
+		sprite.AnimationFinished += Finished;
+	}
+
+	/// <summary>
+	/// Plays the given <paramref name="animationName"/> from the <see cref="SpriteFrames"/> at the specified <paramref name="position"/>, and waits for it to finish.
+	/// </summary>
+	/// <param name="frames">The <see cref="SpriteFrames"/> to use.</param>
+	/// <param name="animationName">The animation from the <see cref="SpriteFrames"/> to play.</param>
+	/// <param name="position">The position to show the animation at.</param>
+	/// <param name="layer">The layer to show the animation on.</param>
+	public async Task WaitForPlaySpriteFrames(SpriteFrames frames, string animationName, Vector2 position,
+		int layer = 0)
+	{
+		AnimatedSprite2D sprite = new()
+		{
+			SpriteFrames = frames,
+			Animation = animationName,
+			Position = position,
+			ZIndex = layer
+		};
+		sprite.SpriteFrames.SetAnimationLoop(animationName, false);
+		AddChild(sprite);
+		sprite.Play();
+		await ToSignal(sprite, AnimatedSprite2D.SignalName.AnimationFinished);
+		RemoveChild(sprite);
+	}
+
+/// <summary>
 	/// Plays the Omori version of the Release Energy animation, and waits for it to finish.
 	/// </summary>
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>

@@ -6,11 +6,11 @@ using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 
-internal sealed class HumphreySwarm : Enemy
+internal sealed class HumphreySwarmAlt : Enemy
 {
     public override string Name => "HUMPHREY";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_swarm.tres");
-    protected override Stats Stats => new(9999, 5000, 10, 60, 60, 20, 95);
+    protected override Stats Stats => new(9999, 5000, 10, 150, 65, 10, 95);
     protected override string[] EquippedSkills => ["HUSAttack", "HUSAttack2", "HUSAttack3"];
     
     public override bool IsStateValid(string state)
@@ -84,7 +84,7 @@ internal sealed class HumphreySwarm : Enemy
         DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]The final fight as just begun!\| But can you win if we work as one?[/wave]");
         await DialogueManager.Instance.WaitForDialogue();
         await AnimationManager.Instance.WaitForHumphreySwarm();
-        BattleManager.Instance.TransformEnemy(this, "HumphreyGrande");
+        BattleManager.Instance.TransformEnemy(this, "HumphreyGrande (Boss Rush)");
         await Task.Delay(2500);
         await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
     }

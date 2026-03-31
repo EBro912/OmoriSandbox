@@ -13,7 +13,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
     protected override Stats Stats => new(10000, 5000, 90, 1, 80, 10, 95);
     protected override string[] EquippedSkills => ["UBTAttack", "UBTDoNothing", "UBTCheerUp", "UBTCook", "UBTBakeBread"];
 
-    private static readonly string[] SpawnPool = ["Slice (Boss Rush)", "Sourdough (Boss Rush)", "Sesame (Boss Rush)"];
+    private static readonly string[] SpawnPool = ["Slice (Epilogue)", "Sourdough (Epilogue)", "Sesame (Epilogue)"];
     private bool EmotionLocked = false;
     private int Stage = 0;
 
@@ -150,6 +150,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
 
     public void SpawnBread()
     {
+        SpawnedBread.RemoveAll(x => x == null || x.Actor.CurrentHP <= 0);
         EnemyComponent enemy;
         if (SpawnedBread.Count == 0)
             enemy = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X - 270, CenterPoint.Y), layer: Math.Max(0, Layer - 1));
@@ -160,9 +161,6 @@ internal sealed class UnbreadTwinsAlt : Enemy
             GD.PushWarning("Tried to summon more than 2 breads!");
             return;
         }
-        // in the Unbread Twins fight, the spawned enemy acts immediately after being spawned
-        BattleCommand command = enemy.Actor.ProcessAI();
-        BattleManager.Instance.ForceCommand(enemy.Actor, command.Targets, command.Action as Skill);
         SpawnedBread.Add(enemy);
     }
 }

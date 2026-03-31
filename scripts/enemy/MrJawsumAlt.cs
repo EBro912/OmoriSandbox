@@ -3,7 +3,9 @@ using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class MrJawsumAlt : Enemy
@@ -69,13 +71,19 @@ internal sealed class MrJawsumAlt : Enemy
         
         if (CurrentHP < 2250 && Stage <= 1)
         {
-            DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\![br][shake rate=20]on me!");
+            DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\! [shake rate=20]on me!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
         
         if (CurrentHP < 1500 && Stage <= 2)
         {
+            AudioManager.Instance.PlaySFX("se_thunder_bolt", volume: 0.9f);
+            AudioManager.Instance.PlaySFX("se_fire_whoosh", volume: 0.7f);
+            AnimationManager.Instance.InitShake(new Shake(29, 100, 15));
+            await AnimationManager.Instance.WaitForTintScreen(new Color(1, 0, 0, 0.5f), 0.25f);
+            AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack, 0.25f);
+            SetState("angry", true);
             DialogueManager.Instance.QueueMessage(this, @"What do you mean we're running low on henchmen!?\! That's impossible!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;

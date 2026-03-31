@@ -54,13 +54,13 @@ internal partial class MenuManager : Node
 	{
 		if (realWorld)
 		{
-			PartyMenu.RegionRect = new Rect2(653f, FightRunOffsetRW, 362f, 83f);
-			BattleMenu.RegionRect = new Rect2(653f, BattleOffsetRW, 362f, 83f);
+			PartyMenu.SetSkinMode(MenuSkinMode.Faraway);
+			BattleMenu.SetSkinMode(MenuSkinMode.Faraway);
 		}
 		else
 		{
-			PartyMenu.RegionRect = new Rect2(653f, FightRunOffset, 362f, 83f);
-			BattleMenu.RegionRect = new Rect2(653f, BattleOffset, 362f, 83f);
+			PartyMenu.SetSkinMode(MenuSkinMode.Dreamworld);
+			BattleMenu.SetSkinMode(MenuSkinMode.Dreamworld);
 		}
 	}
 
@@ -105,9 +105,9 @@ internal partial class MenuManager : Node
 	{
 		foreach (var menu in Menus) {
 			if (menu.Value.Visible)
-				menu.Value.MoveDown(menu.Key, immediate, true);
+				menu.Value.MoveDown(menu.Key, immediate);
 		}
-		MoveEnergyBarDown(immediate);	
+		MoveEnergyBarDown(immediate);
 	}
 
 	public void MoveUpOpenMenus(bool immediate)

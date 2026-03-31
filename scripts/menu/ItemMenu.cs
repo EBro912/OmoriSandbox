@@ -8,15 +8,18 @@ namespace OmoriSandbox.Menu;
 
 internal partial class ItemMenu : Menu
 {
-	[Export] public Label[] ItemLabels;
+	[Export] public AutofitLabel[] ItemLabels;
 	[Export] public Label CostText;
 	[Export] private Sprite2D PageUpSprite;
 	[Export] private Sprite2D PageDownSprite;
 	private readonly List<(Item, int)> Items = [];
 	private List<(Item, int)> DisplayedItems = [];
 	public int Page { get; private set; } = 0;
-	private List<Vector2I> Positions = [new Vector2I(-145, 5), new Vector2I(25, 5), new Vector2I(-145, 25), new Vector2I(25, 25)];
+	private List<Vector2I> Positions = [new(28, 52), new(200, 52), new(28, 76), new(200, 76)];
 
+	protected override Vector2 OpenPosition => new(138, 384);
+	protected override Vector2 ClosedPosition => new(138, 490);
+	
 	private Vector2I GridSize = new(2, 2);
 	private int MaxPage => Math.Max(0, (Items.Count - 3) / 2);
 
@@ -81,7 +84,7 @@ internal partial class ItemMenu : Menu
 		DisplayedItems = Items.GetRange(start, end - start);
 		for (int i = 0; i < DisplayedItems.Count; i++)
 		{
-			ItemLabels[i].Text = DisplayedItems[i].Item1.Name;
+			ItemLabels[i].SetFittedText(DisplayedItems[i].Item1.Name);
 		}
         CursorPositions = Positions.GetRange(0, DisplayedItems.Count);
         if (CursorIndex >= DisplayedItems.Count)

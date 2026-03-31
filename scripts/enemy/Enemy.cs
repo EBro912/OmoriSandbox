@@ -16,7 +16,7 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class Enemy : Actor
 {
-	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, int layer)
+	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer)
 	{
 		SpriteFrames animation = Animation;
 		if (animation == null)
@@ -35,6 +35,7 @@ public abstract class Enemy : Actor
 		CurrentJuice = BaseStats.Juice;
 
 		FallsOffScreen = fallsOffScreen;
+		GrayscaleOnDefeat = grayscaleOnDefeat;
 		Layer = layer;
 
 		foreach (string s in EquippedSkills)
@@ -133,12 +134,12 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Rolls a number between 0 and 100 (inclusive). Mainly a helper function for calculating skill chances in <see cref="ProcessAI"/>
+	/// Rolls a number between 1 and 100 (inclusive). Mainly a helper function for calculating skill chances in <see cref="ProcessAI"/>
 	/// </summary>
 	/// <returns></returns>
 	protected int Roll()
 	{
-		return GameManager.Instance.Random.RandiRange(0, 100);
+		return GameManager.Instance.Random.RandiRange(1, 100);
 	}
 
 	/// <summary>
@@ -162,6 +163,14 @@ public abstract class Enemy : Actor
 	/// Setting this value directly should be avoided as the player can set this manually in the preset settings.
 	/// </remarks>
 	public bool FallsOffScreen = true;
+
+	/// <summary>
+	/// Whether the enemy triggers a grayscale effect on defeat.
+	/// </summary>
+	/// <remarks>
+	/// Setting this value directly should be avoided as the player can set this manually in the preset settings.
+	/// </remarks>
+	public bool GrayscaleOnDefeat = false;
 	/// <summary>
 	/// The layer this enemy is on
 	/// </summary>
@@ -184,6 +193,10 @@ public abstract class Enemy : Actor
 	/// Called at the very start of the turn.
 	/// </summary>
 	public virtual async Task ProcessStartOfTurn() { await Task.CompletedTask; }
+	/// <summary>
+	/// Called after the player finishes selecting commands and before the first command executes.
+	/// </summary>
+	public virtual async Task ProcessStartOfCommands() { await Task.CompletedTask; }
 	/// <summary>
 	/// Called at the very end of the turn, but before it officially ends.
 	/// </summary>

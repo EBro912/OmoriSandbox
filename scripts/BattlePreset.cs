@@ -46,6 +46,7 @@ internal class BattlePresetEnemy
     public string Emotion { get; set; } = "neutral";
     public double Layer { get; set; } = 0;
     public bool FallsOffScreen { get; set; } = true;
+    public bool GrayscaleOnDefeat { get; set; } = false;
 }
 
 internal class BattlePresetBossRushStage

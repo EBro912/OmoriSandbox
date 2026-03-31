@@ -331,7 +331,10 @@ internal partial class EditorManager : Node
 						Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
 						Layer = (int)editor.LayerBox.Value,
 						FallsOffScreen = editor.FallsOffScreenCheckbox.ButtonPressed,
+						GrayscaleOnDefeat = editor.GrayscaleOnDefeatCheckbox.ButtonPressed
 					};
+					if (enemy.Emotion is "hurt" or "toast")
+						enemy.Emotion = "neutral";
 					enemies.Add(enemy);
 				}
 			}
@@ -364,7 +367,10 @@ internal partial class EditorManager : Node
 								Emotion = enemyEditor.EmotionDropdown.GetItemText(enemyEditor.EmotionDropdown.Selected),
 								Layer = (int)enemyEditor.LayerBox.Value,
 								FallsOffScreen = enemyEditor.FallsOffScreenCheckbox.ButtonPressed,
+								GrayscaleOnDefeat = enemyEditor.GrayscaleOnDefeatCheckbox.ButtonPressed
 							};
+							if (enemy.Emotion is "hurt" or "toast")
+								enemy.Emotion = "neutral";
 							stage.Enemies.Add(enemy);
 						}
 					}

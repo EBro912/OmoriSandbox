@@ -125,7 +125,7 @@ public partial class AudioManager : Node
 			return;
 		}
 
-		GD.PushWarning("Overloaded! We ran out of AudioStreams!");
+		GD.Print("Overloaded! We ran out of AudioStreams!");
 	}
 
 	/// <summary>
