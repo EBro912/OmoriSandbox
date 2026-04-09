@@ -19,6 +19,8 @@ internal sealed class HumphreySwarm : Enemy
     }
 
     private int Turn = 0;
+    // prevent race condition between two triggers
+    private bool HasTransformed = false;
 
     public override BattleCommand ProcessAI()
     {
@@ -65,27 +67,29 @@ internal sealed class HumphreySwarm : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 999)
+        if (CurrentHP < 999 && !HasTransformed)
         {
+            HasTransformed = true;
             await ChangePhase();
         }
     }
 
     public override async Task ProcessEndOfTurn()
     {
-        if (Turn >= 5)
+        if (Turn >= 5 && !HasTransformed)
         {
             await ChangePhase();
+            HasTransformed = true;
         }
     }
 
     private async Task ChangePhase()
     {
-        DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]The final fight as just begun!\| But can you win if we work as one?[/wave]");
+        DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]The final fight has just begun!\| But can you win if we work as one?[/wave]");
         await DialogueManager.Instance.WaitForDialogue();
         await AnimationManager.Instance.WaitForHumphreySwarm();
         BattleManager.Instance.TransformEnemy(this, "HumphreyGrande");
-        await Task.Delay(2500);
+        await Wait.Milliseconds(2500);
         await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
     }
 }

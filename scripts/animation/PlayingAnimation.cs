@@ -6,6 +6,9 @@ namespace OmoriSandbox.Animation;
 
 internal partial class PlayingAnimation : Node2D
 {
+	[Signal]
+	public delegate void FinishedEventHandler();
+
 	public int CurrentFrame { get; private set; } = 0;
 	public readonly RPGMAnimatedSprite Animation;
 	public Vector2 DrawPosition { get; private set; }

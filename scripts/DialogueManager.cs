@@ -335,7 +335,7 @@ public partial class DialogueManager : Node2D
 	/// </remarks>
     public async Task WaitForDialogue()
 	{
-		if (DialogueDisabled)
+		if (DialogueDisabled || !Visible)
 			return;
 
 		await ToSignal(this, SignalName.FinishedDialogue);

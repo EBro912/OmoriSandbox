@@ -151,7 +151,7 @@ internal sealed class SpaceExHusband : Enemy
             {
                 AnimationManager.Instance.PlayPhotograph();
                 SetState("neutral", true);
-                await Task.Delay(1200);
+                await Wait.Milliseconds(1200);
                 DialogueManager.Instance.QueueMessage(this, @"Nay! I must guard my HEART.\! I must become one... with the ice...");
                 await DialogueManager.Instance.WaitForDialogue();
             }
@@ -248,13 +248,10 @@ internal sealed class SpaceExHusband : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task ProcessBattleConditions()
+    public override async Task OnDefeat()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"[br]The pain...\! I can feel it...");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+        DialogueManager.Instance.QueueMessage(this, @"[br]The pain...\! I can feel it...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

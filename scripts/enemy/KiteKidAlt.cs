@@ -81,6 +81,7 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("AttackUp");
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
+                    enemy.RemoveStatModifier("SpeedUp");
                     AnimationManager.Instance.PlayAnimation(219, enemy);
                 }
                 break;
@@ -91,15 +92,8 @@ internal sealed class KiteKidAlt : Enemy
     public override async Task ProcessBattleConditions()
     {
         if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
-            DialogueManager.Instance.QueueMessage(this, "How could we lose?");
-            await DialogueManager.Instance.WaitForDialogue();
-            if (KidsKite != null && KidsKite.Actor.CurrentState != "toast")
-                KidsKite.Actor.CurrentHP = 0;
             return;
-        }
-        
+
         if (CurrentHP < 2000 && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "No... This can't be...");
@@ -107,6 +101,15 @@ internal sealed class KiteKidAlt : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
+        DialogueManager.Instance.QueueMessage(this, "How could we lose?");
+        await DialogueManager.Instance.WaitForDialogue();
+        if (KidsKite != null && KidsKite.Actor.CurrentState != "toast")
+            KidsKite.Actor.CurrentHP = 0;
     }
 
     public override async Task OnEndOfBattle(bool victory)

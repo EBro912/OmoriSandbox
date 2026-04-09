@@ -30,7 +30,7 @@ internal sealed class HumphreyGrande : Enemy
             DialogueManager.Instance.QueueMessage("HUMPHREY", CenterPoint, @"[wave freq=10.0]Just a warning... it's about to get smelly!\| It's time for you all to get in my belly![/wave]");
             await DialogueManager.Instance.WaitForDialogue();
             await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 0.5f);
-            await Task.Delay(1000);
+            await Wait.Milliseconds(1000);
             AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack, 0.1f);
             await AnimationManager.Instance.WaitForHumphreySwallow();
             AnimationManager.Instance.TintScreen(Colors.Black);
@@ -38,7 +38,7 @@ internal sealed class HumphreyGrande : Enemy
             foreach (PartyMember member in SelectAllTargets())
                 BattleManager.Instance.Damage(this, member, () => member.CurrentStats.MaxHP * 0.25f, true, 0.5f, neverCrit: true);
             BattleManager.Instance.TransformEnemy(this, "HumphreyFace");
-            await Task.Delay(2000);
+            await Wait.Milliseconds(2000);
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }
     }

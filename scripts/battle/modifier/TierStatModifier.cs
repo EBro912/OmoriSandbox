@@ -58,6 +58,8 @@ public class TierStatModifier : StatModifier
 
 	internal override StateIcon[] GetStateIcons()
 	{
+		if (StateIcons.Length == 0)
+			return [];
 		return [StateIcons[Math.Min(Tier - 1, StateIcons.Length - 1)]];
 	}
 

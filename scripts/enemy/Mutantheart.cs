@@ -54,12 +54,7 @@ internal sealed class Mutantheart : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bloooohhhh...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 3500 && !HasSpoken)
         {
@@ -67,6 +62,12 @@ internal sealed class Mutantheart : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bloooohhhh...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task ProcessStartOfTurn()
@@ -77,6 +78,7 @@ internal sealed class Mutantheart : Enemy
             "happy" => @"[font_size=22][wave freq=10.0]HAPPY...\. please!",
             "sad" => @"[font_size=22][wave freq=10.0]SAD...\. please...",
             "angry" => @"[font_size=22][wave freq=10.0]ANGRY...\. please.",
+            _ => @"[font_size=22]I couldn't make up my mind...\. this is a problem!"
         };
         DialogueManager.Instance.QueueMessage(this, message);
         await DialogueManager.Instance.WaitForDialogue();

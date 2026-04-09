@@ -68,12 +68,7 @@ internal sealed class NefariousChip : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Molto triste...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 1728 && !HasSpoken)
         {
@@ -82,6 +77,12 @@ internal sealed class NefariousChip : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "Molto triste...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

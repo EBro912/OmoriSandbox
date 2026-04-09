@@ -67,14 +67,7 @@ internal sealed class Pluto : Enemy
     private bool HasExpanded = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            if (LeftArm != null)
-                LeftArm.Actor.CurrentHP = 0;
-            if (RightArm != null)
-                RightArm.Actor.CurrentHP = 0;
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 150 && !HasExpanded)
         {
@@ -85,6 +78,15 @@ internal sealed class Pluto : Enemy
             HasExpanded = true;
         }
         
+    }
+
+    public override Task OnDefeat()
+    {
+        if (LeftArm != null)
+            LeftArm.Actor.CurrentHP = 0;
+        if (RightArm != null)
+            RightArm.Actor.CurrentHP = 0;
+        return Task.CompletedTask;
     }
 
     public override async Task OnEndOfBattle(bool victory)

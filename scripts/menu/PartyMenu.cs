@@ -51,6 +51,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
     public override void OnOpen(SelectionMemory memory)
     {
         CursorSprite.StartBounce();
+        WaitForSecondRun = false;
 		base.OnOpen(memory);
     }
 

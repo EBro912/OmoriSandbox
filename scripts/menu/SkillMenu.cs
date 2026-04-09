@@ -30,6 +30,11 @@ internal partial class SkillMenu : Menu
 		int idx = 0;
 		foreach (Skill s in actor.Skills.Values.Where(x => !x.Hidden))
 		{
+			if (actor.EquippedSkills == null || actor.EquippedSkills.Length == 0)
+			{
+				GD.PrintErr($"Actor {actor.Name} has no equipped skills.");
+				break;
+			}
 			// since Actor.Skills is a dictionary, we need to check here if the skill is the PartyMember's attack skill,
 			// i.e. the first one in their skill list
 			// OrderedDictionary doesn't accept types for whatever reason...

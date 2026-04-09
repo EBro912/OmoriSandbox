@@ -82,12 +82,7 @@ internal sealed class UnbreadTwins : Enemy
         SpawnedBread.RemoveAll(x => x == null || x.Actor.CurrentHP <= 0);
 
         if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"Our resources have been depleted...\! What will we do without ingredients?");
-            DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo...");
-            await DialogueManager.Instance.WaitForDialogue();
             return;
-        }
 
         if (Stage > 3)
             return;
@@ -134,6 +129,13 @@ internal sealed class UnbreadTwins : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 4;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"Our resources have been depleted...\! What will we do without ingredients?");
+        DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

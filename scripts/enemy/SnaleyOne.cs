@@ -4,7 +4,7 @@ using OmoriSandbox.Battle;
 
 namespace OmoriSandbox.Actors;
 
-public class SnaleyOne : Enemy
+internal sealed class SnaleyOne : Enemy
 {
     public override string Name => "SNALEY";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/snaley.tres");
@@ -24,8 +24,8 @@ public class SnaleyOne : Enemy
             return new BattleCommand(this, observe, Skills["SNAttack"]);
         
         if (Turn is 3 or 4)
-            return new BattleCommand(this, SelectTarget(), Skills["SNDoNothing"]);
-        return new BattleCommand(this, this, Skills["SNAttack"]);
+            return new BattleCommand(this, this, Skills["SNDoNothing"]);
+        return new BattleCommand(this, SelectTarget(), Skills["SNAttack"]);
     }
 
     public override async Task OnStartOfBattle()
@@ -34,13 +34,10 @@ public class SnaleyOne : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task ProcessBattleConditions()
+    public override async Task OnDefeat()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Okay, please stop! That's enough!");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+        DialogueManager.Instance.QueueMessage(this, "Okay, please stop! That's enough!");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task ProcessEndOfTurn()

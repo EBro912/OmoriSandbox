@@ -7,6 +7,7 @@ using OmoriSandbox.Editor;
 using OmoriSandbox.Modding;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OmoriSandbox;
 
@@ -69,7 +70,7 @@ namespace OmoriSandbox;
  - Permanent stat upgrades (TBD) - in testing
  - Apply attack/skill/snack/toy menu pathing to other menus - potentially done
  - Confirmation for running/quick restart - done
- - Import preset as battle stage
+ - Import preset as battle stage - in testing
  - King Carnivore and Boss rush humphrey - done
  - Spawning enemies in the editor initalizes them, this breaks things like HumphreyFace
  - Have a toggleable list of weapons to only show weapons equipable by that actor - done
@@ -113,7 +114,7 @@ namespace OmoriSandbox;
  - Add flag to allow modded animations to loop
  - Add layer selector to animation viewer - done
  - Fix certain broken animations - done?
- - Add thematic dialogue (Sweetheart donut, Pluto flex)
+ - Add thematic dialogue (Sweetheart donut, Pluto flex) - in testing
  - Improve what is considered a basic attack/followup - done
  - Extract battlebacks into a battleback manager and potentially support animated ones - done
  - Make weapons use StatBonus - done
@@ -134,9 +135,7 @@ namespace OmoriSandbox;
  - Add wait for bgm fade - done
  - Stat adjustments should take emotion into account - done?
  - Support custom state icons - done
- - Load presets from a mod's preset folder
- - Tiered stat modifiers are broken
- - Priority skills are broken
+ - Load presets from a mod's preset folder - in testing
  */
 
 /// <summary>
@@ -158,7 +157,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// A random number generator.
 	/// </summary>
-	public RandomNumberGenerator Random = new();
+	public RandomNumberGenerator Random { get; private set; } = new();
 	internal DiscordManager DiscordManager { get; private set; }
 	public static GameManager Instance { get; private set; }
 
@@ -190,6 +189,18 @@ public partial class GameManager : Node
 	}
 
 	/// <summary>
+	/// Creates a timer that waits for the given number of seconds.
+	/// </summary>
+	/// <remarks>
+	/// The <see cref="OmoriSandbox.Wait"/> class can be used as a shorthand of this method.
+	/// </remarks>
+	/// <param name="seconds">The number of seconds to wait for.</param>
+	public async Task Wait(float seconds)
+	{
+		await ToSignal(GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
+	}
+
+	/// <summary>
 	/// Sets the battleback.
 	/// </summary>
 	/// <param name="name">The name of the battleback to set.</param>
@@ -202,7 +213,7 @@ public partial class GameManager : Node
 	/// Enables/disables a greyscale filter on the battleback and enemies.
 	/// </summary>
 	/// <param name="enabled">Whether the greyscale filter should be enabled.</param>
-	public void SetBattlebackGreyscale(bool enabled)
+	public void SetBattlebackGrayscale(bool enabled)
 	{
 		BattlebackParent.Material = enabled ? GreyscaleMaterial : null;
 	}

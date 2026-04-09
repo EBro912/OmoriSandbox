@@ -33,7 +33,10 @@ public class SpriteFramesBuilder
         Height = height;
         Columns = Texture.GetWidth() / Width;
         if (Columns == 0)
+        {
             GD.PushError("Loaded atlas with zero columns! Double check the width and height!\nuser://mods/" + atlasPath);
+            SpriteFrames = null;
+        }
     }
 
     /// <summary>
@@ -45,6 +48,10 @@ public class SpriteFramesBuilder
     /// <returns></returns>
     public SpriteFramesBuilder AddAnimation(string animationId, double fps, params int[] indices)
     {
+        // return early if the builder was never properly initialized
+        if (SpriteFrames == null)
+            return this;
+        
         if (SpriteFrames.HasAnimation(animationId))
         {
             GD.PushWarning($"SpriteFrames already has an animation named {animationId}, skipping!");

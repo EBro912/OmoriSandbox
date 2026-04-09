@@ -31,7 +31,7 @@ public sealed class AnimatedBattleback : IBattleback
         byte[] rgba = new byte[gif.Width * gif.Height * 4];
         for (int i = 0; i < gif.Frames.Count; i++)
         {
-            var frame = gif.Frames.CloneFrame(i);
+            using Image<Rgba32> frame = gif.Frames.CloneFrame(i);
 
             GifFrameMetadata frameMeta = frame.Frames[0].Metadata.GetGifMetadata();
             int delayCs = frameMeta.FrameDelay;

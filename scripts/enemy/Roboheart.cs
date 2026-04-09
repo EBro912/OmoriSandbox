@@ -71,12 +71,7 @@ internal sealed class Roboheart : Enemy
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "[br]V2h5Pw==");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage > 1)
             return;
@@ -94,6 +89,12 @@ internal sealed class Roboheart : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "[br]V2h5Pw==");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

@@ -88,13 +88,7 @@ internal sealed class SlimeGirls : Enemy
 	public override async Task ProcessBattleConditions()
 	{
 		if (CurrentHP <= 0)
-		{
-            DialogueManager.Instance.QueueMessage("MARINA", CenterPoint, "You kids... are a lot tougher than you look.");
-            DialogueManager.Instance.QueueMessage("MOLLY", CenterPoint, @"Hmph...\! This is much more trouble than it's worth.");
-            DialogueManager.Instance.QueueMessage("MEDUSA", CenterPoint, @"Sigh...\! What a predicament...\! How will we feed HUMPHREY now?");
-            await DialogueManager.Instance.WaitForDialogue();
 			return;
-        }
 
 		if (Stage > 2)
 			return;
@@ -125,6 +119,14 @@ internal sealed class SlimeGirls : Enemy
             Stage = 3;
         }
     }
+
+	public override async Task OnDefeat()
+	{
+		DialogueManager.Instance.QueueMessage("MARINA", CenterPoint, "You kids... are a lot tougher than you look.");
+		DialogueManager.Instance.QueueMessage("MOLLY", CenterPoint, @"Hmph...\! This is much more trouble than it's worth.");
+		DialogueManager.Instance.QueueMessage("MEDUSA", CenterPoint, @"Sigh...\! What a predicament...\! How will we feed HUMPHREY now?");
+		await DialogueManager.Instance.WaitForDialogue();
+	}
 
     public override async Task OnEndOfBattle(bool victory)
     {

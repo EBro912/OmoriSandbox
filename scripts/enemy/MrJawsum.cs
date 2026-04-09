@@ -53,13 +53,7 @@ internal sealed class MrJawsum : Enemy
     {
         GatorGuys.RemoveAll(x => x.Actor.CurrentHP <= 0);
 
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "You let yourselves be foiled by a bunch of children!?");
-            DialogueManager.Instance.QueueMessage(this, "WHAT DID I EVEN HIRE YOU FOR!?");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage > 2) 
             return;
@@ -90,6 +84,13 @@ internal sealed class MrJawsum : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "You let yourselves be foiled by a bunch of children!?");
+        DialogueManager.Instance.QueueMessage(this, "WHAT DID I EVEN HIRE YOU FOR!?");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnStartOfBattle()

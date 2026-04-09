@@ -5,7 +5,7 @@ namespace OmoriSandboxSampleMod
 {
     public partial class MyMod : Mod
     {
-        public override void OnLoad()
+        public override void _Ready()
         {
             RegisterPartyMember<Tony>("Tony");
 

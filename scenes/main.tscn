@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dnxcj20hgcsj8"]
 
 [ext_resource type="PackedScene" uid="uid://dxm1fg4428tk" path="res://scenes/main_menu.tscn" id="1_yq6so"]
+[ext_resource type="Script" uid="uid://unmfqhxv1ft3" path="res://scripts/PresetManager.cs" id="2_j2jfr"]
 [ext_resource type="Script" uid="uid://5otaqjeah5jj" path="res://scripts/modding/ModManager.cs" id="2_j8jky"]
 [ext_resource type="PackedScene" uid="uid://b8h6qs361gmp5" path="res://scenes/omori_followup.tscn" id="4_muem4"]
 [ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="4_tipki"]
@@ -63,6 +64,9 @@ viewport_path = NodePath("BattleCanvas/UI/Battleback/FullScreenEffects/SubViewpo
 [node name="BattleCanvas" type="CanvasLayer" parent="." unique_id=845179420]
 layer = 0
 
+[node name="PresetManager" type="Node" parent="BattleCanvas" unique_id=42929789]
+script = ExtResource("2_j2jfr")
+
 [node name="BattlebackManager" type="Node" parent="BattleCanvas" unique_id=2099075600]
 script = ExtResource("18_txyw0")
 
@@ -79,12 +83,14 @@ Party = NodePath("../UI/Party")
 GreyscaleMaterial = ExtResource("7_ty1g6")
 Followups = Array[PackedScene]([ExtResource("4_muem4"), ExtResource("5_dp3eg"), ExtResource("7_gqmmt"), ExtResource("6_0ld40"), ExtResource("8_vxglm")])
 
-[node name="BattleManager" type="Node" parent="BattleCanvas" unique_id=2138218027 node_paths=PackedStringArray("EnergyText", "EnergyBar", "EnergyDots", "MenuButtonContainer", "RestartLabel")]
+[node name="BattleManager" type="Node" parent="BattleCanvas" unique_id=2138218027 node_paths=PackedStringArray("EnergyText", "EnergyBar", "EnergyDots", "EndOfBattleOptionsContainer", "StageSelectorContainer", "StageSelectorSpinBox", "RestartLabel")]
 script = ExtResource("9_y6deb")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 EnergyBar = NodePath("../UI/Energy")
 EnergyDots = NodePath("../UI/Energy/EnergyDots")
-MenuButtonContainer = NodePath("../UI/MenuButtons")
+EndOfBattleOptionsContainer = NodePath("../UI/EndOfBattleOptions")
+StageSelectorContainer = NodePath("../UI/EndOfBattleOptions/StageSelect")
+StageSelectorSpinBox = NodePath("../UI/EndOfBattleOptions/StageSelect/SpinBox")
 RestartLabel = NodePath("../UI/HBoxContainer/Restart")
 
 [node name="MenuManager" type="Node" parent="BattleCanvas" unique_id=906353120 node_paths=PackedStringArray("PartyMenu", "BattleMenu", "SkillMenu", "SnackMenu", "ToyMenu", "EnergyBar", "EnergyText")]
@@ -446,7 +452,6 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="Text" type="Control" parent="BattleCanvas/UI/DialogueBox/ChoiceBox" unique_id=286026623]
-visible = false
 anchors_preset = 0
 offset_left = 6.0
 offset_top = 5.0
@@ -959,7 +964,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="MenuButtons" type="HBoxContainer" parent="BattleCanvas/UI" unique_id=977401127]
+[node name="EndOfBattleOptions" type="VBoxContainer" parent="BattleCanvas/UI" unique_id=1433657391]
 visible = false
 z_index = 10
 layout_mode = 1
@@ -968,15 +973,38 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -129.5
+offset_left = -129.0
 offset_top = -130.0
-offset_right = 129.5
-offset_bottom = -90.0
+offset_right = 129.0
+offset_bottom = -58.0
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="StageSelect" type="HBoxContainer" parent="BattleCanvas/UI/EndOfBattleOptions" unique_id=1542458837]
+visible = false
+layout_mode = 2
 alignment = 1
 
-[node name="Retry" type="Button" parent="BattleCanvas/UI/MenuButtons" unique_id=1550080932]
+[node name="Label" type="Label" parent="BattleCanvas/UI/EndOfBattleOptions/StageSelect" unique_id=1808527827]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = ExtResource("37_c6pm6")
+text = "Stage:"
+
+[node name="SpinBox" type="SpinBox" parent="BattleCanvas/UI/EndOfBattleOptions/StageSelect" unique_id=499238593]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+rounded = true
+
+[node name="MenuButtons" type="HBoxContainer" parent="BattleCanvas/UI/EndOfBattleOptions" unique_id=977401127]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+alignment = 1
+
+[node name="Retry" type="Button" parent="BattleCanvas/UI/EndOfBattleOptions/MenuButtons" unique_id=1550080932]
 custom_minimum_size = Vector2(125, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("10_choun")
@@ -986,7 +1014,7 @@ theme_override_styles/pressed = ExtResource("38_5he1u")
 theme_override_styles/hover = ExtResource("39_5poiv")
 text = "Retry"
 
-[node name="Return" type="Button" parent="BattleCanvas/UI/MenuButtons" unique_id=707343193]
+[node name="Return" type="Button" parent="BattleCanvas/UI/EndOfBattleOptions/MenuButtons" unique_id=707343193]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24

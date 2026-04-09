@@ -23,8 +23,7 @@ internal sealed class Sweetheart : Enemy
 		if (EmotionLocked)
 			return false;
 
-		return state == "neutral" || state == "sad" || state == "happy"
-			|| state == "angry" || state == "hurt";
+		return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
 	}
 
 
@@ -87,17 +86,26 @@ internal sealed class Sweetheart : Enemy
 	}
 
 
+	private bool UsedCharm = false;
+	private bool UsedDonut = false;
+	public override async Task OnDefeat()
+	{
+		DialogueManager.Instance.QueueMessage(this, @"No...\! Is this...\![br]What they call defeat?");
+		DialogueManager.Instance.QueueMessage(this, @"[br]I cannot accept this...\![br]I will not accept this!");
+		DialogueManager.Instance.QueueMessage(this, "[br]You're all nothing but a bunch of lowly peasants!");
+		await DialogueManager.Instance.WaitForDialogue();
+	}
 
 	public override async Task ProcessBattleConditions()
 	{
-		if (CurrentHP <= 0)
-		{
-            DialogueManager.Instance.QueueMessage(this, @"No...\! Is this...\![br]What they call defeat?");
-            DialogueManager.Instance.QueueMessage(this, @"[br]I cannot accept this...\![br]I will not accept this!");
-            DialogueManager.Instance.QueueMessage(this, "[br]You're all nothing but a bunch of lowly peasants!");
-            await DialogueManager.Instance.WaitForDialogue();
-			return;
-        }
+		if (CurrentHP <= 0) return;
+
+		BattleCommand current = BattleManager.Instance.GetCurrentCommand();
+		if (!UsedCharm)
+			UsedCharm = current.Actor is Hero &&
+			            current.Action.Name is "CHARM" or "CAPTIVATE" or "MESMERIZE" or "SMILE";
+		if (!UsedDonut)
+			UsedDonut = current.Action.Name is "Donut";
 
 		if (Stage > 3)
 			return;
@@ -148,6 +156,24 @@ internal sealed class Sweetheart : Enemy
 			EmotionLocked = true;
 			Stage = 4;
 		}
+	}
+
+	public override async Task ProcessEndOfTurn()
+	{
+		if (UsedCharm)
+		{
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OH HERO![font_size=52]MY HERO!!");
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]YOUR SMILE CHARMS MY HEART!");
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]I WILL MAKE IT MINE!");
+			await DialogueManager.Instance.WaitForDialogue();
+		}
+		UsedCharm = false;
+		if (UsedDonut)
+		{
+			DialogueManager.Instance.QueueMessage("How dare you eat a [color=#5bd863]DONUT[/color] in my presence!");
+			await DialogueManager.Instance.WaitForDialogue();
+		}
+		UsedDonut = false;
 	}
 
 	public override Task OnStartOfBattle()

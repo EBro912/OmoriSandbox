@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using OmoriSandbox.Editor;
 
-namespace OmoriSandbox.scripts;
+namespace OmoriSandbox;
 
 internal partial class BossRushStageEditorComponent : Control
 {
@@ -14,8 +14,6 @@ internal partial class BossRushStageEditorComponent : Control
     [Export] public TabContainer Enemies { get; private set; }
     [Export] private PackedScene EnemyEditor;
     [Export] public Node EnemyParent { get; private set; }
-    
-    public int StageNumber { get; private set; }
 
     public override void _Ready()
     {
@@ -29,12 +27,26 @@ internal partial class BossRushStageEditorComponent : Control
         };
     }
 
-    public void Init(int stageNumber, Control enemyParent)
+    public void CopyFrom(BattlePreset source)
     {
-        StageNumber = stageNumber;
-        EnemyParent = enemyParent;
-    }
+        if (source.Type is GameModeType.BossRush)
+            return;
 
+        BattlebackBGMEditor.SelectedBattleback = source.Battleback;
+        BattlebackBGMEditor.SelectedBGM = source.BGM;
+        BattlebackBGMEditor.BGMLoopPointValue = source.BGMLoopPoint;
+        BattlebackBGMEditor.BGMPitchValue = source.BGMPitch;
+        foreach (BattlePresetEnemy enemy in source.Enemies)
+        {
+            AnimatedSprite2D enemySprite = new();
+            EnemyParent.AddChild(enemySprite);
+            enemySprite.Visible = false;
+            EnemyEditorComponent editor = EnemyEditor.Instantiate<EnemyEditorComponent>();
+            Enemies.AddChild(editor);
+            editor.Init(enemySprite, enemy);
+        }
+    }
+    
     public void CopyFrom(BossRushStageEditorComponent source)
     {
         BattlebackBGMEditor.SelectedBattleback = source.BattlebackBGMEditor.SelectedBattleback;

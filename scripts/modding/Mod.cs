@@ -3,6 +3,8 @@ using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
 using System;
+using System.Threading.Tasks;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Modding;
 
@@ -11,22 +13,6 @@ namespace OmoriSandbox.Modding;
 /// </summary>
 public abstract partial class Mod : Node
 {
-    /// <summary>
-    /// Fired whenever the mod is first loaded. Equivalent to Godot's _Ready function.
-    /// </summary>
-    public abstract void OnLoad();
-
-    /// <summary>
-    /// Fired whenever the game is about to close.
-    /// </summary>
-    public virtual void OnUnload() { }
-
-    /// <summary>
-    /// Fired whenever Godot's _Process function is called.
-    /// </summary>
-    /// <param name="delta">The delta time between this frame and the previous one.</param>
-    public virtual void OnProcess(double delta) { }
-
     /// <summary>
     /// Registers a new <see cref="PartyMember"/> to the database.
     /// </summary>
@@ -68,23 +54,13 @@ public abstract partial class Mod : Node
     }
 
     /// <summary>
-    /// Registers a new <see cref="Weapon"/> to the database.
+    /// Registers a new <see cref="Equipment"/> to the database.
     /// </summary>
-    /// <param name="id">The ID of the weapon. This will be how it appears in editor menus.</param>
-    /// <param name="weapon">The <see cref="Weapon"/> to add.</param>
-    protected static void RegisterWeapon(string id, Weapon weapon)
+    /// <param name="id">The ID of the equipment. This will be how it appears in editor menus.</param>
+    /// <param name="equipment">The <see cref="Equipment"/> to add.</param>
+    protected static void RegisterEquipment(string id, Equipment equipment)
     {
-        Database.RegisterModdedWeapon(id, weapon);
-    }
-
-    /// <summary>
-    /// Registers a new <see cref="Charm"/> to the database.
-    /// </summary>
-    /// <param name="id">The ID of the charm. This will be how it appears in editor menus.</param>
-    /// <param name="charm">The <see cref="Charm"/> to add.</param>
-    protected static void RegisterCharm(string id, Charm charm)
-    {
-        Database.RegisterModdedCharm(id, charm);
+        Database.RegisterModdedEquipment(id, equipment);
     }
 
     /// <summary>

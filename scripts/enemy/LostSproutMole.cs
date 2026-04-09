@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
 
@@ -5,7 +6,6 @@ namespace OmoriSandbox.Actors;
 internal sealed class LostSproutMole : Enemy
 {
 	public override string Name => "LOST SPROUT MOLE";
-
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sprout_mole.tres");
 
     protected override Stats Stats => new(170, 75, 22, 10, 13, 5, 95);

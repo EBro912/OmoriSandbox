@@ -19,7 +19,7 @@ internal partial class EnemyEditorComponent : Control
 
 	private AnimatedSprite2D Animator;
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "furious", "manic", "miserable", "afraid", "stressed", "hurt", "toast"];
+	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "afraid", "stressed", "hurt", "toast"];
 
 	public override void _EnterTree()
 	{
@@ -108,6 +108,7 @@ internal partial class EnemyEditorComponent : Control
 		Animator.Play();
 
 		FallsOffScreenCheckbox.ButtonPressed = enemy.FallsOffScreen;
+		GrayscaleOnDefeatCheckbox.ButtonPressed = enemy.GrayscaleOnDefeat;
 
 		EmotionDropdown.Clear();
 		foreach (string state in States)

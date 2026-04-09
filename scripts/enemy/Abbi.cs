@@ -38,7 +38,7 @@ internal sealed class Abbi : Enemy
         {
             for (int i = 0; i < 4; i++)
             {
-                if (Tentacles[i] == null || Tentacles[i].Actor.CurrentState == "toast")
+                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.CurrentState == "toast")
                 {
                     Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
                         layer: Layer + 1);
@@ -55,15 +55,7 @@ internal sealed class Abbi : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            foreach (EnemyComponent e in Tentacles.Where(x => x != null))
-            {
-                e.Actor.CurrentHP = 0;
-            }
-
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 4000 && !HasSpoken)
         {
@@ -71,6 +63,13 @@ internal sealed class Abbi : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override Task OnDefeat()
+    {
+        foreach (EnemyComponent e in Tentacles)
+            e.Actor.CurrentHP = 0;
+        return Task.CompletedTask;
     }
 
     public override async Task OnEndOfBattle(bool victory)

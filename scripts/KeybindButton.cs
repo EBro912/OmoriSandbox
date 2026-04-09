@@ -60,5 +60,6 @@ internal partial class KeybindButton : Control
     {
         CurrentKey = DefaultKey;
         KeyButton.Text = OS.GetKeycodeString(CurrentKey);
+        UpdateKeybind();
     }
 }

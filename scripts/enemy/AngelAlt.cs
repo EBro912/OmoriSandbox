@@ -33,15 +33,16 @@ internal sealed class AngelAlt : Enemy
         return taunting.MaxBy(x => x.Actor.CurrentStats.SPD).Actor;
     }
     
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, @"Sniff..\! You...\![br]You'll pay for this...");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"Sniff..\! You...\![br]You'll pay for this...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (!HasSpoken && CurrentHP < 75)
         {
@@ -71,6 +72,6 @@ internal sealed class AngelAlt : Enemy
             return new BattleCommand(this, this, Skills["ANDoNothing"]);
         if (Roll() < 46)
             return new BattleCommand(this, SelectTarget(), Skills["ANQuickAttack"]);
-        return new BattleCommand(this, SelectTarget(), Skills["ANTaunt"]);
+        return new BattleCommand(this, SelectTarget(), Skills["ANTease"]);
     }
 }

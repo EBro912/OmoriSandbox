@@ -32,7 +32,7 @@ VersionLabel = NodePath("../Main/Version")
 Logo = NodePath("../Main/Logo")
 OmoriFace = NodePath("../Main/Omori")
 ModListEntry = ExtResource("5_jk1qb")
-ModListParent = NodePath("../Main/ModsLoadedList")
+ModListParent = NodePath("../Main/ModsList")
 ShowModsButton = NodePath("../Main/ShowModsButton")
 MainMenu = NodePath("../Main")
 Editor = NodePath("../Editor")
@@ -47,7 +47,7 @@ NewPresetContainer = NodePath("../Main/MainControls/NewPreset")
 LoadExistingButton = NodePath("../Main/MainControls/LoadExisting")
 NormalPresetButton = NodePath("../Main/MainControls/NewPreset/Normal")
 BossRushPresetButton = NodePath("../Main/MainControls/NewPreset/BossRush")
-ModFolderButton = NodePath("../Main/ModsLoadedList/VBoxContainer/ModFolder")
+ModFolderButton = NodePath("../Main/ModsList/ModFolder")
 ModsLoaded = NodePath("../Main/ModsLoaded")
 GithubButton = NodePath("../Main/HBoxContainer/GithubButton")
 CreditsButton = NodePath("../Main/HBoxContainer/CreditsButton")
@@ -55,7 +55,7 @@ CreditsBackButton = NodePath("../Main/Credits/BackButton")
 CreditsPanel = NodePath("../Main/Credits")
 TitlePresetDropdown = NodePath("../Main/MainControls/HBoxContainer/PresetDropdown")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -92,6 +92,10 @@ PresetFolderButton = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Oth
 AddStageButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/AddStage")
 DuplicateStageButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/DuplicateStage")
 RemoveStageButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/RemoveStage")
+MoveStageLeftButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/MoveLeft")
+MoveStageRightButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/MoveRight")
+ImportPresetDropdown = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer3/PresetDropdown")
+ImportButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer3/Import")
 StageTabs = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/StageTabs")
 MainTabs = NodePath("../Editor/SettingsTabs")
 
@@ -180,21 +184,21 @@ theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "View Mods"
 
-[node name="ModsLoadedList" type="ScrollContainer" parent="Main" unique_id=531817809]
+[node name="ModsList" type="Panel" parent="Main" unique_id=1478386450]
 visible = false
-z_index = 1
-custom_minimum_size = Vector2(175, 400)
-offset_right = 275.0
+z_index = 5
+offset_right = 283.0
 offset_bottom = 400.0
 theme_override_styles/panel = ExtResource("10_1ajci")
-horizontal_scroll_mode = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Main/ModsLoadedList" unique_id=2130088634]
-layout_mode = 2
-
-[node name="ModFolder" type="Button" parent="Main/ModsLoadedList/VBoxContainer" unique_id=2004730265]
+[node name="ModFolder" type="Button" parent="Main/ModsList" unique_id=2004730265]
 custom_minimum_size = Vector2(275, 0)
-layout_mode = 2
+layout_mode = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 280.0
+offset_bottom = 34.0
+size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
@@ -202,6 +206,23 @@ theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Open Mods Folder"
+
+[node name="ModsLoadedList" type="ScrollContainer" parent="Main/ModsList" unique_id=531817809]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 37.0
+offset_right = -6.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/ModsList/ModsLoadedList" unique_id=2130088634]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 
 [node name="MainControls" type="VBoxContainer" parent="Main" unique_id=76276941]
 anchors_preset = 7
@@ -333,7 +354,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 anchors_preset = 7
 anchor_left = 0.5
@@ -363,6 +384,11 @@ DisableDamageLimitCheckbox = NodePath("ScrollContainer/VBoxContainer/DisableDama
 DisableStatLimitCheckbox = NodePath("ScrollContainer/VBoxContainer/DisableStatLimit")
 ShowMoreInfoCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowMoreInfo")
 ShowStateIconsCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowStateIcons")
+EnemySelectionWrappingCheckbox = NodePath("ScrollContainer/VBoxContainer/EnemySelectionWrapping")
+SelectionHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/SelectionHoldDelaySlider/HSlider")
+SelectionHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/SelectionHoldDelaySlider/Label")
+SelectionChangeSpeedSlider = NodePath("ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider/HSlider")
+SelectionChangeSpeedLabel = NodePath("ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider/Label")
 UseConsoleSpdCheckbox = NodePath("ScrollContainer/VBoxContainer/UseConsoleSpd")
 UseConsoleDefCheckbox = NodePath("ScrollContainer/VBoxContainer/UseConsoleDef")
 InfiniteBuffsDebuffsCheckbox = NodePath("ScrollContainer/VBoxContainer/InfiniteBuffsDebuffs")
@@ -370,8 +396,10 @@ VertigoUsesAtkCheckbox = NodePath("ScrollContainer/VBoxContainer/VertigoUsesAtk"
 ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
 EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
-RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelay/HSlider")
-RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelay/Label")
+RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/HSlider")
+RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/Label")
+SpeedUpSlider = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/HSlider")
+SpeedUpLabel = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/Label")
 KeybindGrid = NodePath("ScrollContainer/VBoxContainer/KeybindsContainer")
 ResetKeybindsButton = NodePath("ScrollContainer/VBoxContainer/ResetBindsButton")
 BackButton = NodePath("BackButton")
@@ -649,6 +677,82 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show State Icons"
 
+[node name="EnemySelectionWrapping" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=875057239]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Allows the selector for enemy targeting to wrap around when it reaches the edges"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Enemy Selection Wrapping"
+
+[node name="SelectionHoldDelay" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=25689085]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Enemy Selection Hold Delay (Seconds)"
+
+[node name="SelectionHoldDelaySlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=241933212]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+alignment = 1
+
+[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldDelaySlider" unique_id=2043995819]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "The amount of seconds it takes to hold a direction to 
+activate the auto enemy selection change"
+min_value = 0.1
+max_value = 1.0
+step = 0.05
+value = 0.5
+scrollable = false
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldDelaySlider" unique_id=1029513462]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "0.50"
+
+[node name="SelectionHoldSpeed" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=371021514]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Enemy Selection Change Speed (Seconds)"
+
+[node name="SelectionHoldSpeedSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1550006696]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+alignment = 1
+
+[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider" unique_id=950863285]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "How often the enemy selection changes while the direction key is held"
+min_value = 0.05
+max_value = 1.0
+step = 0.05
+value = 0.1
+scrollable = false
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider" unique_id=727468717]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "0.10"
+
 [node name="UseConsoleDef" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1799805994]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -724,7 +828,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Keybinds"
 
-[node name="BattlelogSpeed2" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1563829350]
+[node name="RestartDelay" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1563829350]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -732,29 +836,63 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Restart Hold Time (Seconds)"
 
-[node name="RestartDelay" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1703591324]
+[node name="RestartDelaySlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1703591324]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelay" unique_id=2043672742]
+[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelaySlider" unique_id=2043672742]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+tooltip_text = "How many seconds it takes holding the 'Restart' button to initiate a restart"
 min_value = 0.25
 max_value = 3.0
 step = 0.25
 value = 1.0
 scrollable = false
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelay" unique_id=1478018613]
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelaySlider" unique_id=1478018613]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1.00"
+
+[node name="SpeedUp" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=840186834]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Speed Up Multiplier"
+
+[node name="SpeedUpSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=806995488]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+alignment = 1
+
+[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SpeedUpSlider" unique_id=1510940673]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "How fast the game runs when the SpeedUp key is held"
+min_value = 0.25
+max_value = 10.0
+step = 0.25
+value = 1.5
+scrollable = false
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SpeedUpSlider" unique_id=440720662]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "1.50x"
 
 [node name="KeybindsContainer" type="GridContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=58266562]
 layout_mode = 2
@@ -808,6 +946,11 @@ DefaultKey = 4194305
 layout_mode = 2
 AssociatedAction = "ToggleFullscreen"
 DefaultKey = 4194335
+
+[node name="SpeedUp" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=448969460 instance=ExtResource("14_5pajh")]
+layout_mode = 2
+AssociatedAction = "SpeedUp"
+DefaultKey = 4194326
 
 [node name="DebugDamage" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=422631332 instance=ExtResource("14_5pajh")]
 layout_mode = 2
@@ -1177,6 +1320,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "+ Add Enemy"
 
 [node name="SettingsTabs" type="TabContainer" parent="Editor" unique_id=1582260830]
+z_index = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -1496,7 +1640,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
-text = "+ Add Stage"
+text = "+ Add"
 
 [node name="DuplicateStage" type="Button" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer" unique_id=904921141]
 layout_mode = 2
@@ -1506,7 +1650,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
-text = "+ Duplicate Selected"
+text = "+ Duplicate"
 
 [node name="RemoveStage" type="Button" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer" unique_id=343664712]
 layout_mode = 2
@@ -1516,7 +1660,57 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
-text = "- Remove Selected"
+text = "- Remove"
+
+[node name="MoveLeft" type="Button" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer" unique_id=1816661113]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "< Move Left"
+
+[node name="MoveRight" type="Button" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer" unique_id=46155833]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Move Right >"
+
+[node name="Label2" type="Label" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer" unique_id=1801052594]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 22
+text = "Import Preset as Stage"
+horizontal_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer" unique_id=1002425595]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="PresetDropdown" type="OptionButton" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer3" unique_id=107753703]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+
+[node name="Import" type="Button" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer3" unique_id=98052255]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Import"
 
 [node name="StageTabs" type="TabContainer" parent="Editor/SettingsTabs/Boss Rush/VBoxContainer" unique_id=1993859081]
 custom_minimum_size = Vector2(0, 20)
@@ -1668,7 +1862,6 @@ text = "Common Layers: 10: Top Layer
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
 
 [node name="Return" type="Button" parent="Editor" unique_id=1210890615]
-z_index = 5
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0

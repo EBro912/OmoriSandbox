@@ -36,29 +36,7 @@ internal sealed class TheHooligans : Enemy
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            BattleCommand command = BattleManager.Instance.GetCurrentCommand();
-            if (command.Action is Item item && item.Name == "PEPPER SPRAY")
-            {
-                DialogueManager.Instance.QueueMessage("CHARLIE", CenterPoint, "!!!");
-                DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"[shake rate=20]AUGH!! MY EYES!\! MASTER! I CAN'T SEE!!");
-                DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"[shake rate=20]Huff...\! Wheeze...\! What trickery is this!?");
-                DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, "Ouch... That hurts.");
-                DialogueManager.Instance.QueueMessage("KIM", CenterPoint, @"WHAT THE HECK IS THIS!?\! [color=#ff9233]PEPPER SPRAY[/color]?\! REALLY!?");
-                DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, @"Gah...\! You two are the worst...");
-                await DialogueManager.Instance.WaitForDialogue();
-                return;
-            }
-            
-            DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\! Is this real life?");
-            DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"How...\! How is this possible!?");
-            DialogueManager.Instance.QueueMessage("KIM", CenterPoint, "I can't believe we lost...");
-            DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, @"KIM... I'm hungry. \![br]Can we go now?");
-            DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, "... ... ...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage == 0 && CurrentHP < 375)
         {
@@ -87,6 +65,29 @@ internal sealed class TheHooligans : Enemy
         }
     }
     
+    public override async Task OnDefeat()
+    {
+        BattleCommand command = BattleManager.Instance.GetCurrentCommand();
+        if (command.Action is Item item && item.Name == "PEPPER SPRAY")
+        {
+            DialogueManager.Instance.QueueMessage("CHARLIE", CenterPoint, "!!!");
+            DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"[shake rate=20]AUGH!! MY EYES!\! MASTER! I CAN'T SEE!!");
+            DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"[shake rate=20]Huff...\! Wheeze...\! What trickery is this!?");
+            DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, "Ouch... That hurts.");
+            DialogueManager.Instance.QueueMessage("KIM", CenterPoint, @"WHAT THE HECK IS THIS!?\! [color=#ff9233]PEPPER SPRAY[/color]?\! REALLY!?");
+            DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, @"Gah...\! You two are the worst...");
+            await DialogueManager.Instance.WaitForDialogue();
+            return;
+        }
+
+        DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\! Is this real life?");
+        DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"How...\! How is this possible!?");
+        DialogueManager.Instance.QueueMessage("KIM", CenterPoint, "I can't believe we lost...");
+        DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, @"KIM... I'm hungry. \![br]Can we go now?");
+        DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, "... ... ...");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
@@ -113,6 +114,6 @@ internal sealed class TheHooligans : Enemy
             return new BattleCommand(this, SelectTarget(), Skills["HOMaverickCharm"]);
         if (Roll() < 46)
             return new BattleCommand(this, SelectTarget(), Skills["HOKimHeadbutt"]);
-        return new BattleCommand(this, SelectAllTargets(), Skills["HOAngelAttack"]);
+        return new BattleCommand(this, SelectAllTargets(), Skills["HOVanceCandy"]);
     }
 }

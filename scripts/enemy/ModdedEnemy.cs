@@ -22,15 +22,21 @@ internal class ModdedEnemy : Enemy
 
     protected override Stats Stats => new(JsonEnemy.HP, JsonEnemy.Juice, JsonEnemy.ATK, JsonEnemy.DEF, JsonEnemy.SPD, JsonEnemy.LCK, JsonEnemy.HIT);
 
-    protected override string[] EquippedSkills => JsonEnemy.EquippedSkills;
+    protected override string[] EquippedSkills => JsonEnemy.EquippedSkills ?? [];
 
     public override bool IsStateValid(string state)
     {
-        return !JsonEnemy.InvalidStates.Contains(state);
+        return JsonEnemy.InvalidStates == null || !JsonEnemy.InvalidStates.Contains(state);
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (JsonEnemy.AI == null)
+        {
+            GD.PrintErr($"Modded enemy {Name} has no AI!");
+            return new BattleCommand(this, this, new EmptyAction());
+        }
+        
         JsonEnemyAIData data = JsonEnemy.AI.FirstOrDefault(x => x.Emotion == CurrentState);
         if (data.Equals(default(JsonEnemyAIData)))
         {

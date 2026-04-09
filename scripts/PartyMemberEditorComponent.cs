@@ -28,14 +28,14 @@ internal partial class PartyMemberEditorComponent : Control
 	private Label HealthLabel;
 	private Label JuiceLabel;
 	private PartyMember SelectedPartyMember;
-	private Weapon SelectedWeapon;
-	private Charm SelectedCharm;
+	private Equipment SelectedWeapon;
+	private Equipment SelectedCharm;
 	private Stats BaseStats;
 	private StatModifier Emotion;
 
 	public int ActorPosition { get; private set; }
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "manic", "afraid", "stressed", "hurt", "toast", "victory"];
+	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "afraid", "stressed", "hurt", "toast", "victory"];
 	private string[] EquippableWeapons = [];
 	
 	public override void _Ready()
@@ -154,9 +154,9 @@ internal partial class PartyMemberEditorComponent : Control
 		{
 			// first index should always be the attack skill
 			AttackSkill.Text = skills[0];
-			for (int i = 0; i < Skills.Length; i++)
+			for (int i = 1; i < skills.Length; i++)
 			{
-				Skills[i].Text = skills[i + 1];
+				Skills[i - 1].Text = skills[i];
 			}
 		}
 
@@ -261,13 +261,13 @@ internal partial class PartyMemberEditorComponent : Control
 
 	private void SelectWeapon(string name)
 	{
-		if (Database.TryGetWeapon(name, out Weapon weapon))
+		if (Database.TryGetEquipment(name, out Equipment weapon))
 			SelectedWeapon = weapon;
 	}
 
 	private void SelectCharm(string name)
 	{
-		if (Database.TryGetCharm(name, out Charm charm))
+		if (Database.TryGetEquipment(name, out Equipment charm))
 			SelectedCharm = charm;
 	}
 }

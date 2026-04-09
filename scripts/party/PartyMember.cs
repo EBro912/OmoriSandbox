@@ -30,7 +30,7 @@ public abstract class PartyMember : Actor
         Level = actor.Level;
         int idx = actor.Level - 1;
 		BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats;
-		if (!Database.TryGetWeapon(actor.Weapon, out Weapon w))
+		if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
 		{
 			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
 			return;
@@ -39,7 +39,7 @@ public abstract class PartyMember : Actor
 		
 		if (!actor.Charm.Equals("none", System.StringComparison.CurrentCultureIgnoreCase))
 		{
-			if (!Database.TryGetCharm(actor.Charm, out Charm c))
+			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
 			{
 				GD.PrintErr("Failed to find Charm: " + actor.Charm);
 				return;
@@ -71,7 +71,7 @@ public abstract class PartyMember : Actor
 	}
 
 	/// <summary>
-	/// The party member's base stats, plus any stats given by a <see cref="Battle.Weapon"/> and/or <see cref="Battle.Charm"/>.
+	/// The party member's base stats, plus any stats given by a <see cref="Battle.Weapon"/> and/or <see cref="Equipment"/>.
 	/// </summary>
 	/// <returns></returns>
 	protected override Stats GetBaseStats()
@@ -91,11 +91,7 @@ public abstract class PartyMember : Actor
     /// <inheritdoc/>
     public override async Task OnStartOfBattle()
     {
-        if (Weapon.Name == "LOL Sword")
-		{
-			SetState("happy", true);
-		}
-
+	    await Weapon.StartOfBattle(this);
 		if (Charm != null)
 			await Charm.StartOfBattle(this);
     }
@@ -129,11 +125,11 @@ public abstract class PartyMember : Actor
 	/// <summary>
 	/// The party member's equipped charm. Will be null if no charm is equipped.
 	/// </summary>
-	public Charm Charm { get; private set; }
+	public Equipment Charm { get; private set; }
 	/// <summary>
 	/// The party member's equipped weapon.
 	/// </summary>
-	public Weapon Weapon { get; private set; }
+	public Equipment Weapon { get; private set; }
 	/// <summary>
 	/// A list of skills IDs that this actor has equipped.
 	/// </summary>

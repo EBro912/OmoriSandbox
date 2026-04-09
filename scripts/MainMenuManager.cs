@@ -21,40 +21,15 @@ internal partial class MainMenuManager : Node
 		
 		AudioManager.Instance.PlayBGM("ow_cattail_fields");
 
-		if (!DirAccess.DirExistsAbsolute("user://presets"))
-		{
-			using DirAccess access = DirAccess.Open("user://");
-			access.MakeDir("presets");
-			GD.Print("Created user://presets directory");
-		}
-
 		PlayButton.Pressed += () =>
 		{
 			if (TitlePresetDropdown.Selected == -1)
 				return;
 
 			string presetName = TitlePresetDropdown.GetItemText(TitlePresetDropdown.Selected);
-			string path = "user://presets/" + presetName + ".json";
-			if (!FileAccess.FileExists(path))
+			if (!PresetManager.Instance.TryGetPreset(presetName, out BattlePreset preset))
 			{
-				GD.PrintErr("Preset file not found at: " + path);
-				return;
-			}
-
-			using FileAccess file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-			BattlePreset preset;
-			try
-			{
-				preset = JsonConvert.DeserializeObject<BattlePreset>(file.GetAsText());
-			}
-			catch (KeyNotFoundException ek)
-			{
-				GD.PrintErr($"Failed to parse preset {presetName} due to missing key:\n" + ek);
-				return;
-			}
-			catch (Exception ex)
-			{
-				GD.PrintErr($"Failed to parse preset {presetName} due to an error:\n" + ex);
+				GD.PrintErr($"Preset {presetName} not found.");
 				return;
 			}
 
@@ -179,7 +154,7 @@ internal partial class MainMenuManager : Node
 		entry.SetData(data);
 		if (icon != null)
 			entry.SetIcon(icon);
-		ModListParent.GetChild(0).AddChild(entry);
+		ModListParent.GetChild(1).GetChild(0).AddChild(entry);
 	}
 
 	public void UpdateModsLoaded(int count, int total)
@@ -221,7 +196,7 @@ internal partial class MainMenuManager : Node
 	[Export] private TextureRect Logo;
 	[Export] private AnimatedSprite2D OmoriFace; 
 	[Export] private PackedScene ModListEntry;
-	[Export] private ScrollContainer ModListParent;
+	[Export] private Panel ModListParent;
 	[Export] private Button ShowModsButton;
 	[Export] private CanvasLayer MainMenu;
 	[Export] private CanvasLayer Editor;

@@ -30,12 +30,11 @@ internal sealed class SpaceExBoyfriend : Enemy
         
         switch (CurrentState)
         {
-            case "se_furious":
+            case "furious":
                 if (Roll() < 36)
                     goto attack;
                 goto bullet;
-            case "se_enraged":
-            case "se_angry":
+            case "enraged":
             case "angry":
                 if (Roll() < 46)
                     goto attack;
@@ -92,15 +91,16 @@ internal sealed class SpaceExBoyfriend : Enemy
         return new BattleCommand(this, SelectTargets(4), Skills["BulletHell"]);
     }
 
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, @"[br]Ugh...\! my heart...");
+        DialogueManager.Instance.QueueMessage(this, @"[br]It...\! hurts...");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"[br]Ugh...\! my heart...");
-            DialogueManager.Instance.QueueMessage(this, @"[br]It...\! hurts...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage > 2)
             return;

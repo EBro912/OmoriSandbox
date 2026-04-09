@@ -1,4 +1,3 @@
-using System;
 using Godot;
 
 namespace OmoriSandbox.Editor;
@@ -44,6 +43,21 @@ internal partial class SettingsMenuManager : Control
 			RestartHoldTimeLabel.Text = $"{value:0.00}";
 		};
 
+		SpeedUpSlider.ValueChanged += value =>
+		{
+			SpeedUpLabel.Text = $"{value:0.00}x";
+		};
+
+		SelectionChangeSpeedSlider.ValueChanged += value =>
+		{
+			SelectionChangeSpeedLabel.Text = $"{value:0.00}";
+		};
+
+		SelectionHoldTimeSlider.ValueChanged += value =>
+		{
+			SelectionHoldTimeLabel.Text = $"{value:0.00}";
+		};
+
 		ResetKeybindsButton.Pressed += () =>
 		{
 			foreach (Node node in KeybindGrid.GetChildren())
@@ -75,6 +89,9 @@ internal partial class SettingsMenuManager : Control
 		DisableStatLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableStatLimit", false);
 		ShowMoreInfoCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowMoreInfo", false);
 		ShowStateIconsCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowStateIcons", false);
+		EnemySelectionWrappingCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnemySelectionWrapping", false);
+		SelectionHoldTimeSlider.Value = (double)config.GetValue("Settings", "SelectionHoldTime", 0.5d);
+		SelectionChangeSpeedSlider.Value = (double)config.GetValue("Settings", "SelectionChangeSpeed", 0.1d);
 		UseConsoleSpdCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "UseConsoleSpd", false);
 		UseConsoleDefCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "UseConsoleDef", false);
 		InfiniteBuffsDebuffsCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "InfiniteBuffsDebuffs", false);
@@ -86,6 +103,7 @@ internal partial class SettingsMenuManager : Control
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 
 		RestartHoldTimeSlider.Value = (double)config.GetValue("Keybinds", "RestartHoldTime", 1d);
+		SpeedUpSlider.Value = (double)config.GetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -113,12 +131,6 @@ internal partial class SettingsMenuManager : Control
 	public override void _ExitTree()
 	{
 		ConfigFile config = new();
-		if (config.Load("user://settings.cfg") != Error.Ok)
-		{
-			GD.PrintErr("Generating new settings file...");
-			GenerateDefaultConfig(ref config);
-			return;
-		}
 		config.SetValue("Settings", "Fullscreen", FullscreenCheckbox.ButtonPressed);
 		config.SetValue("Settings", "MasterVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("Master")));
 		config.SetValue("Settings", "BGMVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGM")));
@@ -131,6 +143,9 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "DisableStatLimit", DisableStatLimitCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ShowMoreInfo", ShowMoreInfoCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ShowStateIcons", ShowStateIconsCheckbox.ButtonPressed);
+		config.SetValue("Settings", "EnemySelectionWrapping", EnemySelectionWrappingCheckbox.ButtonPressed);
+		config.SetValue("Settings", "SelectionHoldTime", SelectionHoldTimeSlider.Value);
+		config.SetValue("Settings", "SelectionChangeSpeed", SelectionChangeSpeedSlider.Value);
 		config.SetValue("Settings", "UseConsoleSpd", UseConsoleSpdCheckbox.ButtonPressed);
 		config.SetValue("Settings", "UseConsoleDef", UseConsoleDefCheckbox.ButtonPressed);
 		config.SetValue("Settings", "InfiniteBuffsDebuffs", InfiniteBuffsDebuffsCheckbox.ButtonPressed);
@@ -140,6 +155,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
 		
 		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
+		config.SetValue("Keybinds", "SpeedUpMultiplier", SpeedUpSlider.Value);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -163,8 +179,8 @@ internal partial class SettingsMenuManager : Control
 	{
 		config.SetValue("Settings", "Fullscreen", false);
 		config.SetValue("Settings", "MasterVolume", 0.75f);
-		config.SetValue("Settings", "BGMVolume", 1f);
-		config.SetValue("Settings", "SFXVolume", 0.5f);
+		config.SetValue("Settings", "BGMVolume", 0.5f);
+		config.SetValue("Settings", "SFXVolume", 1f);
 		config.SetValue("Settings", "BattlelogSpeed", 3);
 		config.SetValue("Settings", "ActionDelay", 3);
 		config.SetValue("Settings", "ShowFPS", true);
@@ -173,6 +189,9 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "DisableStatLimit", false);
 		config.SetValue("Settings", "ShowMoreInfo", false);
 		config.SetValue("Settings", "ShowStateIcons", false);
+		config.SetValue("Settings", "EnemySelectionWrapping", false);
+		config.SetValue("Settings", "SelectionHoldTime", 0.5d);
+		config.SetValue("Settings", "SelectionChangeSpeed", 0.1d);
 		config.SetValue("Settings","UseConsoleSpd", false);
 		config.SetValue("Settings","UseConsoleDef", false);
 		config.SetValue("Settings", "InfiniteBuffsDebuffs", false);
@@ -181,6 +200,7 @@ internal partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
 		config.SetValue("Keybinds", "RestartHoldTime", 1d);
+		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
@@ -200,7 +220,7 @@ internal partial class SettingsMenuManager : Control
 		AudioServer.SetBusVolumeLinear(index, volume);
 	}
 
-	public static SettingsMenuManager Instance;
+	public static SettingsMenuManager Instance { get; private set; }
 	public bool ShowFPS => ShowFPSCheckbox.ButtonPressed;
 	public bool PreventAccidentalRun => PreventRunCheckbox.ButtonPressed;
 	public bool DisableDamageLimit => DisableDamageLimitCheckbox.ButtonPressed;
@@ -211,12 +231,16 @@ internal partial class SettingsMenuManager : Control
 	public bool UseConsoleDefense => UseConsoleDefCheckbox.ButtonPressed;
 	public bool InfiniteBuffsDebuffs => InfiniteBuffsDebuffsCheckbox.ButtonPressed;
 	public bool VertigoUsesAtk => VertigoUsesAtkCheckbox.ButtonPressed;
-	public bool ToysUseEmotionDamage =>  ToysUseEmotionDamageCheckbox.ButtonPressed;
-	public bool SpaceExHusbandReleaseEnergy =>  SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
+	public bool ToysUseEmotionDamage => ToysUseEmotionDamageCheckbox.ButtonPressed;
+	public bool SpaceExHusbandReleaseEnergy => SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
+	public bool EnemySelectionWrapping => EnemySelectionWrappingCheckbox.ButtonPressed;
+	public double SelectionHoldTime => SelectionHoldTimeSlider.Value;
+	public double SelectionChangeSpeed => SelectionChangeSpeedSlider.Value;
 	public double RestartHoldTime => RestartHoldTimeSlider.Value;
+	public double SpeedUpMultiplier => SpeedUpSlider.Value;
 
 	[Export] private TextureRect Logo;
 	[Export] private AnimatedSprite2D OmoriFace;
@@ -233,6 +257,11 @@ internal partial class SettingsMenuManager : Control
 	[Export] private CheckBox DisableStatLimitCheckbox;
 	[Export] private CheckBox ShowMoreInfoCheckbox;
 	[Export] private CheckBox ShowStateIconsCheckbox;
+	[Export] private CheckBox EnemySelectionWrappingCheckbox;
+	[Export] private HSlider SelectionHoldTimeSlider;
+	[Export] private Label SelectionHoldTimeLabel;
+	[Export] private HSlider SelectionChangeSpeedSlider;
+	[Export] private Label SelectionChangeSpeedLabel;
 	[Export] private CheckBox UseConsoleSpdCheckbox;
 	[Export] private CheckBox UseConsoleDefCheckbox;
 	[Export] private CheckBox InfiniteBuffsDebuffsCheckbox;
@@ -242,6 +271,8 @@ internal partial class SettingsMenuManager : Control
 	[Export] private CheckBox EnableDebugDamageCheckbox;
 	[Export] private HSlider RestartHoldTimeSlider;
 	[Export] private Label RestartHoldTimeLabel;
+	[Export] private HSlider SpeedUpSlider;
+	[Export] private Label SpeedUpLabel;
 	[Export] private GridContainer KeybindGrid;
 	[Export] private Button ResetKeybindsButton;
 	[Export] private Button BackButton;

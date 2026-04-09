@@ -26,14 +26,10 @@ internal sealed class KingCarnivore : Enemy
         return Task.CompletedTask;
     }
 
-    public override Task ProcessBattleConditions()
+    public override Task OnDefeat()
     {
-        if (CurrentHP <= 0)
-        {
-            foreach (EnemyComponent enemy in Roots)
-                enemy.Actor.CurrentHP = 0;
-        }
-        
+        foreach (EnemyComponent enemy in Roots)
+            enemy.Actor.CurrentHP = 0;
         return Task.CompletedTask;
     }
 

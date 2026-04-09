@@ -22,7 +22,9 @@ public partial class BattleManager : Node
 	[Export] private Label EnergyText;
 	[Export] private Sprite2D EnergyBar;
 	[Export] private EnergyDots EnergyDots;
-	[Export] private HBoxContainer MenuButtonContainer;
+	[Export] private VBoxContainer EndOfBattleOptionsContainer;
+	[Export] private HBoxContainer StageSelectorContainer;
+	[Export] private SpinBox StageSelectorSpinBox;
 	[Export] private Label RestartLabel;
 
 	private List<PartyMemberComponent> CurrentParty = [];
@@ -78,6 +80,10 @@ public partial class BattleManager : Node
 	private bool RestartQueued = false;
 	private double RestartTimer;
 
+	private InputDirection? EnemySelectHeldDir = null;
+	private double EnemySelectHoldTimer = 0;
+	private double EnemySelectRepeatTimer = 0;
+
 	/// <summary>
 	/// Whether a battle is currently ongoing.
 	/// </summary>
@@ -128,17 +134,22 @@ public partial class BattleManager : Node
 
 	public override void _EnterTree()
 	{
-		MenuButtonContainer.GetChild<Button>(0).Pressed += () =>
+		EndOfBattleOptionsContainer.GetChild(1).GetChild<Button>(0).Pressed += () =>
 		{
 			Reset();
 			ReloadPreset();
+			StageSelectorSpinBox.Value = 0;
 		};
 
-		MenuButtonContainer.GetChild<Button>(1).Pressed += () =>
+		EndOfBattleOptionsContainer.GetChild(1).GetChild<Button>(1).Pressed += () =>
 		{
 			Reset();
 			MainMenuManager.Instance.ReturnToTitle();
+			StageSelectorSpinBox.Value = 0;
 		};
+
+		StageSelectorContainer.Visible = false;
+		StageSelectorSpinBox.Value = 0;
 		Instance = this;
 	}
 
@@ -153,7 +164,7 @@ public partial class BattleManager : Node
 		else
 		{
 			Enemies = [];
-			CurrentStage = 0;
+			CurrentStage = (int)StageSelectorSpinBox.Value;
 			SummonEnemiesForStage(stages[CurrentStage].Enemies);
 		}
 
@@ -163,7 +174,9 @@ public partial class BattleManager : Node
 		UseBasilFollowups = preset.BasilFollowups;
 		UseBasilReleaseEnergy = preset.BasilReleaseEnergy;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
-		MenuButtonContainer.Visible = false;
+		EndOfBattleOptionsContainer.Visible = false;
+		StageSelectorContainer.Visible = false;
+		StageSelectorSpinBox.Value = 0;
 
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
 
@@ -208,7 +221,7 @@ public partial class BattleManager : Node
 		Enemies.Clear();
 		foreach (BattlePresetEnemy enemy in enemies)
 			SummonEnemy(enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, enemy.FallsOffScreen,
-				(int)enemy.Layer);
+				enemy.GrayscaleOnDefeat, (int)enemy.Layer);
 	}
 
 	private async void PreBattle()
@@ -241,8 +254,8 @@ public partial class BattleManager : Node
 
 		DebugDamageHeld = Input.IsActionPressed("DebugDamage");
 
-		// Engine.TimeScale = Input.IsActionPressed("SpeedUp") ? 10d : 1d;
-
+		Engine.TimeScale = Input.IsActionPressed("SpeedUp") ? SettingsMenuManager.Instance.SpeedUpMultiplier : 1d;
+		
 		if (Input.IsActionJustPressed("Accept"))
 		{
 			if (Phase == BattlePhase.TargetSelection)
@@ -276,7 +289,7 @@ public partial class BattleManager : Node
 					Actor prev = CurrentParty[CurrentPartyMember].Actor;
 					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
 					{
-						string name = CaptializeItemName(item);
+						string name = CapitalizeItemName(item);
 						if (!Items.TryAdd(name, 1))
 							Items[name]++;
 					}
@@ -291,7 +304,7 @@ public partial class BattleManager : Node
 					if (SelectedAction is Item i)
 					{
 						targetMenu = i.IsToy ? MenuState.Toy : MenuState.Snack;
-						string name = CaptializeItemName(i);
+						string name = CapitalizeItemName(i);
 						if (!Items.TryAdd(name, 1))
 							Items[name]++;
 					}
@@ -319,11 +332,38 @@ public partial class BattleManager : Node
 		if (Input.IsActionJustPressed("MenuLeft"))
 		{
 			HandleInputDirection(InputDirection.Left);
+			EnemySelectHeldDir = InputDirection.Left;
+			EnemySelectHoldTimer = 0;
+			EnemySelectRepeatTimer = 0;
 		}
-
-		if (Input.IsActionJustPressed("MenuRight"))
+		else if (Input.IsActionJustPressed("MenuRight"))
 		{
 			HandleInputDirection(InputDirection.Right);
+			EnemySelectHeldDir = InputDirection.Right;
+			EnemySelectHoldTimer = 0;
+			EnemySelectRepeatTimer = 0;
+		}
+		else if (EnemySelectHeldDir != null)
+		{
+			string action = EnemySelectHeldDir == InputDirection.Left ? "MenuLeft" : "MenuRight";
+			if (Input.IsActionPressed(action) && Phase == BattlePhase.TargetSelection)
+			{
+				EnemySelectHoldTimer += delta;
+				if (EnemySelectHoldTimer >= SettingsMenuManager.Instance.SelectionHoldTime)
+				{
+					EnemySelectRepeatTimer += delta;
+					double changeSpeed = SettingsMenuManager.Instance.SelectionChangeSpeed;
+					if (EnemySelectRepeatTimer >= changeSpeed)
+					{
+						EnemySelectRepeatTimer -= changeSpeed;
+						HandleInputDirection(EnemySelectHeldDir.Value);
+					}
+				}
+			}
+			else
+			{
+				EnemySelectHeldDir = null;
+			}
 		}
 
 		if (Input.IsActionJustPressed("MenuUp"))
@@ -343,7 +383,7 @@ public partial class BattleManager : Node
 				if (CurrentPartyMemberTarget > -1)
 				{
 					CurrentPartyMemberTarget = -1;
-					CurrentEnemyTarget = 0;
+					CurrentEnemyTarget = Enemies.FindIndex(x => x.Actor.CurrentHP > 0);
 					Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 					MenuManager.Instance.MoveDownOpenMenus(false);
 				}
@@ -421,10 +461,10 @@ public partial class BattleManager : Node
 
 		if (Phase == BattlePhase.TargetSelection)
 		{
-			if (SelectedAction.Target == SkillTarget.Enemy ||
-			    (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentEnemyTarget > -1)
-			    && Enemies.Count > 1
-			    && (direction is InputDirection.Left or InputDirection.Right))
+			if (SelectedAction.Target is SkillTarget.Enemy or SkillTarget.AllyOrEnemy
+			    && CurrentEnemyTarget > -1
+			    && Enemies.Count(x => x.Actor.CurrentHP > 0) > 1
+			    && direction is InputDirection.Left or InputDirection.Right)
 			{
 				int old = CurrentEnemyTarget;
 				Enemies[old].ShowInfoBox(false);
@@ -436,9 +476,8 @@ public partial class BattleManager : Node
 				return;
 			}
 
-			if (SelectedAction.Target == SkillTarget.Ally || SelectedAction.Target == SkillTarget.AllyNotSelf ||
-			    SelectedAction.Target == SkillTarget.DeadAlly || (SelectedAction.Target == SkillTarget.AllyOrEnemy &&
-			                                                      CurrentPartyMemberTarget > -1))
+			if (SelectedAction.Target is SkillTarget.Ally or SkillTarget.AllyNotSelf or SkillTarget.DeadAlly 
+			    || (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
 			{
 				int target = SelectPartyMember(CurrentPartyMemberTarget, direction);
 				if (target > -1)
@@ -460,17 +499,27 @@ public partial class BattleManager : Node
 
 		var sortedEnemies = Enemies
 			.Select((enemy, index) => new { Enemy = enemy, Index = index })
+			.Where(e => e.Enemy.Actor.CurrentHP > 0)
 			.OrderBy(e => e.Enemy.Actor.CenterPoint.X)
 			.ThenBy(e => e.Index)
 			.ToList();
 
 		int sortedPosition = sortedEnemies.FindIndex(e => e.Index == current);
+		bool wrap = SettingsMenuManager.Instance.EnemySelectionWrapping;
 
 		int nextPosition;
 		if (direction == InputDirection.Right)
-			nextPosition = (sortedPosition + 1) % sortedEnemies.Count;
+		{
+			nextPosition = sortedPosition + 1;
+			if (nextPosition >= sortedEnemies.Count)
+				nextPosition = wrap ? 0 : sortedPosition;
+		}
 		else
-			nextPosition = (sortedPosition - 1 + sortedEnemies.Count) % sortedEnemies.Count;
+		{
+			nextPosition = sortedPosition - 1;
+			if (nextPosition < 0)
+				nextPosition = wrap ? sortedEnemies.Count - 1 : sortedPosition;
+		}
 		return sortedEnemies[nextPosition].Index;
 	}
 
@@ -496,6 +545,8 @@ public partial class BattleManager : Node
 	{
 		GameManager.Instance.DespawnAll();
 		AnimationManager.Instance.DespawnAll();
+		AnimationManager.Instance.StopAllAnimations();
+		DamageNumber.DespawnAll();
 		CurrentParty.Clear();
 		Enemies.Clear();
 		Items.Clear();
@@ -509,7 +560,7 @@ public partial class BattleManager : Node
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
 		CurrentCommand = null;
-		GameManager.Instance.SetBattlebackGreyscale(false);
+		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
 		MenuManager.Instance.ClearLastSelected();
@@ -617,7 +668,7 @@ public partial class BattleManager : Node
 		}
 
 		Item i = SelectedAction as Item;
-		string name = CaptializeItemName(i);
+		string name = CapitalizeItemName(i);
 		Items[name]--;
 		if (Items[name] == 0)
 			Items.Remove(name);
@@ -744,14 +795,9 @@ public partial class BattleManager : Node
 
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
+					if (enemy.Actor.CurrentState == "toast")
+						continue;
 					enemy.Actor.SetHurt(false);
-					if (enemy.Actor.GrayscaleOnDefeat && enemy.Actor.CurrentHP == 0)
-					{
-						AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
-						AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
-						GameManager.Instance.SetBattlebackGreyscale(true);
-						await Task.Delay(750);
-					}
 					await enemy.Actor.ProcessBattleConditions();
 					// enemy may have been removed during ProcessBattleConditions
 					if (!Enemies.Contains(enemy))
@@ -765,10 +811,17 @@ public partial class BattleManager : Node
 						}
 						else
 						{
+							if (enemy.Actor.GrayscaleOnDefeat)
+							{
+								AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
+								AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
+								GameManager.Instance.SetBattlebackGrayscale(true);
+								await Wait.Milliseconds(750);
+							}
+							await enemy.Actor.OnDefeat();
 							enemy.Actor.SetState("toast", true);
 							if (enemy.Actor.FallsOffScreen)
 								DyingEnemies.Add(enemy.GetParent<Node2D>());
-							Enemies.Remove(enemy);
 						}
 					}
 				}
@@ -777,12 +830,19 @@ public partial class BattleManager : Node
 				{
 					if (ForcedCommands.All(f => f.Actor != enemy.Actor) && enemy.Actor.CurrentHP == 0)
 					{
+						if (enemy.Actor.GrayscaleOnDefeat)
+						{
+							AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
+							AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
+							GameManager.Instance.SetBattlebackGrayscale(true);
+							await Wait.Milliseconds(750);
+						}
+						await enemy.Actor.OnDefeat();
 						enemy.Actor.SetState("toast", true);
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
-						Enemies.Remove(enemy);
 					}
-					
+
 					DeferredDeathEnemies.Remove(enemy);
 				}
 
@@ -837,7 +897,7 @@ public partial class BattleManager : Node
 				if (PlayerCommands.TryGetValue(member.Actor, out BattleCommand refundCmd)
 				    && refundCmd.Action is Item item)
 				{
-					string name = CaptializeItemName(item);
+					string name = CapitalizeItemName(item);
 					if (!Items.TryAdd(name, 1))
 						Items[name]++;
 				}
@@ -903,7 +963,7 @@ public partial class BattleManager : Node
 		CurrentCommand = null;
 		ProcessedEndOfTurn = false;
 		ProcessedStartOfCommands = false;
-		GameManager.Instance.SetBattlebackGreyscale(false);
+		GameManager.Instance.SetBattlebackGrayscale(false);
 		if (!ProcessedStartOfTurn)
 		{
 			foreach (PartyMemberComponent member in CurrentParty.Where(x => x.Actor.CurrentState != "toast"))
@@ -911,7 +971,9 @@ public partial class BattleManager : Node
 				foreach (StatModifier modifier in member.Actor.StatModifiers.Values)
 					modifier.OnStartOfTurn(member.Actor);
 
-				member.Actor.Charm?.StartOfTurn(member.Actor);
+				await member.Actor.Weapon.StartOfTurn(member.Actor);
+				if (member.Actor.Charm != null)
+					await member.Actor.Charm.StartOfTurn(member.Actor);
 			}
 
 			foreach (EnemyComponent e in Enemies)
@@ -958,11 +1020,11 @@ public partial class BattleManager : Node
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 		{
 			Stats stats = CurrentParty[CurrentPartyMember].Actor.CurrentStats;
-			Charm charm = CurrentParty[CurrentPartyMember].Actor.Charm;
+			Equipment charm = CurrentParty[CurrentPartyMember].Actor.Charm;
 			BattleLogManager.Instance.ClearAndShowMessage(
 				$"What will {CurrentParty[CurrentPartyMember].Actor.Name.ToUpper()} do?" +
 				$"[font_size=20]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}]" +
-				$"\n[Weapon: {CurrentParty[CurrentPartyMember].Actor.Weapon.Name}, Charm: {(charm == null ? "None" : charm.Name)}]");
+				$"\n[Weapon: [color=#c263e1]{CurrentParty[CurrentPartyMember].Actor.Weapon.Name}[/color], Charm: [color=#c263e1]{(charm == null ? "None" : charm.Name)}[/color]]");
 		}
 		else
 			BattleLogManager.Instance.ClearAndShowMessage("What will " +
@@ -984,7 +1046,7 @@ public partial class BattleManager : Node
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				return;
 			case SkillTarget.Enemy:
-				CurrentEnemyTarget++;
+				CurrentEnemyTarget = Enemies.FindIndex(x => x.Actor.CurrentHP > 0);
 				Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				MenuManager.Instance.MoveDownOpenMenus(false);
@@ -1002,7 +1064,7 @@ public partial class BattleManager : Node
 
 	private void SelectTarget()
 	{
-		if (Enemies.Count == 0)
+		if (!Enemies.Any(x => x.Actor.CurrentHP > 0))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1109,6 +1171,7 @@ public partial class BattleManager : Node
 		}
 
 		BattleLogManager.Instance.ClearBattleLog();
+		GameManager.Instance.SetBattlebackGrayscale(false);
 		GD.Print("Processing action " + currentAction.Action.Name);
 		List<Actor> resolvedTargets = [];
 		switch (currentAction.Action.Target)
@@ -1407,7 +1470,7 @@ public partial class BattleManager : Node
 
 	private void EnemiesDoneDying()
 	{
-		DyingEnemies.ForEach(x => x.QueueFree());
+		DyingEnemies.ForEach(x => x.Visible = false);
 		DyingEnemies.Clear();
 		SetPhase(BattlePhase.PreCommand);
 	}
@@ -1417,32 +1480,36 @@ public partial class BattleManager : Node
 	/// </summary>
 	public async void CheckBattleOver()
 	{
-		if (Enemies.Count == 0)
+		if (!Enemies.Any(x => x.Actor.CurrentHP > 0))
 		{
 			SetPhase(BattlePhase.BattleOver);
 			await EndOfBattle(true);
+			Dictionary<int, string> oldEmotions = [];
 			CurrentParty.ForEach(x =>
 			{
+				x.Actor.RemoveStatModifier("PlotArmor");
 				if (x.Actor.CurrentState != "toast")
+				{
+					oldEmotions.Add(x.Position, x.Actor.CurrentState);
 					x.Actor.SetState("victory", true);
+				}
 			});
 			if (GameType is GameModeType.BossRush)
 			{
 				string previousBGM = Stages[CurrentStage].BGM;
 				float currentPosition = AudioManager.Instance.GetBGMPosition();
 				AudioManager.Instance.PlayBGM("xx_victory");
-				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
-				                                              "'s party was victorious!");
+				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 				CurrentStage++;
 				if (CurrentStage < Stages.Count)
 				{
-					await Task.Delay(3000);
+					await Wait.Milliseconds(3000);
 					await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 0.5f);
 					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
 					GameManager.Instance.SetBattleback(Stages[CurrentStage].Battleback);
 					BattleLogManager.Instance.ClearBattleLog();
 					MenuManager.Instance.ClearLastSelected();
-					await Task.Delay(1000);
+					await Wait.Milliseconds(1000);
 					CurrentParty.ForEach(x =>
 					{
 						x.Actor.HasUsedPlotArmor = false;
@@ -1457,8 +1524,8 @@ public partial class BattleManager : Node
 							x.Actor.SetState("neutral", true);
 						}
 
-						if (!Stages[CurrentStage].KeepEmotion)
-							x.Actor.SetState("neutral", true);
+						if (!Stages[CurrentStage].KeepEmotion && oldEmotions.TryGetValue(x.Position, out string oldState))
+							x.Actor.SetState(oldState, true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();
 						x.UpdateStateIcons();
@@ -1481,7 +1548,7 @@ public partial class BattleManager : Node
 				                                              "'s party was victorious!");
 			}
 
-			MenuButtonContainer.Visible = true;
+			ShowEndOfBattleOptions();
 			return;
 		}
 
@@ -1491,7 +1558,7 @@ public partial class BattleManager : Node
 			await EndOfBattle(false);
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 			                                              "'s party was defeated...");
-			MenuButtonContainer.Visible = true;
+			ShowEndOfBattleOptions();
 			return;
 		}
 
@@ -1505,7 +1572,22 @@ public partial class BattleManager : Node
 			await EndOfBattle(false);
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 			                                              "'s party was defeated...");
-			MenuButtonContainer.Visible = true;
+			ShowEndOfBattleOptions();
+		}
+	}
+
+	private void ShowEndOfBattleOptions()
+	{
+		EndOfBattleOptionsContainer.Visible = true;
+		if (GameType is GameModeType.BossRush)
+		{
+			StageSelectorContainer.Visible = true;
+			StageSelectorSpinBox.MaxValue = Stages.Count - 1;
+			StageSelectorSpinBox.Value = 0;
+		}
+		else
+		{
+			StageSelectorContainer.Visible = false;
 		}
 	}
 
@@ -1845,7 +1927,7 @@ public partial class BattleManager : Node
 		if (self == "emotion" && target != "neutral")
 		{
 			effect = 1;
-			if (target == "afraid")
+			if (target is "afraid" or "stressed")
 				return damage * 1.5f;
 			return damage * weakness[GetEmotionTier(target)];
 		}
@@ -1891,7 +1973,6 @@ public partial class BattleManager : Node
 			"happy" or "ecstatic" or "manic" => 2,
 			_ => -1
 		};
-		;
 	}
 
 	private int GetEmotionTier(string emotion)
@@ -1996,10 +2077,11 @@ public partial class BattleManager : Node
 	/// <param name="position">The screen position to spawn the enemy at. The enemy will spawn centered at this position.</param>
 	/// <param name="startingEmotion">The enemy's starting emotion.</param>
 	/// <param name="fallsOffScreen">Whether this enemy should fall off-screen when defeated.</param>
+	/// <param name="grayscaleOnDefeat">Whether this enemy should trigger a grayscale effect when defeated.</param>
 	/// <param name="layer">The layer to spawn this enemy on.</param>
 	/// <returns>The <see cref="EnemyComponent"/> of the spawned enemy.</returns>
 	public EnemyComponent SummonEnemy(string who, Vector2 position, string startingEmotion = "neutral",
-		bool fallsOffScreen = true, int layer = 0)
+		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0)
 	{
 		while (Enemies.Any(x => x.Actor.CenterPoint == position))
 		{
@@ -2013,6 +2095,7 @@ public partial class BattleManager : Node
 			Name = who,
 			Emotion = startingEmotion,
 			FallsOffScreen = fallsOffScreen,
+			GrayscaleOnDefeat = grayscaleOnDefeat,
 			Layer = layer
 		};
 		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, position);
@@ -2036,10 +2119,10 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>Special care must be used when using this method, as the old enemy will immediately become invalid.</remarks>
 	/// <param name="original">The enemy to transform from.</param>
-	/// <param name="newEnemyName">The database name of the enemy to transform into.</param>
+	/// <param name="who">The database name of the enemy to transform into.</param>
 	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
 	/// <returns>The newly spawned <see cref="EnemyComponent"/>.</returns>
-	public EnemyComponent TransformEnemy(Enemy original, string newEnemyName, string startingEmotion = "neutral")
+	public EnemyComponent TransformEnemy(Enemy original, string who, string startingEmotion = "neutral")
 	{
 		EnemyComponent target = Enemies.FirstOrDefault(x => x.Actor == original);
 		if (target == null) return null;
@@ -2047,7 +2130,7 @@ public partial class BattleManager : Node
 		Enemies.Remove(target);
 		target.GetParent().QueueFree();
 		
-		return SummonEnemy(newEnemyName, original.CenterPoint, startingEmotion, original.FallsOffScreen, original.Layer);
+		return SummonEnemy(who, original.CenterPoint, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer);
 	}
 
 	/// <summary>
@@ -2183,7 +2266,7 @@ public partial class BattleManager : Node
 	/// <returns>All currently alive <see cref="Enemy"/>s.</returns>
 	public List<Enemy> GetAllEnemies()
 	{
-		return Enemies.Select(x => x.Actor).ToList();
+		return Enemies.Select(x => x.Actor).Where(x => x.CurrentHP > 0).ToList();
 	}
 
 	/// <summary>
@@ -2193,7 +2276,7 @@ public partial class BattleManager : Node
 	/// <returns>True if the actor is considered invalid.</returns>
 	public bool IsInvalidTarget(Actor actor)
 	{
-		return actor == null || actor.CurrentState is "toast" || actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor);
+		return actor == null || actor.CurrentState is "toast" || (actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor));
 	}
 
 	/// <returns>The <see cref="BattleCommand"/> that is currently being processed.</returns>
@@ -2319,7 +2402,7 @@ public partial class BattleManager : Node
 	}
 
 	// converts item name to CamelCase for dictionary lookup
-	private string CaptializeItemName(Item item)
+	private string CapitalizeItemName(Item item)
 	{
 		// Godot's Captialize treats '-' as a regular character and puts a space after it
 		// manually fix that for sno-cone

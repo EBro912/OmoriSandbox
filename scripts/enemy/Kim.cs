@@ -36,12 +36,7 @@ internal sealed class Kim : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"Grumble... Grumble...\![br]You're... still nerds...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (!HasSpoken && CurrentHP < 65)
         {
@@ -49,6 +44,12 @@ internal sealed class Kim : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, @"Grumble... Grumble...\![br]You're... still nerds...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnStartOfBattle()

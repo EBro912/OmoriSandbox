@@ -169,6 +169,8 @@ public partial class AnimationManager : Node
 
 			foreach (Timings timing in animation.Timings)
 			{
+				if (timing.Se == null)
+					continue;
 				if (timing.Se.Name == "ft_doShake")
 					anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
 				else
@@ -426,6 +428,7 @@ public partial class AnimationManager : Node
 			// returns true if we're out of frames
 			if (PlayingAnimations[i].AdvanceFrame())
 			{
+				PlayingAnimations[i].EmitSignal(PlayingAnimation.SignalName.Finished);
 				PlayingAnimations[i].QueueFree();
 				PlayingAnimations.RemoveAt(i);
 				if (PlayingAnimations.Count == 0)
@@ -533,8 +536,9 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForAnimation(int id, Actor target)
 	{
-		PlayAnimation(id, target);
-		await ToSignal(this, SignalName.AnimationFinished);
+		PlayingAnimation playing = StartAnimation(id, target.CenterPoint, target is Enemy);
+		if (playing == null) return;
+		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
 
 	/// <summary>
@@ -546,8 +550,9 @@ public partial class AnimationManager : Node
 	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
 	public async Task WaitForAnimation(int id, Vector2 position, bool targetsEnemy)
 	{
-		PlayAnimation(id, position, targetsEnemy);
-		await ToSignal(this, SignalName.AnimationFinished);
+		PlayingAnimation playing = StartAnimation(id, position, targetsEnemy);
+		if (playing == null) return;
+		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
 
 	/// <summary>
@@ -560,8 +565,9 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForScreenAnimation(int id, bool targetsEnemy)
 	{
-		PlayScreenAnimation(id, targetsEnemy);
-		await ToSignal(this, SignalName.AnimationFinished);
+		PlayingAnimation playing = StartAnimation(id, new Vector2(320, 240), targetsEnemy);
+		if (playing == null) return;
+		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
 
 	/// <summary>
@@ -615,7 +621,7 @@ public partial class AnimationManager : Node
 		RemoveChild(sprite);
 	}
 
-/// <summary>
+	/// <summary>
 	/// Plays the Omori version of the Release Energy animation, and waits for it to finish.
 	/// </summary>
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
@@ -878,12 +884,12 @@ public partial class AnimationManager : Node
 			child.QueueFree();
 	}
 
-	private void StartAnimation(int id, Vector2 position, bool targetsEnemy)
+	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 		{
 			GD.PrintErr("Unknown animation: " + id);
-			return;
+			return null;
 		}
 
 		int index = 0;
@@ -908,6 +914,7 @@ public partial class AnimationManager : Node
 		PlayingAnimation playing = new(animation, position, index);
 		AddChild(playing);
 		PlayingAnimations.Add(playing);
+		return playing;
 	}
 
 	internal PlayingAnimation PreviewAnimation(int id, int layer)
@@ -929,6 +936,7 @@ public partial class AnimationManager : Node
 	{
 		foreach (PlayingAnimation animation in PlayingAnimations)
 		{
+			animation.EmitSignal(PlayingAnimation.SignalName.Finished);
 			animation.QueueFree();
 		}
 		PlayingAnimations.Clear();

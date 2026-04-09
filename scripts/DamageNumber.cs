@@ -47,8 +47,16 @@ internal partial class DamageNumber : Node2D
         Texture ??= texture;
     }
 
+    public static void DespawnAll()
+    {
+        foreach (DamageNumber number in DamageNumbers.Values.Where(IsInstanceValid))
+            number.Despawn();
+    }
+
     public override void _Ready()
     {
+        Tween tween = GetTree().CreateTween().SetParallel();
+        const float stagger = 0.05f;
         if (DamageType == DamageType.Miss)
         {
             Sprite2D sprite = new()
@@ -58,13 +66,16 @@ internal partial class DamageNumber : Node2D
                 RegionRect = new Rect2(0, 182, 62, HEIGHT)
             };
             AddChild(sprite);
+            tween.TweenProperty(sprite, "position:y", 20, 0.1f)
+                .SetDelay(stagger)
+                .SetEase(Tween.EaseType.Out)
+                .SetTrans(Tween.TransitionType.Cubic);
+            tween.TweenProperty(sprite, "modulate:a", 1f, 0.1f).SetDelay(stagger);
             return;
         }
         
-        Tween tween = GetTree().CreateTween().SetParallel();
         const float scaledSpacing = SPACING * SCALE;
         float totalWidth = (Digits.Length - 1) * scaledSpacing;
-        const float stagger = 0.05f;
         for (int i = 0; i < Digits.Length; i++)
         {
             Sprite2D sprite = new()
@@ -102,22 +113,6 @@ internal partial class DamageNumber : Node2D
             DamageNumbers.Remove(Position);
             QueueFree();
         }));
-    }
-
-
-    private int TypeOffset
-    {
-        // the sprites aren't lined up evenly in the sprite sheet...
-        get
-        {
-            return DamageType switch
-            {
-                DamageType.Heal => 48,
-                DamageType.JuiceLoss => 90,
-                DamageType.JuiceGain => 138,
-                _ => 0
-            };
-        }
     }
 }
 

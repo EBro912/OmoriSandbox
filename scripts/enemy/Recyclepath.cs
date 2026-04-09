@@ -50,13 +50,7 @@ internal sealed class Recyclepath : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Oh why, HOLY BIN?");
-            DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Have you forsaken us!?");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
         
         if (CurrentHP < 500 && !HasSpoken)
         {
@@ -65,6 +59,13 @@ internal sealed class Recyclepath : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Oh why, HOLY BIN?");
+        DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Have you forsaken us!?");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override Task OnStartOfBattle()

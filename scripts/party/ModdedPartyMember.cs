@@ -26,12 +26,12 @@ internal class ModdedPartyMember : PartyMember
 
     public override int BaseLuck => JsonActor.LCK;
 
-    public override string[] InvalidStates => JsonActor.InvalidStates;
+    public override string[] InvalidStates => JsonActor.InvalidStates ?? [];
 
     public override bool IsRealWorld => JsonActor.RealWorld;
 
     public override string Name => JsonActor.Name;
 
     public override bool HasPlotArmor => JsonActor.PlotArmor;
-    public override string[] EquippableWeapons => JsonActor.EquippableWeapons;
+    public override string[] EquippableWeapons => JsonActor.EquippableWeapons ?? [];
 }

@@ -60,12 +60,12 @@ internal sealed class Perfectheart : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             AudioManager.Instance.PlaySFX("GEN_shine", 0.5f, 0.9f);
             OverlaySprite = AnimationManager.Instance.SpawnPerfectheartOverlay(new Vector2(CenterPoint.X, CenterPoint.Y - 45));
-            await Task.Delay(2000);
+            await Wait.Milliseconds(2000);
             AnimationManager.Instance.PlayAnimation(216, this);
             CurrentHP = CurrentStats.MaxHP;
             SetState("neutral", true);
             RemoveAllStatModifiers();
-            await Task.Delay(1000);
+            await Wait.Milliseconds(1000);
             SecondPhase = true;
         }
 
@@ -77,13 +77,15 @@ internal sealed class Perfectheart : Enemy
             HasSpoken = true;
         }
 
-        if (CurrentHP <= 0)
-        {
-            OverlaySprite?.QueueFree();
-            DialogueManager.Instance.QueueMessage(this, @"Ah.\! You have bested me.");
-            DialogueManager.Instance.QueueMessage(this, @"Right, then.\! I know when to admit defeat.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+        if (CurrentHP <= 0) return;
+    }
+
+    public override async Task OnDefeat()
+    {
+        OverlaySprite?.QueueFree();
+        DialogueManager.Instance.QueueMessage(this, @"Ah.\! You have bested me.");
+        DialogueManager.Instance.QueueMessage(this, @"Right, then.\! I know when to admit defeat.");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnStartOfBattle()

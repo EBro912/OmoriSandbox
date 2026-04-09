@@ -90,13 +90,13 @@ internal sealed class SirMaximusII : Enemy
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIUltimateAttack"]);
             UltimateAttack = true;
         }
+    }
 
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Father...[br]Forgive me.");
-            DialogueManager.Instance.QueueMessage(this, @"I'm sorry...\![br]I have failed you.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "Father...[br]Forgive me.");
+        DialogueManager.Instance.QueueMessage(this, @"I'm sorry...\![br]I have failed you.");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

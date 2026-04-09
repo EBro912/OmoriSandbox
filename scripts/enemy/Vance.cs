@@ -36,12 +36,7 @@ internal sealed class Vance : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"Dang...\! All I wanted was some taffy.");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (!HasSpoken && CurrentHP < 72)
         {
@@ -51,6 +46,12 @@ internal sealed class Vance : Enemy
         }
     }
     
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, @"Dang...\! All I wanted was some taffy.");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)

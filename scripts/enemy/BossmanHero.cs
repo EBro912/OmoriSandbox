@@ -89,15 +89,12 @@ internal sealed class BossmanHero : Enemy
         return new BattleCommand(this, SelectAllTargets(), Skills["BMHFlingMoney"]);
     }
 
-    public override async Task ProcessBattleConditions()
+    public override async Task OnDefeat()
     {
-        if (CurrentHP <= 0)
-        {
-            foreach (EnemyComponent enemy in GatorGuys)
-                enemy.Actor.CurrentHP = 0;
-            DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Friends...\! Let's...\! make a de...\! Huff...\| Huff...\| Wheeze...");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+        foreach (EnemyComponent enemy in GatorGuys)
+            enemy.Actor.CurrentHP = 0;
+        DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Friends...\! Let's...\! make a de...\! Huff...\| Huff...\| Wheeze...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

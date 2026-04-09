@@ -36,14 +36,7 @@ internal sealed class TheMaverick : Enemy
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...\! Huff...\! Wheeze...");
-            DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...\! Wheeze...");
-            DialogueManager.Instance.QueueMessage(this, @"Gah...\! No...\![br]I won't let it end like this!");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage == 0 && CurrentHP < 281)
         {
@@ -106,6 +99,14 @@ internal sealed class TheMaverick : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 7;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...\! Huff...\! Wheeze...");
+        DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...\! Wheeze...");
+        DialogueManager.Instance.QueueMessage(this, @"Gah...\! No...\![br]I won't let it end like this!");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnStartOfBattle()

@@ -8,7 +8,7 @@ internal class DiscordManager
 {
     private Discord DiscordSDK;
     private Activity Activity;
-    private readonly bool DiscordDisabled = false;
+    private bool DiscordDisabled = false;
     public DiscordManager()
     {
         try
@@ -51,7 +51,15 @@ internal class DiscordManager
     public void Tick()
     {
         if (DiscordDisabled) return;
-        DiscordSDK.RunCallbacks();
+        try
+        {
+            DiscordSDK.RunCallbacks();
+        }
+        catch (ResultException)
+        {
+            GD.PushWarning("Ran into an exception while running Discord SDK. Disabling...");
+            DiscordDisabled = true;
+        }
     }
 
     public void SetMainMenu()

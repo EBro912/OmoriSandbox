@@ -201,6 +201,10 @@ public abstract class Enemy : Actor
 	/// Called at the very end of the turn, but before it officially ends.
 	/// </summary>
 	public virtual async Task ProcessEndOfTurn() { await Task.CompletedTask; }
+	/// <summary>
+	/// Called when the enemy is defeated (HP reaches 0 and stays 0 after <see cref="ProcessBattleConditions"/>).
+	/// </summary>
+	public virtual async Task OnDefeat() { await Task.CompletedTask; }
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;

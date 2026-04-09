@@ -128,9 +128,9 @@ public partial class BattleLogManager : Control
 	/// Immediately shows a message in the battle log, clearing any queued or active messages first.<br/>
 	/// Also shows an item icon from the specified <see cref="spritesheetPath"/>.
 	/// </summary>
-	/// <param name="message"></param>
-	/// <param name="spritesheetPath"></param>
-	/// <param name="index"></param>
+	/// <param name="message">The message to display.</param>
+	/// <param name="spritesheetPath">The path to the spritesheet to use.</param>
+	/// <param name="index">The atlas index of the sprite.</param>
 	public void ClearAndShowMessageWithIcon(string message, string spritesheetPath, int index)
 	{
 		ClearBattleLog();
@@ -205,7 +205,7 @@ public partial class BattleLogManager : Control
 		return message.Replace("[actor]", self == null ? "" : self.Name.ToUpper()).Replace("[target]", target == null ? "" : target.Name.ToUpper());
 	}
 
-	private async void ProcessMessage()
+	private async Task ProcessMessage()
 	{
 		IsProcessingMessage = true;
 		while (MessageQueue.Count > 0)
@@ -298,7 +298,7 @@ public partial class BattleLogManager : Control
 
 	private void MoveOffScreen(Control line)
 	{
-		Tween tween = GetTree().CreateTween();
+		Tween tween = GetTree().CreateTween().SetParallel();
 		tween.TweenProperty(line, "position", new Vector2(11, -HEIGHT), 0.15f)
 			.SetTrans(Tween.TransitionType.Sine);
 		tween.TweenProperty(line, "modulate:a", 0f, 0.15f)

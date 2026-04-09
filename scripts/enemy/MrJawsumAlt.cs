@@ -37,6 +37,8 @@ internal sealed class MrJawsumAlt : Enemy
 
     internal void SpawnGatorGuy()
     {
+        GatorGuys.RemoveAll(x => x.Actor.CurrentHP <= 0);
+        
         if (GatorGuys.Count == 0)
            GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)", new Vector2(CenterPoint.X - 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
         else if (GatorGuys.Count == 1)
@@ -51,13 +53,7 @@ internal sealed class MrJawsumAlt : Enemy
     {
         GatorGuys.RemoveAll(x => x.Actor.CurrentHP <= 0);
 
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "You let yourselves be foiled by a bunch of children!?");
-            DialogueManager.Instance.QueueMessage(this, "WHAT DID I EVEN HIRE YOU FOR!?");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage > 2) 
             return;
@@ -88,6 +84,13 @@ internal sealed class MrJawsumAlt : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "You let yourselves be foiled by a bunch of children!?");
+        DialogueManager.Instance.QueueMessage(this, "WHAT DID I EVEN HIRE YOU FOR!?");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnStartOfBattle()

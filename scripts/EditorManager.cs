@@ -4,7 +4,6 @@ using System.Linq;
 using Godot;
 using Newtonsoft.Json;
 using OmoriSandbox.Battle;
-using OmoriSandbox.scripts;
 
 namespace OmoriSandbox.Editor;
 
@@ -113,6 +112,25 @@ internal partial class EditorManager : Node
 		StartingEnergySlider.ValueChanged += (value) => StartingEnergyValue.Text = value.ToString();
 		FollowupTierSlider.ValueChanged += (value) => FollowupTierValue.Text = value.ToString();
 
+		ImportButton.Pressed += () =>
+		{
+			if (PresetManager.Instance.TryGetPreset(ImportPresetDropdown.GetItemText(ImportPresetDropdown.Selected),
+				    out BattlePreset preset))
+			{
+				BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
+				editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
+				StageTabs.AddChild(editor);
+				editor.CopyFrom(preset);
+				int total = StageTabs.GetTabCount();
+				StageTabs.SetTabTitle(total - 1, total.ToString());
+				if (total == 1)
+				{
+					editor.ShowEnemies();
+					BattlebackPreview.SetBattleback(editor.BattlebackBGMEditor.SelectedBattleback);
+				}
+			}
+		};
+		
 		AddStageButton.Pressed += () =>
 		{
 			BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
@@ -145,6 +163,26 @@ internal partial class EditorManager : Node
 			{
 				StageTabs.SetTabTitle(i - 1, i.ToString());
 			}
+		};
+
+		MoveStageLeftButton.Pressed += () =>
+		{
+			int currentTab = StageTabs.CurrentTab;
+			if (currentTab < 1)
+				return;
+			StageTabs.MoveChild(StageTabs.GetChild(currentTab), currentTab - 1);
+			StageTabs.SetTabTitle(currentTab - 1, currentTab.ToString());
+			StageTabs.SetTabTitle(currentTab, (currentTab + 1).ToString());
+		};
+
+		MoveStageRightButton.Pressed += () =>
+		{
+			int currentTab = StageTabs.CurrentTab;
+			if (currentTab == StageTabs.GetTabCount() - 1)
+				return;
+			StageTabs.MoveChild(StageTabs.GetChild(currentTab), currentTab + 1);
+			StageTabs.SetTabTitle(currentTab + 1, (currentTab + 2).ToString());
+			StageTabs.SetTabTitle(currentTab, (currentTab + 1).ToString());
 		};
 
 		StageTabs.TabChanged += tab =>
@@ -233,7 +271,7 @@ internal partial class EditorManager : Node
 		}
 		
 
-		if (FileAccess.FileExists("user://presets/" + PresetInput.Text + ".json"))
+		if (PresetManager.Instance.PresetExists(PresetInput.Text))
 		{
 			ConfirmationDialog dialog = new()
 			{
@@ -384,15 +422,7 @@ internal partial class EditorManager : Node
 		preset.Enemies = enemies;
 		preset.Stages = stages;
 
-		string result = JsonConvert.SerializeObject(preset, Formatting.Indented);
-		if (!DirAccess.DirExistsAbsolute("user://presets")) {
-			using DirAccess access = DirAccess.Open("user://");
-			access.MakeDir("presets");
-			GD.Print("Created user://presets directory");
-		}
-
-		using FileAccess file = FileAccess.Open("user://presets/" + PresetInput.Text + ".json", FileAccess.ModeFlags.Write);
-		file.StoreString(result);
+		PresetManager.Instance.SavePreset(preset);
 
 		ShowWindow("Success", "Saved preset to user://presets/" + PresetInput.Text + ".json");
 
@@ -414,28 +444,9 @@ internal partial class EditorManager : Node
 		
 		string presetName = PresetDropdown.GetItemText(PresetDropdown.Selected);
 		string path = "user://presets/" + presetName + ".json";
-		if (!FileAccess.FileExists(path))
+		if (!PresetManager.Instance.TryGetPreset(presetName, out BattlePreset preset))
 		{
 			ShowWindow("Error", "Preset file not found at: " + path);
-			return;
-		}
-
-		using FileAccess file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-		BattlePreset preset;
-		try
-		{
-			preset = JsonConvert.DeserializeObject<BattlePreset>(file.GetAsText());
-		}
-		catch (KeyNotFoundException ek)
-		{
-			ShowWindow("Error", $"Failed to parse preset {presetName}. See the console/log for more info.");
-			GD.PrintErr($"Failed to parse preset {presetName} due to missing key:\n" + ek);
-			return;
-		}
-		catch (Exception ex)
-		{
-			ShowWindow("Error", $"Failed to parse preset {presetName}. See the console/log for more info.");
-			GD.PrintErr($"Failed to parse preset {presetName} due to an error:\n" + ex);
 			return;
 		}
 
@@ -447,6 +458,7 @@ internal partial class EditorManager : Node
 			BattlebackBGMEditor.SelectedBGM = preset.BGM;
 			BattlebackBGMEditor.BGMPitchValue = preset.BGMPitch;
 			BattlebackBGMEditor.BGMLoopPointValue = preset.BGMLoopPoint;
+			BattlebackPreview.SetBattleback(BattlebackBGMEditor.SelectedBattleback);
 		}
 
 		StartingEnergySlider.Value = Math.Clamp(preset.StartingEnergy, 0, 10);
@@ -552,22 +564,14 @@ internal partial class EditorManager : Node
 	private void ResetPresetDropdown()
 	{
 		PresetDropdown.Clear();
+		ImportPresetDropdown.Clear();
 		MainMenuManager.Instance.ClearPresetDropdown();
-		if (!DirAccess.DirExistsAbsolute("user://presets"))
+		foreach (BattlePreset preset in PresetManager.Instance.GetAllPresets())
 		{
-			using DirAccess access = DirAccess.Open("user://");
-			access.MakeDir("presets");
-			GD.Print("Created user://presets directory");
-		}
-		string[] presets = DirAccess.GetFilesAt("user://presets");
-		foreach (string preset in presets)
-		{
-			if (preset.EndsWith(".json"))
-			{
-				string name = preset.Replace(".json", "");
-				PresetDropdown.AddItem(name);
-				MainMenuManager.Instance.PopulatePresetDropdown(name);
-			}
+			PresetDropdown.AddItem(preset.Name);
+			MainMenuManager.Instance.PopulatePresetDropdown(preset.Name);
+			if (preset.Type is GameModeType.Normal)
+				ImportPresetDropdown.AddItem(preset.Name);
 		}
 	}
 
@@ -600,14 +604,7 @@ internal partial class EditorManager : Node
 		string path = "user://presets/" + preset + ".json";
 		if (FileAccess.FileExists(path))
 		{
-			using DirAccess access = DirAccess.Open("user://presets");
-			if (access == null)
-			{
-				GD.PrintErr("Failed to open presets directory");
-				return;
-			}
-			Error err = access.Remove(preset + ".json");
-			if (err == Error.Ok)
+			if (PresetManager.Instance.RemovePreset(preset))
 			{
 				ShowWindow("Success", "Deleted preset " + preset);
 				ResetPresetDropdown();
@@ -615,7 +612,6 @@ internal partial class EditorManager : Node
 			else
 			{
 				ShowWindow("Error", "Failed to delete preset " + preset + ". See console/logs for more information.");
-				GD.PrintErr("Failed to delete preset " + preset + " due to error: " + err);
 			}
 		}
 	}
@@ -721,7 +717,7 @@ internal partial class EditorManager : Node
 		dialog.Show();
 	}
 
-	public static EditorManager Instance;
+	public static EditorManager Instance { get; private set; }
 	
     [Export] private AudioStreamPlayer BGMPreview;
     [Export] private BattlebackDisplayComponent BattlebackPreview;
@@ -758,6 +754,10 @@ internal partial class EditorManager : Node
     [Export] private Button AddStageButton;
     [Export] private Button DuplicateStageButton;
     [Export] private Button RemoveStageButton;
+    [Export] private Button MoveStageLeftButton;
+    [Export] private Button MoveStageRightButton;
+    [Export] private OptionButton ImportPresetDropdown;
+    [Export] private Button ImportButton;
     [Export] private TabContainer StageTabs;
     [Export] private TabContainer MainTabs;
 }

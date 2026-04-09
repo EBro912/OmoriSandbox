@@ -46,27 +46,16 @@ internal sealed class PlutoExpandedAlt : Enemy
 
     private bool HasSpoken = false;
     private bool HasMentionedFlex = false;
+    private string WhoFlexed;
     public override async Task ProcessBattleConditions()
     {
-        if (!HasMentionedFlex)
+        if (!HasMentionedFlex && WhoFlexed is null)
         {
-            PartyMember flexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"));
-            if (flexed != null)
-            {
-                DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
-                    $"Impressive progress, young {flexed.Name.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
-                await DialogueManager.Instance.WaitForDialogue();
-                HasMentionedFlex = true;
-            }
+            WhoFlexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"))?.Name;
         }
         
         if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Hm.\! Well done, children.\![br]You've come a long way.");
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"But...\![br]I am not finished yet.");
-            await DialogueManager.Instance.WaitForDialogue();
             return;
-        }
         
         if (CurrentHP < 5000 && !HasSpoken)
         {
@@ -76,6 +65,24 @@ internal sealed class PlutoExpandedAlt : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.ForceCommand(this, this, Skills["PEExpandFurther"]);
             HasSpoken = true;
+        }
+    }
+    
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Hm.\! Well done, children.\![br]You've come a long way.");
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"But...\![br]I am not finished yet.");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
+    public override async Task ProcessEndOfTurn()
+    {
+        if (!HasMentionedFlex && WhoFlexed != null)
+        {
+            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                $"Impressive progress, young {WhoFlexed.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
+            await DialogueManager.Instance.WaitForDialogue();
+            HasMentionedFlex = true;
         }
     }
 

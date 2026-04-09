@@ -17,17 +17,24 @@ public sealed partial class BattlebackManager : Node
         Instance = this;
         
         foreach (string battleback in ResourceLoader.ListDirectory("res://assets/battlebacks"))
-            Battlebacks.Add(battleback.GetBaseName(), new StaticBattleback("res://assets/battlebacks/" + battleback));
+            Battlebacks.TryAdd(battleback.GetBaseName(), new StaticBattleback("res://assets/battlebacks/" + battleback));
     }
 
     internal void AddBattleback(string resourcePath)
     {
-        if (resourcePath.GetExtension() == "gif")
-            Battlebacks.Add(resourcePath.GetFile().GetBaseName(), new AnimatedBattleback(resourcePath));
-        else if (resourcePath.GetExtension() == "png")
-            Battlebacks.Add(resourcePath.GetFile().GetBaseName(), new StaticBattleback(resourcePath));
+        string name = resourcePath.GetFile().GetBaseName();
+        if (Battlebacks.ContainsKey(name))
+        {
+            GD.PushWarning($"Battleback '{name}' already exists, skipping.");
+            return;
+        }
+        string ext = resourcePath.GetExtension();
+        if (ext == "gif")
+            Battlebacks.TryAdd(name, new AnimatedBattleback(resourcePath));
+        else if (ext == "png")
+            Battlebacks.TryAdd(name, new StaticBattleback(resourcePath));
         else
-            GD.PrintErr("Invalid battleback filetype! Must be .gif or .png:" + resourcePath);
+            GD.PrintErr("Invalid battleback filetype! Must be .gif or .png: " + resourcePath);
     }
 
     /// <summary>

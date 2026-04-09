@@ -161,7 +161,7 @@ public partial class AudioManager : Node
 		BGM.Play();
 	}
 
-	public bool TryGetBGM(string name, out AudioStreamOggVorbis stream)
+	internal bool TryGetBGM(string name, out AudioStreamOggVorbis stream)
 	{
 		if (BGMDictionary.TryGetValue(name, out stream))
 			return true;
@@ -222,17 +222,37 @@ public partial class AudioManager : Node
 
 	internal bool LoadCustomBGM(string path)
 	{
-		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
-		stream.Loop = true;
 		string name = path.GetFile().GetBaseName();
-		return BGMDictionary.ContainsKey(name) || BGMDictionary.TryAdd(path.GetFile().GetBaseName(), stream);
+		if (BGMDictionary.ContainsKey(name))
+		{
+			GD.PushWarning($"BGM '{name}' already loaded, skipping.");
+			return true;
+		}
+		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
+		if (stream == null)
+		{
+			GD.PushError($"Failed to load BGM file: {path}");
+			return false;
+		}
+		stream.Loop = true;
+		return BGMDictionary.TryAdd(name, stream);
 	}
 
 	internal bool LoadCustomSFX(string path)
 	{
-		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
 		string name = path.GetFile().GetBaseName();
-		return SFXDictionary.ContainsKey(name) || SFXDictionary.TryAdd(path.GetFile().GetBaseName(), stream);
+		if (SFXDictionary.ContainsKey(name))
+		{
+			GD.PushWarning($"SFX '{name}' already loaded, skipping.");
+			return true;
+		}
+		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
+		if (stream == null)
+		{
+			GD.PushError($"Failed to load SFX file: {path}");
+			return false;
+		}
+		return SFXDictionary.TryAdd(name, stream);
 	}
 
 	/// <summary>
@@ -289,7 +309,7 @@ public partial class AudioManager : Node
 		PlayingSounds.Clear();
 		BGM.Stop();
 		BGM.PitchScale = 1f;
-		BGM.VolumeDb = 1f;
+		BGM.VolumeDb = Mathf.LinearToDb(1f);
 		foreach (AudioStreamPlayer player in AudioPlayers)
 		{
 			player.Stop();

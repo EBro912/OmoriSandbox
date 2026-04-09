@@ -131,7 +131,7 @@ internal partial class BattlebackBGMEditorComponent : Control
     public void Load()
     {
 	    BattlebackDropdown.EmitSignal("item_selected", BattlebackDropdown.Selected);
-	    
+	    BattlebackPreview.SetBattleback(SelectedBattleback);
 	    string bgm = BGMDropdown.GetItemText(BGMDropdown.Selected);
 	    if (AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis s))
 	    {
@@ -152,6 +152,11 @@ internal partial class BattlebackBGMEditorComponent : Control
 	    SelectedBGM = "battle_vf";
     }
 
+    public void SelectedBattlebackNoSignal(string value)
+    {
+	    
+    }
+    
     public string SelectedBattleback
     {
 	    get => BattlebackDropdown.GetItemText(BattlebackDropdown.Selected);
@@ -165,7 +170,6 @@ internal partial class BattlebackBGMEditorComponent : Control
 			    index = BattlebackDropdown.GetItemIndex(value);
 		    }
 		    BattlebackDropdown.Selected = index;
-		    BattlebackPreview.SetBattleback(value);
 	    }
     }
 

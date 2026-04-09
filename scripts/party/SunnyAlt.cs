@@ -17,6 +17,7 @@ internal sealed class SunnyAlt : PartyMember
 
     public override int[] SPDTree => [66];
     public override int BaseLuck => 5;
+    public override string[] EquippableWeapons => ["Violin"];
     public override string[] InvalidStates => ["happy", "ecstatic", "manic", "depressed", "miserable", "enraged", "furious"];
     public override bool IsRealWorld => true;
 }
