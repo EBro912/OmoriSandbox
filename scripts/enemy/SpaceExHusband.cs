@@ -186,7 +186,6 @@ internal sealed class SpaceExHusband : Enemy
                 if (CurrentState == "angry" || CurrentState == "enraged" || CurrentState == "furious")
                 {
                     DialogueManager.Instance.QueueMessage(this, @"GAH!\! HOW DARE SHE TREAT ME THAT WAY!");
-                    DialogueManager.Instance.QueueMessage(this, "I GAVE HER MY HEART AND SHE THREW IT AWAY SO EASILY!");
                     return true;
                 }
                 break;

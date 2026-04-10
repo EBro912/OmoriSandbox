@@ -95,7 +95,7 @@ internal sealed class MrJawsum : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        AddStatModifier("MrJawsumBarrier");
+        AddStatModifier("MinionBarrier");
         SpawnGatorGuy();
         SpawnGatorGuy();
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");

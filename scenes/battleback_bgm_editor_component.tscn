@@ -72,7 +72,7 @@ custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 0.0
-step = 0.01
+step = 0.001
 scrollable = false
 
 [node name="Play" type="Button" parent="BGMScrub" unique_id=1337098644]
@@ -122,4 +122,4 @@ text = "Set Current"
 layout_mode = 2
 size_flags_horizontal = 4
 max_value = 0.0
-step = 0.01
+step = 0.001

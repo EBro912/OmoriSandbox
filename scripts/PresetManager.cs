@@ -138,6 +138,6 @@ internal partial class PresetManager : Node
 
     public IEnumerable<BattlePreset> GetAllPresets()
     {
-        return Presets.Values;
+        return Presets.OrderBy(x => x.Key).Select(x => x.Value);
     }
 }

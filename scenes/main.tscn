@@ -375,7 +375,7 @@ Box = NodePath("Box")
 SpeakerSprite = NodePath("SpeakerArrow")
 Cursor = NodePath("Cursor")
 ChoiceBox = NodePath("ChoiceBox")
-ChoiceTextParent = NodePath("ChoiceBox/Text")
+ChoiceTextParent = NodePath("ChoiceBox/MarginContainer/Text")
 
 [node name="Text" type="RichTextLabel" parent="BattleCanvas/UI/DialogueBox" unique_id=1194128622]
 offset_left = -166.0
@@ -422,17 +422,18 @@ color = Color(0, 0, 0, 1)
 [node name="ChoiceBox" type="NinePatchRect" parent="BattleCanvas/UI/DialogueBox" unique_id=281540300]
 visible = false
 custom_minimum_size = Vector2(110, 20)
-anchors_preset = 8
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
+anchor_bottom = 1.0
 offset_left = 70.0
-offset_top = -110.0
+offset_top = -80.0
 offset_right = 180.0
-offset_bottom = -90.0
+offset_bottom = -60.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
+pivot_offset_ratio = Vector2(1, 0.5)
 texture = ExtResource("26_kmb1v")
 draw_center = false
 region_rect = Rect2(96, 0, 96, 96)
@@ -451,32 +452,24 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Text" type="Control" parent="BattleCanvas/UI/DialogueBox/ChoiceBox" unique_id=286026623]
-anchors_preset = 0
-offset_left = 6.0
-offset_top = 5.0
-offset_right = 94.0
-offset_bottom = 78.0
+[node name="MarginContainer" type="MarginContainer" parent="BattleCanvas/UI/DialogueBox/ChoiceBox" unique_id=1568307742]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -17.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_constants/margin_left = 7
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 7
 
-[node name="Yes" type="Label" parent="BattleCanvas/UI/DialogueBox/ChoiceBox/Text" unique_id=790053039]
-layout_mode = 0
-offset_left = 52.0
-offset_top = 5.0
-offset_right = 92.0
-offset_bottom = 35.0
-theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 30
-text = "YES"
-
-[node name="No" type="Label" parent="BattleCanvas/UI/DialogueBox/ChoiceBox/Text" unique_id=1107489110]
-layout_mode = 0
-offset_left = 54.0
-offset_top = 34.0
-offset_right = 94.0
-offset_bottom = 64.0
-theme_override_fonts/font = ExtResource("10_choun")
-theme_override_font_sizes/font_size = 30
-text = "NO"
+[node name="Text" type="VBoxContainer" parent="BattleCanvas/UI/DialogueBox/ChoiceBox/MarginContainer" unique_id=440112923]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
 
 [node name="SpeakerArrow" type="Sprite2D" parent="BattleCanvas/UI/DialogueBox" unique_id=1780541990]
 visible = false

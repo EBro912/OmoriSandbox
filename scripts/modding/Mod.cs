@@ -14,6 +14,22 @@ namespace OmoriSandbox.Modding;
 public abstract partial class Mod : Node
 {
     /// <summary>
+    /// Called after the mod has been loaded and added to the scene tree.
+    /// </summary>
+    public virtual void OnLoad() { }
+    
+    /// <summary>
+    /// Called each frame within Godot's _Process method.
+    /// </summary>
+    /// <param name="delta">The time difference between the current and previous frame.</param>
+    public virtual void OnProcess(double delta) {}
+    
+    /// <summary>
+    /// Called before the mod is removed from the scene tree.
+    /// </summary>
+    public virtual void OnUnload() {}
+
+    /// <summary>
     /// Registers a new <see cref="PartyMember"/> to the database.
     /// </summary>
     /// <typeparam name="T">The class of your custom party member. Must inherit <see cref="PartyMember"/>.</typeparam>

@@ -13,7 +13,7 @@ namespace OmoriSandbox;
 public partial class DialogueManager : Node2D
 {
 	[Signal] public delegate void FinishedDialogueEventHandler();
-	[Signal] public delegate void ChoiceSelectedEventHandler(bool choice);
+	[Signal] public delegate void ChoiceSelectedEventHandler(string choice);
 	
 	[Export] private RichTextLabel Text;
 	[Export] private NinePatchRect Box;
@@ -21,13 +21,13 @@ public partial class DialogueManager : Node2D
 	[Export] private Sprite2D Cursor;
 
 	[Export] private NinePatchRect ChoiceBox;
-	[Export] private Control ChoiceTextParent;
+	[Export] private VBoxContainer ChoiceTextParent;
 
 	private Queue<MessageBox> MessageQueue = [];
 	private bool HasChoice = false;
 	
 	private const float TEXT_SPEED = 0.02f;
-	private const int WIDTH = 328;
+	private const float TEXT_SIZE = 32.5f;
 	private bool WaitingForInput = false;
 	private bool IsTyping = false;
 	private bool WaitingForAnimation = false;
@@ -39,8 +39,14 @@ public partial class DialogueManager : Node2D
 	private Dictionary<int, PauseType> PauseIndices = [];
 
 	private Vector2I CursorNormalPos = new(145, 35);
-	private Vector2I YesPos = new(100, -115);
-	private Vector2I NoPos = new(100, -85);
+	private string[] CurrentChoices;
+	private int ChoiceIndex = 0;
+
+	private const float CHOICE_BOX_RIGHT = 180f;
+	private const float CHOICE_BOX_DEFAULT_LEFT = 70f;
+	private const float CHOICE_BOX_BOTTOM = -60f;
+	private const float CURSOR_TOP_OFFSET = 30f;
+	private const float CURSOR_LEFT_PADDING = 30f;
 	
     /// <summary>
     /// If dialogue is disabled in the current preset.<br/>
@@ -116,13 +122,27 @@ public partial class DialogueManager : Node2D
 					ChoiceBox.Visible = false;
 					ChoiceTextParent.Visible = false;
 					ChoiceBox.CustomMinimumSize = new Vector2(110, 20);
+					ChoiceBox.OffsetLeft = CHOICE_BOX_DEFAULT_LEFT;
 					AnimateClose();
 				}
 			}
-			else if (Input.IsActionJustPressed("MenuUp") || Input.IsActionJustPressed("MenuDown"))
+			else if (Input.IsActionJustPressed("MenuUp"))
 			{
-				AudioManager.Instance.PlaySFX("SYS_move");
-				Cursor.Position = Cursor.Position == YesPos ? NoPos : YesPos;
+				if (ChoiceIndex > 0)
+				{
+					ChoiceIndex--;
+					Cursor.Position = GetCursorPosition(ChoiceIndex);
+					AudioManager.Instance.PlaySFX("SYS_move");
+				}
+			}
+			else if (Input.IsActionJustPressed("MenuDown"))
+			{
+				if (ChoiceIndex < CurrentChoices.Length - 1)
+				{
+					ChoiceIndex++;
+					Cursor.Position = GetCursorPosition(ChoiceIndex);
+					AudioManager.Instance.PlaySFX("SYS_move");
+				}
 			}
 		}
 	}
@@ -200,7 +220,21 @@ public partial class DialogueManager : Node2D
 			Text.VisibleCharacters = 0;
 		}
 		CurrentMessageLength = Text.GetTotalCharacterCount();
-		HasChoice = current.HasChoice;
+		HasChoice = current.Choices is { Length: > 0 };
+		if (HasChoice)
+		{
+			CurrentChoices = current.Choices;
+			ChoiceIndex = 0;
+			ClearChoiceLabels();
+			foreach (string choice in current.Choices)
+			{
+				Label label = new();
+				label.AddThemeFontOverride("font", ResourceLoader.Load<Font>("res://fonts/OMORI_GAME2.ttf"));
+				label.AddThemeFontSizeOverride("font_size", 30);
+				label.Text = choice;
+				ChoiceTextParent.AddChild(label);
+			}
+		}
 		IsTyping = true;
 	}
 
@@ -342,29 +376,29 @@ public partial class DialogueManager : Node2D
 	}
 
     /// <summary>
-    /// Waits for the user to select Yes/No.
+    /// Waits for the user to select a choice.
     /// </summary>
     /// <remarks>If this method is not called after <see cref="QueueMessage"/>, the battle will continue while the choice is still on screen.<br/>
-    /// If dialogue is disabled, this will always return true (yes).</remarks>
-    /// <returns>True if the user picks Yes, False if the user picks No.</returns>
-	public async Task<bool> WaitForUserChoice()
+    /// If dialogue is disabled, this will always return the first option.</remarks>
+    /// <returns>The selected choice string.</returns>
+	public async Task<string> WaitForUserChoice()
 	{
 		if (DialogueDisabled)
-			return true;
+			return CurrentChoices?[0];
 
 		Variant[] args = await ToSignal(this, SignalName.ChoiceSelected);
-		return (bool)args[0];
+		return (string)args[0];
 	}
 
 	/// <summary>
 	/// Queues a message to be displayed in the dialogue box.
 	/// </summary>
 	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
-	/// <param name="hasChoice">If true, the message will come with a yes/no choice.</param>
+	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
-	public void QueueMessage(string message, bool hasChoice = false, FontType font = FontType.Normal)
+	public void QueueMessage(string message, string[] choices = null, FontType font = FontType.Normal)
 	{
-		QueueMessage(null, Vector2.Zero, message, hasChoice, font);
+		QueueMessage(null, Vector2.Zero, message, choices, font);
 	}
 
     /// <summary>
@@ -373,11 +407,11 @@ public partial class DialogueManager : Node2D
     /// </summary>
     /// <param name="speaker">The <see cref="Enemy"/> to show as the speaker.</param>
     /// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
-    /// <param name="hasChoice">If true, the message will come with a yes/no choice.</param>
+    /// <param name="choices">A list of choices this dialogue box has.</param>
     /// <param name="font">The Omori font to use, either Normal or Jagged.</param>
-    public void QueueMessage(Enemy speaker, string message, bool hasChoice = false, FontType font = FontType.Normal)
+    public void QueueMessage(Enemy speaker, string message, string[] choices = null, FontType font = FontType.Normal)
 	{
-		QueueMessage(speaker.Name, speaker.CenterPoint, message, hasChoice, font);
+		QueueMessage(speaker.Name, speaker.CenterPoint, message, choices, font);
 	}
 
     /// <summary>
@@ -386,14 +420,15 @@ public partial class DialogueManager : Node2D
     /// <param name="speaker">The name of the speaker.</param>
     /// <param name="speakerPos">The position on screen to use as the speaker target.</param>
     /// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
-    /// <param name="hasChoice">If true, the message will come with a yes/no choice.</param>
+    /// <param name="choices">A list of choices this dialogue box has.</param>
     /// <param name="font">The Omori font to use, either Normal or Jagged.</param>
-    public void QueueMessage(string speaker, Vector2 speakerPos, string message, bool hasChoice = false, FontType font = FontType.Normal)
+    public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null, FontType font = FontType.Normal)
 	{
+		CurrentChoices = choices;
 		if (DialogueDisabled)
 			return;
 
-		MessageQueue.Enqueue(new MessageBox(speaker, speakerPos, message, hasChoice, font));
+		MessageQueue.Enqueue(new MessageBox(speaker, speakerPos, message, choices, font));
 		
 		if (WaitingForAnimation || IsTyping || WaitingForInput) 
 			return;
@@ -412,14 +447,42 @@ public partial class DialogueManager : Node2D
 
 	private void AnimateChoiceOpen()
 	{
+		float targetHeight = 20 + TEXT_SIZE * CurrentChoices.Length;
+
+		Font font = ResourceLoader.Load<Font>("res://fonts/OMORI_GAME2.ttf");
+		float maxTextWidth = 0f;
+		foreach (string choice in CurrentChoices)
+		{
+			float w = font.GetStringSize(choice, fontSize: 30).X;
+			maxTextWidth = Mathf.Max(maxTextWidth, w);
+		}
+		float targetWidth = Mathf.Max(110f, maxTextWidth + 34f + CURSOR_LEFT_PADDING);
+
+		ChoiceBox.CustomMinimumSize = new Vector2(targetWidth, ChoiceBox.CustomMinimumSize.Y);
+		ChoiceBox.OffsetLeft = CHOICE_BOX_RIGHT - targetWidth;
+		ChoiceTextParent.Visible = false;
+
 		Tween tween = CreateTween();
-		tween.TweenProperty(ChoiceBox, "custom_minimum_size:y", 85, 0.1f);
+		tween.TweenProperty(ChoiceBox, "custom_minimum_size:y", targetHeight, 0.1f);
 		tween.TweenCallback(Callable.From(() =>
 		{
 			ChoiceTextParent.Visible = true;
 			Cursor.Visible = true;
-			Cursor.Position = YesPos;
+			Cursor.Position = GetCursorPosition(0);
 		}));
+	}
+
+	private Vector2 GetCursorPosition(int index)
+	{
+		float left = CHOICE_BOX_RIGHT - ChoiceBox.CustomMinimumSize.X;
+		float boxTop = CHOICE_BOX_BOTTOM - ChoiceBox.CustomMinimumSize.Y;
+		return new Vector2(left + CURSOR_LEFT_PADDING, boxTop + CURSOR_TOP_OFFSET + TEXT_SIZE * index);
+	}
+
+	private void ClearChoiceLabels()
+	{
+		foreach (Node child in ChoiceTextParent.GetChildren())
+			child.QueueFree();
 	}
 
 	private void AnimateClose()
@@ -435,7 +498,7 @@ public partial class DialogueManager : Node2D
 		WaitingForAnimation = false;
 		EmitSignal(SignalName.FinishedDialogue);
 		if (HasChoice)
-			EmitSignal(SignalName.ChoiceSelected, Cursor.Position == YesPos);
+			EmitSignal(SignalName.ChoiceSelected, CurrentChoices[ChoiceIndex]);
 	}
 
 	public void Reset()
@@ -451,9 +514,14 @@ public partial class DialogueManager : Node2D
 		CharsTillSound = 2;
 		CurrentMessageLength = 0;
 		CharTimer = 0;
+		ChoiceIndex = 0;
+		CurrentChoices = null;
+		ClearChoiceLabels();
+		ChoiceBox.CustomMinimumSize = new Vector2(110, 20);
+		ChoiceBox.OffsetLeft = CHOICE_BOX_DEFAULT_LEFT;
 	}
 
-	private record MessageBox(string Speaker, Vector2 SpeakerPos, string Message, bool HasChoice, FontType Font);
+	private record MessageBox(string Speaker, Vector2 SpeakerPos, string Message, string[] Choices, FontType Font);
 
 	/// <summary>
 	/// The default Omori font types to use in dialogue boxes.

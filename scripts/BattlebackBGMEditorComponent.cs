@@ -151,11 +151,6 @@ internal partial class BattlebackBGMEditorComponent : Control
 	    SelectedBattleback = "battleback_vf_default";
 	    SelectedBGM = "battle_vf";
     }
-
-    public void SelectedBattlebackNoSignal(string value)
-    {
-	    
-    }
     
     public string SelectedBattleback
     {

@@ -585,30 +585,11 @@ public partial class BattleManager : Node
 	private void ReloadPreset()
 	{
 		string presetName = MainMenuManager.Instance.LastLoadedPreset;
-		string path = "user://presets/" + MainMenuManager.Instance.LastLoadedPreset + ".json";
-		if (!FileAccess.FileExists(path))
+		if (!PresetManager.Instance.TryGetPreset(presetName, out BattlePreset preset))
 		{
-			GD.PrintErr("Preset file not found at: " + path);
+			GD.PrintErr("Could not find preset: " + presetName);
 			return;
 		}
-
-		using FileAccess file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
-		BattlePreset preset;
-		try
-		{
-			preset = JsonConvert.DeserializeObject<BattlePreset>(file.GetAsText());
-		}
-		catch (KeyNotFoundException ek)
-		{
-			GD.PrintErr($"Failed to parse preset {presetName} due to missing key:\n" + ek);
-			return;
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"Failed to parse preset {presetName} due to an error:\n" + ex);
-			return;
-		}
-
 		GameManager.Instance.LoadBattlePreset(preset);
 	}
 
@@ -1507,6 +1488,7 @@ public partial class BattleManager : Node
 					await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 0.5f);
 					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
 					GameManager.Instance.SetBattleback(Stages[CurrentStage].Battleback);
+					GameManager.Instance.SetBattlebackGrayscale(false);
 					BattleLogManager.Instance.ClearBattleLog();
 					MenuManager.Instance.ClearLastSelected();
 					await Wait.Milliseconds(1000);
@@ -1524,7 +1506,7 @@ public partial class BattleManager : Node
 							x.Actor.SetState("neutral", true);
 						}
 
-						if (!Stages[CurrentStage].KeepEmotion && oldEmotions.TryGetValue(x.Position, out string oldState))
+						if (Stages[CurrentStage].KeepEmotion && oldEmotions.TryGetValue(x.Position, out string oldState))
 							x.Actor.SetState(oldState, true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();

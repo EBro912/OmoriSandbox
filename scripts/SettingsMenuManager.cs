@@ -2,7 +2,10 @@ using Godot;
 
 namespace OmoriSandbox.Editor;
 
-internal partial class SettingsMenuManager : Control
+/// <summary>
+/// Handles the user's settings and keybinds.
+/// </summary>
+public partial class SettingsMenuManager : Control
 {
 	public override void _Ready()
 	{
@@ -165,6 +168,11 @@ internal partial class SettingsMenuManager : Control
 		config.Save("user://settings.cfg");
 	}
 
+	/// <summary>
+	/// Retrieves the currently bound <see cref="Key"/> for a Godot <see cref="action"/>.
+	/// </summary>
+	/// <param name="action">The Godot action to get the key for.</param>
+	/// <returns>The currently bound <see cref="Key"/>, or <see cref="Key.Unknown"/> if no key is bound.</returns>
 	public Key GetKeybindForAction(string action)
 	{
 		foreach (Node node in KeybindGrid.GetChildren())

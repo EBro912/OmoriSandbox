@@ -117,9 +117,9 @@ internal sealed class BossmanHero : Enemy
         int debuff = options[GameManager.Instance.Random.RandiRange(0, options.Length - 1)];
         QueueDebuffMessage(debuff);
         await DialogueManager.Instance.WaitForDialogue();
-        DialogueManager.Instance.QueueMessage("Will you sign HERO's contract?", true);
-        bool yes = await DialogueManager.Instance.WaitForUserChoice();
-        if (yes)
+        DialogueManager.Instance.QueueMessage("Will you sign HERO's contract?", ["YES", "NO"]);
+        string choice = await DialogueManager.Instance.WaitForUserChoice();
+        if (choice == "YES")
         {
             DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Attaboy! It's a deal!");
             await DialogueManager.Instance.WaitForDialogue();

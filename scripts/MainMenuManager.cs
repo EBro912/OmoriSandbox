@@ -187,6 +187,7 @@ internal partial class MainMenuManager : Node
 		MainMenu.Visible = true;
 		Editor.Visible = false;
 		GameManager.Instance.DiscordManager.SetMainMenu();
+		Engine.TimeScale = 1f;
 	}
 
 	public static MainMenuManager Instance;

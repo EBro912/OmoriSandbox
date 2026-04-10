@@ -2148,7 +2148,7 @@ public class Database
 			{
 				if (self is PartyMember member)
 				{
-					string weapon = member.Weapon.Name;
+					string weapon = member.Weapon.Name.ToUpper();
 					BattleLogManager.Instance.QueueMessage(self, target,
 						"[actor] passes the " + weapon + " to [target]!");
 				}
@@ -2159,7 +2159,7 @@ public class Database
 				}
 
 				AnimationManager.Instance.PlayAnimation(123, target);
-				int rounded = (int)Math.Round(target.CurrentStats.MaxJuice * 0.3f, MidpointRounding.AwayFromZero);
+				int rounded = (int)Math.Round(target.CurrentStats.MaxJuice * 0.4f, MidpointRounding.AwayFromZero);
 				target.HealJuice(rounded);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 				// can juice me miss???
@@ -5095,9 +5095,7 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(140, member);
-					member.Damage(50);
-					BattleManager.Instance.SpawnDamageNumber(50, member.CenterPoint);
-					BattleLogManager.Instance.QueueMessage(self, member, "[target] takes 50 damage!");
+					BattleManager.Instance.Damage(self, member, () => 50, true, 0f, neverCrit: true);
 				}
 			},
 			hidden: true
@@ -5116,9 +5114,7 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(140, member);
-					member.Damage(100);
-					BattleManager.Instance.SpawnDamageNumber(100, member.CenterPoint);
-					BattleLogManager.Instance.QueueMessage(self, member, "[target] takes 100 damage!");
+					BattleManager.Instance.Damage(self, member, () => 100, true, 0f, neverCrit: true);
 				}
 			},
 			hidden: true
@@ -5137,9 +5133,7 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(140, member);
-					member.Damage(150);
-					BattleManager.Instance.SpawnDamageNumber(150, member.CenterPoint);
-					BattleLogManager.Instance.QueueMessage(self, member, "[target] takes 150 damage!");
+					BattleManager.Instance.Damage(self, member, () => 150, true, 0f, neverCrit: true);
 				}
 			},
 			hidden: true
@@ -7336,7 +7330,7 @@ public class Database
 		Modifiers.Add("UnbreadTwinsSad", () => new EmotionLockStatModifier("sad", new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.SPD, 0.8f)));
 		Modifiers.Add("UnbreadTwinsDepressed", () => new EmotionLockStatModifier("sad", new StatBonus(StatType.DEF, 1.35f), new StatBonus(StatType.SPD, 0.65f)));
 		Modifiers.Add("UnbreadTwinsMiserable", () => new EmotionLockStatModifier("sad", new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.SPD, 0.5f)));
-		Modifiers.Add("MrJawsumBarrier", () => new MrJawsumStatModifier());
+		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
 		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1));
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
@@ -7722,9 +7716,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses AIR HORN!");
 				AudioManager.Instance.PlaySFX("SE_airhorn", 1, 0.9f);
 				foreach (Actor member in targets)
-				{
 					BattleManager.Instance.MakeAngry(member);
-				}
 				await Task.CompletedTask;
 			},
 			isToy: true,

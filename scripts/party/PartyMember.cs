@@ -85,7 +85,7 @@ public abstract class PartyMember : Actor
 	/// <inheritdoc/>
 	public override bool IsStateValid(string state)
 	{
-		return !(InvalidStates.Any(x => x == state) || (Charm != null && Charm.Name == "Paper Bag"));
+		return state is "neutral" or "toast" or "victory" || !(InvalidStates.Any(x => x == state) || (Charm != null && Charm.Name == "Paper Bag"));
 	}
 
     /// <inheritdoc/>
