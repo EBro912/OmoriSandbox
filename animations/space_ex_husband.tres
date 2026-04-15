@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://ogm6ad6ijwmx"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://ogm6ad6ijwmx"]
 
 [ext_resource type="Texture2D" uid="uid://bk6nfv8b3kc5k" path="res://assets/sv_actors/!battle_space_exhusband.png" id="1_mo6ac"]
 
@@ -300,7 +300,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_vk6px")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

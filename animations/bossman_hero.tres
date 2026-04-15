@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=14 format=3 uid="uid://dnlios8i678my"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dnlios8i678my"]
 
 [ext_resource type="Texture2D" uid="uid://di6y1bt2v8wg4" path="res://assets/sv_actors/!boss_hero.png" id="1_27wqb"]
 
@@ -99,7 +99,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_m8l4q")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

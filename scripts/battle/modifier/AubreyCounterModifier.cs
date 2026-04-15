@@ -12,25 +12,31 @@ public sealed class AubreyCounterModifier : StatModifier
 
     private bool HasCounteredThisTurn = false;
     
-    public override void OverrideDamage(ref float damage, Actor attacker, Actor defender, bool isAttacking)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
-        if (isAttacking)
+        if (phase is DamagePhase.PostApply)
         {
-            // if we're attacking, presumably this is a counter attack
-            // so we can reset this value back to false
-            HasCounteredThisTurn = false;
-            return;
-        }
+            if (isAttacking)
+            {
+                // if we're attacking, presumably this is a counterattack
+                // so we can reset this value back to false
+                HasCounteredThisTurn = false;
+                return;
+            }
 
-        if (HasCounteredThisTurn)
-            return;
+            if (HasCounteredThisTurn)
+                return;
 
-        BattleCommand command = BattleManager.Instance.GetCurrentCommand();
+            BattleCommand command = BattleManager.Instance.GetCurrentCommand();
 
-        if (attacker is Enemy && command.Action is Skill skill && skill.Target == SkillTarget.Enemy)
-        {
-            HasCounteredThisTurn = true;
-            BattleManager.Instance.ForceCommand(defender, attacker, defender.Skills.First().Value);
+            if (attacker is Enemy && command.Action is Skill skill && skill.Target == SkillTarget.Enemy)
+            {
+                if (Database.TryGetSkill("CounterAttack", out Skill s))
+                {
+                    HasCounteredThisTurn = true;
+                    BattleManager.Instance.ForceCommand(defender, attacker, s);
+                }
+            }
         }
     }
 }

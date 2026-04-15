@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://cgrqa5n4u1b00"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://cgrqa5n4u1b00"]
 
 [ext_resource type="Texture2D" uid="uid://cc3ahmjtixmiy" path="res://assets/sv_actors/!battle_reckut.png" id="1_5mt33"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_jc0m8")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

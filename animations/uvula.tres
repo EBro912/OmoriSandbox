@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=3 format=3 uid="uid://bfpamslcycenf"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://bfpamslcycenf"]
 
 [ext_resource type="Texture2D" uid="uid://bltdr10i4oeva" path="res://assets/sv_actors/!battle_humphrey_uvula.png" id="1_lmpm5"]
 

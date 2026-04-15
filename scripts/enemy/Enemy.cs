@@ -9,8 +9,6 @@ using OmoriSandbox.Battle.Modifier;
 namespace OmoriSandbox.Actors;
 
 // TODO: Remaining enemies
-// Humphrey
-// Faraway Town Enemies
 // Omori
 
 /// <summary>
@@ -18,7 +16,7 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class Enemy : Actor
 {
-	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, int layer)
+	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer)
 	{
 		SpriteFrames animation = Animation;
 		if (animation == null)
@@ -32,21 +30,42 @@ public abstract class Enemy : Actor
 		Sprite.Animation = initialState;
 		Sprite.Play();
 		CurrentState = initialState;
-		BaseStats = Stats;
+		SetBaseStats(Stats);
 		CurrentHP = BaseStats.HP;
 		CurrentJuice = BaseStats.Juice;
 
 		FallsOffScreen = fallsOffScreen;
+		GrayscaleOnDefeat = grayscaleOnDefeat;
 		Layer = layer;
 
 		foreach (string s in EquippedSkills)
 		{
 			if (Database.TryGetSkill(s, out var skill))
 			{
-				Skills.Add(s, skill);
+				if (!Skills.TryAdd(s, skill)) 
+					GD.PushWarning($"Actor {Name} already has skill {s} equipped! Skipping...");
 				continue;
 			}
 			GD.PrintErr("Unknown skill: " + s);
+		}
+	}
+
+	/// <summary>
+	/// Sets the opacity of the enemy sprite. Can optionally change over a set duration.
+	/// </summary>
+	/// <param name="opacity">The opacity of the sprite, from 0 to 1.</param>
+	/// <param name="duration">The duration of the change, in seconds.</param>
+	public void SetOpacity(float opacity, float duration = 0f)
+	{
+		opacity = Math.Clamp(opacity, 0f, 1f);
+		if (duration == 0f)
+		{
+			Sprite.Modulate = new Color(Sprite.Modulate, opacity);
+		}
+		else
+		{
+			Tween tween = BattleManager.Instance.GetTree().CreateTween();
+			tween.TweenProperty(Sprite, "modulate:a", opacity, duration);
 		}
 	}
 
@@ -79,7 +98,7 @@ public abstract class Enemy : Actor
 	{
 		List<PartyMemberComponent> targets = BattleManager.Instance.GetAlivePartyMembers();
 		List<PartyMember> result = [];
-		for (int i = 0; i < Math.Min(amount, targets.Count); i++)
+		for (int i = 0; i < amount; i++)
 			result.Add(targets[GameManager.Instance.Random.RandiRange(0, targets.Count - 1)].Actor);
 		return result;
 	}
@@ -115,12 +134,12 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Rolls a number between 0 and 100 (inclusive). Mainly a helper function for calculating skill chances in <see cref="ProcessAI"/>
+	/// Rolls a number between 1 and 100 (inclusive). Mainly a helper function for calculating skill chances in <see cref="ProcessAI"/>
 	/// </summary>
 	/// <returns></returns>
 	protected int Roll()
 	{
-		return GameManager.Instance.Random.RandiRange(0, 100);
+		return GameManager.Instance.Random.RandiRange(1, 100);
 	}
 
 	/// <summary>
@@ -144,10 +163,28 @@ public abstract class Enemy : Actor
 	/// Setting this value directly should be avoided as the player can set this manually in the preset settings.
 	/// </remarks>
 	public bool FallsOffScreen = true;
+
+	/// <summary>
+	/// Whether the enemy triggers a grayscale effect on defeat.
+	/// </summary>
+	/// <remarks>
+	/// Setting this value directly should be avoided as the player can set this manually in the preset settings.
+	/// </remarks>
+	public bool GrayscaleOnDefeat = false;
 	/// <summary>
 	/// The layer this enemy is on
 	/// </summary>
 	public int Layer { get; protected set; } = 0;
+	/// <summary>
+	/// Whether this enemy has a multi-target skill equipped.
+	/// </summary>
+	public bool HasMultiTargetSkill {
+		get
+		{
+			return Skills.Values.Any(x => x.Target is SkillTarget.AllAllies or SkillTarget.AllDeadAllies
+				or SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
+		} 
+	}
 	/// <summary>
 	/// Called after each action finishes. Mainly used for boss events.
 	/// </summary>
@@ -157,7 +194,47 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public virtual async Task ProcessStartOfTurn() { await Task.CompletedTask; }
 	/// <summary>
+	/// Called after the player finishes selecting commands and before the first command executes.
+	/// </summary>
+	public virtual async Task ProcessStartOfCommands() { await Task.CompletedTask; }
+	/// <summary>
 	/// Called at the very end of the turn, but before it officially ends.
 	/// </summary>
 	public virtual async Task ProcessEndOfTurn() { await Task.CompletedTask; }
+	/// <summary>
+	/// Called when the enemy is defeated (HP reaches 0 and stays 0 after <see cref="ProcessBattleConditions"/>).
+	/// </summary>
+	public virtual async Task OnDefeat() { await Task.CompletedTask; }
+
+	internal PartyMember ObserveTarget;
+	internal bool ObserveMultiTarget;
+
+	/// <summary>
+	/// Whether this enemy is currently observing a target.
+	/// </summary>
+	/// <param name="target">The observed target, if any.</param>
+	/// <returns>True if <paramref name="target"/> is not null.</returns>
+	protected bool HasObserveTarget(out PartyMember target)
+	{
+		target = ObserveTarget;
+		if (ObserveTarget == null) 
+			return false;
+		ObserveTarget = null;
+		ObserveMultiTarget = false;
+		return true;
+
+	}
+
+	/// <summary>
+	/// Whether this enemy is currently observing everyone.
+	/// </summary>
+	/// <returns>True if the enemy is observing everyone.</returns>
+	protected bool HasMultiTargetObserve()
+	{
+		if (!ObserveMultiTarget)
+			return false;
+		ObserveTarget = null;
+		ObserveMultiTarget = false;
+		return true;
+	}
 }

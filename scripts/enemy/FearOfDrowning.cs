@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using Godot;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 
@@ -42,21 +44,23 @@ internal sealed class FearOfDrowning : Enemy
         return Task.CompletedTask;
     }
 
-    public override Task ProcessBattleConditions()
+    public override async Task ProcessBattleConditions()
     {
         if (CurrentHP < 7210 && Phase == 1)
         {
             Phase = 2;
+            await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
             UpdateSprite();
+            await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }
 
         if (CurrentHP < 3090 && Phase == 2)
         {
             Phase = 3;
+            await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
             UpdateSprite();
+            await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }
-
-        return Task.CompletedTask;
     }
 
     private void UpdateSprite()

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://b82nowbt7n2la"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://b82nowbt7n2la"]
 
 [ext_resource type="Texture2D" uid="uid://c520fb77w8pqx" path="res://assets/sv_actors/!battle_pluto_leftarm.png" id="1_2ga2b"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_n4ahq")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

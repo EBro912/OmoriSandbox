@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=6 format=3 uid="uid://pjam5nmrymuc"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://pjam5nmrymuc"]
 
 [ext_resource type="Texture2D" uid="uid://dk8c1vkdeysva" path="res://assets/sv_actors/!battle_something_in_the_water_1.png" id="1_ybm1h"]
 
@@ -67,7 +67,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ihtum")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

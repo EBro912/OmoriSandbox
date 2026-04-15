@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://d32syyvyr6iwr"]
+[gd_scene format=3 uid="uid://d32syyvyr6iwr"]
 
 [ext_resource type="Texture2D" uid="uid://lpw3v82vc2q2" path="res://assets/system/target_selected.png" id="1_3r6nr"]
 [ext_resource type="Texture2D" uid="uid://bbkip17brhcgq" path="res://assets/system/player_box.png" id="1_irugt"]
@@ -15,12 +15,12 @@
 [sub_resource type="LabelSettings" id="LabelSettings_3r6nr"]
 font = ExtResource("5_8dd6e")
 outline_size = 4
-outline_color = Color(0, 0, 0, 0.501961)
+outline_color = Color(0, 0, 0, 0.5)
 shadow_size = 0
 shadow_color = Color(0.352941, 0.352941, 0.352941, 0.654902)
 shadow_offset = Vector2(0, 0)
 
-[node name="PartyMember" type="Control"]
+[node name="PartyMember" type="Control" unique_id=178049217]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,7 +34,7 @@ offset_bottom = -240.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SelectedCard" type="TextureRect" parent="."]
+[node name="SelectedCard" type="TextureRect" parent="." unique_id=650734927]
 visible = false
 z_index = 1
 layout_mode = 0
@@ -45,7 +45,7 @@ offset_bottom = 175.0
 texture = ExtResource("1_3r6nr")
 script = ExtResource("2_xyj2y")
 
-[node name="Battlecard" type="TextureRect" parent="."]
+[node name="Battlecard" type="TextureRect" parent="." unique_id=965564225]
 z_index = -1
 layout_mode = 1
 anchors_preset = 2
@@ -58,26 +58,26 @@ texture = ExtResource("1_irugt")
 stretch_mode = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="State" type="Sprite2D" parent="Battlecard"]
+[node name="State" type="Sprite2D" parent="Battlecard" unique_id=1068484933]
 position = Vector2(-53, 55)
 texture = ExtResource("2_8dd6e")
 offset = Vector2(110, -42)
 region_enabled = true
 region_rect = Rect2(17, 0, 98, 22)
 
-[node name="FaceState" type="Sprite2D" parent="Battlecard"]
+[node name="FaceState" type="Sprite2D" parent="Battlecard" unique_id=166928104]
 z_index = -3
 position = Vector2(57, 67)
 texture = ExtResource("3_3r6nr")
 region_enabled = true
 region_rect = Rect2(0, 0, 100, 100)
 
-[node name="Face" type="AnimatedSprite2D" parent="Battlecard"]
+[node name="Face" type="AnimatedSprite2D" parent="Battlecard" unique_id=1096832500]
 z_index = -2
 position = Vector2(57, 69)
 sprite_frames = SubResource("SpriteFrames_ms8ku")
 
-[node name="Health" type="TextureProgressBar" parent="Battlecard"]
+[node name="Health" type="TextureProgressBar" parent="Battlecard" unique_id=1182080579]
 layout_mode = 0
 offset_left = 28.0
 offset_top = 127.0
@@ -86,7 +86,7 @@ offset_bottom = 139.0
 value = 100.0
 texture_progress = ExtResource("5_ms8ku")
 
-[node name="Juice" type="TextureProgressBar" parent="Battlecard"]
+[node name="Juice" type="TextureProgressBar" parent="Battlecard" unique_id=863770104]
 layout_mode = 0
 offset_left = 28.0
 offset_top = 146.0
@@ -95,7 +95,7 @@ offset_bottom = 158.0
 value = 100.0
 texture_progress = ExtResource("6_xyj2y")
 
-[node name="HealthLabel" type="Label" parent="Battlecard"]
+[node name="HealthLabel" type="Label" parent="Battlecard" unique_id=1488056968]
 layout_mode = 0
 offset_left = 32.0
 offset_top = 125.35
@@ -106,7 +106,7 @@ label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="JuiceLabel" type="Label" parent="Battlecard"]
+[node name="JuiceLabel" type="Label" parent="Battlecard" unique_id=486899302]
 layout_mode = 0
 offset_left = 32.0
 offset_top = 144.35
@@ -116,4 +116,21 @@ text = "0/0"
 label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2
 
-[node name="StateAnimatorComponent" parent="Battlecard" instance=ExtResource("5_xyj2y")]
+[node name="StateAnimatorComponent" parent="Battlecard" unique_id=703804128 node_paths=PackedStringArray("StateSprite", "FaceStateSprite") instance=ExtResource("5_xyj2y")]
+StateSprite = NodePath("../State")
+FaceStateSprite = NodePath("../FaceState")
+
+[node name="StateIcons" type="HFlowContainer" parent="." unique_id=661376389]
+z_index = -1
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 165.0
+offset_right = 116.0
+offset_bottom = 280.99997
+grow_horizontal = 2
+pivot_offset = Vector2(58, 0)
+theme_override_constants/h_separation = -4
+theme_override_constants/v_separation = -4
+alignment = 1

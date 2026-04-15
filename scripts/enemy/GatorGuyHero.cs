@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
 
@@ -49,5 +50,12 @@ internal sealed class GatorGuyHero : Enemy
         return new BattleCommand(this, this, Skills["GGDoNothing"]);
         rough:
         return new BattleCommand(this, SelectTarget(), Skills["GGRoughUp"]);
+    }
+
+    protected override Stats GetBaseStats()
+    {
+        if (CurrentState is "sad" or "angry")
+            return new Stats(6000, 3000, 80, 65, 80, 10, 95);
+        return new Stats(6000, 3000, 80, 65, 70, 10, 95);
     }
 }

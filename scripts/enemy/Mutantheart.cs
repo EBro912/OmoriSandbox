@@ -29,15 +29,19 @@ internal sealed class Mutantheart : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        HasObserveTarget(out PartyMember observe);
+        
         switch (CurrentState)
         {
             case "happy":
-                return new BattleCommand(this, SelectTarget(), Skills["MHWink"]);
+                return new BattleCommand(this, observe ?? SelectTarget(), Skills["MHWink"]);
             case "sad":
-                return new BattleCommand(this, SelectTarget(), Skills["MHCry"]);
+                return new BattleCommand(this, observe ?? SelectTarget(), Skills["MHCry"]);
             case "angry":
-                return new BattleCommand(this, SelectTarget(), Skills["MHInsult"]);
+                return new BattleCommand(this, observe ?? SelectTarget(), Skills["MHInsult"]);
             default:
+                if (observe != null)
+                    return new BattleCommand(this, observe, Skills["MHInsult"]);
                 if (Roll() < 51)
                     return new BattleCommand(this, SelectTarget(), Skills["MHWink"]);
                 if (Roll() < 51)
@@ -50,30 +54,41 @@ internal sealed class Mutantheart : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Bloooohhhh...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 3500 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "Bluh?");
+            DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bluh?");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
     }
 
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bloooohhhh...");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
     public override async Task ProcessStartOfTurn()
     {
         DesiredState = DesireableStates[GameManager.Instance.Random.RandiRange(0, DesireableStates.Length - 1)];
-        DialogueManager.Instance.QueueMessage(this, $"{DesiredState.ToUpper()}... please!");
+        string message = DesiredState switch
+        {
+            "happy" => @"[font_size=22][wave freq=10.0]HAPPY...\. please!",
+            "sad" => @"[font_size=22][wave freq=10.0]SAD...\. please...",
+            "angry" => @"[font_size=22][wave freq=10.0]ANGRY...\. please.",
+            _ => @"[font_size=22]I couldn't make up my mind...\. this is a problem!"
+        };
+        DialogueManager.Instance.QueueMessage(this, message);
         await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task ProcessEndOfTurn()
     {
+        if (CurrentHP <= 0)
+            return;
+        
         bool failed = false;
         foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
         {
@@ -85,14 +100,14 @@ internal sealed class Mutantheart : Enemy
         }
         if (failed)
         {
-            DialogueManager.Instance.QueueMessage(this, "Bleh...@ Wrong!");
+            DialogueManager.Instance.QueueMessage(this, @"[font_size=22][shake rate=20]Bleh...\| Wrong!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }
 
     public override async Task OnStartOfBattle()
     {
-        DialogueManager.Instance.QueueMessage(this, "H...@ henno...");
+        DialogueManager.Instance.QueueMessage(this, @"[font_size=22]H...\! Henno...");
         await DialogueManager.Instance.WaitForDialogue();
     }
 
@@ -100,7 +115,7 @@ internal sealed class Mutantheart : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "Bleh!");
+            DialogueManager.Instance.QueueMessage(this, "[wave freq=10.0]Bleh!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

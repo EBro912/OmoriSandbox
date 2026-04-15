@@ -12,12 +12,14 @@ internal sealed class NefariousChip : Enemy
     protected override string[] EquippedSkills => ["NCAttack", "NCDoNothing", "NCLaugh", "NCCookies", "NCCookiesHappy"];
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "happy" or "sad" or "angry" or "hurt" or "toast";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["NCAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":
@@ -66,27 +68,28 @@ internal sealed class NefariousChip : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Molto triste...");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 1728 && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "Mamma-mia...");
-            DialogueManager.Instance.QueueMessage(this, "Is...@ Is getting hot in here, no?");
+            DialogueManager.Instance.QueueMessage(this, @"...\! Is...\![br]Is getting hot in here, no?");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "Molto triste...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "YAHOO!@ WAA-HAA!!");
+            DialogueManager.Instance.QueueMessage("[font_size=40][wave freq=10.0]YAHOO! WAA-HAA!!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

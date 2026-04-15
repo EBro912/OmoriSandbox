@@ -20,24 +20,29 @@ public class BattleAction
 	/// </summary>
 	public string Description { get; private set; }
 	/// <summary>
-	/// What this skill can target. Mainly used for input validation.
+	/// What this action can target. Mainly used for input validation.
 	/// </summary>
 	public SkillTarget Target { get; private set; }
+	/// <summary>
+	/// The priority of the action when calculating turn order.
+	/// </summary>
+	public SkillPriority Priority {get; private set;}
 	/// <summary>
 	/// What happens when this action is performed.
 	/// </summary>
 	public Func<Actor, IReadOnlyList<Actor>, Task> Effect { get; }
 
-	protected BattleAction(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect)
+	protected BattleAction(string name, string description, SkillTarget target, SkillPriority priority, Func<Actor, IReadOnlyList<Actor>, Task> effect)
 	{
 		Name = name;
 		Description = description;
 		Target = target;
 		Effect = effect;
+		Priority = priority;
 	}
 
-	protected BattleAction(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect)
-		: this(name, description, target, async (self, targets) =>
+	protected BattleAction(string name, string description, SkillTarget target, SkillPriority priority, Func<Actor, Actor, Task> effect)
+		: this(name, description, target, priority, async (self, targets) =>
 		{
 			if (targets.Count != 1)
 			{

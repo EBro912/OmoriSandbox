@@ -16,6 +16,9 @@ internal sealed class Sourdough : Enemy
   
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["SDBadWord"]);
+        
         switch (CurrentState)
         {
             case "happy":

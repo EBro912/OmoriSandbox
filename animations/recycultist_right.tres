@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://dfnx252i7ekb"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dfnx252i7ekb"]
 
 [ext_resource type="Texture2D" uid="uid://dykq8kigvmx57" path="res://assets/sv_actors/!battle_recyclist_2.png" id="1_fjsbm"]
 

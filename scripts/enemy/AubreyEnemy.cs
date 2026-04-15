@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
 

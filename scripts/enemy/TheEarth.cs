@@ -13,12 +13,14 @@ internal sealed class TheEarth : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy"
-              || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["TEAttack"]);
+        
         if (CurrentHP < 85)
             return new BattleCommand(this, SelectAllTargets(), Skills["TEProtect"]);
 

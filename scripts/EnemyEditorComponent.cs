@@ -7,35 +7,21 @@ namespace OmoriSandbox.Editor;
 
 internal partial class EnemyEditorComponent : Control
 {
-	[Export]
-	public OptionButton EnemyDropdown { get; private set; }
-
-	[Export]
-	public OptionButton EmotionDropdown { get; private set; }
-
-	[Export]
-	public SpinBox XPosBox { get; private set; }
-
-	[Export]
-	public SpinBox YPosBox { get; private set; }
-
-	[Export]
-	public SpinBox LayerBox { get; private set; }
-
-	[Export]
-	public CheckBox FallsOffScreenCheckbox { get; private set; }
-
-	[Export]
-	private CheckBox VisibleCheckbox;
-
-	[Export]
-	private Button RemoveButton;
+	[Export] public OptionButton EnemyDropdown { get; private set; }
+	[Export] public OptionButton EmotionDropdown { get; private set; }
+	[Export] public SpinBox XPosBox { get; private set; }
+	[Export] public SpinBox YPosBox { get; private set; }
+	[Export] public SpinBox LayerBox { get; private set; }
+	[Export] public CheckBox FallsOffScreenCheckbox { get; private set; }
+	[Export] public CheckBox GrayscaleOnDefeatCheckbox { get; private set; }
+	[Export] private CheckBox VisibleCheckbox;
+	[Export] private Button RemoveButton;
 
 	private AnimatedSprite2D Animator;
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "furious", "manic", "miserable", "furious", "manic", "afraid", "stressed"];
+	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "afraid", "stressed", "hurt", "toast"];
 
-	public override void _Ready()
+	public override void _EnterTree()
 	{
 		foreach (string member in Database.GetAllEnemyNames())
 			EnemyDropdown.AddItem(member);
@@ -49,7 +35,7 @@ internal partial class EnemyEditorComponent : Control
 		XPosBox.ValueChanged += (value) => Animator.GlobalPosition = new Vector2((float)value, Animator.GlobalPosition.Y);
 		YPosBox.ValueChanged += (value) => Animator.GlobalPosition = new Vector2(Animator.GlobalPosition.X, (float)value);
 
-		LayerBox.ValueChanged += (value) => Animator.ZIndex = -5 - (int)LayerBox.Value;
+		LayerBox.ValueChanged += (value) => Animator.ZIndex = -5 - (int)value;
 	}
 
 	public void Init(AnimatedSprite2D animator)
@@ -68,7 +54,14 @@ internal partial class EnemyEditorComponent : Control
 		Populate("LostSproutMole");
 	}
 
-	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen)
+	public void Init(AnimatedSprite2D animator, BattlePresetEnemy enemy)
+	{
+		if (!enemy.Position.StartsWith("Vector2"))
+			enemy.Position = "Vector2" + enemy.Position;
+		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat);
+	}
+
+	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen, bool grayscaleOnDefeat)
 	{
 		Animator = animator;
 		Animator.Centered = true;
@@ -79,7 +72,7 @@ internal partial class EnemyEditorComponent : Control
 			Animator.QueueFree();
 			QueueFree();
 		};
-
+		
 		Populate(name);
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex(name);
 		EmotionDropdown.Selected = EmotionDropdown.GetItemIndex(emotion);
@@ -89,18 +82,25 @@ internal partial class EnemyEditorComponent : Control
 		Animator.GlobalPosition = position;
 		UpdateState(emotion);
 		FallsOffScreenCheckbox.ButtonPressed = fallsOffScreen;
+		GrayscaleOnDefeatCheckbox.ButtonPressed = grayscaleOnDefeat;
 	}
 
 	public void Populate(string who)
 	{
-		Name = who;
 		Enemy enemy = Database.CreateEnemy(who);
 
 		SpriteFrames animation = enemy.Animation;
 		if (animation == null)
 		{
-			GD.PrintErr("Failed to load animations for Enemy: " + Name);
+			GD.PrintErr("Failed to load animations for Enemy: " + who);
 			return;
+		}
+		
+		Node parent = GetParent();
+		if (parent is TabContainer container)
+		{
+			int index = container.GetTabIdxFromControl(this);
+			container.SetTabTitle(index, who);
 		}
 
 		Animator.SpriteFrames = animation;
@@ -108,6 +108,7 @@ internal partial class EnemyEditorComponent : Control
 		Animator.Play();
 
 		FallsOffScreenCheckbox.ButtonPressed = enemy.FallsOffScreen;
+		GrayscaleOnDefeatCheckbox.ButtonPressed = enemy.GrayscaleOnDefeat;
 
 		EmotionDropdown.Clear();
 		foreach (string state in States)
@@ -123,5 +124,6 @@ internal partial class EnemyEditorComponent : Control
 	public void UpdateState(string state)
 	{
 		Animator.Animation = state;
+		Animator.Play();
 	}
 }

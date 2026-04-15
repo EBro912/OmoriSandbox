@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=30 format=3 uid="uid://vgwj570mdthb"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://vgwj570mdthb"]
 
 [ext_resource type="Texture2D" uid="uid://dfredc4lpduxc" path="res://assets/sv_actors/!battle_space_exboyfriend.png" id="1_58gc7"]
 
@@ -113,6 +113,22 @@ region = Rect2(1368, 1332, 684, 444)
 [sub_resource type="AtlasTexture" id="AtlasTexture_0vr4w"]
 atlas = ExtResource("1_58gc7")
 region = Rect2(2052, 1332, 684, 444)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w0myw"]
+atlas = ExtResource("1_58gc7")
+region = Rect2(0, 888, 684, 444)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gls4q"]
+atlas = ExtResource("1_58gc7")
+region = Rect2(684, 888, 684, 444)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qj6d5"]
+atlas = ExtResource("1_58gc7")
+region = Rect2(1368, 888, 684, 444)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cl35f"]
+atlas = ExtResource("1_58gc7")
+region = Rect2(2052, 888, 684, 444)
 
 [resource]
 animations = [{
@@ -237,9 +253,18 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_4k7i3")
+"texture": SubResource("AtlasTexture_w0myw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gls4q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qj6d5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cl35f")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

@@ -13,16 +13,17 @@ dest_files=["res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67
 [params]
 
 Rendering=null
-antialiasing=0
+antialiasing=2
 generate_mipmaps=false
 disable_embedded_bitmaps=false
-multichannel_signed_distance_field=true
+multichannel_signed_distance_field=false
 msdf_pixel_range=8
-msdf_size=32
+msdf_size=64
 allow_system_fallback=false
 force_autohinter=false
+modulate_color_glyphs=false
 hinting=0
-subpixel_positioning=0
+subpixel_positioning=2
 keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null

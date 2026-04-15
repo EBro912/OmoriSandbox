@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=30 format=3 uid="uid://0uwfupsw0w0"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://0uwfupsw0w0"]
 
 [ext_resource type="Texture2D" uid="uid://brrgemsybhv0t" path="res://assets/sv_actors/!battle_sweetheart.png" id="1_ls16w"]
 
@@ -113,6 +113,22 @@ region = Rect2(1176, 1362, 588, 454)
 [sub_resource type="AtlasTexture" id="AtlasTexture_jx3gq"]
 atlas = ExtResource("1_ls16w")
 region = Rect2(1764, 1362, 588, 454)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ls16w"]
+atlas = ExtResource("1_ls16w")
+region = Rect2(0, 908, 588, 454)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qjcce"]
+atlas = ExtResource("1_ls16w")
+region = Rect2(588, 908, 588, 454)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jibqp"]
+atlas = ExtResource("1_ls16w")
+region = Rect2(1176, 908, 588, 454)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xd8d1"]
+atlas = ExtResource("1_ls16w")
+region = Rect2(1764, 908, 588, 454)
 
 [resource]
 animations = [{
@@ -237,9 +253,18 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_jg3m7")
+"texture": SubResource("AtlasTexture_ls16w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qjcce")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jibqp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xd8d1")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

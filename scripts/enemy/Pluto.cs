@@ -19,6 +19,9 @@ internal sealed class Pluto : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["PLHeadbutt"]);
+        
         switch (CurrentState)
         {
             case "angry":
@@ -64,19 +67,12 @@ internal sealed class Pluto : Enemy
     private bool HasExpanded = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            if (LeftArm != null)
-                LeftArm.Actor.CurrentHP = 0;
-            if (RightArm != null)
-                RightArm.Actor.CurrentHP = 0;
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 150 && !HasExpanded)
         {
-            DialogueManager.Instance.QueueMessage(this, "GWAH AHAHAH AHAHA!!!");
-            DialogueManager.Instance.QueueMessage(this, "What a splendid show of force!");
+            DialogueManager.Instance.QueueMessage(this, "[br][wave freq=20.0]GWAH[font_size=40]AHAHAH[font_size=52]AHAHA!!!");
+            DialogueManager.Instance.QueueMessage(this, "[br]What a splendid show of force!");
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.ForceCommand(this, this, Skills["PLExpand"]);
             HasExpanded = true;
@@ -84,11 +80,20 @@ internal sealed class Pluto : Enemy
         
     }
 
+    public override Task OnDefeat()
+    {
+        if (LeftArm != null)
+            LeftArm.Actor.CurrentHP = 0;
+        if (RightArm != null)
+            RightArm.Actor.CurrentHP = 0;
+        return Task.CompletedTask;
+    }
+
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "Hmph...@\nYou kids fought well...@ but you lack training.");
+            DialogueManager.Instance.QueueMessage(this, @"Hmph...\![br]You kids fought well...\! but you lack training.");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

@@ -8,16 +8,16 @@ namespace OmoriSandboxSampleMod
     {
         public override string Name => "Tony";
         public override SpriteFrames Animation => new SpriteFramesBuilder("ExampleDllMod/sprites/tony.png", 106, 106)
-            .AddEmotion("angry", 12, 42, 43, 44, 45, 46, 47, 48, 49, 50)
-            .AddEmotion("depressed", 12, 22, 23)
-            .AddEmotion("ecstatic", 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)
-            .AddEmotion("enraged", 12, 33, 34, 35, 36, 37, 38, 39, 40, 41)
-            .AddEmotion("happy", 12, 26, 27)
-            .AddEmotion("hurt", 12, 31, 30, 29, 28, 32)
-            .AddEmotion("neutral", 12, 24, 25)
-            .AddEmotion("sad", 12, 22, 23)
-            .AddEmotion("toast", 4.5, 51, 52, 53)
-            .AddEmotion("victory", 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)
+            .AddAnimation("angry", 12, [42, 43, 44, 45, 46, 47, 48, 49, 50])
+            .AddAnimation("depressed", 12, 22, 23)
+            .AddAnimation("ecstatic", 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)
+            .AddAnimation("enraged", 12, 33, 34, 35, 36, 37, 38, 39, 40, 41)
+            .AddAnimation("happy", 12, 26, 27)
+            .AddAnimation("hurt", 12, 31, 30, 29, 28, 32)
+            .AddAnimation("neutral", 12, 24, 25)
+            .AddAnimation("sad", 12, 22, 23)
+            .AddAnimation("toast", 4.5, 51, 52, 53)
+            .AddAnimation("victory", 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)
             .Build();
 
         public override int[] HPTree => new[] { 37, 38, 40, 42, 47, 52, 58, 61, 66, 71, 75, 77, 81, 90, 93, 103, 108, 110, 115, 119, 124, 128, 133, 139, 141, 147, 151, 157, 165, 167, 174, 179, 185, 187, 192, 196, 201, 205, 210, 218, 227, 236, 243, 251, 260, 269, 276, 286, 296, 300 };

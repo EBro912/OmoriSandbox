@@ -46,7 +46,7 @@ public class TierStatModifier : StatModifier
 
 	/// <summary>
 	/// Represents a tiered stat bonus with a turn counter. Defaults to starting at tier 1.
-	/// Use <see cref="SetTier(int)"/> to modify the modifier's tier.
+	/// Use <see cref="ApplyTier(int)"/> to modify the modifier's tier.
 	/// </summary>
 	/// <param name="turns">The number of turns to give this stat bonus for.</param>
 	/// <param name="bonuses">A list of stat bonuses. Each index of is list is mapped to the stat to provide at that tier.</param>
@@ -54,6 +54,13 @@ public class TierStatModifier : StatModifier
 	{
 		Tier = 1;
 		MaxTier = bonuses.Length;
+	}
+
+	internal override StateIcon[] GetStateIcons()
+	{
+		if (StateIcons.Length == 0)
+			return [];
+		return [StateIcons[Math.Min(Tier - 1, StateIcons.Length - 1)]];
 	}
 
 	/// <summary>
@@ -83,40 +90,47 @@ public class TierStatModifier : StatModifier
 		MaxTier = tier;
 		return this;
 	}
-
+	
 	/// <summary>
-	/// Directly sets the tier of the stat modifier.
+	/// Applies a tier to this stat modifier, following base game stacking rules.
 	/// </summary>
-	/// <param name="tier">The tier to set this stat modifier to.</param>
-	/// <returns>If the change is successful.</returns>
-	public bool SetTier(int tier)
+	/// <param name="tier">The tier to apply.</param>
+	/// <returns>True if the tier was changed or the turn counter was refreshed.</returns>
+	public bool ApplyTier(int tier)
 	{
-		if (Tier == MaxTier)
-			return false;
-		Tier = Math.Min(tier, MaxTier);
-		return true;
-	}
-
-	/// <summary>
-	/// Increases the tier of this stat modifier by one. Also resets the turns left counter.
-	/// </summary>
-	/// <returns>If the increase is successful.</returns>
-	public bool IncreaseTier()
-	{
-		if (Tier < MaxTier)
+		tier = Math.Min(tier, MaxTier);
+		if (tier > Tier)
 		{
-			Tier++;
+			Tier = tier;
 			TurnsLeft = MaxTurns;
 			return true;
 		}
+		if (Tier == MaxTier)
+		{
+			if (tier == MaxTier)
+			{
+				TurnsLeft = MaxTurns;
+				return true;
+			}
+			return false; 
+		}
+		// not at max, any tier application increases by 1
+		Tier++;
+		TurnsLeft = MaxTurns;
+		return true;
+	}
 
-		return false;
+	internal void WithTier(int tier)
+	{
+		Tier = Math.Min(tier, MaxTier);
 	}
 
 	/// <inheritdoc/>
 	public override void ApplyStats(ref Stats stats)
 	{
-		StatBonus bonus = Bonuses[Tier - 1];
+		if (Bonuses.Length == 0)
+			return;
+		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
 		int val = stats.GetStat(bonus.Type);
 		val = (int)Math.Round(val * bonus.Multiplier + bonus.FlatBonus);
 		stats.SetStat(bonus.Type, val);

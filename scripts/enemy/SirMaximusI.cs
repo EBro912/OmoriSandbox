@@ -17,11 +17,17 @@ internal sealed class SirMaximusI : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasMultiTargetObserve())
+            return new BattleCommand(this, SelectTargets(2), Skills["SMIStrikeTwice"]);
+        
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["SMIAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":
@@ -63,7 +69,7 @@ internal sealed class SirMaximusI : Enemy
         if (CurrentHP < 120 && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage(this, "Behold! My family has spent generations perfecting this technique...");
-            DialogueManager.Instance.QueueMessage(this, "This is my ultimate attack!");
+            DialogueManager.Instance.QueueMessage(this, "[br]This is my ultimate attack!");
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttack"]);
             UltimateAttack = true;
@@ -72,7 +78,7 @@ internal sealed class SirMaximusI : Enemy
         
         if (CurrentHP < 300 && !FirstDialogue)
         {
-            DialogueManager.Instance.QueueMessage(this, "No... @I...I cannot fail now.");
+            DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             DialogueManager.Instance.QueueMessage(this, "My son needs me!");
             await DialogueManager.Instance.WaitForDialogue();
             FirstDialogue = true;

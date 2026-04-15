@@ -12,12 +12,14 @@ internal sealed class RightArm : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "happy" or "sad" or "angry" or "hurt" or "toast";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["RAAttack"]);
+        
         switch (CurrentState)
         {
             case "angry":

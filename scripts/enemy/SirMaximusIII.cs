@@ -22,6 +22,12 @@ internal sealed class SirMaximusIII : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        if (HasMultiTargetObserve())
+            return new BattleCommand(this, SelectAllTargets(), Skills["SMIISpin"]);
+        
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["SMIAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":
@@ -81,7 +87,7 @@ internal sealed class SirMaximusIII : Enemy
     {
         if (CurrentHP < 550 && !FirstDialogue)
         {
-            DialogueManager.Instance.QueueMessage(this, "No... @I cannot let my father's and his father's deaths be in vain!");
+            DialogueManager.Instance.QueueMessage(this, "No... I cannot let my father's and his father's deaths be in vain!");
             DialogueManager.Instance.QueueMessage(this, "Now for my ultimate attack!");
             await DialogueManager.Instance.WaitForDialogue();
             FirstDialogue = true;
@@ -92,13 +98,13 @@ internal sealed class SirMaximusIII : Enemy
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIIUltimateAttack"]);
             UltimateAttack = true;
         }
-        
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Father... Grandfather...");
-            DialogueManager.Instance.QueueMessage(this, "I'm sorry... I have failed you.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "Father... Grandfather...");
+        DialogueManager.Instance.QueueMessage(this, @"I'm sorry...\![br]I have failed you.");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

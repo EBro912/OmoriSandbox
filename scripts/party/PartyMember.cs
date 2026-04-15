@@ -2,6 +2,7 @@ using Godot;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Actors;
 
@@ -10,7 +11,7 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class PartyMember : Actor
 {
-	internal void Init(AnimatedSprite2D face, string initialState, int level, string weapon, string charm, string[] skills)
+	internal void Init(AnimatedSprite2D face, BattlePresetActor actor)
 	{
 		SpriteFrames animation = Animation;
         if (animation == null)
@@ -21,38 +22,38 @@ public abstract class PartyMember : Actor
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = initialState;
+		Sprite.Animation = actor.Emotion;
 		Sprite.Play();
-		CurrentState = initialState;
-
+		SetState(actor.Emotion, true);
+		
         // init stats
-        Level = level;
-        int idx = level - 1;
-		BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0);
-		if (!Database.TryGetWeapon(weapon, out Weapon w))
+        Level = actor.Level;
+        int idx = actor.Level - 1;
+		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
+		if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
 		{
-			GD.PrintErr("Failed to find Weapon: " + weapon);
+			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
 			return;
 		}
 		Weapon = w;
 		
-		if (!charm.Equals("none", System.StringComparison.CurrentCultureIgnoreCase))
+		if (!actor.Charm.Equals("none", System.StringComparison.CurrentCultureIgnoreCase))
 		{
-			if (!Database.TryGetCharm(charm, out Charm c))
+			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
 			{
-				GD.PrintErr("Failed to find Charm: " + charm);
+				GD.PrintErr("Failed to find Charm: " + actor.Charm);
 				return;
 			}
 			Charm = c;
 		}
 
-		if (initialState == "toast")
+		if (actor.Emotion == "toast")
 			CurrentHP = 0;
 		else
 			CurrentHP = CurrentStats.MaxHP;
 		CurrentJuice = CurrentStats.MaxJuice;
 
-		EquippedSkills = skills;
+		EquippedSkills = actor.Skills;
 
 		foreach (string s in EquippedSkills)
 		{
@@ -61,7 +62,8 @@ public abstract class PartyMember : Actor
 
 			if (Database.TryGetSkill(s, out var skill))
 			{
-				Skills.Add(s, skill);
+				if (!Skills.TryAdd(s, skill)) 
+					GD.PushWarning($"Actor {Name} already has skill {s} equipped! Skipping...");
 				continue;
 			}
 			GD.PrintErr("Unknown skill: " + s);
@@ -69,12 +71,13 @@ public abstract class PartyMember : Actor
 	}
 
 	/// <summary>
-	/// The party member's base stats, plus any stats given by a <see cref="Battle.Weapon"/> and/or <see cref="Battle.Charm"/>.
+	/// The party member's base stats, plus any stats given by a <see cref="Battle.Weapon"/> and/or <see cref="Equipment"/>.
 	/// </summary>
 	/// <returns></returns>
 	protected override Stats GetBaseStats()
 	{
-		Stats stats = BaseStats + Weapon.Stats;
+		Stats stats = BaseStats;
+		Weapon.Apply(ref stats);
 		Charm?.Apply(ref stats);
 		return stats;
 	}
@@ -82,18 +85,19 @@ public abstract class PartyMember : Actor
 	/// <inheritdoc/>
 	public override bool IsStateValid(string state)
 	{
-		return !(InvalidStates.Any(x => x == state) || (Charm != null && Charm.Name == "Paper Bag"));
+		if (state is "neutral" or "toast" or "victory")
+			return true;
+		if (Charm?.Name == "Paper Bag")
+			return false;
+		return !InvalidStates.Contains(state);
 	}
 
     /// <inheritdoc/>
     public override async Task OnStartOfBattle()
     {
-        if (Weapon.Name == "LOL Sword")
-		{
-			SetState("happy", true);
-		}
-		Charm?.StartOfBattle(this);
-		await Task.CompletedTask;
+	    await Weapon.StartOfBattle(this);
+		if (Charm != null)
+			await Charm.StartOfBattle(this);
     }
 
     /// <inheritdoc/>
@@ -125,15 +129,20 @@ public abstract class PartyMember : Actor
 	/// <summary>
 	/// The party member's equipped charm. Will be null if no charm is equipped.
 	/// </summary>
-	public Charm Charm { get; private set; }
+	public Equipment Charm { get; private set; }
 	/// <summary>
 	/// The party member's equipped weapon.
 	/// </summary>
-	public Weapon Weapon { get; private set; }
+	public Equipment Weapon { get; private set; }
 	/// <summary>
 	/// A list of skills IDs that this actor has equipped.
 	/// </summary>
 	public string[] EquippedSkills { get; protected set; }
+	/// <summary>
+	/// A list of Weapons that this actor can equip in the base game.<br/>
+	/// Mainly used for the "Filter Equippable" setting in the editor.
+	/// </summary>
+	public virtual string[] EquippableWeapons { get; protected set; } = [];
 	/// <summary>
 	/// A list of invalid states this party member cannot feel. Used in <see cref="IsStateValid(string)"/>
 	/// </summary>
@@ -142,4 +151,16 @@ public abstract class PartyMember : Actor
 	/// If this party member is considered to be a "real world" member. Mainly used to change the UI buttons.
 	/// </summary>
 	public abstract bool IsRealWorld { get; }
+	/// <summary>
+	/// Whether this party member has plot armor enabled.
+	/// </summary>
+	/// <remarks>
+	/// This only checks if they have it enabled, not if it is currently active.<br/>
+	/// Use <see cref="Actor.HasStatModifier"/>("PlotArmor") for that purpose.
+	/// </remarks>
+	public virtual bool HasPlotArmor => false;
+	/// <summary>
+	/// Whether this party member has already used their plot armor this battle.
+	/// </summary>
+	internal bool HasUsedPlotArmor = false;
 }

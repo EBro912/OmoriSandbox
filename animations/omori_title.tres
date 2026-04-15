@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=5 format=3 uid="uid://d1x6v885rbwn5"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://d1x6v885rbwn5"]
 
 [ext_resource type="Texture2D" uid="uid://g8g66dxi14xd" path="res://assets/Omori_TitleScreen_normal.png" id="1_megdb"]
 

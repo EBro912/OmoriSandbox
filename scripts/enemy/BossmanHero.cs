@@ -79,6 +79,9 @@ internal sealed class BossmanHero : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["BMHThrowMoney"]);
+        
         if (Roll() < 41)
             return new BattleCommand(this, SelectTarget(), Skills["BMHAttack"]);
         if (Roll() < 36)
@@ -86,22 +89,19 @@ internal sealed class BossmanHero : Enemy
         return new BattleCommand(this, SelectAllTargets(), Skills["BMHFlingMoney"]);
     }
 
-    public override async Task ProcessBattleConditions()
+    public override async Task OnDefeat()
     {
-        if (CurrentHP <= 0)
-        {
-            foreach (EnemyComponent enemy in GatorGuys)
-                enemy.Actor.CurrentHP = 0;
-            DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Friends...@ Let's...@ make a de...@ Huff...@ Huff...@ Wheeze...");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+        foreach (EnemyComponent enemy in GatorGuys)
+            enemy.Actor.CurrentHP = 0;
+        DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Friends...\! Let's...\! make a de...\! Huff...\| Huff...\| Wheeze...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Sorry friends...@ You should have taken my offer when you had the chance!");
+            DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Sorry friends...\| You should have taken my offer when you had the chance!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }
@@ -117,9 +117,9 @@ internal sealed class BossmanHero : Enemy
         int debuff = options[GameManager.Instance.Random.RandiRange(0, options.Length - 1)];
         QueueDebuffMessage(debuff);
         await DialogueManager.Instance.WaitForDialogue();
-        DialogueManager.Instance.QueueMessage("Will you sign HERO's contract?", true);
-        bool yes = await DialogueManager.Instance.WaitForUserChoice();
-        if (yes)
+        DialogueManager.Instance.QueueMessage("Will you sign HERO's contract?", ["YES", "NO"]);
+        string choice = await DialogueManager.Instance.WaitForUserChoice();
+        if (choice == "YES")
         {
             DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Attaboy! It's a deal!");
             await DialogueManager.Instance.WaitForDialogue();

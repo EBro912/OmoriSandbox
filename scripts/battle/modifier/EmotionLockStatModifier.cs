@@ -15,6 +15,11 @@ public class EmotionLockStatModifier : StatModifier
         LockedEmotion = lockedEmotion;
     }
 
+    public EmotionLockStatModifier(string lockedEmotion, int turns, params StatBonus[] bonuses) : base(turns, bonuses)
+    {
+        LockedEmotion = lockedEmotion;
+    }
+
     public override string OverrideEmotion()
     {
         return LockedEmotion;

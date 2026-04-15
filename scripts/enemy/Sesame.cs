@@ -10,12 +10,18 @@ internal sealed class Sesame : Enemy
     protected override Stats Stats => new(288, 197, 51, 43, 91, 10, 95);
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
     }
     protected override string[] EquippedSkills => ["SESAttack", "SESDoNothing", "SESBreadRoll"];
   
     public override BattleCommand ProcessAI()
     {
+        if (HasMultiTargetObserve())
+            return new BattleCommand(this, SelectAllTargets(), Skills["SESBreadRoll"]);
+        
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["SESAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":

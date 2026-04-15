@@ -12,12 +12,14 @@ internal sealed class Roboheart : Enemy
     protected override string[] EquippedSkills => ["RHAttack", "RHDoNothing", "RHLaser", "RHSnack", "RHExplode"];
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "happy" or "sad" or "angry" or "hurt" or "toast";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["RHAttack"]);
+        
         if (CurrentHP < 250)
             return new BattleCommand(this, SelectAllTargets(), Skills["RHExplode"]);
 
@@ -69,12 +71,7 @@ internal sealed class Roboheart : Enemy
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "V2h5Pw==");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (Stage > 1)
             return;
@@ -94,11 +91,17 @@ internal sealed class Roboheart : Enemy
         }
     }
 
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "[br]V2h5Pw==");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "Tm8sIEkgZGlkbid0I\nG1lYW4gdG8h");
+            DialogueManager.Instance.QueueMessage(this, "Tm8sIEkgZGlkbid0IG1lYW4gdG8h");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

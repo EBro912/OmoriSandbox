@@ -11,39 +11,27 @@ internal class RPGMAnimatedSprite
 
 	public int Id { get; private set; }
 	public int Layer { get; private set; }
-	private AtlasTexture Texture;
-	private AtlasTexture AltTexture;
+	private readonly Texture2D Texture;
+	private readonly Texture2D AltTexture;
 	private readonly List<List<Frame>> Frames = [];
 	private readonly Dictionary<int, List<SFX>> FrameSFX = [];
 	private readonly Dictionary<int, Shake> FrameShake = [];
 	private readonly int Columns;
+	private readonly int AltColumns;
 
 	public RPGMAnimatedSprite(int id, int layer, Texture2D texture, Texture2D altTexture)
 	{
 		Id = id;
 		Layer = layer;
-		// certain animations have an alt texture but no texture
-		// so we have to handle that here
-		if (texture != null)
-		{
-			Texture = new()
-			{
-				Atlas = texture
-			};
-		}
-		if (altTexture != null)
-		{
-			AltTexture = new()
-			{
-				Atlas = altTexture
-			};
-		}
+		Texture = texture;
+		AltTexture = altTexture;
 		if (Texture == null && AltTexture == null)
 		{
 			GD.PushError($"Created an animation with no textures! (ID: {Id})");
 			return;
 		}
-		Columns = (texture ?? altTexture).GetWidth() / SIZE;
+		Columns = texture?.GetWidth() / SIZE ?? 0;
+		AltColumns = altTexture?.GetWidth() / SIZE ?? 0;
 	}
 
 	public void CreateFrame(List<Frame> frames)
@@ -70,23 +58,30 @@ internal class RPGMAnimatedSprite
 
 	public AtlasTexture GetTextureAt(int pattern)
 	{
-		if (Texture != null && pattern < 99)
+		if (Texture != null && pattern < 100)
 		{
 			int column = pattern % Columns;
 			int row = pattern / Columns;
-			Texture.Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE);
-			return Texture;
+			return new AtlasTexture
+			{
+				Atlas = Texture,
+				Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE)
+			};
 		}
-		else if (AltTexture != null)
+
+		if (AltTexture != null)
 		{
 			// RPGMaker allocates 100 frame slots to each image even if the image doesn't have that many sprites
 			int adjusted = pattern - 100;
 			if (adjusted < 199)
 			{
-				int column = adjusted % Columns;
-				int row = adjusted / Columns;
-				AltTexture.Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE);
-				return AltTexture;
+				int column = adjusted % AltColumns;
+				int row = adjusted / AltColumns;
+				return new AtlasTexture
+				{
+					Atlas = AltTexture,
+					Region = new Rect2(column * SIZE, row * SIZE, SIZE, SIZE)
+				};
 			}
 		}
 
@@ -109,7 +104,7 @@ internal class RPGMAnimatedSprite
 		return FrameShake.TryGetValue(frame, out shake);
 	}
 
-	public IEnumerable<List<SFX>> AllSFX => FrameSFX.Values.ToList();
+	public IEnumerable<List<SFX>> AllSFX => FrameSFX.Values;
 
 	public int FrameCount => Frames.Count;
 }
@@ -137,7 +132,7 @@ internal struct SFX(string name, float pitch = 100f, float volume = 100f)
 /// </summary>
 /// <param name="power">The power of the shake. Normal values are 0-255.</param>
 /// <param name="speed">The speed of the shake. Normal values are 0-255.</param>
-/// <param name="duration">The duration (in seconds) of the shake.</param>
+/// <param name="duration">The duration (in frames) of the shake.</param>
 public struct Shake(float power, float speed, int duration)
 {
 	/// <summary>
@@ -149,7 +144,7 @@ public struct Shake(float power, float speed, int duration)
 	/// </summary>
 	public readonly float Speed = speed;
 	/// <summary>
-	/// The duration of the shake, in seconds.
+	/// The duration of the shake, in frames.
 	/// </summary>
 	public readonly int Duration = duration;
 }

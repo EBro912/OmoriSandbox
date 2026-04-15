@@ -2,6 +2,7 @@ using Godot;
 using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OmoriSandbox.Menu;
 
@@ -18,8 +19,8 @@ internal partial class MenuManager : Node
 
 	public static MenuManager Instance { get; private set; }
 
-	private const float FightRunOffsetRW = 458f;
-	private const float FightRunOffset = 376f;
+	private const float FightRunOffsetRW = 457f;
+	private const float FightRunOffset = 375f;
 	private const float BattleOffsetRW = 212f;
 	private const float BattleOffset = 130f;
 
@@ -39,43 +40,48 @@ internal partial class MenuManager : Node
 			{ MenuState.Toy, ToyMenu }
 		};
 
+		BattleManager.Instance.EnergyChanged += RefreshEnergy;
 		Instance = this;
+	}
+
+	private void RefreshEnergy(object sender, EventArgs e)
+	{
+		EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
+		EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 362f, 48f);
 	}
 
 	public void ShowButtons(bool realWorld)
 	{
 		if (realWorld)
 		{
-			PartyMenu.RegionRect = new Rect2(653f, FightRunOffsetRW, 362f, 82f);
-			BattleMenu.RegionRect = new Rect2(653f, BattleOffsetRW, 362f, 82f);
+			PartyMenu.SetSkinMode(MenuSkinMode.Faraway);
+			BattleMenu.SetSkinMode(MenuSkinMode.Faraway);
 		}
 		else
 		{
-			PartyMenu.RegionRect = new Rect2(653f, FightRunOffset, 362f, 82f);
-			BattleMenu.RegionRect = new Rect2(653f, BattleOffset, 362f, 82f);
+			PartyMenu.SetSkinMode(MenuSkinMode.Dreamworld);
+			BattleMenu.SetSkinMode(MenuSkinMode.Dreamworld);
 		}
 	}
 
 	public void ShowMenu(MenuState state, bool immediate = false, bool ignoreMemory = false)
 	{
-		if (CurrentState != MenuState.None)
-		{
-			CurrentMenu.OnClose();
-			CurrentMenu.MoveDown(immediate);
-		}
-
 		CurrentState = state;
 		if (CurrentState == MenuState.None)
 		{
+			foreach (Menu open in Menus.Values.Where(x => x.Visible)) {
+				open.MoveDown(state, immediate);
+			}
 			CurrentMenu = null;
 			MoveEnergyBarDown(immediate);
 			return;
 		}
 
+		CurrentMenu?.MoveDown(state, immediate);
 		CurrentMenu = Menus[CurrentState];
 		PartyMember currentPartyMember = BattleManager.Instance.GetCurrentPartyMember();
 
-        if (CurrentMenu is SkillMenu skill)
+		if (CurrentMenu is SkillMenu skill)
 		{
 			skill.Populate(currentPartyMember);
 		}
@@ -95,6 +101,22 @@ internal partial class MenuManager : Node
 		MoveEnergyBarUp(immediate);
 	}
 
+	public void MoveDownOpenMenus(bool immediate)
+	{
+		foreach (var menu in Menus) {
+			if (menu.Value.Visible)
+				menu.Value.MoveDown(menu.Key, immediate);
+		}
+		MoveEnergyBarDown(immediate);
+	}
+
+	public void MoveUpOpenMenus(bool immediate)
+	{
+		foreach (Menu open in Menus.Values.Where(x => x.Visible))
+			open.MoveUp(immediate);
+		MoveEnergyBarUp(immediate);
+	}
+
 	public override void _Process(double delta)
 	{
 		if (CurrentState != MenuState.None)
@@ -108,16 +130,13 @@ internal partial class MenuManager : Node
 			else if (Input.IsActionJustPressed("MenuRight"))
 				CurrentMenu.OnInput(Vector2I.Right);
 		}
-
-        EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
-        EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 362f, 49f);
-    }
+	}
 
 	public void Select()
 	{
 		if (CurrentState != MenuState.None)
 		{ 
-            CurrentMenu.OnInput(Vector2I.Zero);
+			CurrentMenu.OnInput(Vector2I.Zero);
 		}
 	}
 
@@ -132,21 +151,21 @@ internal partial class MenuManager : Node
 		if (CurrentMenu is ItemMenu itemMenu)
 		{
 			LastSelected[member] = new(CurrentState, itemMenu.CursorIndex, itemMenu.Page);
-            GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
-        }
+			GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
+		}
 		else
 		{
 			LastSelected[member] = new(CurrentState, CurrentMenu.CursorIndex);
 			GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}");
 		}
-    }
+	}
 
 	public void ClearLastSelected()
 	{
 		LastSelected.Clear();
 	}
 
-    private void MoveEnergyBarDown(bool immediate)
+	private void MoveEnergyBarDown(bool immediate)
 	{
 		if (immediate)
 		{
@@ -155,22 +174,22 @@ internal partial class MenuManager : Node
 		else
 		{
 			EnergyBarTween?.Kill();
-            EnergyBarTween = CreateTween();
-            EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 450f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			EnergyBarTween = CreateTween();
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 450f), 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 
 	private void MoveEnergyBarUp(bool immediate)
 	{
-        if (immediate)
-        {
-            EnergyBar.Position = new Vector2(320f, 360f);
-        }
-        else
-        {
-            EnergyBarTween?.Kill();
-            EnergyBarTween = CreateTween();
-            EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 360f), 0.2f).SetTrans(Tween.TransitionType.Sine);
-        }
-    }
+		if (immediate)
+		{
+			EnergyBar.Position = new Vector2(320f, 360f);
+		}
+		else
+		{
+			EnergyBarTween?.Kill();
+			EnergyBarTween = CreateTween();
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 360f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+		}
+	}
 }

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=48 format=3 uid="uid://dtenxrsdo51ht"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dtenxrsdo51ht"]
 
 [ext_resource type="Texture2D" uid="uid://cwqomevah11yh" path="res://assets/tony/tony.png" id="1_ehx6x"]
 [ext_resource type="Texture2D" uid="uid://b5108stt45jn7" path="res://assets/faces/03_KEL_BATTLE.png" id="2_50yfi"]
@@ -363,7 +363,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"toast",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,

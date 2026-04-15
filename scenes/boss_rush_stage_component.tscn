@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://b5f37g6cos1c2"]
+
+[ext_resource type="Script" uid="uid://bhirvsqefsne1" path="res://scripts/BossRushStageEditorComponent.cs" id="1_3kbhd"]
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_j0mh2"]
+[ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="2_3kbhd"]
+[ext_resource type="PackedScene" uid="uid://d1q22va25i15g" path="res://scenes/enemy_editor_component.tscn" id="2_hx5ke"]
+[ext_resource type="PackedScene" uid="uid://cjovmomtfkxhh" path="res://scenes/battleback_bgm_editor_component.tscn" id="3_f0a1o"]
+[ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="3_hx5ke"]
+[ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_f0a1o"]
+[ext_resource type="StyleBox" uid="uid://ividp3svjft4" path="res://assets/tab_selected.tres" id="5_1dmn7"]
+
+[node name="BossRushStageComponent" type="ScrollContainer" unique_id=1191877626 node_paths=PackedStringArray("BattlebackBGMEditor", "HealPartyCheckbox", "KeepEmotionCheckbox", "KeepStatusEffectsCheckbox", "AddEnemyButton", "Enemies", "EnemyParent")]
+custom_minimum_size = Vector2(0, 400)
+offset_right = 397.0
+offset_bottom = 175.0
+theme_override_constants/scrollbar_h_separation = 4
+horizontal_scroll_mode = 0
+script = ExtResource("1_3kbhd")
+BattlebackBGMEditor = NodePath("MarginContainer/VBoxContainer/BattlebackBGMEditor")
+HealPartyCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/HealParty")
+KeepEmotionCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/KeepEmotion")
+KeepStatusEffectsCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/KeepStatusEffects")
+AddEnemyButton = NodePath("MarginContainer/VBoxContainer/AddEnemy")
+Enemies = NodePath("MarginContainer/VBoxContainer/EnemyTabs")
+EnemyEditor = ExtResource("2_hx5ke")
+EnemyParent = NodePath("EnemyParent")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=520113397]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1722860484]
+layout_mode = 2
+
+[node name="BattlebackBGMEditor" parent="MarginContainer/VBoxContainer" unique_id=1531111807 instance=ExtResource("3_f0a1o")]
+layout_mode = 2
+
+[node name="Settings" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1362553702]
+layout_mode = 2
+
+[node name="HealParty" type="CheckBox" parent="MarginContainer/VBoxContainer/Settings" unique_id=678539223]
+layout_mode = 2
+tooltip_text = "The party will be healed at the start of this stage"
+theme_override_fonts/font = ExtResource("1_j0mh2")
+theme_override_font_sizes/font_size = 20
+text = "Heal Party"
+
+[node name="KeepEmotion" type="CheckBox" parent="MarginContainer/VBoxContainer/Settings" unique_id=1003476361]
+layout_mode = 2
+tooltip_text = "The party will keep their emotion at the start of this stage"
+theme_override_fonts/font = ExtResource("1_j0mh2")
+theme_override_font_sizes/font_size = 20
+text = "Keep Emotion"
+
+[node name="KeepStatusEffects" type="CheckBox" parent="MarginContainer/VBoxContainer/Settings" unique_id=943648625]
+layout_mode = 2
+tooltip_text = "The party will keep their status effects at the start of this stage"
+theme_override_fonts/font = ExtResource("1_j0mh2")
+theme_override_font_sizes/font_size = 20
+text = "Keep Status Effects"
+
+[node name="AddEnemy" type="Button" parent="MarginContainer/VBoxContainer" unique_id=837522143]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("1_j0mh2")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_3kbhd")
+theme_override_styles/pressed = ExtResource("3_hx5ke")
+theme_override_styles/hover = ExtResource("4_f0a1o")
+text = "+ Add Enemy"
+
+[node name="EnemyTabs" type="TabContainer" parent="MarginContainer/VBoxContainer" unique_id=591513113]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/panel = ExtResource("2_3kbhd")
+theme_override_styles/tab_unselected = ExtResource("2_3kbhd")
+theme_override_styles/tab_hovered = ExtResource("4_f0a1o")
+theme_override_styles/tab_selected = ExtResource("5_1dmn7")
+
+[node name="EnemyParent" type="Node" parent="." unique_id=1849829334]

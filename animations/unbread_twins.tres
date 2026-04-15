@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=30 format=3 uid="uid://bov132pxxcnaf"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://bov132pxxcnaf"]
 
 [ext_resource type="Texture2D" uid="uid://brki48oy27183" path="res://assets/sv_actors/!battle_biscuit_doughie.png" id="1_e7fnd"]
 
@@ -239,7 +239,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_rf4w0")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

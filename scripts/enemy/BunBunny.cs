@@ -15,6 +15,9 @@ internal sealed class BunBunny : Enemy
   
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["BBAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":

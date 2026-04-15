@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://gysj8mucc7lc"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://gysj8mucc7lc"]
 
 [ext_resource type="Texture2D" uid="uid://d3kmgwttmuvh" path="res://assets/faces/01_FA_OMORI_BATTLE.png" id="1_keuhm"]
 
@@ -112,7 +112,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"afraid",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -126,7 +126,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"angry",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -140,7 +140,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"hurt",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -154,7 +154,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"neutral",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -168,7 +168,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"sad",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -182,7 +182,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"stressed",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -196,7 +196,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"toast",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -210,5 +210,5 @@ animations = [{
 }],
 "loop": true,
 "name": &"victory",
-"speed": 4.5
+"speed": 5
 }]

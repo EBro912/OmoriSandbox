@@ -33,8 +33,9 @@ public class Item : BattleAction
     /// <param name="target">What this item can target. Mainly used for visual targeting.</param>
     /// <param name="effect">The code that runs when this item is used.</param>
     /// <param name="isToy">Whether this item is a Toy or not.</param>
-    public Item(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, bool isToy = false)
-		: base(name, description, target, effect)
+    /// <param name="priority">The priority of the item during turn order calculation.</param>
+    public Item(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, bool isToy = false, SkillPriority priority = SkillPriority.Normal)
+		: base(name, description, target, priority, effect)
 	{
 		IsToy = isToy;
 		SpritesheetPath = null;
@@ -49,8 +50,9 @@ public class Item : BattleAction
 	/// <param name="target">What this item can target. Mainly used for visual targeting.</param>
 	/// <param name="effect">The code that runs when this item is used.</param>
 	/// <param name="isToy">Whether this item is a Toy or not.</param>
-	public Item(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, bool isToy = false)
-		: base(name, description, target, effect)
+	/// <param name="priority">The priority of the item during turn order calculation.</param>
+	public Item(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, bool isToy = false, SkillPriority priority = SkillPriority.Normal)
+		: base(name, description, target, priority, effect)
 	{
 		IsToy = isToy;
 		SpritesheetPath = null;
@@ -67,9 +69,10 @@ public class Item : BattleAction
     /// <param name="spritesheetPath">The path to this item's spritesheet.</param>
     /// <param name="spriteIndex">The sprite's atlas index into the spritesheet.</param>
     /// <param name="isToy">Whether this item is a Toy or not.</param>
+    /// <param name="priority">The priority of the item during turn order calculation.</param>
 	public Item(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect,
-		string spritesheetPath, int spriteIndex, bool isToy = false)
-		: base(name, description, target, effect)
+		string spritesheetPath, int spriteIndex, bool isToy = false, SkillPriority priority = SkillPriority.Normal)
+		: base(name, description, target, priority, effect)
 	{
 		IsToy = isToy;
 		SpritesheetPath = spritesheetPath;
@@ -86,9 +89,10 @@ public class Item : BattleAction
 	/// <param name="spritesheetPath">The path to this item's spritesheet.</param>
 	/// <param name="spriteIndex">The sprite's atlas index into the spritesheet.</param>
 	/// <param name="isToy">Whether this item is a Toy or not.</param>
+	/// <param name="priority">The priority of the item during turn order calculation.</param>
 	public Item(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect,
-		string spritesheetPath, int spriteIndex, bool isToy = false)
-		: base(name, description, target, effect)
+		string spritesheetPath, int spriteIndex, bool isToy = false, SkillPriority priority = SkillPriority.Normal)
+		: base(name, description, target, priority, effect)
 	{
 		IsToy = isToy;
 		SpritesheetPath = spritesheetPath;

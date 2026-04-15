@@ -19,6 +19,9 @@ internal sealed class ForestBunnyQuestion : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["FBQAttack"]);
+        
         Actor target = SelectTarget();
         switch (CurrentState)
         {

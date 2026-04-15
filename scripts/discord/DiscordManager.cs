@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using OmoriSandbox;
 
 namespace Discord;
 
@@ -7,7 +8,7 @@ internal class DiscordManager
 {
     private Discord DiscordSDK;
     private Activity Activity;
-    private readonly bool DiscordDisabled = false;
+    private bool DiscordDisabled = false;
     public DiscordManager()
     {
         try
@@ -23,7 +24,7 @@ internal class DiscordManager
                 Assets =
                 {
                     LargeImage = "icon",
-                    LargeText = "OmoriSandbox v0.9.3"
+                    LargeText = GameManager.Version
                 },
                 Instance = false
             };
@@ -50,7 +51,15 @@ internal class DiscordManager
     public void Tick()
     {
         if (DiscordDisabled) return;
-        DiscordSDK.RunCallbacks();
+        try
+        {
+            DiscordSDK.RunCallbacks();
+        }
+        catch (ResultException)
+        {
+            GD.PushWarning("Ran into an exception while running Discord SDK. Disabling...");
+            DiscordDisabled = true;
+        }
     }
 
     public void SetMainMenu()
@@ -60,17 +69,17 @@ internal class DiscordManager
         DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
     }
 
-    public void SetEditingPreset()
+    public void SetEditingPreset(GameModeType mode)
     {
         if (DiscordDisabled) return;
-        Activity.Details = "Editing a Preset";
+        Activity.Details = $"Editing a {(mode is GameModeType.Normal ? "Normal" : "Boss Rush")} Preset";
         DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
     }
 
     public void SetBattling(int enemies)
     {
         if (DiscordDisabled) return;
-        Activity.Details = $"Battling {enemies} Enemies";
+        Activity.Details = enemies == 1 ? "Battling 1 Enemy" : $"Battling {enemies} Enemies";
         DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
     }
 

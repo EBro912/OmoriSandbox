@@ -18,6 +18,9 @@ internal sealed class LeftArm : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["LAAttack"]);
+        
         switch (CurrentState)
         {
             case "angry":

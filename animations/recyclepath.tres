@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://en2bg5jh114n"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://en2bg5jh114n"]
 
 [ext_resource type="Texture2D" uid="uid://bvrxkdxh1drnn" path="res://assets/sv_actors/!battle_recycle_path.png" id="1_fo03m"]
 

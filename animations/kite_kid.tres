@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://cua0of53juw4y"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://cua0of53juw4y"]
 
 [ext_resource type="Texture2D" uid="uid://c42k6rgs52rjt" path="res://assets/sv_actors/!battle_kite_kid.png" id="1_ebark"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_y7rf8")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

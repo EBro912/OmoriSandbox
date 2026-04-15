@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=11 format=3 uid="uid://68syofv06s0d"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://68syofv06s0d"]
 
 [ext_resource type="Texture2D" uid="uid://dku3olr1qaxxq" path="res://assets/pictures/basil_vine_attack[5x3].png" id="1_xywt0"]
 

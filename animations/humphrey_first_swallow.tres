@@ -1,0 +1,152 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://doxsd4fwyvadp"]
+
+[ext_resource type="Texture2D" uid="uid://bg8cytst83y54" path="res://assets/pictures/first_swallow[5 x3].png" id="1_4ht1f"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_msjag"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(0, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eu6rc"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(640, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xqra1"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(1280, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xe82r"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(1920, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5pyys"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(2560, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vtgis"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(0, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jh3o7"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(640, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ik86p"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(1280, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dd3vr"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(1920, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tpx36"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(2560, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j47t5"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(0, 960, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5d4tb"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(640, 960, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ilplv"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(1280, 960, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b2plj"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(1920, 960, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fe2nt"]
+atlas = ExtResource("1_4ht1f")
+region = Rect2(2560, 960, 640, 480)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 8.0,
+"texture": SubResource("AtlasTexture_msjag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu6rc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqra1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_msjag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu6rc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqra1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_msjag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu6rc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqra1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_msjag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu6rc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqra1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_msjag")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu6rc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqra1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xe82r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5pyys")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vtgis")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jh3o7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ik86p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dd3vr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tpx36")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j47t5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5d4tb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ilplv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b2plj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fe2nt")
+}],
+"loop": false,
+"name": &"default",
+"speed": 15.0
+}]

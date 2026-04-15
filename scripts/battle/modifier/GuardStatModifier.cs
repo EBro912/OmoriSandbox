@@ -7,10 +7,13 @@ namespace OmoriSandbox.Battle.Modifier;
 /// </summary>
 public sealed class GuardStatModifier : StatModifier
 {
+    /// <inheritdoc/>
     public GuardStatModifier(int turns, params StatBonus[] bonuses) : base(turns, bonuses) { }
-    public override void OverrideDamage(ref float damage, Actor attacker, Actor defender, bool isAttacking)
+    
+    /// <inheritdoc/>
+    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
-        if (!isAttacking)
+        if (phase is DamagePhase.PreRounding && !isAttacking)
             damage *= 0.5f;
     }
 }

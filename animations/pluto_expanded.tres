@@ -1,22 +1,22 @@
-[gd_resource type="SpriteFrames" load_steps=22 format=3 uid="uid://dgk5xyojlry4q"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dgk5xyojlry4q"]
 
 [ext_resource type="Texture2D" uid="uid://bp4t0qnkydym4" path="res://assets/sv_actors/!battle_pluto_expanded.png" id="1_7jgsv"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_71yjy"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_7jgsv"]
 atlas = ExtResource("1_7jgsv")
-region = Rect2(0, 1392, 595, 464)
+region = Rect2(0, 1856, 595, 464)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ueeww"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_xv4xh"]
 atlas = ExtResource("1_7jgsv")
-region = Rect2(595, 1392, 595, 464)
+region = Rect2(595, 1856, 595, 464)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_xtwqi"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_e5sk4"]
 atlas = ExtResource("1_7jgsv")
-region = Rect2(1190, 1392, 595, 464)
+region = Rect2(1190, 1856, 595, 464)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_wwysf"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_g6dyt"]
 atlas = ExtResource("1_7jgsv")
-region = Rect2(1785, 1392, 595, 464)
+region = Rect2(1785, 1856, 595, 464)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4q8sb"]
 atlas = ExtResource("1_7jgsv")
@@ -66,6 +66,22 @@ region = Rect2(1190, 0, 595, 464)
 atlas = ExtResource("1_7jgsv")
 region = Rect2(1785, 0, 595, 464)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_71yjy"]
+atlas = ExtResource("1_7jgsv")
+region = Rect2(0, 1392, 595, 464)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ueeww"]
+atlas = ExtResource("1_7jgsv")
+region = Rect2(595, 1392, 595, 464)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xtwqi"]
+atlas = ExtResource("1_7jgsv")
+region = Rect2(1190, 1392, 595, 464)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wwysf"]
+atlas = ExtResource("1_7jgsv")
+region = Rect2(1785, 1392, 595, 464)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_5j0ie"]
 atlas = ExtResource("1_7jgsv")
 region = Rect2(0, 928, 595, 464)
@@ -86,16 +102,16 @@ region = Rect2(1785, 928, 595, 464)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_71yjy")
+"texture": SubResource("AtlasTexture_7jgsv")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_ueeww")
+"texture": SubResource("AtlasTexture_xv4xh")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_xtwqi")
+"texture": SubResource("AtlasTexture_e5sk4")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_wwysf")
+"texture": SubResource("AtlasTexture_g6dyt")
 }],
 "loop": true,
 "name": &"angry",
@@ -182,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_gteqi")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

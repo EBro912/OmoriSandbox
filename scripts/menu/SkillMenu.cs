@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -8,68 +9,100 @@ namespace OmoriSandbox.Menu;
 
 internal partial class SkillMenu : Menu
 {
-	[Export] public Label[] SkillLabels;
+	[Export] public AutofitLabel[] SkillLabels;
 	[Export] public Label CostText;
 	private readonly List<Skill> Skills = [];
-	private List<Vector2I> Positions = [new Vector2I(-145, 5), new Vector2I(25, 5), new Vector2I(-145, 25), new Vector2I(25, 25)];
+	private List<Vector2I> Positions = [new(28, 52), new(200, 52), new(28, 76), new(200, 76)];
 
 	private Vector2I GridSize = new(2, 2);
-	private string ActorName = "";
+	private PartyMember Actor;
 
-	public void Populate(Actor actor)
+	protected override Vector2 OpenPosition => new(138, 384);
+	protected override Vector2 ClosedPosition => new(138, 490);
+
+	public void Populate(PartyMember actor)
 	{
 		Skills.Clear();
-		ActorName = actor.Name.ToUpper();
-        CostText.Text = "0";
-        foreach (Label l in SkillLabels)
+		Actor = actor;
+		CostText.Text = "0";
+		foreach (AutofitLabel l in SkillLabels)
 			l.Text = "";
 		int idx = 0;
-        foreach (Skill s in actor.Skills.Values.Where(x => !x.Hidden))
+		foreach (Skill s in actor.Skills.Values.Where(x => !x.Hidden))
 		{
+			if (actor.EquippedSkills == null || actor.EquippedSkills.Length == 0)
+			{
+				GD.PrintErr($"Actor {actor.Name} has no equipped skills.");
+				break;
+			}
+			// since Actor.Skills is a dictionary, we need to check here if the skill is the PartyMember's attack skill,
+			// i.e. the first one in their skill list
+			// OrderedDictionary doesn't accept types for whatever reason...
+			if (s.Name == actor.EquippedSkills[0])
+				continue;
 			if (idx > 3)
 				break;
-			SkillLabels[idx].Text = s.Name;
+			SkillLabels[idx].SetFittedText(s.Name);
+			if (actor.CurrentJuice < s.Cost(actor) || !s.MeetsRequirements(actor))
+				SkillLabels[idx].AddThemeColorOverride("font_color", Colors.DimGray);
+			else
+				SkillLabels[idx].RemoveThemeColorOverride("font_color");
 			Skills.Add(s);
 			idx++;
 		}
-        if (SkillLabels.All(x => x.Text == ""))
-        {
+		if (SkillLabels.All(x => x.Text == ""))
+		{
 			CursorPositions = Positions.GetRange(0, 1);
-            Empty = true;
-            return;
-        }
+			Empty = true;
+			return;
+		}
 		Empty = false;
 		CursorPositions = Positions.GetRange(0, Skills.Count);
 	}
 	
 	private void ShowSkillInfo()
 	{
-        if (Empty) return;
-        Skill s = Skills[CursorIndex];
-		CostText.Text = s.Cost.ToString();
-		BattleLogManager.Instance.ClearAndShowMessage($"{s.Name}\n{s.Description.Replace("[actor]", ActorName).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name)}");
+		if (Empty) return;
+		Skill s = Skills[CursorIndex];
+		CostText.Text = s.Cost(Actor).ToString();
+		BattleLogManager.Instance.ClearAndShowMessage($"[font_size=28]{s.Name}\n[font_size=20]{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
 	}
 
 	protected override void MoveCursor(Vector2I direction)
 	{
-        if (Empty) return;
-        int x = CursorIndex % 2;
-		int y = CursorIndex / 2;
-		x = (x + direction.X + GridSize.X) % GridSize.X;
-		y = (y + direction.Y + GridSize.Y) % GridSize.Y;
-		int newIndex = y * GridSize.X + x;
-		newIndex = Mathf.Min(newIndex, Skills.Count - 1);
-		CursorIndex = newIndex;
-		UpdateCursor();
-		ShowSkillInfo();
-		AudioManager.Instance.PlaySFX("SYS_move");
+		if (Empty) return;
+		if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;
+		int old = CursorIndex;
+		// omori menus have no wrapping
+		// pressing left or right simply increments/decrements the index
+		if (direction == Vector2.Left)
+			CursorIndex = Math.Max(CursorIndex - 1, 0);
+		else if (direction == Vector2.Right)
+			CursorIndex = Math.Min(CursorIndex + 1, Skills.Count - 1);
+		else if (direction == Vector2.Up)
+		{
+			if (CursorIndex > 1)
+				CursorIndex -= 2;
+		}
+		else if (direction == Vector2.Down)
+		{
+			if (CursorIndex < 2 && Skills.Count > 2)
+				CursorIndex = Math.Min(CursorIndex + 2, Skills.Count - 1);
+		}
+		if (CursorIndex != old)
+		{
+			UpdateCursor();
+			ShowSkillInfo();
+			AudioManager.Instance.PlaySFX("SYS_move");
+		}
 	}
 
 	protected override void OnSelect()
 	{
-        if (Empty) return;
-        Skill selected = Skills[CursorIndex];
-		BattleManager.Instance.OnSelectSkill(selected);
+		if (Empty) return;
+		Skill selected = Skills[CursorIndex];
+		if (BattleManager.Instance.OnSelectSkill(selected))
+			CursorSprite.StopBounce();
 	}
 
 	public override void OnOpen(SelectionMemory memory)
@@ -83,5 +116,6 @@ internal partial class SkillMenu : Menu
 		else
 			base.OnOpen(memory);
 		ShowSkillInfo();
-    }
+		CursorSprite.StartBounce();
+	}
 }

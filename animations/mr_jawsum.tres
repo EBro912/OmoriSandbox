@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://mo5skyees2cm"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://mo5skyees2cm"]
 
 [ext_resource type="Texture2D" uid="uid://brmfn6p270enh" path="res://assets/sv_actors/!battle_jawsum.png" id="1_l7ntw"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_dxtxy")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

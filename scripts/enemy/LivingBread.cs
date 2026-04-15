@@ -15,6 +15,9 @@ internal sealed class LivingBread : Enemy
   
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["LBBite"]);
+        
         switch (CurrentState)
         {
             case "happy":

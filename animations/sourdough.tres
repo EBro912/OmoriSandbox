@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://b7cbv1rappftc"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://b7cbv1rappftc"]
 
 [ext_resource type="Texture2D" uid="uid://bt1up5sm8xgev" path="res://assets/sv_actors/!battle_bread1.png" id="1_6ox3f"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_45f40")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

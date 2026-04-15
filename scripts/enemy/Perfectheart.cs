@@ -15,17 +15,29 @@ internal sealed class Perfectheart : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy"
-              || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
     }
 
     private bool SecondPhase = false;
     private bool HasSpoken = false;
+    private bool HasBeenObserved = false;
     private Sprite2D OverlaySprite = null;
 
     public override BattleCommand ProcessAI()
     {
-        if (SecondPhase)
+        if (HasMultiTargetObserve())
+        {
+            HasBeenObserved = true;
+            return new BattleCommand(this, SelectAllTargets(), Skills["PHWrath"]);
+        }
+
+        if (HasObserveTarget(out PartyMember observe))
+        {
+            HasBeenObserved = true;
+            return new BattleCommand(this, observe, Skills["PHStealHeart"]);
+        }
+
+        if (HasBeenObserved || SecondPhase)
             return new BattleCommand(this, SelectAllTargets(), Skills["PHWrath"]);
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["PHStealHeart"]);
@@ -40,42 +52,43 @@ internal sealed class Perfectheart : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 3500 && !SecondPhase)
+        // recreate omori bug where phase 2 is skipped if perfectheart is observed
+        if (!HasBeenObserved && CurrentHP < 3500 && !SecondPhase)
         {
-            DialogueManager.Instance.QueueMessage(this, "Oh...@ You are quite strong.");
+            DialogueManager.Instance.QueueMessage(this, @"Oh...\! You are quite strong.");
             DialogueManager.Instance.QueueMessage(this, "It seems I must try a bit harder.");
             await DialogueManager.Instance.WaitForDialogue();
             AudioManager.Instance.PlaySFX("GEN_shine", 0.5f, 0.9f);
             OverlaySprite = AnimationManager.Instance.SpawnPerfectheartOverlay(new Vector2(CenterPoint.X, CenterPoint.Y - 45));
-            await Task.Delay(2000);
+            await Wait.Milliseconds(2000);
             AnimationManager.Instance.PlayAnimation(216, this);
             CurrentHP = CurrentStats.MaxHP;
             SetState("neutral", true);
             RemoveAllStatModifiers();
-            await Task.Delay(1000);
+            await Wait.Milliseconds(1000);
             SecondPhase = true;
         }
 
         if (CurrentHP < 2500 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "Hm?@ W-what's this?@ A drop of sweat?");
-            DialogueManager.Instance.QueueMessage(this, "My, my...@ I cannot believe this.");
+            DialogueManager.Instance.QueueMessage(this, @"Hm?\! W-what's this?\! A drop of sweat?");
+            DialogueManager.Instance.QueueMessage(this, @"My, my...\! I cannot believe this.");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
 
-        if (CurrentHP <= 0)
-        {
-            OverlaySprite?.QueueFree();
-            DialogueManager.Instance.QueueMessage(this, "Ah.@ You have bested me.");
-            DialogueManager.Instance.QueueMessage(this, "Right, then.@ I know when to admit defeat.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+    public override async Task OnDefeat()
+    {
+        OverlaySprite?.QueueFree();
+        DialogueManager.Instance.QueueMessage(this, @"Ah.\! You have bested me.");
+        DialogueManager.Instance.QueueMessage(this, @"Right, then.\! I know when to admit defeat.");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnStartOfBattle()
     {
-        DialogueManager.Instance.QueueMessage(this, "Remember, children...@ You brought this upon yourselves!");
+        DialogueManager.Instance.QueueMessage(this, @"[br]Remember, children...\! You brought this upon yourselves!");
         await DialogueManager.Instance.WaitForDialogue();
     }
 

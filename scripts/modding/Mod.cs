@@ -3,29 +3,31 @@ using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
 using System;
+using System.Threading.Tasks;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Modding;
 
 /// <summary>
 /// The base mod class that all mods must inherit from.
 /// </summary>
-public abstract class Mod
+public abstract partial class Mod : Node
 {
     /// <summary>
-    /// Fired whenever the mod is first loaded. Equivalent to Godot's _Ready function.
+    /// Called after the mod has been loaded and added to the scene tree.
     /// </summary>
-    public abstract void OnLoad();
-
+    public virtual void OnLoad() { }
+    
     /// <summary>
-    /// Fired whenever the game is about to close.
+    /// Called each frame within Godot's _Process method.
     /// </summary>
-    public virtual void OnUnload() { }
-
+    /// <param name="delta">The time difference between the current and previous frame.</param>
+    public virtual void OnProcess(double delta) {}
+    
     /// <summary>
-    /// Fired whenever Godot's _Process function is called.
+    /// Called before the mod is removed from the scene tree.
     /// </summary>
-    /// <param name="delta">The delta time between this frame and the previous one.</param>
-    public virtual void OnProcess(double delta) { }
+    public virtual void OnUnload() {}
 
     /// <summary>
     /// Registers a new <see cref="PartyMember"/> to the database.
@@ -68,23 +70,13 @@ public abstract class Mod
     }
 
     /// <summary>
-    /// Registers a new <see cref="Weapon"/> to the database.
+    /// Registers a new <see cref="Equipment"/> to the database.
     /// </summary>
-    /// <param name="id">The ID of the weapon. This will be how it appears in editor menus.</param>
-    /// <param name="weapon">The <see cref="Weapon"/> to add.</param>
-    protected static void RegisterWeapon(string id, Weapon weapon)
+    /// <param name="id">The ID of the equipment. This will be how it appears in editor menus.</param>
+    /// <param name="equipment">The <see cref="Equipment"/> to add.</param>
+    protected static void RegisterEquipment(string id, Equipment equipment)
     {
-        Database.RegisterModdedWeapon(id, weapon);
-    }
-
-    /// <summary>
-    /// Registers a new <see cref="Charm"/> to the database.
-    /// </summary>
-    /// <param name="id">The ID of the charm. This will be how it appears in editor menus.</param>
-    /// <param name="charm">The <see cref="Charm"/> to add.</param>
-    protected static void RegisterCharm(string id, Charm charm)
-    {
-        Database.RegisterModdedCharm(id, charm);
+        Database.RegisterModdedEquipment(id, equipment);
     }
 
     /// <summary>

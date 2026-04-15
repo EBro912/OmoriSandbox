@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://benwlhtixh53g"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://benwlhtixh53g"]
 
 [ext_resource type="Texture2D" uid="uid://c2bf0ymdi6ci6" path="res://assets/sv_actors/!battle_maximus.png" id="1_fpyrm"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_hcol4")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

@@ -23,4 +23,6 @@ internal sealed class Hero : PartyMember
         }
         await base.OnStartOfBattle();
     }
+    
+    public override string[] EquippableWeapons => ["Spatula", "Rolling Pin", "Teapot", "Frying Pan", "Blender", "Baking Pan", "Tenderizer", "LOL Sword", "Ol' Reliable", "Shucker"];
 }

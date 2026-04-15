@@ -1,0 +1,60 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://r4kwtlxreigs"]
+
+[ext_resource type="Texture2D" uid="uid://cm6drvt8u35ek" path="res://assets/sv_actors/!battle_omori_3.png" id="1_q86xs"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hteu7"]
+atlas = ExtResource("1_q86xs")
+region = Rect2(0, 0, 220, 389)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_10jlv"]
+atlas = ExtResource("1_q86xs")
+region = Rect2(220, 0, 220, 389)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o4cc3"]
+atlas = ExtResource("1_q86xs")
+region = Rect2(440, 0, 220, 389)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hteu7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_10jlv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o4cc3")
+}],
+"loop": true,
+"name": &"hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hteu7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_10jlv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o4cc3")
+}],
+"loop": true,
+"name": &"neutral",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hteu7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_10jlv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o4cc3")
+}],
+"loop": true,
+"name": &"toast",
+"speed": 5.0
+}]

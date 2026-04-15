@@ -2,7 +2,7 @@ using Godot;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Animation;
-
+ 
 namespace OmoriSandbox.Actors;
 
 internal sealed class SpaceExHusband : Enemy
@@ -12,14 +12,14 @@ internal sealed class SpaceExHusband : Enemy
     protected override Stats Stats => new(6000, 3000, 80, 999, 50, 10, 95);
     protected override string[] EquippedSkills => ["SEHAttack", "SEHLaser", "SEHAngrySong", "SEHAngstySong", "SEHJoyfulSong", "SEHSpinningKick", "SEHBulletHell"];
 
-    private Stats GetStatsForEmotion(string emotion)
+    private Stats GetStatsForEmotion()
     {
         return CurrentState switch
         {
             "sad" or "depressed" or "miserable" => new Stats(6000, 3000, 65, 85, 30, 5, 95),
             "happy" or "ecstatic" or "manic" => new Stats(6000, 3000, 70, 35, 105, 25, 95),
             "angry" or "enraged" or "furious" => new Stats(6000, 3000, 90, 15, 50, 10, 95),
-            _ => new(6000, 3000, 80, 999, 50, 10, 95)
+            _ => new Stats(6000, 3000, 80, 999, 50, 10, 95)
         };
     }
 
@@ -61,6 +61,10 @@ internal sealed class SpaceExHusband : Enemy
             case "happy":
             case "ecstatic":
             case "manic":
+                if (HasMultiTargetObserve())
+                    goto joyful;
+                if (HasObserveTarget(out PartyMember observe))
+                    return new BattleCommand(this, observe, Skills["SEHLaser"]);
                 if (Roll() < 51)
                     goto joyful;
                 if (Roll() < 51)
@@ -69,18 +73,28 @@ internal sealed class SpaceExHusband : Enemy
             case "sad":
             case "depressed":
             case "miserable":
+                if (HasMultiTargetObserve())
+                    goto angsty;
+                if (HasObserveTarget(out observe))
+                    return new BattleCommand(this, observe, Skills["SEHLaser"]);
                 if (Roll() < 51)
                     goto angsty;
                 goto laser;
             case "angry":
             case "enraged":
             case "furious":
+                if (HasMultiTargetObserve())
+                    goto angry;
+                if (HasObserveTarget(out observe))
+                    return new BattleCommand(this, observe, Skills["SEHLaser"]);
                 if (Roll() < 46)
                     goto angry;
                 if (Roll() < 46)
                     goto laser;
                 goto bullet;
             default:
+                if (HasObserveTarget(out observe))
+                    return new BattleCommand(this, observe, Skills["SEHLaser"]);
                 if (Roll() < 51)
                     goto attack;
                 goto laser;
@@ -113,8 +127,8 @@ internal sealed class SpaceExHusband : Enemy
         {
             if (!CheckDesiredEmotion())
             {
-                DialogueManager.Instance.QueueMessage(this, "No one truly understands the depths of my pain.");
-                DialogueManager.Instance.QueueMessage(this, "If I do not feel... then the pain can no longer reach me.");
+                DialogueManager.Instance.QueueMessage(this, @"Sigh...\! No one truly understands the depths of my pain.");
+                DialogueManager.Instance.QueueMessage(this, @"If I do not feel...\! then the pain can no longer reach me.");
             }
             await DialogueManager.Instance.WaitForDialogue();
             DesiredEmotion = "neutral";
@@ -135,10 +149,11 @@ internal sealed class SpaceExHusband : Enemy
 
             if (CurrentState != "neutral")
             {
-                DialogueManager.Instance.QueueMessage(this, "Nay! I must guard my HEART.@ I must become one... with the ice...");
-                await DialogueManager.Instance.WaitForDialogue();
                 AnimationManager.Instance.PlayPhotograph();
                 SetState("neutral", true);
+                await Wait.Milliseconds(1200);
+                DialogueManager.Instance.QueueMessage(this, @"Nay! I must guard my HEART.\! I must become one... with the ice...");
+                await DialogueManager.Instance.WaitForDialogue();
             }
             else
             {
@@ -156,7 +171,7 @@ internal sealed class SpaceExHusband : Enemy
             case "sad":
                 if (CurrentState == "sad" || CurrentState == "depressed" || CurrentState == "miserable")
                 {
-                    DialogueManager.Instance.QueueMessage(this, "I can't believe she's really gone...");
+                    DialogueManager.Instance.QueueMessage(this, @"Oh...\! I can't believe she's really gone...");
                     return true;
                 }
                 break;
@@ -170,8 +185,7 @@ internal sealed class SpaceExHusband : Enemy
             case "angry":
                 if (CurrentState == "angry" || CurrentState == "enraged" || CurrentState == "furious")
                 {
-                    DialogueManager.Instance.QueueMessage(this, "HOW DARE SHE TREAT ME THAT WAY!");
-                    DialogueManager.Instance.QueueMessage(this, "I GAVE HER MY HEART AND SHE THREW IT AWAY SO EASILY!");
+                    DialogueManager.Instance.QueueMessage(this, @"GAH!\! HOW DARE SHE TREAT ME THAT WAY!");
                     return true;
                 }
                 break;
@@ -188,13 +202,13 @@ internal sealed class SpaceExHusband : Enemy
                 switch (GameManager.Instance.Random.RandiRange(0, 2))
                 {
                     case 0:
-                        DialogueManager.Instance.QueueMessage(this, "It's me... alone...@ throwing away my SPECIAL MIXTAPE...");
+                        DialogueManager.Instance.QueueMessage(this, @"It's me... alone...\! throwing away my [color=#fed966]SPECIAL MIXTAPE[/color]...");
                         break;
                     case 1:
-                        DialogueManager.Instance.QueueMessage(this, "It's me... alone...@ weeping in my king-sized bed...");
+                        DialogueManager.Instance.QueueMessage(this, @"It's me... alone...\! weeping in my king-sized bed...");
                         break;
                     case 2:
-                        DialogueManager.Instance.QueueMessage(this, "It's me... alone...@ holding a picture of my dear SWEETHEART...");
+                        DialogueManager.Instance.QueueMessage(this, @"It's me... alone...\! holding a picture of my dear SWEETHEART...");
                         break;
                 }
                 break;
@@ -203,13 +217,13 @@ internal sealed class SpaceExHusband : Enemy
                 switch (GameManager.Instance.Random.RandiRange(0, 2))
                 {
                     case 0:
-                        DialogueManager.Instance.QueueMessage(this, "It's me... and my SWEETHEART...@ kissing on her glorious stage!");
+                        DialogueManager.Instance.QueueMessage(this, @"It's me... and my SWEETHEART...\! kissing on her glorious stage!");
                         break;
                     case 1:
-                        DialogueManager.Instance.QueueMessage(this, "It's me... and my SWEETHEART...@ staring at the night sky together!");
+                        DialogueManager.Instance.QueueMessage(this, @"It's me... and my SWEETHEART...\! staring at the night sky together!");
                         break;
                     case 2:
-                        DialogueManager.Instance.QueueMessage(this, "It's me... and my SWEETHEART...@ gazing into each other's eyes!");
+                        DialogueManager.Instance.QueueMessage(this, @"It's me... and my SWEETHEART...\! gazing into each other's eyes!");
                         break;
                 }
                 break;
@@ -218,13 +232,13 @@ internal sealed class SpaceExHusband : Enemy
                 switch (GameManager.Instance.Random.RandiRange(0, 2))
                 {
                     case 0:
-                        DialogueManager.Instance.QueueMessage(this, "It's my SWEETHEART... but she's...@ swinging her mace at me!");
+                        DialogueManager.Instance.QueueMessage(this, @"It's my SWEETHEART... but she's...\! swinging her mace at me!");
                         break;
                     case 1:
-                        DialogueManager.Instance.QueueMessage(this, "It's my SWEETHEART... but she's...@ in the arms of another man!");
+                        DialogueManager.Instance.QueueMessage(this, @"It's my SWEETHEART... but she's...\! in the arms of another man!");
                         break;
                     case 2:
-                        DialogueManager.Instance.QueueMessage(this, "It's my SWEETHEART... but she's...@ throwing my things across the room!");
+                        DialogueManager.Instance.QueueMessage(this, @"It's my SWEETHEART... but she's...\! throwing my things across the room!");
                         break;
                 }
                 break;
@@ -233,20 +247,17 @@ internal sealed class SpaceExHusband : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task ProcessBattleConditions()
+    public override async Task OnDefeat()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "The pain...@ I can feel it...");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+        DialogueManager.Instance.QueueMessage(this, @"[br]The pain...\! I can feel it...");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "I feel nothing...@ I am cold... like ice...");
+            DialogueManager.Instance.QueueMessage(this, @"I feel nothing...\! I am cold...\! like ice...");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }
@@ -254,11 +265,12 @@ internal sealed class SpaceExHusband : Enemy
     public override async Task OnStartOfBattle()
     {
         AddStatModifier("SpaceExHusbandBlock", silent: true);
-        OnStateChanged += (s, e) =>
-        {
-            BaseStats = GetStatsForEmotion(CurrentState);
-        };
-        DialogueManager.Instance.QueueMessage(this, "I feel nothing...@ I am cold...@ like ice...");
+        DialogueManager.Instance.QueueMessage(this, @"[br]I feel nothing...\![br]I am cold...\! like ice...");
         await DialogueManager.Instance.WaitForDialogue();
+    }
+
+    protected override Stats GetBaseStats()
+    {
+        return GetStatsForEmotion();
     }
 }

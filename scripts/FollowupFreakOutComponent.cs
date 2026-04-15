@@ -22,7 +22,7 @@ internal partial class FollowupFreakOutComponent : Node
 
     public override void _Process(double delta)
     {
-        if (Target.Modulate.A > 0 && BattleManager.Instance.Energy >= Target.Cost)
+        if (Target.Modulate.A > 0 && Target.Available)
         {
             FrameTimer += (float)delta;
 
@@ -35,6 +35,7 @@ internal partial class FollowupFreakOutComponent : Node
         else
         {
             FrameTimer = 0;
+            Target.Position = Origin;
         }
     }
 

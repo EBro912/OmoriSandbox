@@ -13,7 +13,7 @@ internal sealed class Abbi : Enemy
     protected override string[] EquippedSkills => ["AbbiAttack", "AbbiAttackOrder", "AbbiSummon"];
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
     }
 
     private readonly EnemyComponent[] Tentacles = new EnemyComponent[4];
@@ -31,11 +31,14 @@ internal sealed class Abbi : Enemy
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["AbbiAttack"]);
+        
         if (Roll() < 71)
         {
             for (int i = 0; i < 4; i++)
             {
-                if (Tentacles[i] == null || Tentacles[i].Actor.CurrentState == "toast")
+                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.CurrentState == "toast")
                 {
                     Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
                         layer: Layer + 1);
@@ -46,35 +49,34 @@ internal sealed class Abbi : Enemy
 
         if (Roll() < 36)
             return new BattleCommand(this, SelectAllEnemies(), Skills["AbbiAttackOrder"]);
-        return new  BattleCommand(this, SelectTarget(), Skills["AbbiAttack"]);
+        return new BattleCommand(this, SelectTarget(), Skills["AbbiAttack"]);
     }
 
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            foreach (EnemyComponent e in Tentacles.Where(x => x != null))
-            {
-                e.Actor.CurrentHP = 0;
-            }
-
-            return;
-        }
+        if (CurrentHP <= 0) return;
 
         if (CurrentHP < 4000 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "Ngh...");
+            DialogueManager.Instance.QueueMessage(this, "[shake rate=20]Ngh...", font: DialogueManager.FontType.Jagged);
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override Task OnDefeat()
+    {
+        foreach (EnemyComponent e in Tentacles)
+            e.Actor.CurrentHP = 0;
+        return Task.CompletedTask;
     }
 
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "Goodbye...");
+            DialogueManager.Instance.QueueMessage(this, "[shake rate=20]Goodbye...", font: DialogueManager.FontType.Jagged);
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://b745nprfid4y8"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://b745nprfid4y8"]
 
 [ext_resource type="Texture2D" uid="uid://pa58i32t27r2" path="res://assets/sv_actors/!battle_earth.png" id="1_h3ku4"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wp3l3")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

@@ -16,8 +16,7 @@ internal sealed class Recyclepath : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
     }
 
     private EnemyComponent LeftRecycultist;
@@ -51,21 +50,22 @@ internal sealed class Recyclepath : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Oh why, holy bin?");
-            DialogueManager.Instance.QueueMessage(this, "Have you forsaken us!?");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
-        }
+        if (CurrentHP <= 0) return;
         
         if (CurrentHP < 500 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "Oh, holy bin in the sky...");
-            DialogueManager.Instance.QueueMessage(this, "Please grant me the power to recycle thy enemies!");
+            DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Oh, HOLY BIN in the sky...");
+            DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Please grant me the power to recycle thy enemies!");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Oh why, HOLY BIN?");
+        DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Have you forsaken us!?");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override Task OnStartOfBattle()
@@ -81,8 +81,8 @@ internal sealed class Recyclepath : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "Huzzah! We have been blessed with victory!");
-            DialogueManager.Instance.QueueMessage(this, "All hail the holy bin in the sky!");
+            DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint,"[br]Huzzah! We have been blessed with victory!");
+            DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]All hail the HOLY BIN in the sky!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

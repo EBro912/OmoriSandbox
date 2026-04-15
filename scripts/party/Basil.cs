@@ -13,4 +13,5 @@ internal sealed class Basil : PartyMember
     public override int BaseLuck => 10;
     public override string[] InvalidStates => ["stressed"];
     public override bool IsRealWorld => false;
+    public override string[] EquippableWeapons => ["Garden Shears"];
 }

@@ -21,8 +21,12 @@ internal sealed class AubreyBoss : Enemy
     public override BattleCommand ProcessAI()
     {
         TurnCount++;
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["ABossBeatdown"]);
+
         if (TurnCount == 1)
             return new BattleCommand(this, SelectTarget(), Skills["ABossBeatdown"]);
+        
         if (TurnCount == 3)
         {
             Enemy kel = SelectAllEnemies().MaxBy(x => x.CurrentStats.SPD);

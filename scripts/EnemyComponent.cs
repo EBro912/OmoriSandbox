@@ -1,5 +1,7 @@
+using System;
 using Godot;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
 
@@ -8,52 +10,50 @@ namespace OmoriSandbox;
 /// </summary>
 public partial class EnemyComponent : Node
 {
-    private Enemy Enemy;
-    private Control AboveHead;
-    private TextureProgressBar HPBar;
-    private Label NameLabel;
-    private NinePatchRect NameRect;
+	private Enemy Enemy;
+	private EnemyInfoBox InfoBox;
 
-    /// <summary>
-    /// The <see cref="Actors.Enemy"/> actor this component is attached to.
-    /// </summary>
-    public Enemy Actor => Enemy;
+	private Timer HurtTimer = new()
+	{
+		Autostart = false,
+		OneShot = true
+	};
+	
+	/// <summary>
+	/// The <see cref="Actors.Enemy"/> actor this component is attached to.
+	/// </summary>
+	public Enemy Actor => Enemy;
 
-    internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, int layer)
-    {
-        Enemy = enemy;
-        AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
-        Enemy.Init(sprite, initialState, fallsOffScreen, layer);
-        AboveHead = GetNode<Control>("../AboveHead");
-        NameRect = GetNode<NinePatchRect>("../AboveHead/Infobox");
-        NameLabel = GetNode<Label>("../AboveHead/Infobox/Name");
-        HPBar = GetNode<TextureProgressBar>("../AboveHead/Infobox/Health");
-        HPBar.MaxValue = Enemy.BaseStats.HP;
-        HPBar.Value = Enemy.CurrentHP;
-        NameLabel.Text = Enemy.Name;
-        float width = Mathf.Max(160f, NameLabel.GetMinimumSize().X + 15);
-        NameRect.Size = new Vector2(width, NameRect.Size.Y);
-        NameRect.Position = new Vector2(-width / 2f, NameRect.Position.Y);
-        AboveHead.Visible = false;
+	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer)
+	{
+		Enemy = enemy;
+		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
+		Enemy.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer);
+		if (SettingsMenuManager.Instance.ShowMoreInfo)
+			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox_moreinfo.tscn")
+				.Instantiate<EnemyMoreInfoBox>();
+		else
+			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox.tscn")
+				.Instantiate<EnemyInfoBox>();
+		InfoBox.SetEnemy(Enemy);
+		AddChild(InfoBox);
+		ShowInfoBox(false);
+		
+		Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;
+		InfoBox.Position = Enemy.CenterPoint + new Vector2(0, -30);
+		Enemy.OnDamaged += Damaged;
+		HurtTimer.Timeout += () => Enemy.SetHurt(false);
+		AddChild(HurtTimer);
+	}
 
-        Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;
-    }
+	internal void ShowInfoBox(bool show)
+	{
+		InfoBox.Show(show);
+	}
 
-    public override void _Process(double delta)
-    {
-        HPBar.Value = Enemy.CurrentHP;
-    }
-
-    internal void ShowInfoBox(bool show)
-    {
-        AboveHead.Visible = show;
-    }
-
-    /// <summary>
-    /// Immediately despawns the enemy from the scene.
-    /// </summary>
-    public void Despawn()
-    {
-        GetParent().QueueFree();
-    }
+	private void Damaged(object sender, EventArgs e)
+	{
+		Enemy.SetHurt(true);
+		HurtTimer.Start(0.75d);
+	}
 }

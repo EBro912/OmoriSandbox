@@ -17,6 +17,7 @@ position = Vector2(59, -24)
 texture = ExtResource("1_4hjhl")
 region_rect = Rect2(256, 95, 127, 99)
 script = ExtResource("3_oj3bm")
+InputDir = 1
 
 [node name="FingerUp" type="Sprite2D" parent="BubbleUp"]
 position = Vector2(-6, -46)
@@ -31,6 +32,7 @@ position = Vector2(-31, -7)
 texture = ExtResource("3_puu3t")
 region_rect = Rect2(129, 95, 127, 99)
 script = ExtResource("3_oj3bm")
+InputDir = 3
 
 [node name="FingerLeft" type="Sprite2D" parent="BubbleLeft"]
 position = Vector2(-60, 0)
@@ -44,6 +46,7 @@ position = Vector2(-40, 61)
 texture = ExtResource("4_1c2og")
 region_rect = Rect2(2, 96, 127, 99)
 script = ExtResource("3_oj3bm")
+InputDir = 2
 
 [node name="FingerDown" type="Sprite2D" parent="BubbleDown"]
 position = Vector2(-10, 42)

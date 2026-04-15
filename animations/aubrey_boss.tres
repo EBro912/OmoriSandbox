@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://c7ojf0sna1y8g"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://c7ojf0sna1y8g"]
 
 [ext_resource type="Texture2D" uid="uid://chpxe22y6r8q2" path="res://assets/sv_actors/!simulation_aubrey.png" id="1_o2n1f"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_7args")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

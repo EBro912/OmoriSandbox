@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=6 format=3 uid="uid://p83q258hs2y3"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://p83q258hs2y3"]
 
 [ext_resource type="Texture2D" uid="uid://dh1ew7wslbpu7" path="res://assets/sv_actors/!battle_something_in_the_walls.png" id="1_pjgrg"]
 
@@ -67,7 +67,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_djw6c")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 1.0
 }]

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://dloefx2esoiae"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dloefx2esoiae"]
 
 [ext_resource type="Texture2D" uid="uid://b084pk0w14k3t" path="res://assets/sv_actors/!battle_perfect_heart.png" id="1_cf2t1"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_bkwrc")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

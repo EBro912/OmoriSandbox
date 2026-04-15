@@ -21,6 +21,10 @@ internal sealed class KelBoss : Enemy
     public override BattleCommand ProcessAI()
     {
         TurnCount++;
+        
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["RunNGun"]);
+        
         if (TurnCount == 1)
             return new BattleCommand(this, SelectAllEnemies(), Skills["KBossRainCloud"]);
         if (TurnCount == 3)

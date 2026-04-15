@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://cjovmomtfkxhh"]
+
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_7x4vi"]
+[ext_resource type="Script" uid="uid://5yj3xmjdgmje" path="res://scripts/BattlebackBGMEditorComponent.cs" id="1_ocu2y"]
+[ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="2_ocu2y"]
+[ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="3_3u5vr"]
+[ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_0cgyp"]
+
+[node name="BattlebackBGMEditor" type="VBoxContainer" unique_id=1531111807 node_paths=PackedStringArray("BattlebackDropdown", "BGMDropdown", "BGMPitch", "BGMPlayButton", "LoopSetCurrentButton", "LoopPoint", "BGMPlayerTimer", "BGMPlayer")]
+script = ExtResource("1_ocu2y")
+BattlebackDropdown = NodePath("Battleback/OptionButton")
+BGMDropdown = NodePath("BGM/OptionButton")
+BGMPitch = NodePath("BGMPitch/PitchValue")
+BGMPlayButton = NodePath("BGMScrub/Play")
+LoopSetCurrentButton = NodePath("BGMPitch/SetCurrent")
+LoopPoint = NodePath("BGMPitch/LoopPointValue")
+BGMPlayerTimer = NodePath("BGMScrub/Time")
+BGMPlayer = NodePath("BGMScrub/Scrub")
+
+[node name="Battleback" type="HBoxContainer" parent="." unique_id=1803928636]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Battleback" unique_id=27835988]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+text = "Battleback"
+
+[node name="OptionButton" type="OptionButton" parent="Battleback" unique_id=1051869074]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_ocu2y")
+theme_override_styles/pressed = ExtResource("3_3u5vr")
+theme_override_styles/hover = ExtResource("4_0cgyp")
+allow_reselect = true
+
+[node name="BGM" type="HBoxContainer" parent="." unique_id=1809590629]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="BGM" unique_id=2016943283]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+text = "BGM"
+
+[node name="OptionButton" type="OptionButton" parent="BGM" unique_id=856964324]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_ocu2y")
+theme_override_styles/pressed = ExtResource("3_3u5vr")
+theme_override_styles/hover = ExtResource("4_0cgyp")
+allow_reselect = true
+
+[node name="BGMScrub" type="HBoxContainer" parent="." unique_id=164074852]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="Time" type="Label" parent="BGMScrub" unique_id=689438363]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+text = "00:00.00"
+horizontal_alignment = 1
+
+[node name="Scrub" type="HSlider" parent="BGMScrub" unique_id=893876876]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 0.0
+step = 0.001
+scrollable = false
+
+[node name="Play" type="Button" parent="BGMScrub" unique_id=1337098644]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_ocu2y")
+theme_override_styles/pressed = ExtResource("3_3u5vr")
+theme_override_styles/hover = ExtResource("4_0cgyp")
+text = "Play"
+
+[node name="BGMPitch" type="HBoxContainer" parent="." unique_id=527673415]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 8
+
+[node name="Pitch" type="Label" parent="BGMPitch" unique_id=2116285905]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+text = "Pitch"
+
+[node name="PitchValue" type="SpinBox" parent="BGMPitch" unique_id=1860787293]
+layout_mode = 2
+size_flags_horizontal = 4
+min_value = 0.1
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="LoopPoint" type="Label" parent="BGMPitch" unique_id=2092040946]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+text = "Loop Point"
+
+[node name="SetCurrent" type="Button" parent="BGMPitch" unique_id=938251153]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_7x4vi")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_ocu2y")
+theme_override_styles/pressed = ExtResource("3_3u5vr")
+theme_override_styles/hover = ExtResource("4_0cgyp")
+text = "Set Current"
+
+[node name="LoopPointValue" type="SpinBox" parent="BGMPitch" unique_id=22042425]
+layout_mode = 2
+size_flags_horizontal = 4
+max_value = 0.0
+step = 0.001

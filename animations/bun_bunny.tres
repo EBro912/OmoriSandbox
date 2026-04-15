@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://c1m85f1fxpw5a"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://c1m85f1fxpw5a"]
 
 [ext_resource type="Texture2D" uid="uid://dnh7wc4c2h3fm" path="res://assets/sv_actors/!battle_bun_bunny.png" id="1_ds301"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ucbpc")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

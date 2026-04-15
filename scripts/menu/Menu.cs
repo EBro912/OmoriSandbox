@@ -3,14 +3,17 @@ using Godot;
 
 namespace OmoriSandbox.Menu;
 
-internal abstract partial class Menu : Sprite2D
+internal abstract partial class Menu : Control
 {
-	[Export] protected Sprite2D CursorSprite;
+	[Export] protected CursorBounce CursorSprite;
 	protected List<string> Options = [];
 	protected List<Vector2I> CursorPositions = [];
 	public int CursorIndex { get; protected set; } = 0;
 	protected bool Empty = false;
 	protected Tween Tween;
+
+	protected abstract Vector2 OpenPosition { get; }
+	protected abstract Vector2 ClosedPosition { get; }
 
 	public void OnInput(Vector2I direction)
 	{
@@ -42,37 +45,43 @@ internal abstract partial class Menu : Sprite2D
 		Show();
 		UpdateCursor();
 	}
-	public virtual void OnClose() 
-	{ 
-		Hide();
+
+	protected virtual bool ShouldCloseVisually(MenuState newState)
+	{
+		return true;
 	}
 
-	// TODO: make all menus the same size so these don't have to be overridden
-	public virtual void MoveUp(bool immediate)
+	public void MoveUp(bool immediate)
 	{
+		Visible = true;
 		Tween?.Kill();
 		if (immediate)
 		{
-			Position = new Vector2(Position.X, 437);
+			Position = OpenPosition;
 		}
 		else
 		{
 			Tween = CreateTween();
-			Tween.TweenProperty(this, "position", new Vector2(Position.X, 437), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			Tween.TweenProperty(this, "position", OpenPosition, 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 
-    public virtual void MoveDown(bool immediate)
+    public void MoveDown(MenuState newState, bool immediate)
     {
-        Tween?.Kill();
-        if (immediate)
-        {
-            Position = new Vector2(Position.X, 537);
-        }
-        else
-        {
-            Tween = CreateTween();
-            Tween.TweenProperty(this, "position", new Vector2(Position.X, 537), 0.2f).SetTrans(Tween.TransitionType.Sine);
-        }
+	    if (ShouldCloseVisually(newState))
+	    {
+		    Tween?.Kill();
+		    if (immediate)
+		    {
+			    Position = ClosedPosition;
+			    Visible = false;
+		    }
+		    else
+		    {
+			    Tween = CreateTween();
+			    Tween.TweenProperty(this, "position", ClosedPosition, 0.2f).SetTrans(Tween.TransitionType.Sine);
+			    Tween.TweenCallback(Callable.From(() => Visible = false));
+		    }
+	    }
     }
 }

@@ -1,65 +1,69 @@
 using System.Collections.Generic;
-using Godot;
+using Newtonsoft.Json;
+using OmoriSandbox.Battle;
 
 namespace OmoriSandbox;
 
-internal struct BattlePreset
+internal class BattlePreset
 {
-    public string Name;
-    public string Battleback;
-    public string BGM;
-    public int FollowupTier;
-    public bool BasilFollowups;
-    public bool BasilReleaseEnergy;
-    public List<(string ItemName, int Quantity)> StartingItems;
-    public List<BattlePresetActor> Actors;
-    public List<BattlePresetEnemy> Enemies;
+    public GameModeType Type { get; set; } = GameModeType.Normal;
+    [JsonRequired] public string Name { get; set; }
+    public string Battleback { get; set; } = "battleback_vf_default";
+    public string BGM { get; set; } = "battle_vf";
+    public double BGMPitch { get; set; } = 1d;
+    public double BGMLoopPoint { get; set; } = 0d;
+    public int StartingEnergy { get; set; } = 3;
+    public int FollowupTier { get; set; } = 1;
+    public bool BasilFollowups { get; set; } = false;
+    public bool BasilReleaseEnergy { get; set; } = false;
+    public bool DisableDialogue { get; set; } = false;
+    public bool DisableDamageNumbers { get; set; } = false;
+    public Dictionary<string, int> Items { get; set; } = [];
 
-    internal BattlePreset(string name, string battleback, string bgm, int followupTier, bool basilFollowups, bool basilReleaseEnergy, List<(string ItemName, int Quantity)> startingItems, List<BattlePresetActor> actors, List<BattlePresetEnemy> enemies)
-    {
-        Name = name;
-        Battleback = battleback;
-        BGM = bgm;
-        FollowupTier = followupTier;
-        BasilFollowups = basilFollowups;
-        BasilReleaseEnergy = basilReleaseEnergy;
-        StartingItems = startingItems;
-        Actors = actors;
-        Enemies = enemies;
-    }
+    [JsonRequired] public List<BattlePresetActor> Actors { get; set; } = [];
+
+    public List<BattlePresetEnemy> Enemies { get; set; } = [];
+    public List<BattlePresetBossRushStage> Stages { get; set; } = [];
 }
 
-
-
-internal struct BattlePresetActor
+internal class BattlePresetActor
 {
-    public string Name;
-    public int Level;
-    public string Weapon;
-    public string Charm;
-    public string Emotion;
-    public List<string> Skills;
-
-    internal BattlePresetActor(string name, int level, string weapon, string charm, string emotion, List<string> skills)
-    {
-        Name = name;
-        Level = level;
-        Weapon = weapon;
-        Charm = charm;
-        Emotion = emotion;
-        Skills = skills;
-    }
+    [JsonRequired] public string Name { get; set; }
+    public int Level { get; set; } = 1;
+    public string Weapon { get; set; } = "Baguette";
+    public string Charm { get; set; } = "None";
+    public string Emotion { get; set; } = "neutral";
+    public bool FollowupsDisabled { get; set; } = false;
+    public string[] Skills { get; set; } = ["OAttack", "", "", "", ""];
+    [JsonRequired] public int Position { get; set; }
+    public Stats AdjustedStats { get; set; } = new();
 }
 
-internal struct BattlePresetEnemy
+internal class BattlePresetEnemy
 {
-    public string Name;
-    public Vector2 Position;
-    public string Emotion;
-    internal BattlePresetEnemy(string name, Vector2 position, string emotion)
-    {
-        Name = name;
-        Position = position;
-        Emotion = emotion;
-    }
+    [JsonRequired] public string Name { get; set; }
+    public string Position { get; set; } = "Vector2(320, 240)";
+    public string Emotion { get; set; } = "neutral";
+    public double Layer { get; set; } = 0;
+    public bool FallsOffScreen { get; set; } = true;
+    public bool GrayscaleOnDefeat { get; set; } = false;
+}
+
+internal class BattlePresetBossRushStage
+{
+    [JsonRequired] public int StageNumber { get; set; }
+    public string Battleback { get; set; } = "battleback_vf_default";
+    public string BGM { get; set; } = "battle_vf";
+    public double BGMPitch { get; set; } = 1d;
+    public double BGMLoopPoint { get; set; } = 0d;
+    public bool HealParty { get; set; } = false;
+    public bool KeepEmotion { get; set; } = false;
+    public bool KeepStatusEffects { get; set; } = false;
+    [JsonRequired] public List<BattlePresetEnemy> Enemies { get; set; } = [];
+}
+
+internal enum GameModeType
+{
+    Normal,
+    BossRush
 }

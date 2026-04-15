@@ -1,0 +1,283 @@
+[gd_scene format=3 uid="uid://buor8j7mu5dmb"]
+
+[ext_resource type="Texture2D" uid="uid://5cmotqcbts7s" path="res://assets/system/enemy_box.png" id="1_wby51"]
+[ext_resource type="Script" uid="uid://gdsdknpc8e2e" path="res://scripts/EnemyMoreInfoBox.cs" id="2_dt8gn"]
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="2_wl8cr"]
+[ext_resource type="Texture2D" uid="uid://dyq4c4jy8jyt4" path="res://assets/system/enemy_box_health_back.png" id="3_dve8j"]
+[ext_resource type="Texture2D" uid="uid://bdpy6f0wxmbdr" path="res://assets/system/enemy_box_health.png" id="4_5yeuq"]
+[ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="5_dt8gn"]
+[ext_resource type="Texture2D" uid="uid://q4jxuj12jmru" path="res://assets/system/bsys_cursor.png" id="6_3bapk"]
+[ext_resource type="Texture2D" uid="uid://du18ijwocpr68" path="res://assets/system/enemy_box_juice_back.png" id="6_5yeuq"]
+[ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="6_wl8cr"]
+[ext_resource type="Texture2D" uid="uid://cm4s47h547fbp" path="res://assets/system/enemy_box_juice.png" id="7_dt8gn"]
+[ext_resource type="Texture2D" uid="uid://de6mtfata36wd" path="res://assets/system/statelist.png" id="10_3bapk"]
+[ext_resource type="Texture2D" uid="uid://csbpqs4le5y8m" path="res://assets/system/emotion_box.png" id="11_itdm3"]
+[ext_resource type="PackedScene" uid="uid://bq6cqi4jmrqwe" path="res://scenes/StateAnimatorComponent.tscn" id="13_m53md"]
+
+[node name="AboveHead" type="Control" unique_id=1300360389 node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "DEFLabel", "LCKLabel", "HITLabel", "Animator", "Infobox", "NameLabel", "HPBar", "StateIcons")]
+z_index = 100
+z_as_relative = false
+layout_mode = 3
+anchors_preset = 0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("2_dt8gn")
+HPLabel = NodePath("Infobox/Health/HealthLabel")
+JuiceBar = NodePath("Infobox/Juice")
+JuiceLabel = NodePath("Infobox/Juice/JuiceLabel")
+ATKLabel = NodePath("Infobox/ATKLabel")
+SPDLabel = NodePath("Infobox/SPDLabel")
+DEFLabel = NodePath("Infobox/DEFLabel")
+LCKLabel = NodePath("Infobox/LCKLabel")
+HITLabel = NodePath("Infobox/HITLabel")
+Animator = NodePath("StateAnimatorComponent")
+Infobox = NodePath("Infobox")
+NameLabel = NodePath("Infobox/Name")
+HPBar = NodePath("Infobox/Health")
+StateIcons = NodePath("StateIcons")
+
+[node name="Infobox" type="NinePatchRect" parent="." unique_id=1123494069]
+custom_minimum_size = Vector2(225, 0)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -112.0
+offset_top = -91.0
+offset_right = 113.0
+offset_bottom = -11.0
+grow_horizontal = 2
+texture = ExtResource("1_wby51")
+region_rect = Rect2(0, 0, 15, 57)
+patch_margin_left = 6
+patch_margin_top = 30
+patch_margin_right = 6
+patch_margin_bottom = 2
+
+[node name="Name" type="Label" parent="Infobox" unique_id=4236578]
+custom_minimum_size = Vector2(145, 0)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -72.5
+offset_top = 5.75
+offset_right = 72.5
+offset_bottom = 25.75
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+
+[node name="Health" type="TextureProgressBar" parent="Infobox" unique_id=38995492]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_right = 53.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+value = 100.0
+texture_under = ExtResource("3_dve8j")
+texture_progress = ExtResource("4_5yeuq")
+
+[node name="HealthLabel" type="Label" parent="Infobox/Health" unique_id=2034176762]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -92.5
+offset_top = -8.0
+offset_right = -3.0
+offset_bottom = 7.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 14
+text = "0/0"
+horizontal_alignment = 2
+
+[node name="Heart" type="Sprite2D" parent="Infobox/Health" unique_id=93596877]
+position = Vector2(-10, 6)
+texture = ExtResource("5_dt8gn")
+
+[node name="Juice" type="TextureProgressBar" parent="Infobox" unique_id=1622406112]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -39.5
+offset_top = 17.0
+offset_right = 53.5
+offset_bottom = 29.0
+grow_horizontal = 2
+grow_vertical = 2
+value = 100.0
+texture_under = ExtResource("6_5yeuq")
+texture_progress = ExtResource("7_dt8gn")
+
+[node name="JuiceLabel" type="Label" parent="Infobox/Juice" unique_id=1602260082]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -92.0
+offset_top = -8.0
+offset_right = -2.5
+offset_bottom = 7.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 14
+text = "0/0"
+horizontal_alignment = 2
+
+[node name="Juice" type="Sprite2D" parent="Infobox/Juice" unique_id=95368810]
+position = Vector2(-10, 6)
+texture = ExtResource("6_wl8cr")
+
+[node name="ATKLabel" type="Label" parent="Infobox" unique_id=194802123]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -6.0
+offset_right = 93.5
+offset_bottom = 13.0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "ATK: 0"
+
+[node name="SPDLabel" type="Label" parent="Infobox" unique_id=30853541]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = 9.0
+offset_right = 93.5
+offset_bottom = 28.0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "SPD: 0"
+
+[node name="DEFLabel" type="Label" parent="Infobox" unique_id=1810615813]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = -11.0
+offset_right = -3.5
+offset_bottom = 8.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "DEF: 0"
+horizontal_alignment = 2
+
+[node name="LCKLabel" type="Label" parent="Infobox" unique_id=1513342139]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = 2.0
+offset_right = -3.5
+offset_bottom = 21.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "LCK: 0"
+horizontal_alignment = 2
+
+[node name="HITLabel" type="Label" parent="Infobox" unique_id=1856701847]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = 16.0
+offset_right = -3.5
+offset_bottom = 35.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "HIT: 0"
+horizontal_alignment = 2
+
+[node name="State" type="Sprite2D" parent="Infobox" unique_id=89515979]
+position = Vector2(0, 31)
+texture = ExtResource("10_3bapk")
+offset = Vector2(110, -42)
+region_enabled = true
+region_rect = Rect2(17, 0, 98, 22)
+
+[node name="Box" type="Sprite2D" parent="Infobox/State" unique_id=155532438]
+show_behind_parent = true
+position = Vector2(110, -41.5)
+texture = ExtResource("11_itdm3")
+
+[node name="Cursor" type="Sprite2D" parent="." unique_id=1285840323]
+rotation = -1.5708
+texture = ExtResource("6_3bapk")
+flip_h = true
+
+[node name="StateIcons" type="HFlowContainer" parent="." unique_id=188964995]
+z_index = 1
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -85.91
+offset_top = -200.0
+offset_right = 86.09
+offset_bottom = -112.0
+grow_horizontal = 2
+grow_vertical = 0
+pivot_offset = Vector2(86, 0)
+theme_override_constants/h_separation = -4
+theme_override_constants/v_separation = -4
+alignment = 1
+reverse_fill = true
+
+[node name="StateAnimatorComponent" parent="." unique_id=862267198 node_paths=PackedStringArray("StateSprite") instance=ExtResource("13_m53md")]
+StateSprite = NodePath("../Infobox/State")

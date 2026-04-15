@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=11 format=3 uid="uid://cseyj3p0lwirh"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://cseyj3p0lwirh"]
 
 [ext_resource type="Texture2D" uid="uid://dyxem5xbap51g" path="res://assets/pictures/red_hands_attack[5x2].png" id="1_fbgxc"]
 

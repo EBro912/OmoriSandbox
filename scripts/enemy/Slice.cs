@@ -16,6 +16,9 @@ internal sealed class Slice : Enemy
   
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["SLAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":

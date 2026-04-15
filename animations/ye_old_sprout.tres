@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://bx8s72q427w8n"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://bx8s72q427w8n"]
 
 [ext_resource type="Texture2D" uid="uid://deqgdridi7jyq" path="res://assets/sv_actors/!battle_ye_old_sprout.png" id="1_cij72"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_vvt2k")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://dlqybyq5p2mny"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://dlqybyq5p2mny"]
 
 [ext_resource type="Texture2D" uid="uid://2dnlfw2hvqh1" path="res://assets/sv_actors/!battle_slimegirls.png" id="1_3jvkq"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ty0iu")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

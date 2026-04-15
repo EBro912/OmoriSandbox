@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://beenqpc0mq3id"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://beenqpc0mq3id"]
 
 [ext_resource type="Texture2D" uid="uid://b8dc6r0uflgi1" path="res://assets/sv_actors/!battle_forest_bunny_question.png" id="1_mj6of"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_71y2v")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

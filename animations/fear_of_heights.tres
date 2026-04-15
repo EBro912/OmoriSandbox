@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=6 format=3 uid="uid://bybrh55qf3g86"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://bybrh55qf3g86"]
 
 [ext_resource type="Texture2D" uid="uid://o1qrnokdehj4" path="res://assets/sv_actors/!battle_something_in_the_dark.png" id="1_6xicw"]
 
@@ -67,7 +67,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_6ito2")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 1.0
 }]

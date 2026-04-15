@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace OmoriSandbox.Actors;
 
 /// <summary>
-/// An generic actor. See <see cref="PartyMember"/> and <see cref="Enemy"/>.
+/// A generic actor. See <see cref="PartyMember"/> and <see cref="Enemy"/>.
 /// </summary>
 public abstract class Actor
 {
@@ -24,7 +24,11 @@ public abstract class Actor
 	/// Fired whenever the actor's Juice changes.
 	/// </summary>
 	public event EventHandler OnJuiceChanged;
-
+	/// <summary>
+	/// Fired whenever the actor takes damage.
+	/// </summary>
+	public event EventHandler OnDamaged;
+	
 	/// <summary>
 	/// The name of the actor.
 	/// </summary>
@@ -32,7 +36,7 @@ public abstract class Actor
 	/// <summary>
 	/// The actor's sprite.
 	/// </summary>
-	public AnimatedSprite2D Sprite;
+	public AnimatedSprite2D Sprite { get; protected set; }
 	/// <summary>
 	/// The center point of the actor, calculated by the center of its sprite.
 	/// </summary>
@@ -44,9 +48,15 @@ public abstract class Actor
 	/// <summary>
 	/// The skills the actor has equipped.
 	/// </summary>
-	public Dictionary<string, Skill> Skills = [];
+	public readonly Dictionary<string, Skill> Skills = [];
 
-	public Stats BaseStats;
+	/// <summary>
+	/// The actor's absolute base stats with no modifications.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="GetBaseStats"/> should usually be used instead, as it takes things like Weapons and Charms into account for PartyMembers.
+	/// </remarks>
+	protected Stats BaseStats { get; private set; }
 
     /// <summary>
     /// The actor's level. Mainly only used for <see cref="PartyMember"/>s.
@@ -56,7 +66,7 @@ public abstract class Actor
 	/// <summary>
 	/// The <see cref="StatModifier"/>s the actor currently has.
 	/// </summary>
-	public Dictionary<string, StatModifier> StatModifiers = [];
+	public readonly Dictionary<string, StatModifier> StatModifiers = [];
 	/// <summary>
 	/// The <see cref="StatModifier"/> that the actor's emotion gives.
 	/// </summary>
@@ -68,7 +78,7 @@ public abstract class Actor
 	/// </summary>
 	public int CurrentHP
 	{
-		get { return _CurrentHP; }
+		get => _CurrentHP;
 		set
 		{
 			_CurrentHP = value;
@@ -83,7 +93,7 @@ public abstract class Actor
     /// </summary>
     public int CurrentJuice
 	{
-		get { return _CurrentJuice; }
+		get => _CurrentJuice;
 		set
 		{
 			_CurrentJuice = value;
@@ -91,12 +101,26 @@ public abstract class Actor
 		}
 	}
 
+	/// <summary>
+	/// Whether the actor is currently stunned. Setting this value to true will cause their actions to be skipped.
+	/// </summary>
+	public bool Stunned = false;
+
 
 	/// <summary>
 	/// The actor's base stats without any modifiers.
 	/// </summary>
 	/// <returns></returns>
 	protected virtual Stats GetBaseStats() { return BaseStats; }
+
+	/// <summary>
+	/// Sets the base stats for this actor.
+	/// </summary>
+	/// <param name="stats">The Stats to set.</param>
+	protected void SetBaseStats(Stats stats)
+	{
+		BaseStats = stats;
+	}
 
 	/// <summary>
 	/// The Actor's base stats, any adjusted stats from equips or modifiers, and emotion stats.
@@ -130,15 +154,17 @@ public abstract class Actor
 		{
 			if (m is TierStatModifier tier)
 			{
-				bool success = tier.IncreaseTier();
+				bool success = tier.ApplyTier(1);
 				if (success)
 				{
                     GD.Print("Increased tier of " + modifier + " on " + Name + " to " + tier.CurrentTier);
                 }
 				if (!silent && tier.SuccessMessage != null)
 					ShowStatMessage(success ? tier.SuccessMessage : tier.FailureMessage);
+				return;
 			}
-			// if the actor already has the modifier and it's not tiered, do nothing
+			m.RefreshTurns();
+			GD.Print("Refreshed modifier " + modifier + " on " + Name);
 		}
 		else
 		{
@@ -151,12 +177,11 @@ public abstract class Actor
 
 			if (turns > -1)
 			{
-				mod.SetMaxTurns(turns);
 				mod.SetTurnsLeft(turns);
 			}
 
 			StatModifiers.Add(modifier, mod);
-			mod.OnAdd();
+			mod.OnAdd(this);
 			GD.Print("Added modifier " + modifier + " to " + Name);
 			if (mod is TierStatModifier t && t.SuccessMessage != null && !silent)
 				ShowStatMessage(t.SuccessMessage);
@@ -182,11 +207,10 @@ public abstract class Actor
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m))
 		{
 			TierStatModifier existing = m as TierStatModifier;
-			bool success = existing.SetTier(tier);
+			bool success = existing.ApplyTier(tier);
 			if (success)
 			{
                 GD.Print("Increased tier of " + modifier + " on " + Name + " to " + existing.CurrentTier);
-                existing.SetTurnsLeft(turns);
 			}
 			if (!silent && existing.SuccessMessage != null)
 			{
@@ -194,10 +218,10 @@ public abstract class Actor
 			}
 			return;
 		}
-		t.SetTier(tier);
+		t.WithTier(tier);
 		t.SetTurnsLeft(turns);
 		StatModifiers.Add(modifier, t);
-		t.OnAdd();
+		t.OnAdd(this);
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		if (!silent && t.SuccessMessage != null)
 			ShowStatMessage(t.SuccessMessage);
@@ -229,24 +253,16 @@ public abstract class Actor
 	{
 		foreach (var mod in StatModifiers)
 		{
-			if (this is Omori omori && mod.Key == "PlotArmor")
-			{
-				// set the emotion background back to what it was before
-				SetState(omori.OldEmotion, true);
-				omori.OldEmotion = null;
-				StatModifiers.Remove(mod.Key);
-			}
 			if (mod.Value.TurnsLeft != -1)
 			{
 				mod.Value.DecreaseTurns();
-				if (mod.Value.TurnsLeft == 0)
+				if (mod.Value.TurnsLeft <= 0)
 				{
 					GD.Print("Removed modifier " + mod.Key + " from " + Name);
 					StatModifiers.Remove(mod.Key);
 				}
 			}
 		}
-
 	}
 
 	/// <summary>
@@ -257,6 +273,38 @@ public abstract class Actor
 	public bool HasStatModifier(string modifier)
 	{
 		return StatModifiers.ContainsKey(modifier);
+	}
+
+	/// <summary>
+	/// Returns the current tier of a stat modifier.
+	/// </summary>
+	/// <remarks>
+	/// If the actor does not have the requested modifier or if it is not a tiered stat modifier, -1 is returned.
+	/// </remarks>
+	/// <param name="modifier">The modifier to get the current tier of.</param>
+	/// <returns>The current tier if the actor has the tiered modifier, otherwise -1.</returns>
+	public int GetStatModifierTier(string modifier)
+	{
+		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod))
+			return -1;
+		if (mod is TierStatModifier tier)
+			return tier.CurrentTier;
+		return -1;
+	}
+
+	/// <summary>
+	/// Returns the current turns left of a stat modifier.
+	/// </summary>
+	/// <remarks>
+	/// If the actor does not have the requested modifier or is an infinite modifier, -1 is returned.
+	/// </remarks>
+	/// <param name="modifier">The modifier to get the turns left of.</param>
+	/// <returns>The current number of turns left, otherwise -1.</returns>
+	public int GetStatModifierTurnsLeft(string modifier)
+	{
+		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod))
+			return -1;
+		return mod.TurnsLeft;
 	}
 
 	/// <summary>
@@ -283,19 +331,22 @@ public abstract class Actor
 		CurrentHP -= damage;
 		if (CurrentHP < 0)
 			CurrentHP = 0;
-		SetHurt(true);
 
-		// TODO: allow other characters to have plot armor if desired
-		if (this is Omori omori && CurrentHP == 0 && !omori.HasUsedPlotArmor)
+		if (this is PartyMember member && member.HasPlotArmor && CurrentHP == 0 && !member.HasUsedPlotArmor)
 		{
 			CurrentHP = 1;
-			SetHurt(false);
-			// keep track of omori's old emotion for when plot armor expires
-			omori.OldEmotion = omori.CurrentState;
-			SetState("plotarmor", true);
+			member.HasUsedPlotArmor = true;
+			// temporarily set our state to plotarmor to trigger the state animator
+			string temp = CurrentState;
+			CurrentState = "plotarmor";
+			Sprite.Animation = "plotarmor";
+			OnStateChanged?.Invoke(this, EventArgs.Empty);
+			CurrentState = temp;
 			AddStatModifier("PlotArmor");
-			omori.HasUsedPlotArmor = true;
+			return;
 		}
+
+		OnDamaged?.Invoke(this, EventArgs.Empty);
 	}
 
     /// <summary>
@@ -339,11 +390,14 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Makes this actor appear visually hurt. Removed at the end of turn.
+	/// Makes this actor appear visually hurt.
 	/// </summary>
-	/// <param name="hurt">Whether or not this actor should appear hurt.</param>
+	/// <param name="hurt">Whether this actor should appear hurt.</param>
 	public virtual void SetHurt(bool hurt)
 	{
+		if (HasStatModifier("PlotArmor"))
+			return;
+
 		Sprite.Animation = hurt ? "hurt" : CurrentState;
 	}
 
@@ -364,7 +418,6 @@ public abstract class Actor
 	{
 		if (IsStateValid(state))
 		{
-			Sprite.Animation = state;
 			CurrentState = state;
 			if (!silent)
 			{
@@ -379,12 +432,9 @@ public abstract class Actor
 			}
 
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
-
-			// bug fix for when omori changes state during the plot armor turn
-			// this REAALLLY needs to be handled better soon...
-			if (this is Omori omori && omori.OldEmotion != null && state != "plotarmor")
-			{
-				omori.OldEmotion = state;
+			// only update the face sprite if we're not in plot armor
+			if (!HasStatModifier("PlotArmor")) {
+				Sprite.Animation = state;
 			}
 		}
 		else
@@ -425,7 +475,7 @@ public abstract class Actor
 	/// <summary>
 	/// Called when the battle is over, but before the victory screen.
 	/// </summary>
-	/// <param name="victory">Whether or not the battle was won by the player.</param>
+	/// <param name="victory">Whether the battle was won by the player.</param>
 	public virtual async Task OnEndOfBattle(bool victory) { await Task.CompletedTask; }
 
 	private string Capitalize(string s)

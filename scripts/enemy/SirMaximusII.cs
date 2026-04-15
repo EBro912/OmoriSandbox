@@ -17,11 +17,17 @@ internal sealed class SirMaximusII : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasMultiTargetObserve())
+            return new BattleCommand(this, SelectAllTargets(), Skills["SMIISpin"]);
+        
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["SMIAttack"]);
+        
         switch (CurrentState)
         {
             case "happy":
@@ -73,7 +79,7 @@ internal sealed class SirMaximusII : Enemy
     {
         if (CurrentHP < 375 && !FirstDialogue)
         {
-            DialogueManager.Instance.QueueMessage(this, "No... @I cannot let my father's death be in vain!");
+            DialogueManager.Instance.QueueMessage(this, "No... I cannot let my father's death be in vain!");
             DialogueManager.Instance.QueueMessage(this, "Now for my ultimate attack!");
             await DialogueManager.Instance.WaitForDialogue();
             FirstDialogue = true;
@@ -84,13 +90,13 @@ internal sealed class SirMaximusII : Enemy
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIUltimateAttack"]);
             UltimateAttack = true;
         }
+    }
 
-        if (CurrentHP <= 0)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Father... Forgive me.");
-            DialogueManager.Instance.QueueMessage(this, "I'm sorry... I have failed you.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage(this, "Father...[br]Forgive me.");
+        DialogueManager.Instance.QueueMessage(this, @"I'm sorry...\![br]I have failed you.");
+        await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnEndOfBattle(bool victory)

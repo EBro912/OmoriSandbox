@@ -11,6 +11,7 @@ public enum SkillTarget
     AllyNotSelf,
     AllAllies,
     Enemy,
+    XRandomEnemies,
     AllEnemies,
     AllyOrEnemy,
     DeadAlly,

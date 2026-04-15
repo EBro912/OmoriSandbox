@@ -16,11 +16,17 @@ internal sealed class KingCrawler : Enemy
     
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "hurt" || state == "toast" || state == "sad" || state == "angry" || state == "happy";
+        return state is "neutral" or "hurt" or "toast" or "sad" or "angry" or "happy";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasMultiTargetObserve())
+            return new BattleCommand(this, SelectAllTargets(), Skills["KCRam"]);
+        
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["KCAttack"]);
+        
         if (CurrentState == "angry")
         {
             if (Roll() < 41)
@@ -33,7 +39,7 @@ internal sealed class KingCrawler : Enemy
         if (Roll() < 41)
             return new BattleCommand(this, SelectTarget(), Skills["KCAttack"]);
         if (Roll() < 26)
-            return new BattleCommand(this, SelectTarget(), Skills["KCDoNothing"]);
+            return new BattleCommand(this, this, Skills["KCDoNothing"]);
         if (Roll() < 31)
             return new BattleCommand(this, SelectTarget(), Skills["KCCrunch"]);
         return new BattleCommand(this, SelectAllTargets(), Skills["KCRam"]);
@@ -44,7 +50,7 @@ internal sealed class KingCrawler : Enemy
     {
         if (CurrentHP < 365 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "Ssssssssssssss...");
+            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=12]Ssssssssssssssssssss...");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
@@ -82,7 +88,7 @@ internal sealed class KingCrawler : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "KISHKISHKISHKISH!!");
+            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=12]KISHKISHKISHKISHKISH!!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

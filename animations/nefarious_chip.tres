@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://st3higa4pe4e"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://st3higa4pe4e"]
 
 [ext_resource type="Texture2D" uid="uid://d14kqy3n2vo8k" path="res://assets/sv_actors/!battle_uncle_chip.png" id="1_n6vjv"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_gmvmm")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]

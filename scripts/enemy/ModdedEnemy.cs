@@ -20,59 +20,81 @@ internal class ModdedEnemy : Enemy
 
     public override string Name => JsonEnemy.Name.ToUpper();
 
-    protected override Stats Stats => new Stats(JsonEnemy.HP, JsonEnemy.Juice, JsonEnemy.ATK, JsonEnemy.DEF, JsonEnemy.SPD, JsonEnemy.LCK, JsonEnemy.HIT);
+    protected override Stats Stats => new(JsonEnemy.HP, JsonEnemy.Juice, JsonEnemy.ATK, JsonEnemy.DEF, JsonEnemy.SPD, JsonEnemy.LCK, JsonEnemy.HIT);
 
-    protected override string[] EquippedSkills => JsonEnemy.EquippedSkills;
+    protected override string[] EquippedSkills => JsonEnemy.EquippedSkills ?? [];
 
     public override bool IsStateValid(string state)
     {
-        return !JsonEnemy.InvalidStates.Contains(state);
+        return JsonEnemy.InvalidStates == null || !JsonEnemy.InvalidStates.Contains(state);
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (JsonEnemy.AI == null)
+        {
+            GD.PrintErr($"Modded enemy {Name} has no AI!");
+            return new BattleCommand(this, this, new EmptyAction());
+        }
+        
         JsonEnemyAIData data = JsonEnemy.AI.FirstOrDefault(x => x.Emotion == CurrentState);
         if (data.Equals(default(JsonEnemyAIData)))
         {
             GD.PrintErr($"Modded enemy {Name} is missing AI data for emotion {CurrentState}");
-            return new BattleCommand(this, [], null);
+            return new BattleCommand(this, this, new EmptyAction());
         }
         foreach (JsonEnemyAIEntry entry in data.Entries)
         {
+            if (HasMultiTargetObserve() && entry.Skill == JsonEnemy.ObserveMultiSkill)
+                if (TryUseSkill(entry, out BattleCommand command))
+                    return command;
+            
+            if (HasObserveTarget(out PartyMember observe) && entry.Skill == JsonEnemy.ObserveSingleSkill)
+                if (TryUseSkill(entry, out BattleCommand command))
+                    return command;
+            
             if (Roll() <= entry.Chance)
-            {
-                if (!Database.TryGetSkill(entry.Skill, out Skill skill))
-                {
-                    GD.PrintErr($"Unknown skill {entry.Skill} for modded enemy {Name}!");
-                    continue;
-                }
-                if (!Skills.TryGetValue(entry.Skill, out skill))
-                {
-                    GD.PrintErr($"Modded enemy {Name} does not have the {entry.Skill} skill equipped!");
-                    continue;
-                }
-
-                switch (skill.Target)
-                {
-                    case SkillTarget.Self:
-                        return new BattleCommand(this, this, skill);
-                    case SkillTarget.AllAllies:
-                        return new BattleCommand(this, SelectAllEnemies(), skill);
-                    case SkillTarget.AllEnemies:
-                        return new BattleCommand(this, SelectAllTargets(), skill);
-                    case SkillTarget.Ally:
-                    case SkillTarget.AllyNotSelf:    
-                        return new BattleCommand(this, SelectEnemy(), skill);
-                    case SkillTarget.Enemy:
-                    case SkillTarget.AllyOrEnemy:
-                        return new BattleCommand(this, SelectTarget(), skill);
-                    default:
-                        GD.PrintErr($"Skill {skill.Name} is not supported for enemies.");
-                        return new BattleCommand(this, [], null);
-                }
-            }
+                if (TryUseSkill(entry, out BattleCommand command))
+                    return command;
         }
         GD.PrintErr($"Modded enemy {Name} ProcessAI failed due to an error.");
-        return new BattleCommand(this, [], null);
+        return new BattleCommand(this, this, new EmptyAction());
+    }
+
+    private bool TryUseSkill(JsonEnemyAIEntry entry, out BattleCommand command)
+    {
+        if (!Database.TryGetSkill(entry.Skill, out Skill skill))
+        {
+            GD.PrintErr($"Unknown skill {entry.Skill} for modded enemy {Name}!");
+            command = null;
+            return false;
+        }
+        if (!Skills.TryGetValue(entry.Skill, out skill))
+        {
+            GD.PrintErr($"Modded enemy {Name} does not have the {entry.Skill} skill equipped!");
+            command = null;
+            return false;
+        }
+
+        command = skill.Target switch
+        {
+            SkillTarget.Self => new BattleCommand(this, this, skill),
+            SkillTarget.AllAllies => new BattleCommand(this, SelectAllEnemies(), skill),
+            SkillTarget.AllEnemies => new BattleCommand(this, SelectAllTargets(), skill),
+            SkillTarget.Ally or SkillTarget.AllyNotSelf => new BattleCommand(this, SelectEnemy(), skill),
+            SkillTarget.Enemy or SkillTarget.AllyOrEnemy => new BattleCommand(this, SelectTarget(), skill),
+            SkillTarget.XRandomEnemies when !entry.NumTargets.HasValue => null,
+            SkillTarget.XRandomEnemies when entry.NumTargets.HasValue => new BattleCommand(this,
+                SelectTargets(entry.NumTargets.Value), skill),
+            _ => null
+        };
+
+        if (command == null)
+        {
+            GD.PrintErr($"{skill.Name} on Modded Enemy is either missing data or not supported.");
+            return false;
+        }
+
+        return true;
     }
 }

@@ -1,82 +1,71 @@
+using System.Collections.Generic;
 using Godot;
 
 namespace OmoriSandbox;
 internal partial class StateAnimator : Node
 {
-	private Sprite2D StateSprite;
-	private Sprite2D FaceStateSprite;
+	[Export] private Sprite2D StateSprite;
+	[Export] private Sprite2D FaceStateSprite;
 
-	public override void _Ready()
+	// Atlas index of the above head emotion label
+	private readonly Dictionary<string, int> StateAtlases = new()
 	{
-		StateSprite = GetNode<Sprite2D>("../State");
-		FaceStateSprite = GetNode<Sprite2D>("../FaceState");
-	}
+		{ "neutral", 0 },
+		{ "victory", 0 },
+		{ "toast", 1 },
+		{ "stressed", 2},
+		{ "happy", 3 },
+		{ "ecstatic", 4 },
+		{ "manic", 5 },
+		{ "sad", 6 },
+		{ "depressed", 7 },
+		{ "miserable", 8 },
+		{ "angry", 9 },
+		{ "enraged", 10 },
+		{ "furious", 11 },
+		{ "afraid", 12 }
+	};
+
+	private readonly Dictionary<string, (int, int)> FaceStateAtlases = new()
+	{
+		{ "neutral", (0, 0) },
+		{ "victory", (0, 0) },
+		{ "toast", (1, 0) },
+		{ "stressed", (1, 0) },
+		{ "happy", (2, 0) },
+		{ "ecstatic", (3, 0) },
+		{ "manic", (0, 1) },
+		{ "sad", (1, 1) },
+		{ "depressed", (2, 1) },
+		{ "miserable", (3, 1) },
+		{ "angry", (0, 2) },
+		{ "enraged", (1, 2) },
+		{ "furious", (2, 2) },
+		{ "afraid", (3, 2) },
+		{ "plotarmor", (3, 2) }	
+	};
 
 	public void SetState(string state)
 	{
-		Rect2 target = new();
-		switch (state)
-		{
-			case "neutral":
-			case "victory":
-				StateSprite.RegionRect = StateAtlas(0);
-				target = FaceStateAtlas();
-				break;
-			case "toast":
-				StateSprite.RegionRect = StateAtlas(1);
-				target = FaceStateAtlas(1);
-				break;
-			case "stressed":
-				StateSprite.RegionRect = StateAtlas(2);
-				target = FaceStateAtlas(1);
-				break;
-			case "happy":
-				StateSprite.RegionRect = StateAtlas(3);
-				target = FaceStateAtlas(2);
-				break;
-			case "ecstatic":
-				StateSprite.RegionRect = StateAtlas(4);
-				target = FaceStateAtlas(3);
-				break;
-			case "manic":
-				StateSprite.RegionRect = StateAtlas(5);
-				target = FaceStateAtlas(0, 1);
-				break;
-			case "sad":
-				StateSprite.RegionRect = StateAtlas(6);
-				target = FaceStateAtlas(1, 1);
-				break;
-			case "depressed":
-				StateSprite.RegionRect = StateAtlas(7);
-				target = FaceStateAtlas(2, 1);
-				break;
-			case "miserable":
-				StateSprite.RegionRect = StateAtlas(8);
-				target = FaceStateAtlas(3, 1);
-				break;
-			case "angry":
-				StateSprite.RegionRect = StateAtlas(9);
-				target = FaceStateAtlas(0, 2);
-				break;
-			case "enraged":
-				StateSprite.RegionRect = StateAtlas(10);
-				target = FaceStateAtlas(1, 2);
-				break;
-			case "furious":
-				StateSprite.RegionRect = StateAtlas(11);
-				target = FaceStateAtlas(2, 2);
-				break;
-			case "afraid":
-				StateSprite.RegionRect = StateAtlas(12);
-				target = FaceStateAtlas(3, 2);
-				break;
-			case "plotarmor":
-				// special case for plot armor, the background gets set to "afraid" but emotion is kept
-				target = FaceStateAtlas(3, 2);
-				break;
+		// these are really only split up because of the special case with plot armor
+		// if emotion changes while in plot armor, the above head sprite changes
+		// but the back sprited does not
+		// TODO: improve once emotions are moved away from just being strings
+		SetStateAtlas(state);
+		SetFaceStateAtlas(state);
+	}
 
-		}
+	public void SetStateAtlas(string state)
+	{
+		StateSprite.RegionRect = StateAtlas(StateAtlases.GetValueOrDefault(state, 1));
+	}
 
+	private void SetFaceStateAtlas(string state)
+	{
+		if (!FaceStateAtlases.TryGetValue(state, out (int, int) index))
+			return;
+		
+		Rect2 target = FaceStateAtlas(index.Item1, index.Item2);
 		// emotions in the original game have a "fade in" effect here
 		// so we do that by making a copy of the back sprite and fading in the new one
 		FaceStateSprite.ZIndex = -4;

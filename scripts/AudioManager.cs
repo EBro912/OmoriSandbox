@@ -1,6 +1,9 @@
+using System;
 using Godot;
 using OmoriSandbox.Animation;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace OmoriSandbox;
 
@@ -9,12 +12,12 @@ namespace OmoriSandbox;
 /// </summary>
 public partial class AudioManager : Node
 {
-	[Export] private AudioStreamPlayer BGM;
+	[Export] internal AudioStreamPlayer BGM { get; private set; }
 
 	private readonly List<AudioStreamPlayer> AudioPlayers = [];
 
 	private readonly Dictionary<string, AudioStreamOggVorbis> SFXDictionary = [];
-	private readonly Dictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
+	private readonly SortedDictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
 
 	public static AudioManager Instance { get; private set; }
 
@@ -61,8 +64,18 @@ public partial class AudioManager : Node
 				}
 			}
 		}
-		GD.Print($"Preloaded {SFXDictionary.Count} SFX. ({failedPreloads} failures)");
-		// BGM.Finished += OnBGMFinish;
+		GD.Print($"Preloaded {SFXDictionary.Count} animation SFX. ({failedPreloads} failures)");
+		
+		// preload bgm
+		foreach (string bgm in ResourceLoader.ListDirectory("res://audio/bgm"))
+		{
+			AudioStreamOggVorbis stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + bgm);
+			stream.Loop = true;
+			stream.LoopOffset = 0;
+			BGMDictionary.Add(bgm.GetBaseName(), stream);
+		}
+
+		GD.Print($"Preloaded {BGMDictionary.Count} vanilla BGM.");
 	}
 
 	internal void PlaySFX(SFX sfx)
@@ -91,9 +104,11 @@ public partial class AudioManager : Node
 			SFXDictionary.Add(name, stream);
 		}
 
-		if (PlayingSounds.TryGetValue(name, out AudioStreamPlayer existing))
+		if (PlayingSounds.TryGetValue(stream.ResourcePath, out AudioStreamPlayer existing))
 		{
 			existing.Stream = stream;
+			existing.PitchScale = pitch;
+			existing.VolumeLinear = volume;
 			existing.Play();
 			return;
 		}
@@ -106,11 +121,11 @@ public partial class AudioManager : Node
 			player.PitchScale = pitch;
 			player.VolumeLinear = volume;
 			player.Play();
-			PlayingSounds.Add(name, player);
+			PlayingSounds.Add(stream.ResourcePath, player);
 			return;
 		}
 
-		GD.PushWarning("Overloaded! We ran out of AudioStreams!");
+		GD.Print("Overloaded! We ran out of AudioStreams!");
 	}
 
 	/// <summary>
@@ -119,42 +134,47 @@ public partial class AudioManager : Node
 	/// <param name="name">The name of the BGM to play.</param>
 	public void PlayBGM(string name)
 	{
-		if (!BGMDictionary.TryGetValue(name, out AudioStreamOggVorbis stream))
-		{
-			if (ResourceLoader.Exists("res://audio/bgm/" + name + ".ogg"))
-				stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + name + ".ogg");
-			else
-			{
-				GD.PrintErr("Unknown BGM: " + name);
-				return;
-			}
-			stream.Loop = true;
-			BGMDictionary.Add(name, stream);
-		}
-
-		BGM.Stream = stream;
-		BGM.PitchScale = 1f;
-		BGM.Play();
+		PlayBGM(name, 1f, 1f);
 	}
 
+	/// <summary>
+	/// Plays BGM with the given <paramref name="name"/> and desired parameters.
+	/// </summary>
+	/// <param name="name">The name of the BGM to play.</param>
+	/// <param name="volume">The volume to play the BGM at, from 0.001 to 2.0.</param>
+	/// <param name="pitch">The pitch to play the BGM at, from 0.1 to 2.0.</param>
 	public void PlayBGM(string name, float volume, float pitch)
 	{
-		if (!BGMDictionary.TryGetValue(name, out AudioStreamOggVorbis stream))
+		if (!TryGetBGM(name, out AudioStreamOggVorbis stream))
 		{
-			if (ResourceLoader.Exists("res://audio/bgm/" + name + ".ogg"))
-				stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + name + ".ogg");
-			else
-			{
-				GD.PrintErr("Unknown BGM: " + name);
-				return;
-			}
-			stream.Loop = true;
-			BGMDictionary.Add(name, stream);
+			GD.PrintErr("Unknown BGM: " + name);
+			return;
 		}
+		
+		// prevent people from blowing out their eardrums
+		volume = Math.Clamp(volume, 0.001f, 2f);
+		pitch = Math.Clamp(pitch, 0.1f, 2f);
+		
 		BGM.Stream = stream;
 		BGM.PitchScale = pitch;
 		BGM.VolumeDb = Mathf.LinearToDb(volume);
 		BGM.Play();
+	}
+
+	internal bool TryGetBGM(string name, out AudioStreamOggVorbis stream)
+	{
+		if (BGMDictionary.TryGetValue(name, out stream))
+			return true;
+		
+		if (ResourceLoader.Exists("res://audio/bgm/" + name + ".ogg"))
+		{
+			stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + name + ".ogg");
+			stream.Loop = true;
+			BGMDictionary.Add(name, stream);
+			return true;
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -165,48 +185,137 @@ public partial class AudioManager : Node
 		BGM.Stop();
 	}
 
+	/// <summary>
+	/// Pauses the currently playing BGM.
+	/// </summary>
+	public void PauseBGM(bool paused)
+	{
+		BGM.StreamPaused = paused;
+	}
+
+	/// <summary>
+	/// Seeks the BGM to the given time in seconds.
+	/// </summary>
+	/// <param name="seconds">The time to seek to, in seconds.</param>
+	public void SeekBGM(float seconds)
+	{
+		BGM.Seek(seconds);
+	}
+
+	/// <summary>
+	/// Sets the loop offset for the BGM.
+	/// </summary>
+	/// <param name="seconds">The time offset to loop to, in seconds. Values greater than the length of the track will be ignored.</param>
+	public void SetBGMLoopOffset(double seconds)
+	{
+		if (BGM.Stream is AudioStreamOggVorbis stream)
+		{
+			if (seconds < stream.GetLength())
+				stream.LoopOffset = seconds;
+		}
+	}
+
+	internal float GetBGMPosition()
+	{
+		return BGM.GetPlaybackPosition() + (float)AudioServer.GetTimeSinceLastMix();
+	}
+
 	internal bool LoadCustomBGM(string path)
 	{
+		string name = path.GetFile().GetBaseName();
+		if (BGMDictionary.ContainsKey(name))
+		{
+			GD.PushWarning($"BGM '{name}' already loaded, skipping.");
+			return true;
+		}
 		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
+		if (stream == null)
+		{
+			GD.PushError($"Failed to load BGM file: {path}");
+			return false;
+		}
 		stream.Loop = true;
-		return BGMDictionary.TryAdd(path.GetFile().GetBaseName(), stream);
+		return BGMDictionary.TryAdd(name, stream);
 	}
 
 	internal bool LoadCustomSFX(string path)
 	{
+		string name = path.GetFile().GetBaseName();
+		if (SFXDictionary.ContainsKey(name))
+		{
+			GD.PushWarning($"SFX '{name}' already loaded, skipping.");
+			return true;
+		}
 		AudioStreamOggVorbis stream = AudioStreamOggVorbis.LoadFromFile(path);
-		return SFXDictionary.TryAdd(path.GetFile().GetBaseName(), stream);
+		if (stream == null)
+		{
+			GD.PushError($"Failed to load SFX file: {path}");
+			return false;
+		}
+		return SFXDictionary.TryAdd(name, stream);
 	}
 
 	/// <summary>
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/>.
 	/// </summary>
-	/// <param name="volume">The volume to fade the BGM to.</param>
+	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 2.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public void FadeBGMTo(float volume, float seconds = 1f)
 	{
-		float current = AudioServer.GetBusVolumeDb(AudioServer.GetBusIndex("BGM"));
-		float target = current + Mathf.LinearToDb(volume / 100f);
-		Tween tween = CreateTween();
-		tween.TweenProperty(BGM, "volume_db", target, seconds);
+		volume = Math.Clamp(volume, 0.001f, 2f);
+		float target = Mathf.LinearToDb(volume);
+		if (seconds == 0f)
+			BGM.VolumeDb = target;
+		else
+		{
+			Tween tween = CreateTween();
+			tween.TweenProperty(BGM, "volume_db", target, seconds);
+		}
+	}
+
+	/// <summary>
+	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
+	/// </summary>
+	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 2.0.</param>
+	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
+	public async Task WaitForFadeBGMTo(float volume, float seconds = 1f)
+	{
+		volume = Math.Clamp(volume, 0.001f, 2f);
+		float target = Mathf.LinearToDb(volume);
+		if (seconds == 0f)
+			BGM.VolumeDb = target;
+		else
+		{
+			Tween tween = CreateTween();
+			tween.TweenProperty(BGM, "volume_db", target, seconds);
+			await ToSignal(tween, Tween.SignalName.Finished);
+		}
 	}
 
 	private void OnSFXFinish(AudioStreamPlayer player)
 	{
-		foreach (var pair in PlayingSounds)
-		{
-			if (pair.Value == player)
-			{
-				PlayingSounds.Remove(pair.Key);
-				player.PitchScale = 1f;
-				player.VolumeLinear = 1f;
-				break;
-			}
-		}
+		player.PitchScale = 1f;
+		player.VolumeLinear = 1f;
+		PlayingSounds.Remove(player.Stream.ResourcePath);
 	}
 
 	internal IEnumerable<string> GetAllBGM()
 	{
 		return BGMDictionary.Keys;
+	}
+
+	internal void Reset()
+	{
+		PlayingSounds.Clear();
+		BGM.Stop();
+		BGM.PitchScale = 1f;
+		BGM.VolumeDb = Mathf.LinearToDb(1f);
+		foreach (AudioStreamPlayer player in AudioPlayers)
+		{
+			player.Stop();
+			player.Stream = null;
+			player.PitchScale = 1f;
+			player.VolumeLinear = 1f;
+		}
 	}
 }

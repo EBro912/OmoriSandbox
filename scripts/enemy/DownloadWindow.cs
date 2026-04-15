@@ -17,6 +17,9 @@ internal sealed class DownloadWindow : Enemy
     private int TurnCounter = 0;
     public override BattleCommand ProcessAI()
     {
+        if (HasMultiTargetObserve())
+            return new BattleCommand(this, SelectAllTargets(), Skills["Crash"]);
+            
         TurnCounter++;
         return TurnCounter switch
         {

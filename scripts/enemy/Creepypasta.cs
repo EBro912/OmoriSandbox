@@ -15,6 +15,9 @@ internal sealed class Creepypasta : Enemy
   
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["CPAttack"]);
+        
         if (CurrentHP < 60)
             goto scare;
 

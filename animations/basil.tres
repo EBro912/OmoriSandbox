@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=44 format=3 uid="uid://cq6s5ln6ybqlg"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://cq6s5ln6ybqlg"]
 
 [ext_resource type="Texture2D" uid="uid://dxsptftmm7yyg" path="res://assets/faces/05_BASIL_BATTLE.png" id="1_ithts"]
 
@@ -184,7 +184,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"afraid",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -198,7 +198,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"angry",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -212,7 +212,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"depressed",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -226,7 +226,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"ecstatic",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -240,7 +240,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"enraged",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -254,7 +254,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"furious",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -268,7 +268,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"happy",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -282,7 +282,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"hurt",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -296,7 +296,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"manic",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -310,7 +310,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"miserable",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -324,7 +324,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"neutral",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -338,7 +338,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"sad",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -352,7 +352,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"toast",
-"speed": 4.5
+"speed": 5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -366,5 +366,5 @@ animations = [{
 }],
 "loop": true,
 "name": &"victory",
-"speed": 4.5
+"speed": 5
 }]

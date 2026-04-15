@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -14,11 +15,14 @@ internal sealed class PlutoExpanded : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "hurt" || state == "toast" || state == "sad" || state == "angry" || state == "happy";
+        return state is "neutral" or "hurt" or "toast" or "sad" or "angry" or "happy";
     }
 
     public override BattleCommand ProcessAI()
     {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["PEAttack"]);
+        
         if (CurrentHP < 300)
             return new BattleCommand(this, SelectAllTargets(), Skills["PEEarthsFinale"]);
 
@@ -35,29 +39,50 @@ internal sealed class PlutoExpanded : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "Behold...@\nThis is my final form.");
-        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "Can you...@ feel the heat?");
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Behold...\![br]This is my final form.");
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Can you...\! feel the heat?");
         await DialogueManager.Instance.WaitForDialogue();
     }
 
     private bool HasSpoken = false;
+    private bool HasMentionedFlex = false;
+    private string WhoFlexed;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
+        if (!HasMentionedFlex && WhoFlexed is null)
         {
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "Hm. Well done, children.@\nYou've come a long way.");
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "But...@\nI am not finished yet.");
-            await DialogueManager.Instance.WaitForDialogue();
-            return;
+            WhoFlexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"))?.Name;
         }
+        
+        if (CurrentHP <= 0)
+            return;
         
         if (CurrentHP < 1500 && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "... Ah, I see.");
+            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"...\! Ah.\! I see.");
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "You have all gotten stronger.");
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "But...@ so have I.");
+            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"But...\! so have I.");
             await DialogueManager.Instance.WaitForDialogue();
+            BattleManager.Instance.ForceCommand(this, this, Skills["PEExpandFurther"]);
             HasSpoken = true;
+        }
+    }
+
+    public override async Task OnDefeat()
+    {
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Hm.\! Well done, children.\![br]You've come a long way.");
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"But...\![br]I am not finished yet.");
+        await DialogueManager.Instance.WaitForDialogue();
+    }
+
+    public override async Task ProcessEndOfTurn()
+    {
+        if (!HasMentionedFlex && WhoFlexed != null)
+        {
+            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
+                $"Impressive progress, young {WhoFlexed.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
+            await DialogueManager.Instance.WaitForDialogue();
+            HasMentionedFlex = true;
         }
     }
 

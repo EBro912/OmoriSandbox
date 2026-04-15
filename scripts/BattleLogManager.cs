@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
 
@@ -18,7 +19,7 @@ public partial class BattleLogManager : Control
 	[Signal] public delegate void FinishedLoggingEventHandler();
 
 	[Export] private PackedScene LogLine;
-	[Export] private Label ImmediateLabel;
+	[Export] private RichTextLabel ImmediateLabel;
 	[Export] private Font Font;
 	[Export] private Sprite2D Icon;
 
@@ -42,16 +43,16 @@ public partial class BattleLogManager : Control
 		Instance = this;
 	}
 
-    /// <summary>
-    /// Queues a message to be displayed in the battle log that shows the names of actors.
-    /// </summary>
+	/// <summary>
+	/// Queues a message to be displayed in the battle log that shows the names of actors.
+	/// </summary>
 	/// <remarks>
 	/// You can use [actor] and [target] in the message string to replace them with <paramref name="self"/> and <paramref name="target"/> respectively.
 	/// </remarks>
-    /// <param name="self">The actor to replace [actor] with in the <paramref name="message"/>.</param>
-    /// <param name="target">The actor to replace [target] with in the <paramref name="message"/>.</param>
-    /// <param name="message">The message to display. Occurences of the \n character will split the message up into different logs.</param>
-    public void QueueMessage(Actor self, Actor target, string message)
+	/// <param name="self">The actor to replace [actor] with in the <paramref name="message"/>.</param>
+	/// <param name="target">The actor to replace [target] with in the <paramref name="message"/>.</param>
+	/// <param name="message">The message to display. Occurences of the \n character will split the message up into different logs.</param>
+	public void QueueMessage(Actor self, Actor target, string message)
 	{
 		QueueMessage(ParseMessage(self, target, message));
 	}
@@ -69,11 +70,11 @@ public partial class BattleLogManager : Control
 		QueueMessage(ParseMessage(actor, null, message));
 	}
 
-    /// <summary>
-    /// Queues a message to be displayed in the battle log.
-    /// </summary>
-    /// <param name="message">The message to display. Occurences of the \n character will split the message up into different logs.</param>
-    public void QueueMessage(string message)
+	/// <summary>
+	/// Queues a message to be displayed in the battle log.
+	/// </summary>
+	/// <param name="message">The message to display. Occurrences of the \n character will split the message up into different logs.</param>
+	public void QueueMessage(string message)
 	{
 		MessageQueue.Enqueue(message);
 
@@ -81,31 +82,25 @@ public partial class BattleLogManager : Control
 			ProcessMessage();
 	}
 
-    /// <summary>
-    /// Immediately shows a message in the battle log, bypassing the queue.<br/>
-	/// Will automatically resize the font to fit the message in the box.
-    /// </summary>
-    /// <param name="message">The message to display.</param>
-    public void ShowMessage(string message)
+	/// <summary>
+	/// Immediately shows a message in the battle log.<br/>
+	/// Accepts Godot BBCode for formatting.
+	/// </summary>
+	/// <param name="message">The message to display.</param>
+	public void ShowMessage(string message)
 	{
 		ImmediateLabel.Size = NO_ICON;
 		Icon.Visible = false;
 		ImmediateLabel.Text = message;
-		int fontSize = 24;
-		while (Font.GetMultilineStringSize(ImmediateLabel.Text, ImmediateLabel.HorizontalAlignment, -1, fontSize).X > ImmediateLabel.Size.X)
-		{
-			fontSize--;
-		}
-		ImmediateLabel.AddThemeFontSizeOverride("font_size", fontSize);
 	}
 
-    /// <summary>
-    /// Immediately shows a message in the battle log, bypassing the queue.<br/>
-    /// Also shows an item icon from the specified <see cref="spritesheetPath"/>.
-    /// </summary>
-    /// <param name="message">The message to display.</param>
-    /// <param name="spritesheetPath">The path to the spritesheet to use.</param>
-    /// <param name="index">The atlas index of the sprite.</param>
+	/// <summary>
+	/// Immediately shows a message in the battle log, as well as an item icon from the specified <see cref="spritesheetPath"/>.<br/>
+	/// Accepts Godot BBCode for formatting.
+	/// </summary>
+	/// <param name="message">The message to display.</param>
+	/// <param name="spritesheetPath">The path to the spritesheet to use.</param>
+	/// <param name="index">The atlas index of the sprite.</param>
 	public void ShowMessageWithIcon(string message, string spritesheetPath, int index)
 	{
 		ImmediateLabel.Size = WITH_ICON;
@@ -117,47 +112,41 @@ public partial class BattleLogManager : Control
 		Icon.RegionEnabled = true;
 		Icon.RegionRect = new Rect2(column * ICON_SIZE, row * ICON_SIZE, ICON_SIZE, ICON_SIZE);
 		ImmediateLabel.Text = message;
-		int fontSize = 24;
-		while (Font.GetMultilineStringSize(ImmediateLabel.Text, ImmediateLabel.HorizontalAlignment, -1, fontSize).X > ImmediateLabel.Size.X)
-		{
-			fontSize--;
-		}
-		ImmediateLabel.AddThemeFontSizeOverride("font_size", fontSize);
 	}
 
-    /// <summary>
-    /// Immediately shows a message in the battle log, clearing any queued or active messages first.
-    /// </summary>
-    /// <param name="message">The message to display.</param>
-    public void ClearAndShowMessage(string message)
+	/// <summary>
+	/// Immediately shows a message in the battle log, clearing any queued or active messages first.
+	/// </summary>
+	/// <param name="message">The message to display.</param>
+	public void ClearAndShowMessage(string message)
 	{
 		ClearBattleLog();
 		ShowMessage(message);
 	}
 
-    /// <summary>
-    /// Immediately shows a message in the battle log, clearing any queued or active messages first.<br/>
-    /// Also shows an item icon from the specified <see cref="spritesheetPath"/>.
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="spritesheetPath"></param>
-    /// <param name="index"></param>
+	/// <summary>
+	/// Immediately shows a message in the battle log, clearing any queued or active messages first.<br/>
+	/// Also shows an item icon from the specified <see cref="spritesheetPath"/>.
+	/// </summary>
+	/// <param name="message">The message to display.</param>
+	/// <param name="spritesheetPath">The path to the spritesheet to use.</param>
+	/// <param name="index">The atlas index of the sprite.</param>
 	public void ClearAndShowMessageWithIcon(string message, string spritesheetPath, int index)
 	{
 		ClearBattleLog();
 		ShowMessageWithIcon(message, spritesheetPath, index);
 	}
 
-    /// <summary>
-    /// Immediately shows a message in the battle log, clearing any queued or active messages first.
-    /// </summary>
-    /// <remarks>
+	/// <summary>
+	/// Immediately shows a message in the battle log, clearing any queued or active messages first.
+	/// </summary>
+	/// <remarks>
 	/// You can use [actor] and [target] in the message string to replace them with <paramref name="self"/> and <paramref name="target"/> respectively.
 	/// </remarks>
-    /// <param name="self">The actor representing the sender of the message.</param>
-    /// <param name="target">The actor representing the recipient of the message.</param>
-    /// <param name="message">The raw message to be formatted and displayed.</param>
-    public void ClearAndShowMessage(Actor self, Actor target, string message)
+	/// <param name="self">The actor representing the sender of the message.</param>
+	/// <param name="target">The actor representing the recipient of the message.</param>
+	/// <param name="message">The raw message to be formatted and displayed.</param>
+	public void ClearAndShowMessage(Actor self, Actor target, string message)
 	{
 		ClearAndShowMessage(ParseMessage(self, target, message));
 	}
@@ -169,23 +158,23 @@ public partial class BattleLogManager : Control
 	/// <remarks>
 	/// You can use [actor] and [target] in the message string to replace them with <paramref name="self"/> and <paramref name="target"/> respectively.
 	/// </remarks>
-    /// <param name="self"></param>
-    /// <param name="target"></param>
-    /// <param name="message"></param>
-    /// <param name="spritesheetPath"></param>
-    /// <param name="index"></param>
+	/// <param name="self"></param>
+	/// <param name="target"></param>
+	/// <param name="message"></param>
+	/// <param name="spritesheetPath"></param>
+	/// <param name="index"></param>
 	public void ClearAndShowMessageWithIcon(Actor self, Actor target, string message, string spritesheetPath, int index)
 	{
 		ClearAndShowMessageWithIcon(ParseMessage(self, target, message), spritesheetPath, index);
 	}
 
-    /// <summary>
-    /// Clears the battle log of all queued and active messages.
-    /// </summary>
+	/// <summary>
+	/// Clears the battle log of all queued and active messages.
+	/// </summary>
 	/// <remarks>
 	/// See <see cref="ClearAndShowMessage(string)"/> for a shorthand to clear the log and show a message.
 	/// </remarks>
-    public void ClearBattleLog()
+	public void ClearBattleLog()
 	{
 		MessageQueue.Clear();
 		LineQueue.Clear();
@@ -196,12 +185,27 @@ public partial class BattleLogManager : Control
 		IsProcessingMessage = false;
 	}
 
+	/// <summary>
+	/// Waits for the battle log to finish logging messages.
+	/// </summary>
+	/// <remarks>
+	/// This method should be avoided unless you know what you're doing.
+	/// In most situations, battle log waiting will be handled for you automatically.
+	/// </remarks>
+	public async Task WaitForBattleLog()
+	{
+		if (!IsProcessingMessage)
+			return;
+		
+		await ToSignal(this, SignalName.FinishedLogging);
+	}
+
 	private string ParseMessage(Actor self, Actor target, string message)
 	{
 		return message.Replace("[actor]", self == null ? "" : self.Name.ToUpper()).Replace("[target]", target == null ? "" : target.Name.ToUpper());
 	}
 
-	private async void ProcessMessage()
+	private async Task ProcessMessage()
 	{
 		IsProcessingMessage = true;
 		while (MessageQueue.Count > 0)
@@ -225,9 +229,9 @@ public partial class BattleLogManager : Control
 			await ProcessLines();
 		}
 
-        IsProcessingMessage = false;
-        EmitSignal(SignalName.FinishedLogging);
-    }
+		IsProcessingMessage = false;
+		EmitSignal(SignalName.FinishedLogging);
+	}
 
 	private async Task ProcessLines()
 	{
@@ -258,9 +262,9 @@ public partial class BattleLogManager : Control
 							   .SetTrans(Tween.TransitionType.Sine);
 			}
 
-			await ToSignal(GetTree().CreateTimer(0.4f), "timeout");
+			await ToSignal(GetTree().CreateTimer(MessageDelay), "timeout");
 		}
-    }
+	}
 
 	private List<string> WordWrap(string text)
 	{
@@ -290,11 +294,11 @@ public partial class BattleLogManager : Control
 		}
 		result.Add(line.ToString());
 		return result;
-    }
+	}
 
 	private void MoveOffScreen(Control line)
 	{
-		Tween tween = GetTree().CreateTween();
+		Tween tween = GetTree().CreateTween().SetParallel();
 		tween.TweenProperty(line, "position", new Vector2(11, -HEIGHT), 0.15f)
 			.SetTrans(Tween.TransitionType.Sine);
 		tween.TweenProperty(line, "modulate:a", 0f, 0.15f)
@@ -302,4 +306,5 @@ public partial class BattleLogManager : Control
 		tween.TweenCallback(Callable.From(() => line.QueueFree()));
 	}
 
+	private float MessageDelay => 1f - SettingsMenuManager.Instance.BattlelogSpeed * 0.15f;
 }

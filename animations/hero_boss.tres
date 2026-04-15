@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=26 format=3 uid="uid://1qvn2h4f01h4"]
+[gd_resource type="SpriteFrames" format=3 uid="uid://1qvn2h4f01h4"]
 
 [ext_resource type="Texture2D" uid="uid://csmifh4u8pkcr" path="res://assets/sv_actors/!simulation_hero.png" id="1_rhxvx"]
 
@@ -198,7 +198,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_sxydt")
 }],
-"loop": true,
+"loop": false,
 "name": &"toast",
 "speed": 5.0
 }]
