@@ -3,7 +3,10 @@
 
 [Discord](https://discord.gg/3sc4waMg2F)
 
-A battle simulator/sandbox for Omori, written in C# for the Godot engine. It aims to recreate the battle system in the game as accurately as possible, allowing users to create any kind of battle scenario they desire. I started this project in my attempt to learn the Godot engine through recreating a game that I thorougly enjoy.
+[Official Documentation](https://ebro912.gitbook.io/omorisandbox) 
+
+A battle simulator/sandbox for _OMORI_, written in C# for the Godot engine. It aims to recreate the battle system from the game as accurately as possible, allowing users to create any kind of battle scenario they desire.
+
 ## Installation
 Simply download the latest release archive from the "Releases" section and extract the contents to any folder. There are two versions to choose from:
 ### For Windows Users:
@@ -20,88 +23,16 @@ Either archive should contain two executables:
 
 To run the Sandbox, you can either use the provided `OmoriSandbox.sh` script, or run the `OmoriSandbox.x86_64` executable directly.
 
-## Usage
-**Important Note**: As of writing, the project is currently in an "alpha" state, allowing users to try out the sandbox for themselves during active development. While battles are functional from start to finish, __many features including skills, weapons, items, enemies, etc. are missing from the current build.__ Expect bugs, glitches, or potential inaccuracies. See the [To-Dos](#To-Dos) section to see the current status of any missing features. If you happen to find a bug, please report it in the "Issues" tab.
-
-When the Sandbox opens for the first time, it may appear to hang for a couple of seconds. This is **normal** and is simply the Sandbox loading all of its necessary files. After loading, the title screen will appear. There are four buttons available:
-1. "Play" will run the currently selected battle preset.
-2. "Configure" will open the visual preset configuration GUI.
-3. "Open Preset Folder" will open the folder where your presets are stored. **You should only directly modify these files if you know what you're doing.**
-4. "Open Mods Folder" will open the folder where your mods are stored. Modding is explained further below.
-
-## Configuring Battles
-Battles can be configured via the visual editor accessed by clicking the "Configure" button on the title screen. There are five tabs at the top of the screen, and various buttons laid out across the screen. When you are satisfied with your edits, you can enter a preset name into the input box and click `Save Preset` to save your preset. The preset will then appear in the dropdown in the main menu. Selecting your newly created preset and clicking "Play" will begin the battle! During a battle, you can select "Run" to return back to the title screen. If you click "Play" again, the battle will restart from the beginning.
-
-Each section of the editor is explained below:
-
-### Settings
-General settings for the battle. Most of the options are self-explainatory. 
-
-Choosing a Battleback will update the background of the editor to give you a preview of the currently selected battleback. 
-
-The BGM "Preview" button will play the currently selected audio track in the background. Clicking the "Stop" button will stop the audio.
-
-If `Use Basil Followups` is checked, the character in the bottom right corner will use Basil's Followups instead of Kel's.
-
-If `Use Basil Release Energy` is checked, Omori's "Release Energy" Followup will use the Basil version instead of the Omori version.
-
-### Items
-Click the `+ Add Item` button to add an item to your inventory. This section handles both Toys and Snacks. You can use the input box to set the amount of each item that you want, or press the `X` button to remove the item from your inventory.
-
-### Skill Search
-Allows you to search for skills to put into actor skill inputs as explained below. Type your search query into the search bar and click `Search` to pull up all internal skill names that match your query. It should be noted that skill names are case-sensitive and should be input as such.
-
-### Actors
-Clicking the `+ Add Actor` button in one of the corners will create a tab in this section. All aspects of said actor can be customized in each respective named tab.
-
-If `Disable Followups` is checked, that actor will not be able to use any followups. Useful for Real World actors.
-
-As mentioned in the previous section, each entry in the Skills section is case-sensitive, and must be entered exactly as they appear in the Skill Search. The `Attack Skill` section is the skill that gets used whenever the `Attack` button is selected. While this can be any skill, the regular attack skills follow the format of `XAttack`, where `X` is the actor's first initial. Real World actors use the format `XRWAttack`.
-
-For example, Omori would use `OAttack` for his attack, and Real World Aubrey would use `ARWAttack` for hers.
-
-### Enemies
-Clicking the `+ Add Enemy` button at the bottom will create a tab in this section. All aspects of said enemy can be customized in each respective named tab.
-
-The `XPos` and `YPos` boxes dictate the screen coordinates the enemy appears at, relative to the center of their sprite. `(0, 0)` is the top left, and `(640, 480)` is the bottom right of the screen.
-
-If `FallsOffScreen` is checked, the enemy will fall off the screen when defeated.
-
-The `Visible` checkbox is useful for when there are multiple enemies on the screen, or when an enemy is blocking something you need to see. This checkbox has no effect in battle.
+## More Information
+You can visit the [Official Documentation](https://ebro912.gitbook.io/omorisandbox) to read more about how the sandbox works, configuration options, important file paths and folders, and modding.
 
 ## Modding
-As of update v0.8, official modding is now supported! You can read more about creating file driven, JSON, and fully fledged C# mods on the official [Modding Wiki](https://github.com/EBro912/OmoriSandbox/wiki).
+As of update v0.8, official modding is now supported! You can read more about creating file driven, JSON, and fully fledged C# mods on the official [Modding Wiki](https://ebro912.gitbook.io/omorisandbox/modding/overview).
 
 If you are looking to port your custom battlebacks and BGM from an older version, you will need to create a basic "mod" in order to load these. This process is very similar to the old `/custom` folder system and requires no coding and minimal JSON configuration. See the above wiki for more info.
 
-**Important Note:**
+**Important Note**
 When it comes to loading C# mods, **OmoriSandbox does not perform any kind of sandboxing or malware checking when loading mods**, meaning a malicious actor can create a mod that may harm your system. When using C#/`.dll` driven mods, ensure that you trust the author. You can use a program such as [dnSpy](https://github.com/dnSpy/dnSpy) or [VirusTotal](https://www.virustotal.com/gui/) in order to read the mod code or check the file for viruses before loading it into OmoriSandbox.
-
-## To-Dos
-The following features are currently missing and/or not fully functional in the Sandbox, and will be periodically added through updates. This list may shrink or grow at any time depending on updates and bug reports:
-### Missing Completely
-- [ ] Some Screen Tint/Wave Effects
-- [ ] Faraway Town Snacks and Toys
-- [ ] Sales Tag, Chef's Hat, Contract, Abbi's Eye, Unused Charms
-### In Progress/Partially Functional
-- [ ] Boss-Specific Behavior
-- [ ] Game Over
-- [ ] General Refactoring and Code Improvements
-- [ ] Official Mod Support/Modding API + Documentation
-### Planned Changes/Additions
-- [ ] Porting more enemies and boss fights
-### Finished
-- [X] Dots animation on the Energy Bar
-- [x] Tier 2 and 3 Followups
-- [x] Omori's special skills (Vertigo, Cripple, Suffocate)
-- [X] In-Battle Dialogue
-- [X] Any skills that perform a Taunt
-- [x] Afraid and Stressed Out
-- [X] Party sizes below 4
-- [x] Skills that use the `<Not User>` tag
-- [X] Skill/Item descriptions that use character names
-- [X] Title Screen
-- [X] A GUI driven config system
 
 ## Contributing
 Contributions to the project are welcome! You can help contribute to the project in three main ways:
