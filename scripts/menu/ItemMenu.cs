@@ -67,7 +67,7 @@ internal partial class ItemMenu : Menu
 	private void UpdatePage()
 	{
         CostText.Text = "";
-        foreach (Label l in ItemLabels)
+        foreach (AutofitLabel l in ItemLabels)
             l.Text = "";
         if (Empty)
 		{
@@ -124,7 +124,7 @@ internal partial class ItemMenu : Menu
 			else if (Page > 0)
 			{
 				Page--;
-				CursorIndex = 1;
+				CursorIndex = 3;
 				AudioManager.Instance.PlaySFX("SYS_move");
 				UpdatePage();
 				return;
@@ -137,7 +137,7 @@ internal partial class ItemMenu : Menu
 			else if (Page < MaxPage)
 			{
 				Page++;
-				CursorIndex -= 1;
+				CursorIndex = 0;
 				AudioManager.Instance.PlaySFX("SYS_move");
 				UpdatePage();
 				return;

@@ -14,19 +14,22 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 	[Export] private Label DEFLabel;
 	[Export] private Label LCKLabel;
 	[Export] private Label HITLabel;
+	[Export] private StateAnimator Animator;
 
 	internal override void SetEnemy(Enemy enemy)
 	{
 		base.SetEnemy(enemy);
-		JuiceBar.MaxValue = Enemy.BaseStats.MaxJuice;
+		Stats stats = Enemy.CurrentStats;
+		JuiceBar.MaxValue = stats.MaxJuice;
 		JuiceBar.Value = Enemy.CurrentJuice;
-		HPLabel.Text = $"{Enemy.CurrentHP}/{Enemy.BaseStats.MaxHP}";
-		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{Enemy.BaseStats.MaxJuice}";
-		ATKLabel.Text = $"ATK: {Enemy.BaseStats.ATK}";
-		SPDLabel.Text = $"SPD: {Enemy.BaseStats.SPD}";
-		DEFLabel.Text = $"DEF: {Enemy.BaseStats.DEF}";
-		LCKLabel.Text = $"LCK: {Enemy.BaseStats.LCK}";
-		HITLabel.Text = $"HIT: {Enemy.BaseStats.HIT}";
+		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
+		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{stats.MaxJuice}";
+		ATKLabel.Text = $"ATK: {stats.ATK}";
+		SPDLabel.Text = $"SPD: {stats.SPD}";
+		DEFLabel.Text = $"DEF: {stats.DEF}";
+		LCKLabel.Text = $"LCK: {stats.LCK}";
+		HITLabel.Text = $"HIT: {stats.HIT}";
+		Animator.SetStateAtlas(Enemy.CurrentState);
 	}
 	
 	internal override void Show(bool show)
@@ -41,5 +44,6 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		DEFLabel.Text = $"DEF: {stats.DEF}";
 		LCKLabel.Text = $"LCK: {stats.LCK}";
 		HITLabel.Text = $"HIT: {stats.HIT}";
+		Animator.SetStateAtlas(Enemy.CurrentState);
 	}
 }

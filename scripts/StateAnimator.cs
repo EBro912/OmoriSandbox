@@ -4,8 +4,8 @@ using Godot;
 namespace OmoriSandbox;
 internal partial class StateAnimator : Node
 {
-	private Sprite2D StateSprite;
-	private Sprite2D FaceStateSprite;
+	[Export] private Sprite2D StateSprite;
+	[Export] private Sprite2D FaceStateSprite;
 
 	// Atlas index of the above head emotion label
 	private readonly Dictionary<string, int> StateAtlases = new()
@@ -45,12 +45,6 @@ internal partial class StateAnimator : Node
 		{ "plotarmor", (3, 2) }	
 	};
 
-	public override void _Ready()
-	{
-		StateSprite = GetNode<Sprite2D>("../State");
-		FaceStateSprite = GetNode<Sprite2D>("../FaceState");
-	}
-
 	public void SetState(string state)
 	{
 		// these are really only split up because of the special case with plot armor
@@ -63,10 +57,7 @@ internal partial class StateAnimator : Node
 
 	public void SetStateAtlas(string state)
 	{
-		if (StateAtlases.TryGetValue(state, out int index))
-		{
-			StateSprite.RegionRect = StateAtlas(index);
-		}
+		StateSprite.RegionRect = StateAtlas(StateAtlases.GetValueOrDefault(state, 1));
 	}
 
 	private void SetFaceStateAtlas(string state)

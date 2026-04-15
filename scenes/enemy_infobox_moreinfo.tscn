@@ -10,8 +10,11 @@
 [ext_resource type="Texture2D" uid="uid://du18ijwocpr68" path="res://assets/system/enemy_box_juice_back.png" id="6_5yeuq"]
 [ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="6_wl8cr"]
 [ext_resource type="Texture2D" uid="uid://cm4s47h547fbp" path="res://assets/system/enemy_box_juice.png" id="7_dt8gn"]
+[ext_resource type="Texture2D" uid="uid://de6mtfata36wd" path="res://assets/system/statelist.png" id="10_3bapk"]
+[ext_resource type="Texture2D" uid="uid://csbpqs4le5y8m" path="res://assets/system/emotion_box.png" id="11_itdm3"]
+[ext_resource type="PackedScene" uid="uid://bq6cqi4jmrqwe" path="res://scenes/StateAnimatorComponent.tscn" id="13_m53md"]
 
-[node name="AboveHead" type="Control" unique_id=1300360389 node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "DEFLabel", "LCKLabel", "HITLabel", "Infobox", "NameLabel", "HPBar", "StateIcons")]
+[node name="AboveHead" type="Control" unique_id=1300360389 node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "DEFLabel", "LCKLabel", "HITLabel", "Animator", "Infobox", "NameLabel", "HPBar", "StateIcons")]
 z_index = 100
 z_as_relative = false
 layout_mode = 3
@@ -27,6 +30,7 @@ SPDLabel = NodePath("Infobox/SPDLabel")
 DEFLabel = NodePath("Infobox/DEFLabel")
 LCKLabel = NodePath("Infobox/LCKLabel")
 HITLabel = NodePath("Infobox/HITLabel")
+Animator = NodePath("StateAnimatorComponent")
 Infobox = NodePath("Infobox")
 NameLabel = NodePath("Infobox/Name")
 HPBar = NodePath("Infobox/Health")
@@ -73,9 +77,8 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -40.0
-offset_top = -1.5
 offset_right = 53.0
-offset_bottom = 10.5
+offset_bottom = 12.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
@@ -114,9 +117,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -39.5
-offset_top = 15.5
+offset_top = 17.0
 offset_right = 53.5
-offset_bottom = 27.5
+offset_bottom = 29.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
@@ -239,6 +242,18 @@ theme_override_font_sizes/font_size = 17
 text = "HIT: 0"
 horizontal_alignment = 2
 
+[node name="State" type="Sprite2D" parent="Infobox" unique_id=89515979]
+position = Vector2(0, 31)
+texture = ExtResource("10_3bapk")
+offset = Vector2(110, -42)
+region_enabled = true
+region_rect = Rect2(17, 0, 98, 22)
+
+[node name="Box" type="Sprite2D" parent="Infobox/State" unique_id=155532438]
+show_behind_parent = true
+position = Vector2(110, -41.5)
+texture = ExtResource("11_itdm3")
+
 [node name="Cursor" type="Sprite2D" parent="." unique_id=1285840323]
 rotation = -1.5708
 texture = ExtResource("6_3bapk")
@@ -252,14 +267,17 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -58.0
-offset_top = -155.0
-offset_right = 58.0
-offset_bottom = -90.999985
+offset_left = -85.91
+offset_top = -200.0
+offset_right = 86.09
+offset_bottom = -112.0
 grow_horizontal = 2
 grow_vertical = 0
-pivot_offset = Vector2(58, 0)
+pivot_offset = Vector2(86, 0)
 theme_override_constants/h_separation = -4
 theme_override_constants/v_separation = -4
 alignment = 1
 reverse_fill = true
+
+[node name="StateAnimatorComponent" parent="." unique_id=862267198 node_paths=PackedStringArray("StateSprite") instance=ExtResource("13_m53md")]
+StateSprite = NodePath("../Infobox/State")

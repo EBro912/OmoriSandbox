@@ -116,7 +116,9 @@ text = "0/0"
 label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2
 
-[node name="StateAnimatorComponent" parent="Battlecard" unique_id=703804128 instance=ExtResource("5_xyj2y")]
+[node name="StateAnimatorComponent" parent="Battlecard" unique_id=703804128 node_paths=PackedStringArray("StateSprite", "FaceStateSprite") instance=ExtResource("5_xyj2y")]
+StateSprite = NodePath("../State")
+FaceStateSprite = NodePath("../FaceState")
 
 [node name="StateIcons" type="HFlowContainer" parent="." unique_id=661376389]
 z_index = -1
@@ -126,7 +128,7 @@ anchor_left = 0.5
 anchor_right = 0.5
 offset_top = 165.0
 offset_right = 116.0
-offset_bottom = 229.00002
+offset_bottom = 280.99997
 grow_horizontal = 2
 pivot_offset = Vector2(58, 0)
 theme_override_constants/h_separation = -4

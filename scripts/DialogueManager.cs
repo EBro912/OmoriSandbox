@@ -350,6 +350,7 @@ public partial class DialogueManager : Node2D
 		{
 			if (!WaitingForTimer) return;
 			WaitingForTimer = false;
+			if (!Visible) return;
 			IsTyping = true;
 		};
 	}

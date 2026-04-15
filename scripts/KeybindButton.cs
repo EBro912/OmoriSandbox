@@ -8,6 +8,8 @@ internal partial class KeybindButton : Control
     [Export] public Key DefaultKey { get; private set; }
     public Key CurrentKey { get; private set; }
     private bool WaitingForInput = false;
+    private const double WaitTimeout = 10d;
+    private double WaitTime = 0;
     
     private Button KeyButton;
     
@@ -23,6 +25,20 @@ internal partial class KeybindButton : Control
             WaitingForInput = true;
             KeyButton.Text = "...";
         };
+    }
+
+    public override void _Process(double delta)
+    {
+        if (!WaitingForInput) 
+            return;
+        
+        WaitTime += delta;
+        if (WaitTime >= WaitTimeout)
+        {
+            WaitingForInput = false;
+            KeyButton.Text = OS.GetKeycodeString(CurrentKey);
+            WaitTime = 0;
+        }
     }
 
     public override void _Input(InputEvent @event)

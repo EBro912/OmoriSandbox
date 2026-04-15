@@ -75,12 +75,10 @@ public struct Stats
     /// <param name="value">The value to set the stat to.</param>"
     public void SetStat(StatType stat, int value)
     {
-        if (stat is StatType.MaxHP)
-            value = Math.Max(1, value);
-        else if (stat is StatType.MaxJuice)
+        if (stat is StatType.MaxJuice or StatType.MaxHP)
             value = Math.Max(0, value);
         else
-            value = SettingsMenuManager.Instance.DisableStatLimit ? Math.Max(0, value) : Math.Clamp(value, 0, 999);
+            value = SettingsMenuManager.Instance.DisableStatLimit ? Math.Max(1, value) : Math.Clamp(value, 1, 999);
         switch (stat)
         {
             case StatType.MaxHP: MaxHP = value; break;

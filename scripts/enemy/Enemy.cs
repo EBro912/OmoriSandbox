@@ -30,7 +30,7 @@ public abstract class Enemy : Actor
 		Sprite.Animation = initialState;
 		Sprite.Play();
 		CurrentState = initialState;
-		BaseStats = Stats;
+		SetBaseStats(Stats);
 		CurrentHP = BaseStats.HP;
 		CurrentJuice = BaseStats.Juice;
 

@@ -306,12 +306,5 @@ public partial class BattleLogManager : Control
 		tween.TweenCallback(Callable.From(() => line.QueueFree()));
 	}
 
-	private float MessageDelay => SettingsMenuManager.Instance.BattlelogSpeed switch
-	{
-		1 => 0.8f,
-		2 => 0.6f,
-		4 => 0.25f,
-		5 => 0.15f,
-		_ => 0.4f
-	};
+	private float MessageDelay => 1f - SettingsMenuManager.Instance.BattlelogSpeed * 0.15f;
 }

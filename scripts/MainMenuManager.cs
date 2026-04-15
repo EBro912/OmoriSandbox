@@ -34,7 +34,7 @@ internal partial class MainMenuManager : Node
 			}
 
 			LastLoadedPreset = presetName;
-			GameManager.Instance.LoadBattlePreset(preset);
+			GameManager.Instance.LoadBattlePreset(preset, (int)StageSelectorSpinBox.Value);
 			MainMenu.Visible = false;
 		};
 
@@ -139,6 +139,12 @@ internal partial class MainMenuManager : Node
 			}
 		};
 
+		TitlePresetDropdown.ItemSelected += index =>
+		{
+			if (index == -1)
+				return;
+			UpdateStageSelectorVisiblity((int)index);
+		};
 	}
 
 	private void EnterEditor()
@@ -176,7 +182,11 @@ internal partial class MainMenuManager : Node
 	{
 		int index = TitlePresetDropdown.GetItemIndex(LastLoadedPreset);
 		if (index > -1)
+		{
 			TitlePresetDropdown.Selected = index;
+			UpdateStageSelectorVisiblity(index);
+		}
+
 		AnimationManager.Instance.StopAllAnimations();
 		AudioManager.Instance.PlayBGM("ow_cattail_fields");
 		PlayButton.Visible = true;
@@ -188,6 +198,24 @@ internal partial class MainMenuManager : Node
 		Editor.Visible = false;
 		GameManager.Instance.DiscordManager.SetMainMenu();
 		Engine.TimeScale = 1f;
+	}
+
+	private void UpdateStageSelectorVisiblity(int index)
+	{
+		string selected = TitlePresetDropdown.GetItemText(index);
+		if (PresetManager.Instance.TryGetPreset(selected, out BattlePreset preset))
+		{
+			if (preset.Type is GameModeType.BossRush)
+			{
+				StageSelectorParent.Visible = true;
+				StageSelectorSpinBox.MaxValue = preset.Stages.Count - 1;
+				StageSelectorSpinBox.Value = 0;
+			}
+			else
+			{
+				StageSelectorParent.Visible = false;
+			}
+		}
 	}
 
 	public static MainMenuManager Instance;
@@ -219,4 +247,6 @@ internal partial class MainMenuManager : Node
 	[Export] private Button CreditsBackButton;
 	[Export] private Panel CreditsPanel;
 	[Export] private OptionButton TitlePresetDropdown;
+	[Export] private HBoxContainer StageSelectorParent;
+	[Export] private SpinBox StageSelectorSpinBox;
 }

@@ -25,7 +25,7 @@ public sealed class MinionBarrierModifier : StatModifier
         if (allEnemies.Count == 1)
             return;
         
-        int shared = (int)Math.Ceiling(damage / allEnemies.Count - 1);
+        int shared = (int)Math.Ceiling(damage / (allEnemies.Count - 1));
         foreach (Enemy enemy in allEnemies)
         {
             if (enemy == defender)

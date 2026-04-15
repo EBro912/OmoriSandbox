@@ -29,7 +29,7 @@ public abstract class PartyMember : Actor
         // init stats
         Level = actor.Level;
         int idx = actor.Level - 1;
-		BaseStats = new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats;
+		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
 		if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
 		{
 			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
@@ -85,7 +85,11 @@ public abstract class PartyMember : Actor
 	/// <inheritdoc/>
 	public override bool IsStateValid(string state)
 	{
-		return state is "neutral" or "toast" or "victory" || !(InvalidStates.Any(x => x == state) || (Charm != null && Charm.Name == "Paper Bag"));
+		if (state is "neutral" or "toast" or "victory")
+			return true;
+		if (Charm?.Name == "Paper Bag")
+			return false;
+		return !InvalidStates.Contains(state);
 	}
 
     /// <inheritdoc/>

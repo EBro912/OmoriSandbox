@@ -36,7 +36,7 @@ public abstract class Actor
 	/// <summary>
 	/// The actor's sprite.
 	/// </summary>
-	public AnimatedSprite2D Sprite;
+	public AnimatedSprite2D Sprite { get; protected set; }
 	/// <summary>
 	/// The center point of the actor, calculated by the center of its sprite.
 	/// </summary>
@@ -48,9 +48,15 @@ public abstract class Actor
 	/// <summary>
 	/// The skills the actor has equipped.
 	/// </summary>
-	public Dictionary<string, Skill> Skills = [];
+	public readonly Dictionary<string, Skill> Skills = [];
 
-	public Stats BaseStats;
+	/// <summary>
+	/// The actor's absolute base stats with no modifications.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="GetBaseStats"/> should usually be used instead, as it takes things like Weapons and Charms into account for PartyMembers.
+	/// </remarks>
+	protected Stats BaseStats { get; private set; }
 
     /// <summary>
     /// The actor's level. Mainly only used for <see cref="PartyMember"/>s.
@@ -106,6 +112,15 @@ public abstract class Actor
 	/// </summary>
 	/// <returns></returns>
 	protected virtual Stats GetBaseStats() { return BaseStats; }
+
+	/// <summary>
+	/// Sets the base stats for this actor.
+	/// </summary>
+	/// <param name="stats">The Stats to set.</param>
+	protected void SetBaseStats(Stats stats)
+	{
+		BaseStats = stats;
+	}
 
 	/// <summary>
 	/// The Actor's base stats, any adjusted stats from equips or modifiers, and emotion stats.
@@ -238,14 +253,6 @@ public abstract class Actor
 	{
 		foreach (var mod in StatModifiers)
 		{
-			if (mod.Value is PlotArmorStatModifier)
-			{
-				StatModifiers.Remove("PlotArmor");
-				SetState(CurrentState, true);
-				GD.Print("Removed modifier " + mod.Key + " from " + Name);
-				continue;
-			}
-			
 			if (mod.Value.TurnsLeft != -1)
 			{
 				mod.Value.DecreaseTurns();

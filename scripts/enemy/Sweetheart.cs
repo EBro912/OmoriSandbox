@@ -176,16 +176,11 @@ internal sealed class Sweetheart : Enemy
 		UsedDonut = false;
 	}
 
-	public override Task OnStartOfBattle()
+	protected override Stats GetBaseStats()
 	{
-		OnStateChanged += (_, _) =>
-		{
-			if (CurrentState is "ecstatic" or "manic")
-				BaseStats = new(3300, 1650, 30, 25, 40, 30, 90);
-			else
-				BaseStats = new(3300, 1650, 30, 25, 40, 10, 90);
-		};
-		return Task.CompletedTask;
+		if (CurrentState is "ecstatic" or "manic")
+			return new Stats(3300, 1650, 30, 25, 40, 30, 90);
+		return new Stats(3300, 1650, 30, 25, 40, 10, 90);
 	}
 
 	public override async Task OnEndOfBattle(bool victory)

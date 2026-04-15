@@ -5,7 +5,10 @@ internal interface ISkinnableMenu
     void SetSkinMode(MenuSkinMode mode);
 }
 
-internal enum MenuSkinMode
+/// <summary>
+/// The skin a battle menu can appear as.
+/// </summary>
+public enum MenuSkinMode
 {
     Dreamworld,
     Faraway,

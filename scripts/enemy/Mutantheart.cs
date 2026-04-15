@@ -86,6 +86,9 @@ internal sealed class Mutantheart : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
+        if (CurrentHP <= 0)
+            return;
+        
         bool failed = false;
         foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
         {

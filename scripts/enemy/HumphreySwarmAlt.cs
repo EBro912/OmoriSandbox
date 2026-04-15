@@ -69,8 +69,8 @@ internal sealed class HumphreySwarmAlt : Enemy
     {
         if (CurrentHP < 999 && !HasTransformed)
         {
-            await ChangePhase();
             HasTransformed = true;
+            await ChangePhase();
         }
     }
 
@@ -78,8 +78,8 @@ internal sealed class HumphreySwarmAlt : Enemy
     {
         if (Turn >= 5 && !HasTransformed)
         {
-            await ChangePhase();
             HasTransformed = true;
+            await ChangePhase();
         }
     }
 

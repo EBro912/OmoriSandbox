@@ -138,14 +138,12 @@ public partial class BattleManager : Node
 		{
 			Reset();
 			ReloadPreset();
-			StageSelectorSpinBox.Value = 0;
 		};
 
 		EndOfBattleOptionsContainer.GetChild(1).GetChild<Button>(1).Pressed += () =>
 		{
 			Reset();
 			MainMenuManager.Instance.ReturnToTitle();
-			StageSelectorSpinBox.Value = 0;
 		};
 
 		StageSelectorContainer.Visible = false;
@@ -154,18 +152,30 @@ public partial class BattleManager : Node
 	}
 
 	internal void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies,
-		List<BattlePresetBossRushStage> stages, BattlePreset preset)
+		List<BattlePresetBossRushStage> stages, BattlePreset preset, int startingStage)
 	{
 		GameType = preset.Type;
 		CurrentParty = party.OrderBy(x => x.Position).ToList();
 		Stages = stages;
+		
 		if (GameType is GameModeType.Normal)
+		{
 			Enemies = enemies;
+			CurrentStage = -1;
+			GameManager.Instance.SetBattleback(preset.Battleback);
+			AudioManager.Instance.PlayBGM(preset.BGM, 1f, (float)preset.BGMPitch);
+			AudioManager.Instance.SetBGMLoopOffset(preset.BGMLoopPoint);
+		}
 		else
 		{
 			Enemies = [];
-			CurrentStage = (int)StageSelectorSpinBox.Value;
+			CurrentStage = startingStage;
 			SummonEnemiesForStage(stages[CurrentStage].Enemies);
+			StageSelectorSpinBox.MaxValue = stages.Count - 1;
+			StageSelectorSpinBox.Value = startingStage;
+			GameManager.Instance.SetBattleback(preset.Stages[CurrentStage].Battleback);
+			AudioManager.Instance.PlayBGM(preset.Stages[CurrentStage].BGM, 1f, (float)preset.Stages[CurrentStage].BGMPitch);
+			AudioManager.Instance.SetBGMLoopOffset(preset.Stages[CurrentStage].BGMLoopPoint);
 		}
 
 		Items = preset.Items.ToDictionary();
@@ -176,7 +186,6 @@ public partial class BattleManager : Node
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
-		StageSelectorSpinBox.Value = 0;
 
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
 
@@ -590,7 +599,7 @@ public partial class BattleManager : Node
 			GD.PrintErr("Could not find preset: " + presetName);
 			return;
 		}
-		GameManager.Instance.LoadBattlePreset(preset);
+		GameManager.Instance.LoadBattlePreset(preset, (int)StageSelectorSpinBox.Value);
 	}
 
 	internal void OnSelectAttack()
@@ -717,7 +726,11 @@ public partial class BattleManager : Node
 				if (!ProcessedStartOfCommands)
 				{
 					foreach (EnemyComponent enemy in Enemies.ToList())
+					{
+						if (enemy.Actor.CurrentState == "toast")
+							continue;
 						await enemy.Actor.ProcessStartOfCommands();
+					}
 					ProcessedStartOfCommands = true;
 				}
 
@@ -745,10 +758,7 @@ public partial class BattleManager : Node
 						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
 					}
 
-					if (SettingsMenuManager.Instance.ShowStateIcons)
-					{
-						member.UpdateStateIcons();
-					}
+					member.UpdateStateIcons();
 
 					if (member.Actor.HasStatModifier("PlotArmor")
 					    && member.Actor.StatModifiers["PlotArmor"] is PlotArmorStatModifier pa
@@ -950,7 +960,9 @@ public partial class BattleManager : Node
 			foreach (PartyMemberComponent member in CurrentParty.Where(x => x.Actor.CurrentState != "toast"))
 			{
 				foreach (StatModifier modifier in member.Actor.StatModifiers.Values)
+				{
 					modifier.OnStartOfTurn(member.Actor);
+				}
 
 				await member.Actor.Weapon.StartOfTurn(member.Actor);
 				if (member.Actor.Charm != null)
@@ -958,7 +970,11 @@ public partial class BattleManager : Node
 			}
 
 			foreach (EnemyComponent e in Enemies)
+			{
+				if (e.Actor.CurrentState == "toast")
+					continue;
 				await e.Actor.ProcessStartOfTurn();
+			}
 
 			ProcessedStartOfTurn = true;
 		}
@@ -1171,7 +1187,17 @@ public partial class BattleManager : Node
 				foreach (Actor target in currentAction.Targets)
 				{
 					if (IsInvalidTarget(target))
-						resolvedTargets.Add(target is Enemy ? GetRandomAliveEnemy() : GetRandomAlivePartyMember());
+					{
+						Actor newTarget = target is Enemy ? GetRandomAliveEnemy() : GetRandomAlivePartyMember();
+						if (newTarget == null)
+						{
+							BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
+							                                       "'s skill did nothing.");
+							SetPhase(BattlePhase.WaitForBattleLog);
+							return;
+						}
+						resolvedTargets.Add(newTarget);
+					}
 					else
 					{
 						resolvedTargets.Add(target);
@@ -1248,6 +1274,14 @@ public partial class BattleManager : Node
 
 		if (currentAction.Action is Skill skill)
 		{
+			if (!skill.MeetsRequirements(currentAction.Actor))
+			{
+				BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
+				                                       " is too AFRAID to move!");
+				SetPhase(BattlePhase.WaitForBattleLog);
+				return;
+			}
+			
 			int skillCost = skill.Cost(currentAction.Actor);
 			if (skillCost > 0)
 			{
@@ -1405,10 +1439,16 @@ public partial class BattleManager : Node
 				x.Actor.DecreaseStatTurnCounter();
 				x.UpdateStateIcons();
 			});
-			Enemies.ForEach(x => x.Actor.DecreaseStatTurnCounter());
+			Enemies.ForEach(x =>
+			{
+				if (x.Actor.CurrentState != "toast")
+					x.Actor.DecreaseStatTurnCounter();
+			});
 
 			foreach (EnemyComponent enemy in Enemies.ToList())
 			{
+				if (enemy.Actor.CurrentState == "toast")
+					continue;
 				await enemy.Actor.ProcessEndOfTurn();
 			}
 
@@ -1461,6 +1501,32 @@ public partial class BattleManager : Node
 	/// </summary>
 	public async void CheckBattleOver()
 	{
+		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
+		{
+			SetPhase(BattlePhase.BattleOver);
+			await EndOfBattle(false);
+			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
+			                                              "'s party was defeated...");
+			ShowEndOfBattleOptions();
+			return;
+		}
+
+		PartyMemberComponent omori =
+			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.CurrentState == "toast");
+		// if any omori is toast, the battle is over
+		// this may change in the future
+		if (omori != null)
+		{
+			SetPhase(BattlePhase.BattleOver);
+			await EndOfBattle(false);
+			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
+			                                              "'s party was defeated...");
+			ShowEndOfBattleOptions();
+		}
+		
+		if (DeferredDeathEnemies.Count > 0)
+			return;
+		
 		if (!Enemies.Any(x => x.Actor.CurrentHP > 0))
 		{
 			SetPhase(BattlePhase.BattleOver);
@@ -1508,6 +1574,8 @@ public partial class BattleManager : Node
 
 						if (Stages[CurrentStage].KeepEmotion && oldEmotions.TryGetValue(x.Position, out string oldState))
 							x.Actor.SetState(oldState, true);
+						else
+							x.Actor.SetState("neutral", true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();
 						x.UpdateStateIcons();
@@ -1519,6 +1587,7 @@ public partial class BattleManager : Node
 					AudioManager.Instance.SetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
 					await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
+					ProcessedStartOfTurn = false;
 					CallDeferred(MethodName.PreBattle);
 					return;
 				}
@@ -1531,46 +1600,13 @@ public partial class BattleManager : Node
 			}
 
 			ShowEndOfBattleOptions();
-			return;
-		}
-
-		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
-		{
-			SetPhase(BattlePhase.BattleOver);
-			await EndOfBattle(false);
-			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
-			                                              "'s party was defeated...");
-			ShowEndOfBattleOptions();
-			return;
-		}
-
-		PartyMemberComponent omori =
-			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.CurrentState == "toast");
-		// if any omori is toast, the battle is over
-		// this may change in the future
-		if (omori != null)
-		{
-			SetPhase(BattlePhase.BattleOver);
-			await EndOfBattle(false);
-			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
-			                                              "'s party was defeated...");
-			ShowEndOfBattleOptions();
 		}
 	}
 
 	private void ShowEndOfBattleOptions()
 	{
 		EndOfBattleOptionsContainer.Visible = true;
-		if (GameType is GameModeType.BossRush)
-		{
-			StageSelectorContainer.Visible = true;
-			StageSelectorSpinBox.MaxValue = Stages.Count - 1;
-			StageSelectorSpinBox.Value = 0;
-		}
-		else
-		{
-			StageSelectorContainer.Visible = false;
-		}
+		StageSelectorContainer.Visible = GameType is GameModeType.BossRush;
 	}
 
 	private async Task EndOfBattle(bool victory)
@@ -1578,7 +1614,11 @@ public partial class BattleManager : Node
 		foreach (PartyMemberComponent p in CurrentParty)
 			await p.Actor.OnEndOfBattle(victory);
 		foreach (EnemyComponent e in Enemies)
+		{
+			if (e.Actor.CurrentState is "toast")
+				continue;
 			await e.Actor.OnEndOfBattle(victory);
+		}
 	}
 
 	/// <summary>
@@ -2280,7 +2320,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	public List<PartyMemberComponent> GetDeadPartyMembers()
 	{
-		return CurrentParty.Where(x => x.Actor.CurrentState == "toast").ToList();
+		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.CurrentState == "toast").ToList();
 	}
 
 	/// <summary>

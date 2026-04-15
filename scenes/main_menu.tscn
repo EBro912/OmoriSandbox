@@ -26,7 +26,7 @@
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1040890594]
 
-[node name="MainMenuManager" type="Node" parent="." unique_id=593666081 node_paths=PackedStringArray("VersionLabel", "Logo", "OmoriFace", "ModListParent", "ShowModsButton", "MainMenu", "Editor", "PlayButton", "ConfigureButton", "SettingsButton", "QuitButton", "MainControls", "Settings", "EditorSettingsContainer", "NewPresetContainer", "LoadExistingButton", "NormalPresetButton", "BossRushPresetButton", "ModFolderButton", "ModsLoaded", "GithubButton", "CreditsButton", "CreditsBackButton", "CreditsPanel", "TitlePresetDropdown")]
+[node name="MainMenuManager" type="Node" parent="." unique_id=593666081 node_paths=PackedStringArray("VersionLabel", "Logo", "OmoriFace", "ModListParent", "ShowModsButton", "MainMenu", "Editor", "PlayButton", "ConfigureButton", "SettingsButton", "QuitButton", "MainControls", "Settings", "EditorSettingsContainer", "NewPresetContainer", "LoadExistingButton", "NormalPresetButton", "BossRushPresetButton", "ModFolderButton", "ModsLoaded", "GithubButton", "CreditsButton", "CreditsBackButton", "CreditsPanel", "TitlePresetDropdown", "StageSelectorParent", "StageSelectorSpinBox")]
 script = ExtResource("1_wu84c")
 VersionLabel = NodePath("../Main/Version")
 Logo = NodePath("../Main/Logo")
@@ -53,7 +53,9 @@ GithubButton = NodePath("../Main/HBoxContainer/GithubButton")
 CreditsButton = NodePath("../Main/HBoxContainer/CreditsButton")
 CreditsBackButton = NodePath("../Main/Credits/BackButton")
 CreditsPanel = NodePath("../Main/Credits")
-TitlePresetDropdown = NodePath("../Main/MainControls/HBoxContainer/PresetDropdown")
+TitlePresetDropdown = NodePath("../Main/MainControls/PresetSelector/PresetDropdown")
+StageSelectorParent = NodePath("../Main/MainControls/StageSelector")
+StageSelectorSpinBox = NodePath("../Main/MainControls/StageSelector/StageSpinBox")
 
 [node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
@@ -241,18 +243,34 @@ size_flags_vertical = 4
 theme_override_constants/separation = 3
 alignment = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Main/MainControls" unique_id=831963137]
+[node name="StageSelector" type="HBoxContainer" parent="Main/MainControls" unique_id=1756417532]
+visible = false
+layout_mode = 2
+alignment = 2
+
+[node name="Label" type="Label" parent="Main/MainControls/StageSelector" unique_id=2130555294]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("10_1ajci")
+text = "Stage:"
+
+[node name="StageSpinBox" type="SpinBox" parent="Main/MainControls/StageSelector" unique_id=750853117]
+layout_mode = 2
+rounded = true
+
+[node name="PresetSelector" type="HBoxContainer" parent="Main/MainControls" unique_id=831963137]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Label" type="Label" parent="Main/MainControls/HBoxContainer" unique_id=609320882]
+[node name="Label" type="Label" parent="Main/MainControls/PresetSelector" unique_id=609320882]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = ExtResource("10_1ajci")
 text = "Battle Preset: "
 
-[node name="PresetDropdown" type="OptionButton" parent="Main/MainControls/HBoxContainer" unique_id=1218528815]
+[node name="PresetDropdown" type="OptionButton" parent="Main/MainControls/PresetSelector" unique_id=1218528815]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")

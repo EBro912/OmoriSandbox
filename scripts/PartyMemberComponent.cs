@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
 
@@ -63,7 +64,7 @@ public partial class PartyMemberComponent : Node
 		StateIcons = GetNode<HFlowContainer>("../StateIcons");
 		if (actor.Position % 2 == 0)
 		{
-			StateIcons.Position = new Vector2(0, -65);
+			StateIcons.Position = new Vector2(0, -115);
 			StateIcons.ReverseFill = true;
 		}
 
@@ -140,6 +141,9 @@ public partial class PartyMemberComponent : Node
 
 	internal void UpdateStateIcons()
 	{
+		if (!SettingsMenuManager.Instance.ShowStateIcons)
+			return;
+		
 		// this may need to be optimized, not the best practice to fully replace nodes
 		foreach (Node child in StateIcons.GetChildren())
 			child.Free();

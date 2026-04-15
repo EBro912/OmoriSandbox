@@ -7,14 +7,16 @@ namespace OmoriSandbox.Modding;
 internal sealed class ModLoadReport
 {
 	public string ModName { get; }
+	public string ModVersion { get; }
 	private readonly List<string> Errors = [];
 	private readonly List<string> Warnings = [];
 	public int Loaded { get; private set; }
 	public int Skipped { get; private set; }
 
-	public ModLoadReport(string modName)
+	public ModLoadReport(string modName, string modVersion)
 	{
 		ModName = modName;
+		ModVersion = modVersion;
 	}
 
 	public bool HasErrors => Errors.Count > 0;
@@ -39,7 +41,7 @@ internal sealed class ModLoadReport
 	public void PrintSummary()
 	{
 		StringBuilder sb = new();
-		sb.AppendLine($"--- Mod \"{ModName}\" ---");
+		sb.AppendLine($"--- Mod \"{ModName} (v{ModVersion})\" ---");
 		sb.AppendLine($"  Loaded: {Loaded} assets | Skipped: {Skipped} assets");
 		
 		if (Errors.Count > 0)

@@ -51,6 +51,7 @@ internal partial class DamageNumber : Node2D
     {
         foreach (DamageNumber number in DamageNumbers.Values.Where(IsInstanceValid))
             number.Despawn();
+        DamageNumbers.Clear();
     }
 
     public override void _Ready()

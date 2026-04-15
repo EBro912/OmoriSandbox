@@ -17,42 +17,40 @@ internal sealed class MrJawsumAlt : Enemy
 
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "happy" or "sad" or "angry" or "toast";
     }
 
-    public readonly List<EnemyComponent> GatorGuys = [];
+    private readonly EnemyComponent[] Gators = new EnemyComponent[2];
+    private readonly int[] Offsets = [-145, 145];
     private int Stage = 0;
 
     public override BattleCommand ProcessAI()
     {
-        if (GatorGuys.Count == 0)
+        if (Gators.All(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         if (Roll() < 21)
             return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
-        if (GatorGuys.Count < 2)
+        if (Gators.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
     }
 
     internal void SpawnGatorGuy()
     {
-        GatorGuys.RemoveAll(x => x.Actor.CurrentHP <= 0);
-        
-        if (GatorGuys.Count == 0)
-           GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)", new Vector2(CenterPoint.X - 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
-        else if (GatorGuys.Count == 1)
-            GatorGuys.Add(BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)", new Vector2(CenterPoint.X + 145, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1)));
-        else
+        for (int i = 0; i < 2; i++)
         {
-            GD.PushWarning("Tried to summon more than 2 gator guys!");
+            if (!GodotObject.IsInstanceValid(Gators[i]) || Gators[i].Actor.CurrentState is "toast")
+            {
+                Gators[i] = BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)",
+                    new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));
+                return;
+            }
         }
+        GD.PushWarning("Tried to summon more than 2 gator guys!");
     }
 
     public override async Task ProcessBattleConditions()
     {
-        GatorGuys.RemoveAll(x => x.Actor.CurrentHP <= 0);
-
         if (CurrentHP <= 0) return;
 
         if (Stage > 2) 

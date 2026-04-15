@@ -78,8 +78,8 @@ internal sealed class HumphreySwarm : Enemy
     {
         if (Turn >= 5 && !HasTransformed)
         {
-            await ChangePhase();
             HasTransformed = true;
+            await ChangePhase();
         }
     }
 

@@ -19,7 +19,7 @@ internal sealed class SpaceExHusband : Enemy
             "sad" or "depressed" or "miserable" => new Stats(6000, 3000, 65, 85, 30, 5, 95),
             "happy" or "ecstatic" or "manic" => new Stats(6000, 3000, 70, 35, 105, 25, 95),
             "angry" or "enraged" or "furious" => new Stats(6000, 3000, 90, 15, 50, 10, 95),
-            _ => new(6000, 3000, 80, 999, 50, 10, 95)
+            _ => new Stats(6000, 3000, 80, 999, 50, 10, 95)
         };
     }
 
@@ -265,11 +265,12 @@ internal sealed class SpaceExHusband : Enemy
     public override async Task OnStartOfBattle()
     {
         AddStatModifier("SpaceExHusbandBlock", silent: true);
-        OnStateChanged += (s, e) =>
-        {
-            BaseStats = GetStatsForEmotion();
-        };
         DialogueManager.Instance.QueueMessage(this, @"[br]I feel nothing...\![br]I am cold...\! like ice...");
         await DialogueManager.Instance.WaitForDialogue();
+    }
+
+    protected override Stats GetBaseStats()
+    {
+        return GetStatsForEmotion();
     }
 }

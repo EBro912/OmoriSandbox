@@ -13,7 +13,7 @@ internal sealed class Abbi : Enemy
     protected override string[] EquippedSkills => ["AbbiAttack", "AbbiAttackOrder", "AbbiSummon"];
     public override bool IsStateValid(string state)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
     }
 
     private readonly EnemyComponent[] Tentacles = new EnemyComponent[4];

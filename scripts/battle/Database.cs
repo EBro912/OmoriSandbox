@@ -1011,7 +1011,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(target, "[actor] calms down.");
 				AnimationManager.Instance.PlayScreenAnimation(104, false);
 				await Wait.Milliseconds(2500);
-				target.Heal((int)Math.Round(target.BaseStats.MaxHP * 0.5, MidpointRounding.AwayFromZero));
+				target.Heal((int)Math.Round(target.CurrentStats.MaxHP * 0.5, MidpointRounding.AwayFromZero));
 				target.SetState("neutral", true);
 				AudioManager.Instance.FadeBGMTo(1f);
 			},
@@ -1237,7 +1237,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] plants a TULIP.");
 				foreach (Actor enemy in targets)
 				{
-					BattleManager.Instance.Damage(first, enemy,
+					BattleManager.Instance.Damage(self, enemy,
 						() => (first.CurrentStats.ATK + first.CurrentStats.DEF + first.CurrentStats.SPD +
 						       (first.CurrentStats.LCK * 5)) - enemy.CurrentStats.DEF, false);
 				}
@@ -1931,7 +1931,7 @@ public class Database
 				}
 
 				self.CurrentHP = Math.Max(0,
-					(int)Math.Round(self.CurrentHP - self.BaseStats.MaxHP * 0.2f, MidpointRounding.AwayFromZero));
+					(int)Math.Round(self.CurrentHP - self.CurrentStats.MaxHP * 0.2f, MidpointRounding.AwayFromZero));
 			}
 		);
 
@@ -2159,11 +2159,15 @@ public class Database
 				}
 
 				AnimationManager.Instance.PlayAnimation(123, target);
-				int rounded = (int)Math.Round(target.CurrentStats.MaxJuice * 0.4f, MidpointRounding.AwayFromZero);
-				target.HealJuice(rounded);
-				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
-				// can juice me miss???
-				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * .25f, true, 0f, neverCrit: true);
+				int damage = BattleManager.Instance.Damage(self, target, () => target.CurrentHP * .25f, true, 0f, neverCrit: true);
+				// juice me can miss
+				if (damage > -1)
+				{
+					int rounded = (int)Math.Round(target.CurrentStats.MaxJuice * 0.4f, MidpointRounding.AwayFromZero);
+					target.HealJuice(rounded);
+					BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+				}
+
 				await Task.CompletedTask;
 			}
 		);
@@ -2897,6 +2901,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
+				if (fourth.CurrentState is "sad" or "depressed")
+					fourth.SetState("neutral", true);
 			},
 			hidden: true
 		);
@@ -2922,6 +2928,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
+				if (fourth.CurrentState is "sad" or "depressed")
+					fourth.SetState("neutral", true);
 			},
 			hidden: true
 		);
@@ -2947,6 +2955,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
+				if (fourth.CurrentState is "sad" or "depressed")
+					fourth.SetState("neutral", true);
 			},
 			hidden: true
 		);
@@ -3293,8 +3303,8 @@ public class Database
 				{
 					int hp = member.CurrentHP;
 					int juice = member.CurrentJuice;
-					member.CurrentHP = Math.Min(member.CurrentStats.MaxHP, juice + 1);
-					member.CurrentJuice = Math.Min(member.CurrentStats.MaxJuice, hp);
+					member.CurrentHP = Math.Min(member.CurrentStats.MaxHP, Math.Max(1, juice));
+					member.CurrentJuice = Math.Min(member.CurrentStats.MaxJuice, Math.Max(0, hp));
 				}
 			},
 			hidden: true
@@ -3360,6 +3370,7 @@ public class Database
 					BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.4f, false, 0f, neverCrit: true);
 					BattleManager.Instance.RandomEmotion(member);
 				}
+				await Wait.Milliseconds(400);
 				AnimationManager.Instance.TintScreen(Colors.Transparent);
 				await Wait.Milliseconds(664);
 			},
@@ -7360,7 +7371,7 @@ public class Database
 		AddSnack("Pancake", "Not designed to hold syrup...\nHeals 150 HEART.", 150, 8);
 		AddSnack("Pizza Slice", "1/8th of a Whole pizza.\nHeals 175 HEART.", 175, 16);
 		AddSnack("Fish Taco", "Aquatic taco.\nHeals 200 HEART.", 200, 24);
-		AddSnack("Cheeseburger", "Contains all food groups, so it's healthy!\nHeals 250 HEART.", 250, 32);
+		AddSnack("Cheeseburger", "Contains all food groups, so it's healthy! Heals 250 HEART.", 250, 32);
 
 		AddSnack("Chocolate", "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.", 0.4f, 40);
 		AddSnack("Donut", "Circular bread with a hole in it.\nHeals 60% of HEART.", 0.6f, 48);
@@ -7854,7 +7865,7 @@ public class Database
 
 		#region WEAPONS
 		Equipment["Shiny Knife"] = new Equipment("Shiny Knife", [new StatBonus(StatType.ATK, 5), new StatBonus(StatType.HIT, 100)]);
-		Equipment["Knife"] = new Equipment("Shiny Knife", [new StatBonus(StatType.ATK, 7), new StatBonus(StatType.SPD, 2), new StatBonus(StatType.HIT, 100)]);
+		Equipment["Knife"] = new Equipment("Knife", [new StatBonus(StatType.ATK, 7), new StatBonus(StatType.SPD, 2), new StatBonus(StatType.HIT, 100)]);
 		Equipment["Dull Knife"] = new Equipment("Dull Knife", [new StatBonus(StatType.ATK, 9), new StatBonus(StatType.SPD, 4), new StatBonus(StatType.LCK, 2), new StatBonus(StatType.HIT, 100)]);
 		Equipment["Rusty Knife"] = new Equipment("Rusty Knife", [new StatBonus(StatType.ATK, 11), new StatBonus(StatType.DEF, 2), new StatBonus(StatType.SPD, 6), new StatBonus(StatType.LCK, 4), new StatBonus(StatType.HIT, 100)]);
 		Equipment["Red Knife"] = new Equipment("Red Knife", [new StatBonus(StatType.ATK, 13), new StatBonus(StatType.DEF, 6), new StatBonus(StatType.SPD, 6), new StatBonus(StatType.LCK, 6), new StatBonus(StatType.HIT, 100)]);

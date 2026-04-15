@@ -37,6 +37,6 @@ public sealed class AubreyCounterModifier : StatModifier
                     BattleManager.Instance.ForceCommand(defender, attacker, s);
                 }
             }
-        }{}
+        }
     }
 }

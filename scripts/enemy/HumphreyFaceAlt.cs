@@ -54,6 +54,9 @@ internal sealed class HumphreyFaceAlt : Enemy
 	
 	public override async Task ProcessEndOfTurn()
 	{
+		if (CurrentHP <= 0)
+			return;
+		
 		if (SkipFirst)
 		{
 			SkipFirst = false;

@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
@@ -17,7 +18,8 @@ internal sealed class UnbreadTwinsAlt : Enemy
     private bool EmotionLocked = false;
     private int Stage = 0;
 
-    private List<EnemyComponent> SpawnedBread = [];
+    private readonly EnemyComponent[] Breads = new EnemyComponent[2];
+    private readonly int[] Offsets = [-270, 200];
 
     public override bool IsStateValid(string state)
     {
@@ -43,7 +45,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
                     goto attack;
                 if (Roll() < 36)
                     goto cook;
-                if (SpawnedBread.Count < 2)
+                if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
                     goto bake;
                 goto nothing;
             case "depressed":
@@ -51,7 +53,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
                     goto attack;
                 if (Roll() < 36)
                     goto cook;
-                if (SpawnedBread.Count < 2)
+                if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
                     goto bake;
                 goto nothing;
             case "sad":
@@ -61,7 +63,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
             default:
                 if (Roll() < 51)
                     goto attack;
-                if (SpawnedBread.Count < 2)
+                if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
                     goto bake;
                 goto nothing;
         }
@@ -79,8 +81,6 @@ internal sealed class UnbreadTwinsAlt : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        SpawnedBread.RemoveAll(x => x == null || x.Actor.CurrentHP <= 0);
-
         if (CurrentHP <= 0)
             return;
 
@@ -152,17 +152,14 @@ internal sealed class UnbreadTwinsAlt : Enemy
 
     public void SpawnBread()
     {
-        SpawnedBread.RemoveAll(x => x == null || x.Actor.CurrentHP <= 0);
-        EnemyComponent enemy;
-        if (SpawnedBread.Count == 0)
-            enemy = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X - 270, CenterPoint.Y), layer: Math.Max(0, Layer - 1));
-        else if (SpawnedBread.Count == 1)
-            enemy = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + 200, CenterPoint.Y), layer: Math.Max(0, Layer - 1));
-        else
+        for (int i = 0; i < 2; i++)
         {
-            GD.PushWarning("Tried to summon more than 2 breads!");
-            return;
+            if (!GodotObject.IsInstanceValid(Breads[i]) || Breads[i].Actor.CurrentState is "toast")
+            {
+                Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
+                return;
+            }
         }
-        SpawnedBread.Add(enemy);
+        GD.PushWarning("Tried to summon more than 2 breads!");
     }
 }

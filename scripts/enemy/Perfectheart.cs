@@ -76,8 +76,6 @@ internal sealed class Perfectheart : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
-
-        if (CurrentHP <= 0) return;
     }
 
     public override async Task OnDefeat()

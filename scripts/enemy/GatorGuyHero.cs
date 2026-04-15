@@ -52,15 +52,10 @@ internal sealed class GatorGuyHero : Enemy
         return new BattleCommand(this, SelectTarget(), Skills["GGRoughUp"]);
     }
 
-    public override Task OnStartOfBattle()
+    protected override Stats GetBaseStats()
     {
-        OnStateChanged += (_, _) =>
-        {
-            if (CurrentState is "sad" or "angry")
-                BaseStats = new(6000, 3000, 80, 65, 80, 10, 95);
-            else
-                BaseStats = new(6000, 3000, 80, 65, 70, 10, 95);
-        };
-        return Task.CompletedTask;
+        if (CurrentState is "sad" or "angry")
+            return new Stats(6000, 3000, 80, 65, 80, 10, 95);
+        return new Stats(6000, 3000, 80, 65, 70, 10, 95);
     }
 }

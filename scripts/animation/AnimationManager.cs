@@ -649,7 +649,7 @@ public partial class AnimationManager : Node
 		ReleaseEnergyBasil.Play();
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(ReleaseEnergyBasil, "modulate:a", 1f, 0.5f);
-		tween.TweenInterval(2.25f);
+		tween.TweenInterval(2.5f);
 		tween.TweenProperty(ReleaseEnergyBasil, "modulate:a", 0f, 0.5f);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		ReleaseEnergyBasil.Visible = false;

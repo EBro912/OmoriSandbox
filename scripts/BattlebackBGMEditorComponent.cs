@@ -150,6 +150,7 @@ internal partial class BattlebackBGMEditorComponent : Control
     {
 	    SelectedBattleback = "battleback_vf_default";
 	    SelectedBGM = "battle_vf";
+	    BattlebackPreview.SetBattleback(SelectedBattleback);
     }
     
     public string SelectedBattleback
