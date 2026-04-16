@@ -14,7 +14,7 @@ Simply download the latest release archive from the "Releases" section and extra
 - `OmoriSandbox_Compat.zip` uses the OpenGL renderer and works best on older systems. Use this if you're having issues with the Vulkan version.
 
 Either archive should contain two executables:
-- `OmoriSandbox.console.exe`: Runs the Sandbox alongside a seperate console window. Useful for viewing debug information and any errors that may occur while using the Sandbox. (Recommended)
+- `OmoriSandbox.console.exe`: Runs the Sandbox alongside a separate console window. Useful for viewing debug information and any errors that may occur while using the Sandbox. (Recommended)
 - `OmoriSandbox.exe`: Runs just the Sandbox without a console.
 
 ### For Linux Users
