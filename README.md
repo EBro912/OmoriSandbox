@@ -29,10 +29,10 @@ You can visit the [Official Documentation](https://ebro912.gitbook.io/omorisandb
 ## Modding
 As of update v0.8, official modding is now supported! You can read more about creating file driven, JSON, and fully fledged C# mods on the official [Modding Wiki](https://ebro912.gitbook.io/omorisandbox/modding/overview).
 
-If you are looking to port your custom battlebacks and BGM from an older version, you will need to create a basic "mod" in order to load these. This process is very similar to the old `/custom` folder system and requires no coding and minimal JSON configuration. See the above wiki for more info.
+OmoriSandbox will auto-generate a mod called `custom` when first launched. Here, you can place your custom Battlebacks and/or BGM in their respective `battlebacks` and `bgm` folders without having to create a mod yourself. This auto-generated mod behaves exactly as any other mod and can be expanded as you see fit.
 
 **Important Note**
-When it comes to loading C# mods, **OmoriSandbox does not perform any kind of sandboxing or malware checking when loading mods**, meaning a malicious actor can create a mod that may harm your system. When using C#/`.dll` driven mods, ensure that you trust the author. You can use a program such as [dnSpy](https://github.com/dnSpy/dnSpy) or [VirusTotal](https://www.virustotal.com/gui/) in order to read the mod code or check the file for viruses before loading it into OmoriSandbox.
+When it comes to loading C# mods (mods that use a `.dll` file), **OmoriSandbox does not perform any kind of sandboxing or malware checking when loading mods**, meaning a malicious actor can create a mod that may harm your system. When using C#/`.dll` driven mods, ensure that you trust the author. You can use a program such as [dnSpy](https://github.com/dnSpy/dnSpy) or [VirusTotal](https://www.virustotal.com/gui/) in order to read the mod code or check the file for viruses before loading it into OmoriSandbox.
 
 ## Contributing
 Contributions to the project are welcome! You can help contribute to the project in three main ways:
