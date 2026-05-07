@@ -866,13 +866,47 @@ public partial class AnimationManager : Node
 		Encore.Visible = false;
 	}
 
-	internal async void PlayCherish()
+	internal async Task PlayCherish(int index)
 	{
 		Cherish.Modulate = Colors.Transparent;
 		Cherish.Visible = true;
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Cherish, "modulate:a", 1f, 0.75f);
-		tween.TweenInterval(1f);
+		await Wait.Seconds(1);
+		string remember = "You remembered " + index switch
+		{
+			4 => "MARI's request.",
+			3 => "BASIL's hope.",
+			2 => "HERO's promise.",
+			1 => "AUBREY's wish.",
+			_ => "KEL's words."
+		};
+		DialogueManager.Instance.QueueMessage(remember);
+		await DialogueManager.Instance.WaitForDialogue();
+		await Wait.Seconds(1);
+		switch (index)
+		{
+			case 4:
+				string name = BattleManager.Instance.GetPartyMember(0).Name;
+				DialogueManager.Instance.QueueMessage("MARI", $@"You'll forgive yourself...\|[br]Won't you... {name.ToUpper()}?");
+				break;
+			case 3:
+				DialogueManager.Instance.QueueMessage("BASIL", @"Maybe one day...\| things can go back to the way they were before.");
+				break;
+			case 2:
+				DialogueManager.Instance.QueueMessage("HERO", "Last time...");
+				DialogueManager.Instance.QueueMessage("HERO", "We made the mistake of leaving each other when we needed each other the most.");
+				DialogueManager.Instance.QueueMessage("HERO", @"This time...\| we'll stay together.");
+				break;
+			case 1:
+				DialogueManager.Instance.QueueMessage("AUBREY", @"I hope you can find some peace...\| or you know...\| some happiness.");
+				break;
+			default:
+				DialogueManager.Instance.QueueMessage("KEL", @"Friends...\! Friends are supposed to be there for each other.");
+				break;
+		}
+		await DialogueManager.Instance.WaitForDialogue();
+		tween = GetTree().CreateTween();
 		tween.TweenProperty(Cherish, "modulate:a", 0f, 0.75f);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		Cherish.Visible = false;

@@ -36,7 +36,6 @@ grow_vertical = 2
 
 [node name="SelectedCard" type="TextureRect" parent="." unique_id=650734927]
 visible = false
-z_index = 1
 layout_mode = 0
 offset_left = -12.0
 offset_top = -3.0
@@ -121,7 +120,6 @@ StateSprite = NodePath("../State")
 FaceStateSprite = NodePath("../FaceState")
 
 [node name="StateIcons" type="HFlowContainer" parent="." unique_id=661376389]
-z_index = -1
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5

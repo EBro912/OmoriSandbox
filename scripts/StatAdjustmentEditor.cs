@@ -55,8 +55,8 @@ internal partial class StatAdjustmentEditor : Control
 
     public void SetStats(Stats stats)
     {
-        HeartBox.SetValueNoSignal(stats.MaxHP);
-        JuiceBox.SetValueNoSignal(stats.MaxJuice);
+        HeartBox.SetValueNoSignal(stats.HP);
+        JuiceBox.SetValueNoSignal(stats.Juice);
         ATKBox.SetValueNoSignal(stats.ATK);
         DEFBox.SetValueNoSignal(stats.DEF);
         SPDBox.SetValueNoSignal(stats.SPD);

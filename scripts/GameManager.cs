@@ -19,7 +19,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.0.0";
+	public const string Version = "OmoriSandbox v1.0.1";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
@@ -178,7 +178,7 @@ public partial class GameManager : Node
 			return null;
 		Node2D node = EnemyNode.Instantiate<Node2D>();
 		BattlebackParent.AddChild(node);
-		GD.Print("Spawning enemy at: " + enemy.Position);
+		GD.Print("Spawning enemy at: " + position);
 		node.GlobalPosition = position;
 		EnemyComponent component = new();
 		node.AddChild(component);

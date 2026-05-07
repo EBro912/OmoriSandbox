@@ -89,7 +89,7 @@ LoadPresetButton = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Load/
 DeletePresetButton = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Load/Delete")
 PresetDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Load/PresetDropdown")
 ResetButton = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Other/Reset")
-ReturnButton = NodePath("../Editor/Return")
+ReturnButton = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Return")
 PresetFolderButton = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Other/DataFolder")
 AddStageButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/AddStage")
 DuplicateStageButton = NodePath("../Editor/SettingsTabs/Boss Rush/VBoxContainer/HBoxContainer/DuplicateStage")
@@ -1538,6 +1538,16 @@ theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Reset All to Defaults"
 
+[node name="Return" type="Button" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1210890615]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Return to Title"
+
 [node name="Items" type="MarginContainer" parent="Editor/SettingsTabs" unique_id=472165286]
 visible = false
 layout_mode = 2
@@ -1878,25 +1888,6 @@ text = "Common Layers: 10: Top Layer
                    -4: Enemy Layer"
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
-
-[node name="Return" type="Button" parent="Editor" unique_id=1210890615]
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -59.5
-offset_top = -50.0
-offset_right = 59.5
-offset_bottom = -19.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 25
-theme_override_styles/normal = ExtResource("10_1ajci")
-theme_override_styles/pressed = ExtResource("11_7b55j")
-theme_override_styles/hover = ExtResource("12_1ajci")
-text = "Return to Title"
 
 [node name="UIPreview" type="Control" parent="Editor" unique_id=1935063543]
 visible = false
