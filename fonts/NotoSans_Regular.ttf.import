@@ -2,24 +2,24 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bdh481cgsv8wf"
-path="res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67be9.fontdata"
+uid="uid://b033umdfi1bu6"
+path="res://.godot/imported/NotoSans_Regular.ttf-1c06732b4285743a4962be671f7faf9b.fontdata"
 
 [deps]
 
-source_file="res://fonts/OMORI_GAME2.ttf"
-dest_files=["res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67be9.fontdata"]
+source_file="res://fonts/NotoSans_Regular.ttf"
+dest_files=["res://.godot/imported/NotoSans_Regular.ttf-1c06732b4285743a4962be671f7faf9b.fontdata"]
 
 [params]
 
 Rendering=null
-antialiasing=2
+antialiasing=1
 generate_mipmaps=false
 disable_embedded_bitmaps=false
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
-msdf_size=64
-allow_system_fallback=true
+msdf_size=48
+allow_system_fallback=false
 force_autohinter=false
 modulate_color_glyphs=false
 hinting=0

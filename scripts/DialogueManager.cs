@@ -12,9 +12,12 @@ namespace OmoriSandbox;
 /// </summary>
 public partial class DialogueManager : Node2D
 {
-	[Signal] public delegate void FinishedDialogueEventHandler();
-	[Signal] public delegate void ChoiceSelectedEventHandler(string choice);
-	
+	[Signal]
+	public delegate void FinishedDialogueEventHandler();
+
+	[Signal]
+	public delegate void ChoiceSelectedEventHandler(string choice);
+
 	[Export] private RichTextLabel Text;
 	[Export] private NinePatchRect Box;
 	[Export] private Sprite2D SpeakerSprite;
@@ -25,7 +28,7 @@ public partial class DialogueManager : Node2D
 
 	private Queue<MessageBox> MessageQueue = [];
 	private bool HasChoice = false;
-	
+
 	private const float TEXT_SPEED = 0.02f;
 	private const float TEXT_SIZE = 32.5f;
 	private bool WaitingForInput = false;
@@ -47,13 +50,15 @@ public partial class DialogueManager : Node2D
 	private const float CHOICE_BOX_BOTTOM = -60f;
 	private const float CURSOR_TOP_OFFSET = 30f;
 	private const float CURSOR_LEFT_PADDING = 30f;
-	
-    /// <summary>
-    /// If dialogue is disabled in the current preset.<br/>
-    /// Setting this value should be avoided unless necessary, as it can override preset settings.
-    /// </summary>
-    public bool DialogueDisabled = false;
+
+	/// <summary>
+	/// If dialogue is disabled in the current preset.<br/>
+	/// Setting this value should be avoided unless necessary, as it can override preset settings.
+	/// </summary>
+	public bool DialogueDisabled = false;
+
 	public static DialogueManager Instance { get; private set; }
+
 	public override void _EnterTree()
 	{
 		Instance = this;
@@ -63,7 +68,7 @@ public partial class DialogueManager : Node2D
 	{
 		if (!Visible)
 			return;
-		
+
 		if (IsTyping)
 		{
 			if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
@@ -146,7 +151,7 @@ public partial class DialogueManager : Node2D
 			}
 		}
 	}
-	
+
 	private void TypeChar()
 	{
 		if (Text.VisibleCharacters >= CurrentMessageLength)
@@ -178,6 +183,7 @@ public partial class DialogueManager : Node2D
 					GD.PrintErr("Unhandled PauseType: " + p);
 					break;
 			}
+
 			return;
 		}
 
@@ -205,10 +211,15 @@ public partial class DialogueManager : Node2D
 		PauseIndices.Clear();
 		if (current.Speaker != null)
 		{
-			SpeakerSprite.Visible = true;        
-			Vector2 local = ToLocal(current.SpeakerPos);
-			SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
-			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " + BuildHeader(current.Font) + current.Message);
+			if (current.SpeakerPos != default)
+			{
+				SpeakerSprite.Visible = true;
+				Vector2 local = ToLocal(current.SpeakerPos);
+				SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
+			}
+
+			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " +
+			                            BuildHeader(current.Font) + current.Message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = current.Speaker.Length + 2;
 		}
@@ -219,6 +230,7 @@ public partial class DialogueManager : Node2D
 			Text.Text = cleaned;
 			Text.VisibleCharacters = 0;
 		}
+
 		CurrentMessageLength = Text.GetTotalCharacterCount();
 		HasChoice = current.Choices is { Length: > 0 };
 		if (HasChoice)
@@ -235,6 +247,7 @@ public partial class DialogueManager : Node2D
 				ChoiceTextParent.AddChild(label);
 			}
 		}
+
 		IsTyping = true;
 	}
 
@@ -242,9 +255,12 @@ public partial class DialogueManager : Node2D
 	{
 		StringBuilder sb = new();
 		sb.Append("[font_size=28]");
-		sb.Append(font is FontType.Normal
-			? "[font=res://fonts/OMORI_GAME2.ttf]"
-			: "[font=res://fonts/OMORI_GAME.ttf]");
+		sb.Append(font switch
+		{
+			FontType.Jagged => "[font=res://fonts/OMORI_GAME.ttf]",
+			FontType.NotoSans => "[font=res://fonts/NotoSans_Regular.ttf]",
+			_ => "[font=res://fonts/OMORI_GAME2.ttf]"
+		});
 		return sb.ToString();
 	}
 
@@ -291,21 +307,23 @@ public partial class DialogueManager : Node2D
 							GD.PushWarning("Invalid pause tag in dialogue: \\" + c);
 							break;
 					}
+
 					insideSlash = false;
 					continue;
 				}
-				
+
 				if (c is '\\')
 				{
 					insideSlash = true;
 					continue;
 				}
+
 				visibleIndex++;
 			}
 
 			sb.Append(c);
 		}
-		
+
 		return sb.ToString();
 	}
 
@@ -362,13 +380,13 @@ public partial class DialogueManager : Node2D
 		AnimateChoiceOpen();
 	}
 
-    /// <summary>
-    /// Waits for the current dialogue to finish and for the player to dismiss it.
-    /// </summary>
+	/// <summary>
+	/// Waits for the current dialogue to finish and for the player to dismiss it.
+	/// </summary>
 	/// <remarks>
 	/// If this method is not called after <see cref="QueueMessage"/>, the battle will continue while the dialogue is still on screen.
 	/// </remarks>
-    public async Task WaitForDialogue()
+	public async Task WaitForDialogue()
 	{
 		if (DialogueDisabled || !Visible)
 			return;
@@ -376,12 +394,12 @@ public partial class DialogueManager : Node2D
 		await ToSignal(this, SignalName.FinishedDialogue);
 	}
 
-    /// <summary>
-    /// Waits for the user to select a choice.
-    /// </summary>
-    /// <remarks>If this method is not called after <see cref="QueueMessage"/>, the battle will continue while the choice is still on screen.<br/>
-    /// If dialogue is disabled, this will always return the first option.</remarks>
-    /// <returns>The selected choice string.</returns>
+	/// <summary>
+	/// Waits for the user to select a choice.
+	/// </summary>
+	/// <remarks>If this method is not called after <see cref="QueueMessage"/>, the battle will continue while the choice is still on screen.<br/>
+	/// If dialogue is disabled, this will always return the first option.</remarks>
+	/// <returns>The selected choice string.</returns>
 	public async Task<string> WaitForUserChoice()
 	{
 		if (DialogueDisabled)
@@ -402,42 +420,56 @@ public partial class DialogueManager : Node2D
 		QueueMessage(null, Vector2.Zero, message, choices, font);
 	}
 
-    /// <summary>
-    /// Queues a message to be displayed in the dialogue box, with an <see cref="Enemy"/> name as the speaker.<br/>
+	/// <summary>
+	/// Queues a message to be displayed in the dialogue box, with an <see cref="Enemy"/> name as the speaker.<br/>
 	/// The speaker arrow will point to the <see cref="Enemy"/>'s position on screen.
-    /// </summary>
-    /// <param name="speaker">The <see cref="Enemy"/> to show as the speaker.</param>
-    /// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
-    /// <param name="choices">A list of choices this dialogue box has.</param>
-    /// <param name="font">The Omori font to use, either Normal or Jagged.</param>
-    public void QueueMessage(Enemy speaker, string message, string[] choices = null, FontType font = FontType.Normal)
+	/// </summary>
+	/// <param name="speaker">The <see cref="Enemy"/> to show as the speaker.</param>
+	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="choices">A list of choices this dialogue box has.</param>
+	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	public void QueueMessage(Enemy speaker, string message, string[] choices = null, FontType font = FontType.Normal)
 	{
 		QueueMessage(speaker.Name, speaker.CenterPoint, message, choices, font);
 	}
 
-    /// <summary>
-    /// Queues a message to be displayed in the dialogue box, with a custom speaker name and position.<br/>
-    /// </summary>
-    /// <param name="speaker">The name of the speaker.</param>
-    /// <param name="speakerPos">The position on screen to use as the speaker target.</param>
-    /// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
-    /// <param name="choices">A list of choices this dialogue box has.</param>
-    /// <param name="font">The Omori font to use, either Normal or Jagged.</param>
-    public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null, FontType font = FontType.Normal)
+	/// <summary>
+	/// Queues a message to be displayed in the dialogue box, with a custom speaker name and position.<br/>
+	/// </summary>
+	/// <param name="speaker">The name of the speaker.</param>
+	/// <param name="speakerPos">The position on screen to use as the speaker target.</param>
+	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="choices">A list of choices this dialogue box has.</param>
+	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null,
+		FontType font = FontType.Normal)
 	{
 		CurrentChoices = choices;
 		if (DialogueDisabled)
 			return;
 
 		MessageQueue.Enqueue(new MessageBox(speaker, speakerPos, message, choices, font));
-		
-		if (WaitingForAnimation || IsTyping || WaitingForInput) 
+
+		if (WaitingForAnimation || IsTyping || WaitingForInput)
 			return;
-		
+
 		Visible = true;
 		WaitingForAnimation = true;
 		AnimateOpen();
 	}
+
+	/// <summary>
+	/// Queues a message to be displayed in the dialogue box, with a custom speaker name.
+	/// </summary>
+	/// <param name="speaker">The name of the speaker.</param>
+	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="choices">A list of choices this dialogue box has.</param>
+	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	public void QueueMessage(string speaker, string message, string[] choices = null, FontType font = FontType.Normal)
+	{
+		QueueMessage(speaker, default, message, choices, font);
+	}
+
 
 	private void AnimateOpen()
 	{
@@ -537,7 +569,11 @@ public partial class DialogueManager : Node2D
 		/// <summary>
 		/// The jagged font used in horror text.
 		/// </summary>
-		Jagged
+		Jagged,
+		/// <summary>
+		/// The default RPGMaker font.
+		/// </summary>
+		NotoSans
 	}
 
 	private enum PauseType

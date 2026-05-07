@@ -368,7 +368,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["SadPoem"] = new Skill(
 			name: "SAD POEM",
@@ -771,7 +771,7 @@ public class Database
 					false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["AttackAgain2"] = new Skill(
 			name: "Attack Again 2",
@@ -789,7 +789,7 @@ public class Database
 					() => (self.CurrentStats.ATK * 2) + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["AttackAgain3"] = new Skill(
 			name: "Attack Again 3",
@@ -810,7 +810,7 @@ public class Database
 					() => (self.CurrentStats.ATK * 2) + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Trip1"] = new Skill(
 			name: "Trip 1",
@@ -830,7 +830,7 @@ public class Database
 					() => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Trip2"] = new Skill(
 			name: "Trip 2",
@@ -851,7 +851,7 @@ public class Database
 					() => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Trip3"] = new Skill(
 			name: "Trip 3",
@@ -872,7 +872,7 @@ public class Database
 					() => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["ReleaseEnergy1"] = new Skill(
 			name: "Release Energy 1",
@@ -902,7 +902,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["ReleaseEnergy2"] = new Skill(
 			name: "Release Energy 2",
@@ -932,7 +932,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["ReleaseEnergy3"] = new Skill(
 			name: "Release Energy 3",
@@ -962,12 +962,12 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		// SUNNY
 
 		Skills["SRWAttack"] = new Skill(
-			name: "Attack",
+			name: "SRWAttack",
 			description: "Basic Attack",
 			target: SkillTarget.Enemy,
 			cost: 0,
@@ -981,10 +981,10 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["SRWAltAttack"] = new Skill(
-			name: "Attack",
+			name: "SRWAltAttack",
 			description: "Basic Attack",
 			target: SkillTarget.Enemy,
 			cost: 0,
@@ -998,7 +998,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CalmDown"] = new Skill(
 			name: "CALM DOWN",
@@ -1095,8 +1095,12 @@ public class Database
 			effect: async (_, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(target, "[actor] steadies their breathing.");
-				AnimationManager.Instance.PlayCherish();
-				await Wait.Milliseconds(2000);
+				int index = target.GetStatModifierTier("CherishDialogue");
+				if (index >= 4)
+					target.RemoveStatModifier("CherishDialogue");
+				else
+					target.AddTierStatModifier("CherishDialogue");
+				await AnimationManager.Instance.PlayCherish(index);
 				if (target.HasStatModifier("Encore"))
 				{
 					target.RemoveStatModifier("Encore");
@@ -1134,7 +1138,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["BodySlam"] = new Skill(
 			name: "BODY SLAM",
@@ -1340,7 +1344,7 @@ public class Database
 				BattleManager.Instance.MakeAngry(first);
 				BattleManager.Instance.MakeAngry(self);
 			}
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Mull"] = new Skill(
 			name: "Mull",
@@ -1362,7 +1366,7 @@ public class Database
 				BattleManager.Instance.MakeSad(self);
 				await Task.CompletedTask;
 			}
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Comfort"] = new Skill(
 			name: "Comfort",
@@ -1384,7 +1388,7 @@ public class Database
 				BattleManager.Instance.MakeHappy(self);
 				await Task.CompletedTask;
 			}
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["ReleaseEnergyBasil"] = new Skill(
 			name: "Release Energy Basil",
@@ -1429,7 +1433,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 
 
@@ -1449,7 +1453,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PepTalk"] = new Skill(
 			name: "PEP TALK",
 			description: "Makes a friend or foe HAPPY.\nCost: 5",
@@ -1719,7 +1723,7 @@ public class Database
 					() => (self.CurrentStats.ATK * 2 + self.CurrentStats.LCK) - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtOmori2"] = new Skill(
 			name: "Look At Omori 2",
@@ -1739,7 +1743,7 @@ public class Database
 					() => (self.CurrentStats.ATK * 3 + self.CurrentStats.LCK) - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtOmori3"] = new Skill(
 			name: "Look At Omori 3",
@@ -1759,7 +1763,7 @@ public class Database
 					false);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtKel1"] = new Skill(
 			name: "Look At Kel 1",
@@ -1777,7 +1781,7 @@ public class Database
 				BattleManager.Instance.MakeAngry(self);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtKel2"] = new Skill(
 			name: "Look At Kel 2",
@@ -1800,7 +1804,7 @@ public class Database
 				BattleManager.Instance.MakeAngry(other);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtKel3"] = new Skill(
 			name: "Look At Kel 3",
@@ -1823,7 +1827,7 @@ public class Database
 				other.SetState("enraged");
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtHero1"] = new Skill(
 			name: "Look At Hero 1",
@@ -1844,7 +1848,7 @@ public class Database
 				BattleManager.Instance.MakeHappy(self);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtHero2"] = new Skill(
 			name: "Look At Hero 2",
@@ -1868,7 +1872,7 @@ public class Database
 				BattleManager.Instance.MakeHappy(self);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["LookAtHero3"] = new Skill(
 			name: "Look At Hero 3",
@@ -1894,7 +1898,7 @@ public class Database
 				self.SetState("ecstatic");
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 
 		Skills["ARWAttack"] = new Skill(
@@ -1911,7 +1915,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Homerun"] = new Skill(
 			name: "HOMERUN",
@@ -1951,7 +1955,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["Annoy"] = new Skill(
 			name: "ANNOY",
 			description: "Makes a friend or foe ANGRY.\nCost: 5",
@@ -2146,18 +2150,8 @@ public class Database
 			cost: 10,
 			effect: async (self, target) =>
 			{
-				if (self is PartyMember member)
-				{
-					string weapon = member.Weapon.Name.ToUpper();
-					BattleLogManager.Instance.QueueMessage(self, target,
-						"[actor] passes the " + weapon + " to [target]!");
-				}
-				else
-				{
-					BattleLogManager.Instance.QueueMessage(self, target,
-						"[actor] passes to [target]!");
-				}
-
+				BattleLogManager.Instance.QueueMessage(self, target,
+					"[actor] passes the COCONUT to [target]!");
 				AnimationManager.Instance.PlayAnimation(123, target);
 				int damage = BattleManager.Instance.Damage(self, target, () => target.CurrentHP * .25f, true, 0f, neverCrit: true);
 				// juice me can miss
@@ -2224,7 +2218,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["Encourage"] = new Skill(
 			name: "ENCOURAGE",
@@ -2257,7 +2251,7 @@ public class Database
 				first.SetState("sad");
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToOmori2"] = new Skill(
 			name: "Pass To Omori 2",
 			description: "Kel Followup",
@@ -2277,7 +2271,7 @@ public class Database
 				first.SetState("happy");
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToOmori3"] = new Skill(
 			name: "Pass To Omori 3",
 			description: "Kel Followup",
@@ -2297,7 +2291,7 @@ public class Database
 				first.SetState("ecstatic");
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToAubrey1"] = new Skill(
 			name: "Pass To Aubrey 1",
 			description: "Kel Followup",
@@ -2316,7 +2310,7 @@ public class Database
 					() => second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToAubrey2"] = new Skill(
 			name: "Pass To Aubrey 2",
 			description: "Kel Followup",
@@ -2335,7 +2329,7 @@ public class Database
 					() => (second.CurrentStats.ATK * 2f) + self.CurrentStats.ATK - target.CurrentStats.DEF);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToAubrey3"] = new Skill(
 			name: "Pass To Aubrey 3",
 			description: "Kel Followup",
@@ -2354,7 +2348,7 @@ public class Database
 					() => (second.CurrentStats.ATK * 2f) + (self.CurrentStats.ATK * 2f) - target.CurrentStats.DEF);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToHero1"] = new Skill(
 			name: "Pass To Hero 1",
 			description: "Kel Followup",
@@ -2376,7 +2370,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToHero2"] = new Skill(
 			name: "Pass To Hero 2",
 			description: "Kel Followup",
@@ -2398,7 +2392,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["PassToHero3"] = new Skill(
 			name: "Pass To Hero 3",
 			description: "Kel Followup",
@@ -2423,7 +2417,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		// HERO //
 		Skills["HAttack"] = new Skill(
@@ -2441,7 +2435,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["Massage"] = new Skill(
 			name: "MASSAGE",
 			description: "Removes a friend or foe's EMOTION.\nCost: 5",
@@ -2761,7 +2755,7 @@ public class Database
 					Skills["OAttack"]);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["CallOmori2"] = new Skill(
 			name: "Call Omori 2",
 			description: "Hero Followup",
@@ -2785,7 +2779,7 @@ public class Database
 					Skills["OAttack"]);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 		Skills["CallOmori3"] = new Skill(
 			name: "Call Omori 3",
 			description: "Hero Followup",
@@ -2809,7 +2803,7 @@ public class Database
 					Skills["OAttack"]);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CallAubrey1"] = new Skill(
 			name: "Call Aubrey 1",
@@ -2831,7 +2825,7 @@ public class Database
 					Skills["AAttack"]);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CallAubrey2"] = new Skill(
 			name: "Call Aubrey 2",
@@ -2856,7 +2850,7 @@ public class Database
 					Skills["AAttack"]);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CallAubrey3"] = new Skill(
 			name: "Call Aubrey 3",
@@ -2881,7 +2875,7 @@ public class Database
 					Skills["AAttack"]);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CallKel1"] = new Skill(
 			name: "Call Kel 1",
@@ -2905,7 +2899,7 @@ public class Database
 					fourth.SetState("neutral", true);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CallKel2"] = new Skill(
 			name: "Call Kel 2",
@@ -2932,7 +2926,7 @@ public class Database
 					fourth.SetState("neutral", true);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["CallKel3"] = new Skill(
 			name: "Call Kel 3",
@@ -2959,7 +2953,7 @@ public class Database
 					fourth.SetState("neutral", true);
 			},
 			hidden: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["HRWAttack"] = new Skill(
 			name: "Attack",
@@ -2975,7 +2969,7 @@ public class Database
 			},
 			hidden: true,
 			showFollowups: true
-		);
+		).WithCustomRequirement((_) => true);
 
 		Skills["FirstAid"] = new Skill(
 			name: "FIRST AID",
@@ -7355,6 +7349,7 @@ public class Database
 		Modifiers.Add("Encore", () => new EncoreStatModifier(3));
 		Modifiers.Add("SalesTag", () => new SalesTagStatModifier());
 		Modifiers.Add("Immune", () => new ImmuneStatModifier());
+		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5));
 		#endregion
 
 		#region SNACKS
@@ -7406,7 +7401,7 @@ public class Database
 
 		AddGroupJuiceSnack("Banana Smoothie", "A little bland, but it does the job.\nHeals 20 JUICE to all friends.", 20, 67);
 		AddGroupJuiceSnack("Mango Smoothie", "Makes you tango!\nHeals 40 JUICE to all friends.", 40, 52);
-		AddGroupJuiceSnack("Berry Smoothie", "A healthy smoothie that tastes like dirt.\nHeals 60 JUICE to all friends.", 60, 12);
+		AddGroupJuiceSnack("Berry Smoothie", "A healthy smoothie that tastes like dirt. Heals 60 JUICE to all friends.", 60, 12);
 		AddGroupJuiceSnack("Melon Smoothie", "Chunky green melon goodness.\nHeals 80 JUICE to all friends.", 80, 20);
 		AddGroupJuiceSnack("S.berry Smoothie", "The default smoothie.\nHeals 100 JUICE to all friends.", 100, 28);
 		AddGroupJuiceSnack("Dino Smoothie", "Berry smoothie in a dino-shaped cup.\nHeals 150 JUICE to all friends.", 150, 13);

@@ -318,10 +318,10 @@ public partial class BattleManager : Node
 							Items[name]++;
 					}
 					else
-						targetMenu = SelectedAction.Name == CurrentParty[CurrentPartyMember].Actor.EquippedSkills[0]
+						targetMenu = SelectedAction.Name == CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault()?.Name
 							? MenuState.Battle
 							: MenuState.Skill;
-
+					
 					AudioManager.Instance.PlaySFX("sys_cancel");
 					if (CurrentEnemyTarget > -1)
 						Enemies[CurrentEnemyTarget].ShowInfoBox(false);
@@ -2143,8 +2143,9 @@ public partial class BattleManager : Node
 	/// <param name="original">The enemy to transform from.</param>
 	/// <param name="who">The database name of the enemy to transform into.</param>
 	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
+	/// <param name="offset">The position offset relative to the old enemy's position.</param>
 	/// <returns>The newly spawned <see cref="EnemyComponent"/>.</returns>
-	public EnemyComponent TransformEnemy(Enemy original, string who, string startingEmotion = "neutral")
+	public EnemyComponent TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default)
 	{
 		EnemyComponent target = Enemies.FirstOrDefault(x => x.Actor == original);
 		if (target == null) return null;
@@ -2152,7 +2153,7 @@ public partial class BattleManager : Node
 		Enemies.Remove(target);
 		target.GetParent().QueueFree();
 		
-		return SummonEnemy(who, original.CenterPoint, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer);
+		return SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer);
 	}
 
 	/// <summary>

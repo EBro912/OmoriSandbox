@@ -37,7 +37,7 @@ internal sealed class HumphreyGrande : Enemy
             BattleLogManager.Instance.ClearBattleLog();
             foreach (PartyMember member in SelectAllTargets())
                 BattleManager.Instance.Damage(this, member, () => member.CurrentStats.MaxHP * 0.25f, true, 0.5f, neverCrit: true);
-            BattleManager.Instance.TransformEnemy(this, "HumphreyFace");
+            BattleManager.Instance.TransformEnemy(this, "HumphreyFace", offset: new Vector2(0, -60));
             await Wait.Milliseconds(2000);
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }
