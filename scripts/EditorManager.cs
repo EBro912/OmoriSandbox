@@ -36,7 +36,7 @@ internal partial class EditorManager : Node
 			ConfirmationDialog dialog = new()
 			{
 				Title = "Confirmation",
-				DialogText = "Are you sure you return?\nAll unsaved progress will be lost.",
+				DialogText = "Are you sure you want to return?\nAll unsaved progress will be lost.",
 				Unresizable = true
 			};
 			dialog.Confirmed += () =>
@@ -159,6 +159,8 @@ internal partial class EditorManager : Node
 			BGMPreview.Stop();
 			Node tab = StageTabs.GetChild(StageTabs.CurrentTab);
 			tab.Free();
+			if (StageTabs.GetTabCount() == 0)
+				return;
 			for (int i = 1; i <= StageTabs.GetTabCount(); i++)
 			{
 				StageTabs.SetTabTitle(i - 1, i.ToString());
@@ -328,7 +330,11 @@ internal partial class EditorManager : Node
 			{
 				OptionButton dropdown = container.GetChild<OptionButton>(0);
 				SpinBox quantity = container.GetChild<SpinBox>(1);
-				items.Add(dropdown.GetItemText(dropdown.Selected), (int)quantity.Value);
+				string key = dropdown.GetItemText(dropdown.Selected);
+				if (items.ContainsKey(key))
+					items[key] += (int)quantity.Value;
+				else
+					items.Add(dropdown.GetItemText(dropdown.Selected), (int)quantity.Value);
 			}
 		}
 

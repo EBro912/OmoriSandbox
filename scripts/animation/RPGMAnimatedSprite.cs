@@ -58,6 +58,9 @@ internal class RPGMAnimatedSprite
 
 	public AtlasTexture GetTextureAt(int pattern)
 	{
+		if (pattern < 0)
+			return null;
+		
 		if (Texture != null && pattern < 100)
 		{
 			int column = pattern % Columns;

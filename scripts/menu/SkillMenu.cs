@@ -28,7 +28,7 @@ internal partial class SkillMenu : Menu
 		foreach (AutofitLabel l in SkillLabels)
 			l.Text = "";
 		int idx = 0;
-		foreach (Skill s in actor.Skills.Values.Where(x => !x.Hidden))
+		foreach (var s in actor.Skills.Where(x => !x.Value.Hidden))
 		{
 			if (actor.EquippedSkills == null || actor.EquippedSkills.Length == 0)
 			{
@@ -38,16 +38,16 @@ internal partial class SkillMenu : Menu
 			// since Actor.Skills is a dictionary, we need to check here if the skill is the PartyMember's attack skill,
 			// i.e. the first one in their skill list
 			// OrderedDictionary doesn't accept types for whatever reason...
-			if (s.Name == actor.EquippedSkills[0])
+			if (s.Key == actor.EquippedSkills[0])
 				continue;
 			if (idx > 3)
 				break;
-			SkillLabels[idx].SetFittedText(s.Name);
-			if (actor.CurrentJuice < s.Cost(actor) || !s.MeetsRequirements(actor))
+			SkillLabels[idx].SetFittedText(s.Value.Name);
+			if (actor.CurrentJuice < s.Value.Cost(actor) || !s.Value.MeetsRequirements(actor))
 				SkillLabels[idx].AddThemeColorOverride("font_color", Colors.DimGray);
 			else
 				SkillLabels[idx].RemoveThemeColorOverride("font_color");
-			Skills.Add(s);
+			Skills.Add(s.Value);
 			idx++;
 		}
 		if (SkillLabels.All(x => x.Text == ""))

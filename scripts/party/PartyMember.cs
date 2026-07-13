@@ -1,8 +1,8 @@
+using System;
 using Godot;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
-using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,13 +11,13 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class PartyMember : Actor
 {
-	internal void Init(AnimatedSprite2D face, BattlePresetActor actor)
+	internal bool Init(AnimatedSprite2D face, BattlePresetActor actor)
 	{
 		SpriteFrames animation = Animation;
         if (animation == null)
         {
             GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
-            return;
+            return false;
         }
         // init animation
         Sprite = face;
@@ -28,12 +28,12 @@ public abstract class PartyMember : Actor
 		
         // init stats
         Level = actor.Level;
-        int idx = actor.Level - 1;
+        int idx = Math.Clamp(actor.Level, 1, HPTree.Length) - 1;
 		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
 		if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
 		{
 			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
-			return;
+			return false;
 		}
 		Weapon = w;
 		
@@ -42,7 +42,7 @@ public abstract class PartyMember : Actor
 			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
 			{
 				GD.PrintErr("Failed to find Charm: " + actor.Charm);
-				return;
+				return false;
 			}
 			Charm = c;
 		}
@@ -68,6 +68,8 @@ public abstract class PartyMember : Actor
 			}
 			GD.PrintErr("Unknown skill: " + s);
 		}
+
+		return true;
 	}
 
 	/// <summary>

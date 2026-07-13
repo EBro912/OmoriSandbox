@@ -450,7 +450,7 @@ public partial class DialogueManager : Node2D
 
 		MessageQueue.Enqueue(new MessageBox(speaker, speakerPos, message, choices, font));
 
-		if (WaitingForAnimation || IsTyping || WaitingForInput)
+		if (WaitingForAnimation || IsTyping || WaitingForInput || WaitingForTimer || WaitingForChoice)
 			return;
 
 		Visible = true;

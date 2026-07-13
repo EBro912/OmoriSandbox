@@ -68,7 +68,6 @@ public partial class SettingsMenuManager : Control
 				if (node is KeybindButton keybind)
 				{
 					keybind.Reset();
-					config.SetValue("Keybinds", keybind.AssociatedAction, OS.GetKeycodeString(keybind.DefaultKey));
 				}
 			}
 		};

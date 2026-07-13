@@ -146,7 +146,7 @@ public abstract class Actor
 	/// Adds a new <see cref="StatModifier"/> to this actor.
 	/// </summary>
 	/// <param name="modifier">The name of the modifier to add.</param>
-	/// <param name="turns">Overrides the default number of turns to give this modifier for. If unchanged, will use the default turn count for the modifier.
+	/// <param name="turns">Overrides the default number of turns to give this modifier for. If unchanged, will use the default turn count for the modifier.</param>
 	/// <param name="silent">If true, success/failure messages will not be logged.</param>
 	public void AddStatModifier(string modifier, int turns = -1, bool silent = false)
 	{
@@ -340,9 +340,9 @@ public abstract class Actor
 			string temp = CurrentState;
 			CurrentState = "plotarmor";
 			Sprite.Animation = "plotarmor";
+			AddStatModifier("PlotArmor");
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
 			CurrentState = temp;
-			AddStatModifier("PlotArmor");
 			return;
 		}
 
@@ -426,10 +426,7 @@ public abstract class Actor
 
 			// kinda dumb but the rest of the modifiers are capitalized so whatever
 			StatModifier mod = Database.CreateModifier(Capitalize(CurrentState));
-			if (mod != null)
-			{
-				StateStatModifier = mod;
-			}
+			StateStatModifier = mod ?? Database.CreateModifier("Neutral");
 
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
 			// only update the face sprite if we're not in plot armor
@@ -437,7 +434,7 @@ public abstract class Actor
 				Sprite.Animation = state;
 			}
 		}
-		else
+		else if (!silent)
 		{
 			BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot be " + state.ToUpper() + "!");
 		}

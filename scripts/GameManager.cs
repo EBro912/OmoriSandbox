@@ -204,7 +204,11 @@ public partial class GameManager : Node
 		};
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember(instance, followup, actor);
+		if (!component.SetPartyMember(instance, followup, actor))
+		{
+			card.QueueFree();
+			return null;
+		}
 		return component;
 	}
 }

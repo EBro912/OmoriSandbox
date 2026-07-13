@@ -190,7 +190,7 @@ internal partial class PartyMemberEditorComponent : Control
 		SpriteFrames animation = SelectedPartyMember.Animation;
 		if (animation == null)
 		{
-			GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
+			GD.PrintErr("Failed to load Face animations for PartyMember: " + who);
 			return;
 		}
 

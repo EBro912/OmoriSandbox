@@ -36,6 +36,7 @@ internal partial class FollowupFreakOutComponent : Node
         {
             FrameTimer = 0;
             Target.Position = Origin;
+            Target.SelfModulate = Colors.White;
         }
     }
 

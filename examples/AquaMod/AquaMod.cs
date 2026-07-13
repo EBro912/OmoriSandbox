@@ -79,7 +79,7 @@ public partial class AquaMod : Mod
         RegisterSkill("AQOmega", new Skill(
             name: "AQOmega",
             description: "AQOmega",
-            target: SkillTarget.AllEnemies,
+            target: SkillTarget.Enemy,
             cost: 0,
             hidden: true,
             effect: async (self, target) =>

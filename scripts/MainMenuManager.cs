@@ -165,7 +165,7 @@ internal partial class MainMenuManager : Node
 
 	public void UpdateModsLoaded(int count, int total)
 	{
-		ModsLoaded.Text = $"{count} mod{(count > 1 ? "s" : "")} loaded ({total} installed)";
+		ModsLoaded.Text = $"{count} mod{(count != 1 ? "s" : "")} loaded ({total} installed)";
 	}
 
 	public void ClearPresetDropdown()

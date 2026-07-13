@@ -604,7 +604,7 @@ public partial class BattleManager : Node
 
 	internal void OnSelectAttack()
 	{
-		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.First();
+		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault();
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		MenuManager.Instance.ShowMenu(MenuState.None);
 		SetPhase(BattlePhase.TargetSelection);
@@ -832,9 +832,8 @@ public partial class BattleManager : Node
 						enemy.Actor.SetState("toast", true);
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
+						DeferredDeathEnemies.Remove(enemy);
 					}
-
-					DeferredDeathEnemies.Remove(enemy);
 				}
 
 				if (DyingEnemies.Count > 0)
@@ -969,7 +968,7 @@ public partial class BattleManager : Node
 					await member.Actor.Charm.StartOfTurn(member.Actor);
 			}
 
-			foreach (EnemyComponent e in Enemies)
+			foreach (EnemyComponent e in Enemies.ToList())
 			{
 				if (e.Actor.CurrentState == "toast")
 					continue;
@@ -1083,8 +1082,9 @@ public partial class BattleManager : Node
 			return;
 		}
 
-		if (SelectedAction.Target == SkillTarget.AllyNotSelf &&
+		if ((SelectedAction.Target == SkillTarget.AllyNotSelf &&
 		    CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position)
+		    || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState == "toast")
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1522,6 +1522,7 @@ public partial class BattleManager : Node
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 			                                              "'s party was defeated...");
 			ShowEndOfBattleOptions();
+			return;
 		}
 		
 		if (DeferredDeathEnemies.Count > 0)
@@ -1711,7 +1712,7 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
 
 		int juiceLost = 0;
-		switch (target.CurrentState)
+		switch (targetState)
 		{
 			case "miserable":
 				juiceLost = (int)Math.Min(rounded, target.CurrentJuice);
@@ -1951,7 +1952,14 @@ public partial class BattleManager : Node
 			effect = 1;
 			if (target is "afraid" or "stressed")
 				return damage * 1.5f;
-			return damage * weakness[GetEmotionTier(target)];
+			int tier = GetEmotionTier(target);
+			if (tier < 0)
+			{
+				GD.PrintErr("Got negative emotion tier for emotion: " + target);
+				return damage;
+			}
+
+			return damage * weakness[tier];
 		}
 
 		if (self != "neutral" && target == "afraid")
@@ -2089,7 +2097,11 @@ public partial class BattleManager : Node
 		DamageNumber dmg = new(damage, position, type, critical);
 		AddChild(dmg);
 
-		GetTree().CreateTimer(1.5f).Timeout += () => { dmg.Despawn(); };
+		GetTree().CreateTimer(1.5f).Timeout += () =>
+		{
+			if (IsInstanceValid(dmg))
+				dmg.Despawn();
+		};
 	}
 
 	/// <summary>

@@ -593,6 +593,7 @@ public partial class AnimationManager : Node
 		{
 			sprite.AnimationFinished -= Finished;
 			RemoveChild(sprite);
+			sprite.QueueFree();
 		}
 		sprite.AnimationFinished += Finished;
 	}
@@ -619,6 +620,7 @@ public partial class AnimationManager : Node
 		sprite.Play();
 		await ToSignal(sprite, AnimatedSprite2D.SignalName.AnimationFinished);
 		RemoveChild(sprite);
+		sprite.QueueFree();
 	}
 
 	/// <summary>

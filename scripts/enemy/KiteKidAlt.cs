@@ -53,6 +53,7 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("AttackUp");
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
+                    enemy.RemoveStatModifier("SpeedUp");
                     enemy.AddTierStatModifier("AttackUp", 3);
                     enemy.AddTierStatModifier("DefenseUp", 3);
                     enemy.AddTierStatModifier("SpeedUp", 3);
@@ -67,6 +68,7 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("AttackUp");
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
+                    enemy.RemoveStatModifier("SpeedUp");
                     enemy.AddTierStatModifier("AttackUp", 2);
                     enemy.AddTierStatModifier("DefenseUp", 2);
                     enemy.AddTierStatModifier("SpeedDown", 2);

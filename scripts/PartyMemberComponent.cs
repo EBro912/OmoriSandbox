@@ -48,14 +48,15 @@ public partial class PartyMemberComponent : Node
 	    OneShot = true
     };
 
-    internal void SetPartyMember(PartyMember partyMember, PackedScene followup, BattlePresetActor actor)
+    internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, BattlePresetActor actor)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
 		StateAnimator = GetNode<StateAnimator>("../Battlecard/StateAnimatorComponent");
 		if (actor.Emotion is "hurt" or "victory")
 			actor.Emotion = "neutral";
-		PartyMember.Init(face, actor);
+		if (!PartyMember.Init(face, actor))
+			return false;
 		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");
@@ -93,11 +94,8 @@ public partial class PartyMemberComponent : Node
 		PartyMember.OnDamaged += Damaged;
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
 		AddChild(HurtTimer);
-		
-		PartyMember.Sprite.Animation = actor.Emotion;
-		PartyMember.CurrentState = actor.Emotion;
-		// delay this call to let everything initialize
-		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, actor.Emotion);
+
+		return true;
 	}
 
 	private void StateChanged(object sender, EventArgs e)

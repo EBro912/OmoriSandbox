@@ -46,6 +46,9 @@ internal partial class PresetManager : Node
                     continue;
                 }
 
+                if (preset == null)
+                    continue;
+
                 if (!Presets.TryAdd(preset.Name, preset))
                 {
                     GD.PrintErr($"Failed to load preset {preset.Name}, a preset with this name already exists.");
@@ -80,6 +83,9 @@ internal partial class PresetManager : Node
             report.CountSkipped();
             return;
         }
+        
+        if (preset == null)
+            return;
 
         if (!Presets.TryAdd(preset.Name, preset))
         {
@@ -95,7 +101,7 @@ internal partial class PresetManager : Node
         CreatePresetDirIfMissing();
         string result = JsonConvert.SerializeObject(preset, Formatting.Indented);
         using FileAccess file = FileAccess.Open("user://presets/" + preset.Name + ".json", FileAccess.ModeFlags.Write);
-        file.StoreString(result);
+        file?.StoreString(result);
         Presets[preset.Name] = preset;
     }
 

@@ -543,7 +543,7 @@ public class Database
 
 		Skills["Mock"] = new Skill(
 			name: "MOCK",
-			description: "Deals damage. If the foe is ANGRY, greatly\nreduce it's ATTACK. Cost: 20",
+			description: "Deals damage. If the foe is ANGRY, greatly\nreduce its ATTACK. Cost: 20",
 			target: SkillTarget.Enemy,
 			cost: 20,
 			effect: async (self, target) =>
@@ -1158,7 +1158,7 @@ public class Database
 		Skills["Cheer"] = new Skill(
 			name: "CHEER",
 			description:
-			"Heals all friends JUICE by 20%. Grealtly increases\na STAT if [actor] is feeling an EMOTION. Cost: 80",
+			"Heals all friends JUICE by 20%. Greatly increases\na STAT if [actor] is feeling an EMOTION. Cost: 80",
 			target: SkillTarget.AllAllies,
 			cost: 80,
 			effect: async (self, targets) =>
@@ -1495,6 +1495,8 @@ public class Database
 			}
 		).WithCustomRequirement(actor =>
 		{
+			if (actor.CurrentState is ("afraid" or "stressed"))
+				return false;
 			double neededHp = Math.Floor(actor.CurrentStats.MaxHP * 0.2d);
 			return actor.CurrentHP >= neededHp;
 		});
@@ -3962,8 +3964,8 @@ public class Database
 		);
 
 		Skills["SDDoNothing"] = new Skill(
-		   name: "SLDoNothing",
-		   description: "SLDoNothing",
+		   name: "SDDoNothing",
+		   description: "SDDoNothing",
 		   target: SkillTarget.Self,
 		   cost: 0,
 		   effect: async (_, target) =>
@@ -5865,7 +5867,8 @@ public class Database
 					BattleManager.Instance.MakeHappy(self);
 				}
 
-			}
+			},
+			hidden: true
 		);
 		
 		// Kel Boss //
@@ -7206,7 +7209,7 @@ public class Database
 		
 		Skills["UPCSweetGas"] = new Skill(
 			name: "UPCSweetGas",
-			description: "UPCDoNothing",
+			description: "UPCSweetGas",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
 			effect: async (self, targets) =>
@@ -7850,7 +7853,7 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses PEPPER SPRAY!");
 				await AnimationManager.Instance.WaitForScreenAnimation(271, target is Enemy);
-				BattleManager.Instance.Damage(self, target, () => 500, false, 0f, neverCrit: true);
+				BattleManager.Instance.Damage(self, target, () => 500, false, 0f, neverCrit: true, ignoreEmotion: !SettingsMenuManager.Instance.ToysUseEmotionDamage);
 			},
 			isToy: true,
 			spritesheetPath: "res://assets/system/itemConsumables.png",

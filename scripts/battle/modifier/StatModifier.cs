@@ -125,7 +125,9 @@ public class StatModifier
     /// <param name="turnsLeft">The number of turns left to set this modifier to.</param>
     public void SetTurnsLeft(int turnsLeft)
     {
-        TurnsLeft = Math.Min(turnsLeft, MaxTurns);
+        TurnsLeft = turnsLeft;
+        if (MaxTurns != -1)
+            MaxTurns = Math.Max(MaxTurns, turnsLeft);
     }
 
     /// <summary>
