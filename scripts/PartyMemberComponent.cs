@@ -95,6 +95,9 @@ public partial class PartyMemberComponent : Node
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
 		AddChild(HurtTimer);
 
+		// Init already validated the emotion, delay this call to let everything initialize
+		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, PartyMember.CurrentState);
+
 		return true;
 	}
 

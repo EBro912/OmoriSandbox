@@ -92,7 +92,7 @@ internal sealed class SirMaximusIIIAlt : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();
-            switch (SelectAllEnemies().Count)
+            switch (SelectAllEnemies().Count + 1)
             {
                 case 2:
                     BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx2"]);

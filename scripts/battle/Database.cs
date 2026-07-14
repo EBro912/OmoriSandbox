@@ -502,11 +502,11 @@ public class Database
 					randomTargets.Add(targets[GameManager.Instance.Random.RandiRange(0, targets.Count - 1)]);
 				}
 
-				foreach (Actor enemy in randomTargets)
+				// vanilla rolls all targets up front and never re-targets; a foe downed
+				// mid-action still takes its remaining hits (targets are immortal until
+				// the action finishes in RPGMaker/Yanfly)
+				foreach (Actor target in randomTargets)
 				{
-					Actor target = enemy;
-					if (target.CurrentHP == 0)
-						target = randomTargets.FirstOrDefault(x => x.CurrentHP > 0, target);
 					BattleManager.Instance.Damage(self, target, () =>
 					{
 						if (self.CurrentState is "angry" or "enraged" or "furious")
@@ -1057,7 +1057,7 @@ public class Database
 
 		Skills["Allegro"] = new Skill(
 			name: "ALLEGRO",
-			description: "Attacks 3 times. \nCost: 30",
+			description: "Attacks 3 times. \nCost: 19",
 			target: SkillTarget.Enemy,
 			cost: 19,
 			effect: async (self, target) =>
@@ -1379,7 +1379,7 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(212, member);
-					BattleManager.Instance.Heal(self, member, () => member.CurrentStats.MaxJuice * 0.25f);
+					BattleManager.Instance.Heal(self, member, () => member.CurrentStats.MaxHP * 0.25f);
 				}
 
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] and [target] comfort each other.");
@@ -1473,6 +1473,8 @@ public class Database
 			cost: 5,
 			effect: async (self, target) =>
 			{
+				// currently unreachable — the custom requirement below already gates on HP at
+				// selection and execution time, matching the base game's <Custom Requirement>
 				double neededHp = Math.Floor(self.CurrentStats.MaxHP * 0.2);
 				if (self.CurrentHP < neededHp)
 				{
@@ -1530,7 +1532,8 @@ public class Database
 					false);
 			},
 			hidden: true
-		);
+		// COUNTER itself is gated on afraid/stressed; the forced counterattack must still fire
+		).WithCustomRequirement((_) => true);
 
 		Skills["PowerHit"] = new Skill(
 			name: "POWER HIT",
@@ -1928,18 +1931,30 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(32, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] hits a home run!");
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 4f - target.CurrentStats.DEF,
-					neverCrit: true);
-				int roll = GameManager.Instance.Random.RandiRange(0, 99);
-				if (roll < 11)
+				int damage = BattleManager.Instance.Damage(self, target,
+					() => self.CurrentStats.ATK * 4f - target.CurrentStats.DEF,
+					false, neverCrit: true);
+				// the instant-defeat effect only applies if the attack lands
+				if (damage > -1)
 				{
-					target.Damage(target.CurrentHP);
+					int roll = GameManager.Instance.Random.RandiRange(0, 99);
+					if (roll < 11)
+					{
+						target.Damage(target.CurrentHP);
+					}
 				}
 
+				// vanilla pays the 20% HP cost up front, so the recoil applies even on a miss
 				self.CurrentHP = Math.Max(0,
 					(int)Math.Round(self.CurrentHP - self.CurrentStats.MaxHP * 0.2f, MidpointRounding.AwayFromZero));
 			}
-		);
+		).WithCustomRequirement(actor =>
+		{
+			if (actor.CurrentState is ("afraid" or "stressed"))
+				return false;
+			// vanilla YEP requires the 20% HP cost to be strictly payable
+			return actor.CurrentHP > (int)Math.Round(actor.CurrentStats.MaxHP * 0.2f, MidpointRounding.AwayFromZero);
+		});
 
 		// KEL //
 		Skills["KAttack"] = new Skill(
@@ -2155,7 +2170,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target,
 					"[actor] passes the COCONUT to [target]!");
 				AnimationManager.Instance.PlayAnimation(123, target);
-				int damage = BattleManager.Instance.Damage(self, target, () => target.CurrentHP * .25f, true, 0f, neverCrit: true);
+				int damage = BattleManager.Instance.Damage(self, target, () => target.CurrentHP * .25f, false, 0f, neverCrit: true);
 				// juice me can miss
 				if (damage > -1)
 				{
@@ -2249,7 +2264,10 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(62, false);
 				await Wait.Milliseconds(1000);
 				BattleLogManager.Instance.QueueMessage(self, first, "[target] wasn't looking and gets bopped!");
+				// vanilla implements this bop as a hardcoded notetag hit, so it grants no energy
+				int energy = BattleManager.Instance.Energy;
 				BattleManager.Instance.Damage(self, first, () => 1, true, 0f, false, true);
+				BattleManager.Instance.Energy = energy;
 				first.SetState("sad");
 			},
 			hidden: true
@@ -2663,7 +2681,7 @@ public class Database
 			name: "TEA TIME",
 			description: "Heals some of a friend's HEART and JUICE.\nCost: 25",
 			target: SkillTarget.AllyNotSelf,
-			cost: 10,
+			cost: 25,
 			effect: async (self, target) =>
 			{
 				AnimationManager.Instance.PlayAnimation(89, target);
@@ -7929,7 +7947,7 @@ public class Database
 			return [new StatBonus(StatType.LCK, 2 + BattleManager.Instance.Energy)];
 		});
 		Equipment["Backpack"] = new Equipment("Backpack", new StatBonus(StatType.DEF, 2), true);
-		Equipment["Baseball Cap"] = new Equipment("Baseball Cap", [new StatBonus(StatType.DEF, 10), new StatBonus(StatType.DEF, 15)], true);
+		Equipment["Baseball Cap"] = new Equipment("Baseball Cap", new StatBonus(StatType.DEF, 10), true);
 		Equipment["Binoculars"] = new Equipment("Binoculars", [new StatBonus(StatType.DEF, 2), new StatBonus(StatType.HIT, 200)], true);
 		Equipment["Blanket"] = new Equipment("Blanket", [new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.DEF, 1)], true);
 		Equipment["Bow Tie"] = new Equipment("Bow Tie", new StatBonus(StatType.DEF, 4), true);
@@ -7950,7 +7968,7 @@ public class Database
 		});
 		Equipment["Eye Patch"] = new Equipment("Eye Patch", [new StatBonus(StatType.ATK, 7), new StatBonus(StatType.HIT, -25)], true);
 		Equipment["Faux Tail"] = new Equipment("Faux Tail", new StatBonus(StatType.SPD, 15), true);
-		Equipment["Fedora"] = new Equipment("Fedora", [new StatBonus(StatType.DEF, 5), new StatBonus(StatType.DEF, 5)], true);
+		Equipment["Fedora"] = new Equipment("Fedora", new StatBonus(StatType.DEF, 5), true);
 		Equipment["Finger"] = new Equipment("Finger", [new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, -5)], true).WithStartOfBattleEffect((actor) =>
 		{
 			actor.SetState("angry", true);

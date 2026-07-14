@@ -28,11 +28,9 @@ internal sealed class SpaceExHusband : Enemy
         if (state == "neutral" || state == "toast")
             return true;
 
+        // the photograph effect is played from OnStateChanged
         if (state == DesiredEmotion)
-        {
-            AnimationManager.Instance.PlayPhotograph();
             return true;
-        }
 
         return CurrentState switch
         {
@@ -265,6 +263,11 @@ internal sealed class SpaceExHusband : Enemy
     public override async Task OnStartOfBattle()
     {
         AddStatModifier("SpaceExHusbandBlock", silent: true);
+        OnStateChanged += (_, _) =>
+        {
+            if (DesiringEmotion && CurrentState == DesiredEmotion)
+                AnimationManager.Instance.PlayPhotograph();
+        };
         DialogueManager.Instance.QueueMessage(this, @"[br]I feel nothing...\![br]I am cold...\! like ice...");
         await DialogueManager.Instance.WaitForDialogue();
     }

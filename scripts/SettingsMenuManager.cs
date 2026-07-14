@@ -119,6 +119,13 @@ public partial class SettingsMenuManager : Control
 			}
 		}
 
+		// persist settings whenever the menu is closed so a crash doesn't lose them
+		VisibilityChanged += () =>
+		{
+			if (!Visible)
+				SaveSettings();
+		};
+
 		Instance = this;
 	}
 
@@ -131,6 +138,14 @@ public partial class SettingsMenuManager : Control
 	}
 
 	public override void _ExitTree()
+	{
+		SaveSettings();
+	}
+
+	/// <summary>
+	/// Saves the current settings and keybinds to disk.
+	/// </summary>
+	public void SaveSettings()
 	{
 		ConfigFile config = new();
 		config.SetValue("Settings", "Fullscreen", FullscreenCheckbox.ButtonPressed);

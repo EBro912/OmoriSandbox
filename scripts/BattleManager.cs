@@ -41,6 +41,7 @@ public partial class BattleManager : Node
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private readonly List<BattleCommand> ForcedCommands = [];
 	private BattleCommand PendingFollowup = null;
+	private int PendingFollowupEnergyCost = 0;
 	private readonly List<Actor> PriorityActors = [];
 	private readonly HashSet<EnemyComponent> DeferredDeathEnemies = [];
 	private BattleCommand CurrentCommand = null;
@@ -56,7 +57,7 @@ public partial class BattleManager : Node
 	public int Energy
 	{
 		get => _Energy;
-		private set
+		internal set
 		{
 			_Energy = value;
 			EnergyChanged?.Invoke(this, EventArgs.Empty);
@@ -566,6 +567,8 @@ public partial class BattleManager : Node
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
 		PendingFollowup = null;
+		PendingFollowupEnergyCost = 0;
+		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
 		CurrentCommand = null;
@@ -605,6 +608,12 @@ public partial class BattleManager : Node
 	internal void OnSelectAttack()
 	{
 		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault();
+		if (SelectedAction == null)
+		{
+			// the preset gave this actor no skills at all
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		MenuManager.Instance.ShowMenu(MenuState.None);
 		SetPhase(BattlePhase.TargetSelection);
@@ -755,6 +764,13 @@ public partial class BattleManager : Node
 					{
 						member.Actor.SetState("toast", true);
 						member.Actor.RemoveAllStatModifiers();
+						// remove charm from any enemies
+						foreach (EnemyComponent enemy in Enemies)
+						{
+							if (enemy.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charmMod)
+							    && charmMod is CharmStatModifier charm && charm.CharmedBy == member.Actor)
+								enemy.Actor.RemoveStatModifier("Charm");
+						}
 						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
 					}
 
@@ -855,6 +871,9 @@ public partial class BattleManager : Node
 			// skip forced commands whose actor has died since being queued
 			if (!(IsInvalidTarget(forced.Actor) || forced.Actor.Stunned))
 				return forced;
+			// the dropped command no longer suppresses followup bubbles
+			if (forced.Actor is PartyMember && forced.Action is Skill forcedSkill && forcedSkill.ShowFollowups)
+				ForceHideFollowup = false;
 		}
 
 		// followups
@@ -863,7 +882,15 @@ public partial class BattleManager : Node
 			BattleCommand followup = PendingFollowup;
 			PendingFollowup = null;
 			if (!(IsInvalidTarget(followup.Actor) || followup.Actor.Stunned))
+			{
+				PendingFollowupEnergyCost = 0;
 				return followup;
+			}
+			// refund the energy spent on a followup that never got to execute
+			Energy = Math.Min(10, Energy + PendingFollowupEnergyCost);
+			PendingFollowupEnergyCost = 0;
+			if (followup.Action is Skill followupSkill && followupSkill.ShowFollowups)
+				ForceHideFollowup = false;
 		}
 
 		// priority actors, post-forced command actors or mid-battle spawns who haven't had their normal turn
@@ -947,7 +974,14 @@ public partial class BattleManager : Node
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
-		PendingFollowup = null;
+		if (PendingFollowup != null)
+		{
+			// refund the energy spent on a followup discarded at the turn/stage boundary
+			Energy = Math.Min(10, Energy + PendingFollowupEnergyCost);
+			PendingFollowup = null;
+		}
+		PendingFollowupEnergyCost = 0;
+		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
 		CurrentCommand = null;
@@ -1082,9 +1116,9 @@ public partial class BattleManager : Node
 			return;
 		}
 
-		if ((SelectedAction.Target == SkillTarget.AllyNotSelf &&
-		    CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position)
-		    || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState == "toast")
+		if (SelectedAction.Target == SkillTarget.AllyNotSelf &&
+		    (CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position
+		     || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState == "toast"))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1318,6 +1352,9 @@ public partial class BattleManager : Node
 							if (entry.Value.SkillName.StartsWith("ReleaseEnergy") &&
 							    CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
 								disabled = true;
+							// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
+							if (entry.Value.SkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
+								disabled = true;
 							if (disabled)
 								disabledDirections.Add(entry.Key.Direction);
 						}
@@ -1348,6 +1385,10 @@ public partial class BattleManager : Node
 
 		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == pair.Target);
 		if (target == null || target.Actor.CurrentState == "toast")
+			return false;
+
+		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
+		if (pair.SkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
 			return false;
 
 		string name = pair.SkillName;
@@ -1409,8 +1450,8 @@ public partial class BattleManager : Node
 		if (self is PartyMember && skill.ShowFollowups)
 			// if the forced skill is an attack, hide the followup bubbles
 			ForceHideFollowup = true;
-		// insert at index 0 so newest forced commands execute first
-		ForcedCommands.Insert(0, new BattleCommand(self, targets, skill));
+		// forced commands execute in the order they were queued (FIFO), like the base game
+		ForcedCommands.Add(new BattleCommand(self, targets, skill));
 		// if this actor hasn't had their normal turn, queue them for a priority turn after forced commands
 		// mimics base game behavior
 		if (!ActedThisTurn.Contains(self) && !PriorityActors.Contains(self))
@@ -1422,10 +1463,17 @@ public partial class BattleManager : Node
 		FollowupSelected = true;
 		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
 		CurrentParty.First(x => x.Actor == CurrentCommand.Actor).FadeOutFollowupsExcept(direction);
+		// remember the cost so it can be refunded if the followup is dropped before executing
 		if (PendingFollowup.Action.Name.Contains("Release Energy"))
+		{
+			PendingFollowupEnergyCost = Energy;
 			Energy = 0;
+		}
 		else
+		{
+			PendingFollowupEnergyCost = 3;
 			Energy -= 3;
+		}
 	}
 
 	private async void EndOfTurn()

@@ -96,12 +96,37 @@ internal partial class PresetManager : Node
         report.CountLoaded();
     }
 
+    /// <summary>
+    /// Checks that a preset name is a safe, portable filename, without any path separators, traversal, or reserved characters.
+    /// </summary>
+    public static bool IsValidPresetName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Contains(".."))
+            return false;
+        foreach (char c in name)
+        {
+            if (c < 32 || c is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*')
+                return false;
+        }
+        return true;
+    }
+
     public void SavePreset(BattlePreset preset)
     {
+        if (!IsValidPresetName(preset.Name))
+        {
+            GD.PrintErr($"Invalid preset name \"{preset.Name}\", preset was not saved.");
+            return;
+        }
         CreatePresetDirIfMissing();
         string result = JsonConvert.SerializeObject(preset, Formatting.Indented);
         using FileAccess file = FileAccess.Open("user://presets/" + preset.Name + ".json", FileAccess.ModeFlags.Write);
-        file?.StoreString(result);
+        if (file == null)
+        {
+            GD.PrintErr($"Failed to open preset file for writing: {FileAccess.GetOpenError()}");
+            return;
+        }
+        file.StoreString(result);
         Presets[preset.Name] = preset;
     }
 

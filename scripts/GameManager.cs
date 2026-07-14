@@ -107,6 +107,12 @@ public partial class GameManager : Node
 				continue;
 			}
 
+			if (entry.Position is < 0 or > 3)
+			{
+				GD.PrintErr($"Invalid position {entry.Position} for party member {entry.Name}, skipping!");
+				continue;
+			}
+
 			PackedScene followup = null;
 			if (!entry.FollowupsDisabled)
 			{
@@ -129,9 +135,20 @@ public partial class GameManager : Node
 
 		foreach (BattlePresetEnemy entry in preset.Enemies)
 		{
+			if (string.IsNullOrWhiteSpace(entry.Position))
+			{
+				GD.PrintErr($"Missing position for enemy {entry.Name}, skipping!");
+				continue;
+			}
 			if (!entry.Position.StartsWith("Vector2"))
 				entry.Position = "Vector2" + entry.Position;
-			Vector2 position = GD.StrToVar(entry.Position).AsVector2();
+			Variant parsedPosition = GD.StrToVar(entry.Position);
+			if (parsedPosition.VariantType != Variant.Type.Vector2)
+			{
+				GD.PrintErr($"Invalid position \"{entry.Position}\" for enemy {entry.Name}, skipping!");
+				continue;
+			}
+			Vector2 position = parsedPosition.AsVector2();
 			while (enemy.Any(x => x.Actor.CenterPoint == position))
 			{
 				// prevent stacking

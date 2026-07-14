@@ -147,11 +147,18 @@ internal partial class ModManager : Node
 		Texture2D icon = null;
 		if (!string.IsNullOrEmpty(metadata.Icon) && metadata.Icon.EndsWith(".png"))
 		{
-			Image iconImage = Image.LoadFromFile($"user://mods/{dirName}/{metadata.Icon}");
-			if (iconImage != null)
-				icon = ImageTexture.CreateFromImage(iconImage);
+			if (metadata.Icon.Contains("..") || metadata.Icon.Contains("://") || Path.IsPathRooted(metadata.Icon))
+			{
+				report.Warn("metadata", "icon", $"Invalid icon path '{metadata.Icon}' (path traversal not allowed)");
+			}
 			else
-				report.Warn("metadata", "icon", $"Failed to load icon: {metadata.Icon}");
+			{
+				Image iconImage = Image.LoadFromFile($"user://mods/{dirName}/{metadata.Icon}");
+				if (iconImage != null)
+					icon = ImageTexture.CreateFromImage(iconImage);
+				else
+					report.Warn("metadata", "icon", $"Failed to load icon: {metadata.Icon}");
+			}
 		}
 
 		report.PrintSummary();

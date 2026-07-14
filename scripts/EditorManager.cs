@@ -54,6 +54,9 @@ internal partial class EditorManager : Node
 		{
 			control.GetChild<Button>(0).Pressed += () =>
 			{
+				// each position holds a single battlecard preview
+				if (control.GetChildCount() > 1)
+					return;
 				Control card = BattleCard.Instantiate<Control>();
 				control.AddChild(card);
 				card.Position = Vector2.Zero;
@@ -156,11 +159,11 @@ internal partial class EditorManager : Node
 
 		RemoveStageButton.Pressed += () =>
 		{
+			if (StageTabs.GetTabCount() == 0)
+				return;
 			BGMPreview.Stop();
 			Node tab = StageTabs.GetChild(StageTabs.CurrentTab);
 			tab.Free();
-			if (StageTabs.GetTabCount() == 0)
-				return;
 			for (int i = 1; i <= StageTabs.GetTabCount(); i++)
 			{
 				StageTabs.SetTabTitle(i - 1, i.ToString());
@@ -243,6 +246,12 @@ internal partial class EditorManager : Node
 	{
 		if (string.IsNullOrWhiteSpace(PresetInput.Text))
 			return;
+
+		if (!PresetManager.IsValidPresetName(PresetInput.Text))
+		{
+			ShowWindow("Error", "Preset name contains invalid characters");
+			return;
+		}
 
 		if (ActorTabs.GetChildCount() == 0)
 		{
@@ -510,6 +519,11 @@ internal partial class EditorManager : Node
 		
 		foreach (BattlePresetActor entry in preset.Actors)
 		{
+			if (entry.Position < 0 || entry.Position >= AddActorControls.Length)
+			{
+				GD.PrintErr($"Invalid position {entry.Position} for party member {entry.Name}, skipping!");
+				continue;
+			}
 			Control card = BattleCard.Instantiate<Control>();
 			AddActorControls[entry.Position].AddChild(card);
 			card.Position = Vector2.Zero;
@@ -643,11 +657,11 @@ internal partial class EditorManager : Node
 
 	private void ResetToDefault()
 	{
-		// remove battlecard previews
+		// remove battlecard previews (child 0 is the add button)
 		foreach (Control control in AddActorControls)
 		{
-			if (control.GetChildCount() > 1)
-				control.GetChild<Control>(1).Free();
+			for (int i = control.GetChildCount() - 1; i > 0; i--)
+				control.GetChild(i).Free();
 		}
 
 		// remove party member tabs

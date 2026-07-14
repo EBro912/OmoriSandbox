@@ -19,6 +19,12 @@ public abstract class PartyMember : Actor
             GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
             return false;
         }
+        // fall back to neutral on unknown or invalid preset emotions
+        if (!animation.HasAnimation(actor.Emotion) || !IsStateValid(actor.Emotion))
+        {
+            GD.PushWarning($"Invalid emotion '{actor.Emotion}' for PartyMember {Name}, defaulting to neutral.");
+            actor.Emotion = "neutral";
+        }
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;

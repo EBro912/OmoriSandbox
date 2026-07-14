@@ -947,6 +947,11 @@ public partial class AnimationManager : Node
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 
+		if (animation.TryGetFrameShake(0, out Shake shake))
+		{
+			InitShake(shake);
+		}
+
 		PlayingAnimation playing = new(animation, position, index);
 		AddChild(playing);
 		PlayingAnimations.Add(playing);
@@ -961,6 +966,11 @@ public partial class AnimationManager : Node
 		if (animation.TryGetFrameSFX(0, out List<SFX> sfx))
 		{
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
+		}
+
+		if (animation.TryGetFrameShake(0, out Shake shake))
+		{
+			InitShake(shake);
 		}
 
 		PlayingAnimation playing = new(animation, new Vector2(320, 240), layer);

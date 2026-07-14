@@ -41,9 +41,9 @@ internal class DiscordManager
                 }
             });
         }
-        catch
+        catch (Exception ex)
         {
-            GD.PushWarning("Failed to initialize Discord SDK, disabling Discord integration!");
+            GD.PushWarning($"Failed to initialize Discord SDK, disabling Discord integration! ({ex.Message})");
             DiscordDisabled = true;
         }
     }
@@ -55,10 +55,11 @@ internal class DiscordManager
         {
             DiscordSDK.RunCallbacks();
         }
-        catch (ResultException)
+        catch (ResultException ex)
         {
-            GD.PushWarning("Ran into an exception while running Discord SDK. Disabling...");
+            GD.PushWarning($"Ran into an exception while running Discord SDK ({ex.Message}). Disabling...");
             DiscordDisabled = true;
+            DiscordSDK.Dispose();
         }
     }
 

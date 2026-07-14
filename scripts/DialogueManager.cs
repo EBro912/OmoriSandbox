@@ -39,7 +39,8 @@ public partial class DialogueManager : Node2D
 	private double CharTimer = 0;
 	private int CurrentMessageLength = 0;
 	private int CharsTillSound = 2;
-	private Dictionary<int, PauseType> PauseIndices = [];
+	private Dictionary<int, List<PauseType>> PauseIndices = [];
+	private Tween OpenCloseTween;
 
 	private Vector2I CursorNormalPos = new(145, 35);
 	private string[] CurrentChoices;
@@ -164,9 +165,15 @@ public partial class DialogueManager : Node2D
 			return;
 		}
 
-		if (PauseIndices.TryGetValue(Text.VisibleCharacters, out PauseType p))
+		if (PauseIndices.TryGetValue(Text.VisibleCharacters, out List<PauseType> pauses))
 		{
-			Text.VisibleCharacters++;
+			PauseType p = pauses[0];
+			pauses.RemoveAt(0);
+			if (pauses.Count == 0)
+			{
+				PauseIndices.Remove(Text.VisibleCharacters);
+				Text.VisibleCharacters++;
+			}
 			IsTyping = false;
 			switch (p)
 			{
@@ -203,6 +210,9 @@ public partial class DialogueManager : Node2D
 
 	private void BeginMessage()
 	{
+		// a Reset may have emptied the queue while the open animation was still pending
+		if (MessageQueue.Count == 0)
+			return;
 		WaitingForAnimation = false;
 		Text.Visible = true;
 		Cursor.Visible = false;
@@ -295,13 +305,13 @@ public partial class DialogueManager : Node2D
 					switch (c)
 					{
 						case '.':
-							PauseIndices.Add(visibleIndex, PauseType.QuarterSecond);
+							AddPause(visibleIndex, PauseType.QuarterSecond);
 							break;
 						case '|':
-							PauseIndices.Add(visibleIndex, PauseType.Second);
+							AddPause(visibleIndex, PauseType.Second);
 							break;
 						case '!':
-							PauseIndices.Add(visibleIndex, PauseType.Input);
+							AddPause(visibleIndex, PauseType.Input);
 							break;
 						default:
 							GD.PushWarning("Invalid pause tag in dialogue: \\" + c);
@@ -327,6 +337,16 @@ public partial class DialogueManager : Node2D
 		return sb.ToString();
 	}
 
+	private void AddPause(int index, PauseType type)
+	{
+		if (!PauseIndices.TryGetValue(index, out List<PauseType> list))
+		{
+			list = [];
+			PauseIndices[index] = list;
+		}
+		list.Add(type);
+	}
+
 	private void SkipForward()
 	{
 		IsTyping = false;
@@ -335,7 +355,7 @@ public partial class DialogueManager : Node2D
 		int target = CurrentMessageLength;
 		foreach (var pause in PauseIndices)
 		{
-			if (pause.Key >= Text.VisibleCharacters && pause.Value is PauseType.Input && pause.Key < target)
+			if (pause.Key >= Text.VisibleCharacters && pause.Value.Contains(PauseType.Input) && pause.Key < target)
 				target = pause.Key;
 		}
 
@@ -473,9 +493,9 @@ public partial class DialogueManager : Node2D
 
 	private void AnimateOpen()
 	{
-		Tween tween = CreateTween();
-		tween.TweenProperty(Box, "custom_minimum_size:y", 110, 0.1f);
-		tween.TweenCallback(Callable.From(BeginMessage));
+		OpenCloseTween = CreateTween();
+		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 110, 0.1f);
+		OpenCloseTween.TweenCallback(Callable.From(BeginMessage));
 	}
 
 	private void AnimateChoiceOpen()
@@ -520,9 +540,9 @@ public partial class DialogueManager : Node2D
 
 	private void AnimateClose()
 	{
-		Tween tween = CreateTween();
-		tween.TweenProperty(Box, "custom_minimum_size:y", 20, 0.1f);
-		tween.TweenCallback(Callable.From(FinishMessage));
+		OpenCloseTween = CreateTween();
+		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 20, 0.1f);
+		OpenCloseTween.TweenCallback(Callable.From(FinishMessage));
 	}
 	
 	private void FinishMessage()
@@ -537,6 +557,7 @@ public partial class DialogueManager : Node2D
 	public void Reset()
 	{
 		MessageQueue.Clear();
+		OpenCloseTween?.Kill();
 		HasChoice = false;
 		WaitingForAnimation = false;
 		WaitingForInput = false;
@@ -552,6 +573,14 @@ public partial class DialogueManager : Node2D
 		ClearChoiceLabels();
 		ChoiceBox.CustomMinimumSize = new Vector2(110, 20);
 		ChoiceBox.OffsetLeft = CHOICE_BOX_DEFAULT_LEFT;
+		// hide everything and restore the box height for the next dialogue
+		Visible = false;
+		Text.Visible = false;
+		Text.Text = "";
+		SpeakerSprite.Visible = false;
+		ChoiceBox.Visible = false;
+		ChoiceTextParent.Visible = false;
+		Box.CustomMinimumSize = new Vector2(Box.CustomMinimumSize.X, 20);
 	}
 
 	private record MessageBox(string Speaker, Vector2 SpeakerPos, string Message, string[] Choices, FontType Font);
