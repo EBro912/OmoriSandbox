@@ -22,6 +22,12 @@ internal partial class ModManager : Node
 	private readonly List<ModMetadata> LoadedMods = [];
 	private readonly List<Mod> ModNodes = [];
 
+	/// <summary>
+	/// The name of the mod currently being loaded, or null outside mod loading.
+	/// Used to attribute database registrations to their mod.
+	/// </summary>
+	internal static string CurrentModName { get; private set; }
+
 	public override void _Ready()
 	{
 		Instance = this;
@@ -58,14 +64,34 @@ internal partial class ModManager : Node
 
 	public override void _Process(double delta)
 	{
-		foreach (Mod node in ModNodes)
-			node.OnProcess(delta);
+		for (int i = ModNodes.Count - 1; i >= 0; i--)
+		{
+			try
+			{
+				ModNodes[i].OnProcess(delta);
+			}
+			catch (Exception ex)
+			{
+				GD.PushError($"Unhandled exception in {ModNodes[i].GetType().FullName}.OnProcess, " +
+				             $"disabling OnProcess for this mod: {ex}");
+				ModNodes.RemoveAt(i);
+			}
+		}
 	}
 
 	public override void _ExitTree()
 	{
 		foreach (Mod node in ModNodes)
-			node.OnUnload();
+		{
+			try
+			{
+				node.OnUnload();
+			}
+			catch (Exception ex)
+			{
+				GD.PushError($"Unhandled exception in {node.GetType().FullName}.OnUnload: {ex}");
+			}
+		}
 	}
 
 	public void LoadMods()
@@ -77,8 +103,19 @@ internal partial class ModManager : Node
 
 		foreach (string dirName in DirAccess.GetDirectoriesAt("user://mods"))
 		{
-			if (LoadMod(dirName))
-				processed++;
+			try
+			{
+				if (LoadMod(dirName))
+					processed++;
+			}
+			catch (Exception ex)
+			{
+				GD.PushError($"Mod \"{dirName}\" failed to load: {ex}");
+			}
+			finally
+			{
+				CurrentModName = null;
+			}
 			total++;
 		}
 
@@ -122,30 +159,43 @@ internal partial class ModManager : Node
 		}
 
 		ModLoadReport report = new(metadata.Name, metadata.Version);
+		CurrentModName = metadata.Name;
 
-		foreach (string modDll in DirAccess.GetFilesAt("user://mods/" + dirName).Where(x => x.EndsWith(".dll")))
+		if (!LoadModAssemblies(dirName))
 		{
-			if (!LoadModAssembly($"{dirName}/{modDll}"))
-				return false;
+			CurrentModName = null;
+			return false;
+		}
+		
+		void Run(string category, Action loader)
+		{
+			try
+			{
+				loader();
+			}
+			catch (Exception ex)
+			{
+				report.Error(category, dirName, $"Failed to load: {ex}");
+			}
 		}
 
 		foreach (string modDir in DirAccess.GetDirectoriesAt("user://mods/" + dirName))
 		{
 			switch (modDir.ToLower())
 			{
-				case "actors":      LoadActors(dirName, report); break;
-				case "bgm":         LoadBGM(dirName, report); break;
-				case "sfx":         LoadSFX(dirName, report); break;
-				case "battlebacks": LoadBattlebacks(dirName, report); break;
-				case "enemies":     LoadEnemies(dirName, report); break;
-				case "animations":  LoadAnimations(dirName); break;
-				case "stateicons":  LoadStateIcons(dirName, report); break;
-				case "presets":     LoadPresets(dirName, report); break;
+				case "actors":      Run("actors", () => LoadActors(dirName, modDir, report)); break;
+				case "bgm":         Run("bgm", () => LoadBGM(dirName, modDir, report)); break;
+				case "sfx":         Run("sfx", () => LoadSFX(dirName, modDir, report)); break;
+				case "battlebacks": Run("battlebacks", () => LoadBattlebacks(dirName, modDir, report)); break;
+				case "enemies":     Run("enemies", () => LoadEnemies(dirName, modDir, report)); break;
+				case "animations":  Run("animations", () => LoadAnimations(dirName, modDir, report)); break;
+				case "stateicons":  Run("stateicons", () => LoadStateIcons(dirName, modDir, report)); break;
+				case "presets":     Run("presets", () => LoadPresets(dirName, modDir, report)); break;
 			}
 		}
 
 		Texture2D icon = null;
-		if (!string.IsNullOrEmpty(metadata.Icon) && metadata.Icon.EndsWith(".png"))
+		if (!string.IsNullOrEmpty(metadata.Icon) && metadata.Icon.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
 		{
 			if (metadata.Icon.Contains("..") || metadata.Icon.Contains("://") || Path.IsPathRooted(metadata.Icon))
 			{
@@ -161,71 +211,101 @@ internal partial class ModManager : Node
 			}
 		}
 
+		CurrentModName = null;
 		report.PrintSummary();
-		MainMenuManager.Instance.AddModListEntry(metadata, icon);
+		MainMenuManager.Instance.AddModListEntry(metadata, icon, report.HasErrors);
 		LoadedMods.Add(metadata);
 		return true;
 	}
 
-	private bool LoadModAssembly(string path)
+	private bool LoadModAssemblies(string dirName)
 	{
-		try
-		{
-			AssemblyLoadContext context = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly());
-			if (context == null)
-				return false;
-			Assembly asm = context.LoadFromAssemblyPath(ProjectSettings.GlobalizePath("user://mods/" + path));
-			var type = asm.GetTypes().FirstOrDefault(t => t.IsSubclassOf(typeof(Mod)) && !t.IsAbstract);
-			if (type == null)
-			{
-				GD.PushWarning($"No valid Mod class found in assembly {path}, skipping!");
-				return false;
-			}
-
-			if (Activator.CreateInstance(type) is not Mod instance)
-			{
-				GD.PrintErr("Failed to instantiate Mod class from assembly " + path);
-				return false;
-			}
-
-			AddChild(instance);
-			ModNodes.Add(instance);
-			instance.OnLoad();
-
+		string[] dlls = DirAccess.GetFilesAt("user://mods/" + dirName)
+			.Where(x => x.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)).ToArray();
+		if (dlls.Length == 0)
 			return true;
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr("Failed to load assembly " + path + ": " + ex);
+
+		AssemblyLoadContext context = AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly());
+		if (context == null)
 			return false;
+
+		// load every assembly before inspecting any types
+		List<(string File, Assembly Assembly)> assemblies = [];
+		foreach (string dll in dlls)
+		{
+			try
+			{
+				assemblies.Add((dll,
+					context.LoadFromAssemblyPath(ProjectSettings.GlobalizePath($"user://mods/{dirName}/{dll}"))));
+			}
+			catch (Exception ex)
+			{
+				GD.PrintErr($"Failed to load assembly {dirName}/{dll}: {ex}");
+				return false;
+			}
 		}
+
+		bool foundMod = false;
+		foreach ((string file, Assembly asm) in assemblies)
+		{
+			try
+			{
+				var type = asm.GetTypes().FirstOrDefault(t => t.IsSubclassOf(typeof(Mod)) && !t.IsAbstract);
+				if (type == null)
+				{
+					// a DLL without a Mod subclass is a helper assembly used by the main DLL
+					GD.Print($"Loaded {dirName}/{file} as a helper assembly");
+					continue;
+				}
+
+				if (Activator.CreateInstance(type) is not Mod instance)
+				{
+					GD.PrintErr($"Failed to instantiate Mod class from assembly {dirName}/{file}");
+					return false;
+				}
+
+				AddChild(instance);
+				ModNodes.Add(instance);
+				instance.OnLoad();
+				foundMod = true;
+			}
+			catch (Exception ex)
+			{
+				GD.PrintErr($"Failed to load assembly {dirName}/{file}: {ex}");
+				return false;
+			}
+		}
+
+		if (!foundMod)
+			GD.PushWarning($"Mod {dirName} contains DLLs, but no Mod subclass was found in any of them.");
+		return true;
 	}
 
-	private void LoadPresets(string root, ModLoadReport report)
+	private void LoadPresets(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/presets";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string preset in DirAccess.GetFilesAt(path))
 		{
-			if (!preset.EndsWith(".json"))
+			if (!preset.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
 			{
 				report.Error("presets", preset, "File is not JSON");
 				report.CountSkipped();
 				continue;
 			}
-			
+
 			PresetManager.Instance.LoadModdedPreset(path + "/" + preset, report);
 		}
 	}
 
-	private void LoadActors(string root, ModLoadReport report)
+	private void LoadActors(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/actors";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string actor in DirAccess.GetDirectoriesAt(path))
 		{
 			try
 			{
 				string[] files = DirAccess.GetFilesAt($"{path}/{actor}");
-				string json = files.FirstOrDefault(x => x.EndsWith(".json"));
+				string json = files.FirstOrDefault(x => x.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
 				if (json == null)
 				{
 					report.Error("actors", actor, "Missing JSON file");
@@ -246,7 +326,12 @@ internal partial class ModManager : Node
 					continue;
 				}
 				SpriteFrames frames = BuildActorAnimation(mod, $"{path}/{actor}", report);
-				Database.RegisterJsonPartyMember(mod, frames);
+				if (frames == null || !Database.RegisterJsonPartyMember(mod, frames))
+				{
+					// the builder or the register call already reported the reason
+					report.CountSkipped();
+					continue;
+				}
 				report.CountLoaded();
 			}
 			catch (Exception e)
@@ -278,6 +363,7 @@ internal partial class ModManager : Node
 			return null;
 		}
 		SpriteFrames spriteFrames = new();
+		int totalCells = columns * (texture.GetHeight() / ACTOR_SIZE);
 		foreach (JsonModAnimationData data in jsonActor.Animation)
 		{
 			spriteFrames.AddAnimation(data.Emotion);
@@ -285,6 +371,12 @@ internal partial class ModManager : Node
 			spriteFrames.SetAnimationLoop(data.Emotion, true);
 			foreach (int idx in data.Frames)
 			{
+				if (idx < 0 || idx >= totalCells)
+				{
+					report.Warn("actors", jsonActor.Name,
+						$"Frame index {idx} in animation '{data.Emotion}' is outside the atlas (0-{totalCells - 1}), skipping frame!");
+					continue;
+				}
 				int column = idx % columns;
 				int row = idx / columns;
 				AtlasTexture tex = new()
@@ -298,15 +390,15 @@ internal partial class ModManager : Node
 		return spriteFrames;
 	}
 
-	private void LoadEnemies(string root, ModLoadReport report)
+	private void LoadEnemies(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/enemies";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string enemy in DirAccess.GetDirectoriesAt(path))
 		{
 			try
 			{
 				string[] files = DirAccess.GetFilesAt($"{path}/{enemy}");
-				string json = files.FirstOrDefault(x => x.EndsWith(".json"));
+				string json = files.FirstOrDefault(x => x.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
 				if (json == null)
 				{
 					report.Error("enemies", enemy, "Missing JSON file");
@@ -327,7 +419,12 @@ internal partial class ModManager : Node
 					continue;
 				}
 				SpriteFrames frames = BuildEnemyAnimation(mod, $"{path}/{enemy}", report);
-				Database.RegisterJsonEnemy(mod, frames);
+				if (frames == null || !Database.RegisterJsonEnemy(mod, frames))
+				{
+					// the builder or the register call already reported the reason
+					report.CountSkipped();
+					continue;
+				}
 				report.CountLoaded();
 			}
 			catch (Exception e)
@@ -361,6 +458,7 @@ internal partial class ModManager : Node
 		}
 		int columns = texture.GetWidth() / width;
 		SpriteFrames spriteFrames = new();
+		int totalCells = columns * (texture.GetHeight() / height);
 		foreach (JsonModAnimationData data in jsonEnemy.Animation)
 		{
 			spriteFrames.AddAnimation(data.Emotion);
@@ -368,6 +466,12 @@ internal partial class ModManager : Node
 			spriteFrames.SetAnimationLoop(data.Emotion, true);
 			foreach (int idx in data.Frames)
 			{
+				if (idx < 0 || idx >= totalCells)
+				{
+					report.Warn("enemies", jsonEnemy.Name,
+						$"Frame index {idx} in animation '{data.Emotion}' is outside the atlas (0-{totalCells - 1}), skipping frame");
+					continue;
+				}
 				int column = idx % columns;
 				int row = idx / columns;
 				AtlasTexture tex = new()
@@ -381,12 +485,12 @@ internal partial class ModManager : Node
 		return spriteFrames;
 	}
 
-	private void LoadBGM(string root, ModLoadReport report)
+	private void LoadBGM(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/bgm";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string file in DirAccess.GetFilesAt(path))
 		{
-			if (file.EndsWith(".ogg"))
+			if (file.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
 			{
 				if (!AudioManager.Instance.LoadCustomBGM($"{path}/{file}"))
 				{
@@ -402,12 +506,12 @@ internal partial class ModManager : Node
 	}
 
 
-	private void LoadSFX(string root, ModLoadReport report)
+	private void LoadSFX(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/sfx";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string file in DirAccess.GetFilesAt(path))
 		{
-			if (file.EndsWith(".ogg"))
+			if (file.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
 			{
 				if (!AudioManager.Instance.LoadCustomSFX($"{path}/{file}"))
 				{
@@ -422,15 +526,20 @@ internal partial class ModManager : Node
 		}
 	}
 
-	private void LoadBattlebacks(string root, ModLoadReport report)
+	private void LoadBattlebacks(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/battlebacks";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string file in DirAccess.GetFilesAt(path))
 		{
 			try
 			{
-				BattlebackManager.Instance.AddBattleback("user://mods/" + root + "/battlebacks/" + file);
-				report.CountLoaded();
+				if (BattlebackManager.Instance.AddBattleback($"{path}/{file}"))
+					report.CountLoaded();
+				else
+				{
+					report.Error("battlebacks", file, "Invalid or duplicate battleback");
+					report.CountSkipped();
+				}
 			}
 			catch (Exception e)
 			{
@@ -440,21 +549,21 @@ internal partial class ModManager : Node
 		}
 	}
 
-	private void LoadAnimations(string root)
+	private void LoadAnimations(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/animations";
+		string path = $"user://mods/{root}/{dir}";
 		if (FileAccess.FileExists(path + "/Animations.json"))
-			AnimationManager.Instance.LoadModded(root);
+			AnimationManager.Instance.LoadModded(root, dir, report);
 		if (FileAccess.FileExists(path + "/Animations.jsond"))
-			AnimationManager.Instance.LoadDeltaPatch(root);
+			AnimationManager.Instance.LoadDeltaPatch(root, dir, report);
 	}
 
-	private void LoadStateIcons(string root, ModLoadReport report)
+	private void LoadStateIcons(string root, string dir, ModLoadReport report)
 	{
-		string path = "user://mods/" + root + "/stateicons";
+		string path = $"user://mods/{root}/{dir}";
 		foreach (string file in DirAccess.GetFilesAt(path))
 		{
-			if (file.EndsWith(".png"))
+			if (file.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
 			{
 				Image image = Image.LoadFromFile(path + "/" + file);
 				if (image == null)
@@ -464,8 +573,13 @@ internal partial class ModManager : Node
 					continue;
 				}
 				Texture2D texture = ImageTexture.CreateFromImage(image);
-				Database.AddStateIcon(file.GetBaseName(), texture);
-				report.CountLoaded();
+				if (Database.AddStateIcon(file.GetBaseName(), texture))
+					report.CountLoaded();
+				else
+				{
+					report.Error("stateicons", file, "A state icon with this name already exists");
+					report.CountSkipped();
+				}
 			}
 		}
 	}

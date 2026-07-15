@@ -103,8 +103,8 @@ public partial class AudioManager : Node
 			}
 			SFXDictionary.Add(name, stream);
 		}
-
-		if (PlayingSounds.TryGetValue(stream.ResourcePath, out AudioStreamPlayer existing))
+		
+		if (PlayingSounds.TryGetValue(name, out AudioStreamPlayer existing))
 		{
 			existing.Stream = stream;
 			existing.PitchScale = pitch;
@@ -121,7 +121,7 @@ public partial class AudioManager : Node
 			player.PitchScale = pitch;
 			player.VolumeLinear = volume;
 			player.Play();
-			PlayingSounds.Add(stream.ResourcePath, player);
+			PlayingSounds.Add(name, player);
 			return;
 		}
 
@@ -296,7 +296,14 @@ public partial class AudioManager : Node
 	{
 		player.PitchScale = 1f;
 		player.VolumeLinear = 1f;
-		PlayingSounds.Remove(player.Stream.ResourcePath);
+		foreach ((string name, AudioStreamPlayer playing) in PlayingSounds)
+		{
+			if (playing == player)
+			{
+				PlayingSounds.Remove(name);
+				break;
+			}
+		}
 	}
 
 	internal IEnumerable<string> GetAllBGM()

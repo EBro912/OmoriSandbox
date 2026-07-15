@@ -18,8 +18,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Discord Game SDK native library for Linux; .NET probes for the lib-prefixed name.
-         Copied next to OmoriSandbox.dll so it resolves in editor runs and Linux exports. -->
+    <!-- Discord Game SDK native library for Linux -->
     <None Include="libdiscord_game_sdk.so" Condition="Exists('libdiscord_game_sdk.so')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

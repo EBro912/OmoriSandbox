@@ -19,7 +19,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.0.1";
+	public const string Version = "OmoriSandbox v1.1.0";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
@@ -37,9 +37,19 @@ public partial class GameManager : Node
 	internal DiscordManager DiscordManager { get; private set; }
 	public static GameManager Instance { get; private set; }
 
+	private double DisplayedFPS = -1;
+
 	public override void _PhysicsProcess(double delta)
 	{
-		FPSLabel.Text = $"{(SettingsMenuManager.Instance.ShowFPS ? Engine.GetFramesPerSecond() : "")} {Version}";
+		// only rebuild the label text when the displayed value actually changes
+		double fps = SettingsMenuManager.Instance.ShowFPS ? Engine.GetFramesPerSecond() : -1;
+		// possible loss of precision here is fine because we only care about whole number changes
+		// ReSharper disable once CompareOfFloatsByEqualityOperator
+		if (fps != DisplayedFPS)
+		{
+			DisplayedFPS = fps;
+			FPSLabel.Text = $"{(fps >= 0 ? fps : "")} {Version}";
+		}
 
 		DiscordManager.Tick();
 	}
@@ -195,7 +205,8 @@ public partial class GameManager : Node
 			return null;
 		Node2D node = EnemyNode.Instantiate<Node2D>();
 		BattlebackParent.AddChild(node);
-		GD.Print("Spawning enemy at: " + position);
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print("Spawning enemy at: " + position);
 		node.GlobalPosition = position;
 		EnemyComponent component = new();
 		node.AddChild(component);

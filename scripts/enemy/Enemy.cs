@@ -183,8 +183,14 @@ public abstract class Enemy : Actor
 		{
 			return Skills.Values.Any(x => x.Target is SkillTarget.AllAllies or SkillTarget.AllDeadAllies
 				or SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
-		} 
+		}
 	}
+	/// <summary>
+	/// Whether this enemy has a skill that hits several party members at once.
+	/// Used by OBSERVE to pick a valid multi-target prediction.
+	/// </summary>
+	internal bool HasMultiTargetPartySkill =>
+		Skills.Values.Any(x => x.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
 	/// <summary>
 	/// Called after each action finishes. Mainly used for boss events.
 	/// </summary>
@@ -208,6 +214,9 @@ public abstract class Enemy : Actor
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;
+	// freshness marker: predictions set this turn survive to the next turn, where the AI can
+	// consume them; anything older is stale and gets cleared at end of turn
+	internal bool ObserveSetThisTurn;
 
 	/// <summary>
 	/// Whether this enemy is currently observing a target.

@@ -57,6 +57,23 @@ public class Skill : BattleAction
 	private Func<Actor, bool> Requirement = actor => actor.CurrentState is not "afraid" and not "stressed";
 
 	/// <summary>
+	/// The battle log message shown when this skill's requirement fails at execution time
+	/// for a reason other than the actor being afraid/stressed. When null, the default
+	/// "too AFRAID to move" message is used. Supports the [actor] tag.
+	/// </summary>
+	public string RequirementFailureMessage { get; private set; }
+
+	/// <summary>
+	/// Sets a custom battle log message for when this skill's requirement fails at execution
+	/// time. The default afraid/stressed failure keeps its own message regardless.
+	/// </summary>
+	public Skill WithRequirementFailureMessage(string message)
+	{
+		RequirementFailureMessage = message;
+		return this;
+	}
+
+	/// <summary>
 	/// Creates a new single-target skill. Must be registered via <see cref="Modding.Mod.RegisterSkill(string, Skill)"/> to appear in-game.
 	/// </summary>
 	/// <param name="name">The name of the skill.</param>

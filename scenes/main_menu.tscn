@@ -373,7 +373,6 @@ text = "Quit
 "
 
 [node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
-visible = false
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -649,6 +648,15 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show FPS"
+
+[node name="LogDebug" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2138556494]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Logs useful debug messages to the console/log file"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Log Debug Messages"
 
 [node name="RequireTwoRunInputs" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=773435890]
 layout_mode = 2

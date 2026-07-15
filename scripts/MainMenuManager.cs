@@ -154,12 +154,14 @@ internal partial class MainMenuManager : Node
 		Editor.Visible = true;
 	}
 
-	public void AddModListEntry(ModMetadata data, Texture2D icon = null)
+	public void AddModListEntry(ModMetadata data, Texture2D icon = null, bool hasErrors = false)
 	{
 		ModListEntry entry = ModListEntry.Instantiate<ModListEntry>();
 		entry.SetData(data);
 		if (icon != null)
 			entry.SetIcon(icon);
+		if (hasErrors)
+			entry.MarkErrors();
 		ModListParent.GetChild(1).GetChild(0).AddChild(entry);
 	}
 

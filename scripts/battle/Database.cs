@@ -75,78 +75,72 @@ public class Database
 		return StateIcons.TryGetValue(name, out texture);
 	}
 
-	internal static void RegisterJsonPartyMember(JsonActorMod jsonActor, SpriteFrames builtFrames)
-	{
-		if (builtFrames == null)
-			return;
+	// tracks which mod registered each modded entry, keyed by "kind:id", for collision reporting
+	private static readonly Dictionary<string, string> RegistrationOwners = [];
 
-		if (PartyMembers.ContainsKey(jsonActor.Name))
+	private static bool TryRegister<T>(IDictionary<string, T> registry, string kind, string id, T value)
+	{
+		string owner = ModManager.CurrentModName;
+		if (!registry.TryAdd(id, value))
 		{
-			GD.PrintErr("Party member with name " +  jsonActor.Name + " already exists!");
-			return;
+			string original = RegistrationOwners.TryGetValue($"{kind}:{id}", out string existing)
+				? $"mod \"{existing}\""
+				: "the base game";
+			string loser = owner != null ? $" from mod \"{owner}\"" : "";
+			GD.PrintErr($"{kind} with ID {id}{loser} already exists (registered by {original}), skipping!");
+			return false;
 		}
-		PartyMembers[jsonActor.Name] = () => new ModdedPartyMember(jsonActor, builtFrames);
+		if (owner != null)
+			RegistrationOwners[$"{kind}:{id}"] = owner;
+		return true;
 	}
 
-	internal static void RegisterJsonEnemy(JsonEnemyMod jsonEnemy, SpriteFrames builtFrames)
+	internal static bool RegisterJsonPartyMember(JsonActorMod jsonActor, SpriteFrames builtFrames)
 	{
 		if (builtFrames == null)
-			return;
+			return false;
 
-		if (Enemies.ContainsKey(jsonEnemy.Name))
-		{
-			GD.PrintErr("Enemy with name " + jsonEnemy.Name + " already exists!");
-			return;
-		}
-		Enemies[jsonEnemy.Name] = () => new ModdedEnemy(jsonEnemy, builtFrames);
+		return TryRegister<Func<PartyMember>>(PartyMembers, "PartyMember", jsonActor.Name,
+			() => new ModdedPartyMember(jsonActor, builtFrames));
+	}
+
+	internal static bool RegisterJsonEnemy(JsonEnemyMod jsonEnemy, SpriteFrames builtFrames)
+	{
+		if (builtFrames == null)
+			return false;
+
+		return TryRegister<Func<Enemy>>(Enemies, "Enemy", jsonEnemy.Name,
+			() => new ModdedEnemy(jsonEnemy, builtFrames));
  	}
 
-	internal static void RegisterModdedPartyMember<T>(string id) where T : PartyMember, new()
+	internal static bool RegisterModdedPartyMember<T>(string id) where T : PartyMember, new()
 	{
-		if (!PartyMembers.TryAdd(id, () => new T()))
-		{
-			GD.PrintErr("PartyMember with ID " + id + " already exists!");
-		}
+		return TryRegister<Func<PartyMember>>(PartyMembers, "PartyMember", id, () => new T());
 	}
 
-	internal static void RegisterModdedEnemy<T>(string id) where T : Enemy, new()
+	internal static bool RegisterModdedEnemy<T>(string id) where T : Enemy, new()
 	{
-		if (!Enemies.TryAdd(id, () => new T()))
-		{
-			GD.PrintErr("Enemy with ID " + id + " already exists!");
-		}
+		return TryRegister<Func<Enemy>>(Enemies, "Enemy", id, () => new T());
 	}
 
-	internal static void RegisterModdedStatModifier(string id, Func<StatModifier> func)
+	internal static bool RegisterModdedStatModifier(string id, Func<StatModifier> func)
 	{
-		if (!Modifiers.TryAdd(id, func))
-		{
-			GD.PrintErr("StatModifier with ID " + id + " already exists!");
-		}
+		return TryRegister(Modifiers, "StatModifier", id, func);
 	}
 
-	internal static void RegisterModdedSkill(string id, Skill skill)
+	internal static bool RegisterModdedSkill(string id, Skill skill)
 	{
-		if (!Skills.TryAdd(id, skill))
-		{
-			GD.PrintErr("Skill with ID " + id + " already exists!");
-		}
+		return TryRegister(Skills, "Skill", id, skill);
 	}
 
-	internal static void RegisterModdedItem(string id, Item item)
+	internal static bool RegisterModdedItem(string id, Item item)
 	{
-		if (!Items.TryAdd(id, item))
-		{
-			GD.PrintErr("Item with ID " + id + " already exists!");
-		}
+		return TryRegister(Items, "Item", id, item);
 	}
 
-	internal static void RegisterModdedEquipment(string id, Equipment equipment)
+	internal static bool RegisterModdedEquipment(string id, Equipment equipment)
 	{
-		if (!Equipment.TryAdd(id, equipment))
-		{
-			GD.PrintErr("Equipment with ID " + id + " already exists!");
-		}
+		return TryRegister(Equipment, "Equipment", id, equipment);
 	}
 
 	internal static PartyMember CreatePartyMember(string who)
@@ -178,12 +172,9 @@ public class Database
 		return modifier();
 	}
 
-	internal static void AddStateIcon(string name, Texture2D texture)
+	internal static bool AddStateIcon(string name, Texture2D texture)
 	{
-		if (!StateIcons.TryAdd(name, texture))
-		{
-			GD.PrintErr("State Icon " + name + " already exists!");
-		}
+		return TryRegister(StateIcons, "State Icon", name, texture);
 	}
 
 	internal static IEnumerable<string> GetAllWeaponNames()
@@ -455,7 +446,10 @@ public class Database
 				{
 					await AnimationManager.Instance.WaitForAnimation(4, taunting.Actor);
 					if (target is Enemy e)
+					{
 						e.ObserveTarget = taunting.Actor;
+						e.ObserveSetThisTurn = true;
+					}
 					BattleLogManager.Instance.QueueMessage(target, taunting.Actor,
 						"[actor] has their eyes on\n[target]!");
 					return;
@@ -466,10 +460,12 @@ public class Database
 				{
 					// vanilla omori technically stops after the 4th attempt
 					// maybe add a toggle for this?
-					Enemy enemy = BattleManager.Instance.GetAllEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
+					Enemy enemy = BattleManager.Instance.GetAllEnemies()
+						.FirstOrDefault(x => x.HasMultiTargetPartySkill);
 					if (enemy != null)
 					{
 						enemy.ObserveMultiTarget = true;
+						enemy.ObserveSetThisTurn = true;
 						BattleLogManager.Instance.QueueMessage(enemy, "[actor] has their eyes on\neveryone!");
 						foreach (PartyMemberComponent m in members)
 							AnimationManager.Instance.PlayAnimation(4, m.Actor);
@@ -482,7 +478,10 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(target, member, "[actor] has their eyes on\n[target]!");
 				await AnimationManager.Instance.WaitForAnimation(4, member);
 				if (target is Enemy en)
+				{
 					en.ObserveTarget = member;
+					en.ObserveSetThisTurn = true;
+				}
 			},
 			priority: SkillPriority.Last
 		);
@@ -501,10 +500,7 @@ public class Database
 				{
 					randomTargets.Add(targets[GameManager.Instance.Random.RandiRange(0, targets.Count - 1)]);
 				}
-
-				// vanilla rolls all targets up front and never re-targets; a foe downed
-				// mid-action still takes its remaining hits (targets are immortal until
-				// the action finishes in RPGMaker/Yanfly)
+				
 				foreach (Actor target in randomTargets)
 				{
 					BattleManager.Instance.Damage(self, target, () =>
@@ -1085,7 +1081,8 @@ public class Database
 				await AnimationManager.Instance.WaitForEncore();
 			}
 		).WithCustomRequirement(actor =>
-			!actor.HasStatModifier("Encore") && actor.CurrentState is not ("afraid" or "stressed"));
+			!actor.HasStatModifier("Encore") && actor.CurrentState is not ("afraid" or "stressed"))
+		.WithRequirementFailureMessage("[actor]'s ENCORE is already active!");
 
 		Skills["Cherish"] = new Skill(
 			name: "CHERISH",
@@ -1473,17 +1470,6 @@ public class Database
 			cost: 5,
 			effect: async (self, target) =>
 			{
-				// currently unreachable — the custom requirement below already gates on HP at
-				// selection and execution time, matching the base game's <Custom Requirement>
-				double neededHp = Math.Floor(self.CurrentStats.MaxHP * 0.2);
-				if (self.CurrentHP < neededHp)
-				{
-					BattleLogManager.Instance.QueueMessage(self, target, "[actor] does not have enough HP!");
-					// refund juice
-					self.CurrentJuice += Skills["Headbutt"].Cost(self);
-					return;
-				}
-
 				AnimationManager.Instance.PlayScreenAnimation(30, target is Enemy);
 				await Wait.Milliseconds(1500);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
@@ -1501,7 +1487,7 @@ public class Database
 				return false;
 			double neededHp = Math.Floor(actor.CurrentStats.MaxHP * 0.2d);
 			return actor.CurrentHP >= neededHp;
-		});
+		}).WithRequirementFailureMessage("[actor] does not have enough HP!");
 
 		Skills["Counter"] = new Skill(
 			name: "COUNTER",
@@ -1532,7 +1518,7 @@ public class Database
 					false);
 			},
 			hidden: true
-		// COUNTER itself is gated on afraid/stressed; the forced counterattack must still fire
+		// COUNTER itself is gated on afraid/stressed, the forced counterattack must still fire
 		).WithCustomRequirement((_) => true);
 
 		Skills["PowerHit"] = new Skill(
@@ -1954,7 +1940,7 @@ public class Database
 				return false;
 			// vanilla YEP requires the 20% HP cost to be strictly payable
 			return actor.CurrentHP > (int)Math.Round(actor.CurrentStats.MaxHP * 0.2f, MidpointRounding.AwayFromZero);
-		});
+		}).WithRequirementFailureMessage("[actor] does not have enough HP!");
 
 		// KEL //
 		Skills["KAttack"] = new Skill(

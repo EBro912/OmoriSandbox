@@ -40,8 +40,14 @@ public partial class BattleManager : Node
 	private readonly Dictionary<Actor, BattleCommand> PlayerCommands = new();
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private readonly List<BattleCommand> ForcedCommands = [];
-	private BattleCommand PendingFollowup = null;
-	private int PendingFollowupEnergyCost = 0;
+	private PendingFollowupData PendingFollowup = null;
+
+	// vanilla only spends followup energy when the followup is actually used, so the
+	// selection records everything needed to re-validate and pay at use time
+	private sealed record PendingFollowupData(BattleCommand Command, int TargetPosition, string BaseSkillName)
+	{
+		public bool IsReleaseEnergy => BaseSkillName.StartsWith("ReleaseEnergy");
+	}
 	private readonly List<Actor> PriorityActors = [];
 	private readonly HashSet<EnemyComponent> DeferredDeathEnemies = [];
 	private BattleCommand CurrentCommand = null;
@@ -237,10 +243,13 @@ public partial class BattleManager : Node
 	private async void PreBattle()
 	{
 		foreach (PartyMemberComponent p in CurrentParty)
-			await p.Actor.OnStartOfBattle();
+			await RunGuarded(() => p.Actor.OnStartOfBattle(), $"{p.Actor.Name}.OnStartOfBattle");
 		// use for loop here since collection may be modified by summoned enemies
 		for (int i = 0; i < Enemies.Count; i++)
-			await Enemies[i].Actor.OnStartOfBattle();
+		{
+			Actor enemy = Enemies[i].Actor;
+			await RunGuarded(() => enemy.OnStartOfBattle(), $"{enemy.Name}.OnStartOfBattle");
+		}
 		SetPhase(BattlePhase.FightRun);
 	}
 
@@ -567,7 +576,6 @@ public partial class BattleManager : Node
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
 		PendingFollowup = null;
-		PendingFollowupEnergyCost = 0;
 		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
@@ -680,7 +688,8 @@ public partial class BattleManager : Node
 
 	private void SetPhase(BattlePhase phase)
 	{
-		GD.Print("Entering Phase: " + phase);
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print("Entering Phase: " + phase);
 		Phase = phase;
 
 		double delayTime = SettingsMenuManager.Instance.ActionDelay switch
@@ -738,7 +747,8 @@ public partial class BattleManager : Node
 					{
 						if (enemy.Actor.CurrentState == "toast")
 							continue;
-						await enemy.Actor.ProcessStartOfCommands();
+						await RunGuarded(() => enemy.Actor.ProcessStartOfCommands(),
+							$"{enemy.Actor.Name}.ProcessStartOfCommands");
 					}
 					ProcessedStartOfCommands = true;
 				}
@@ -750,41 +760,15 @@ public partial class BattleManager : Node
 				}
 				else
 				{
-					GD.Print("Next action: " + CurrentCommand.Action.Name + " by " + CurrentCommand.Actor.Name);
+					if (SettingsMenuManager.Instance.LogDebug)
+						GD.Print("Next action: " + CurrentCommand.Action.Name + " by " + CurrentCommand.Actor.Name);
 					SetPhase(BattlePhase.CommandExecute);
 				}
 
 				break;
 			case BattlePhase.PostCommand:
 			{
-				foreach (PartyMemberComponent member in CurrentParty)
-				{
-					member.Actor.SetHurt(false);
-					if (member.Actor.CurrentHP == 0 && member.Actor.CurrentState != "toast")
-					{
-						member.Actor.SetState("toast", true);
-						member.Actor.RemoveAllStatModifiers();
-						// remove charm from any enemies
-						foreach (EnemyComponent enemy in Enemies)
-						{
-							if (enemy.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charmMod)
-							    && charmMod is CharmStatModifier charm && charm.CharmedBy == member.Actor)
-								enemy.Actor.RemoveStatModifier("Charm");
-						}
-						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
-					}
-
-					member.UpdateStateIcons();
-
-					if (member.Actor.HasStatModifier("PlotArmor")
-					    && member.Actor.StatModifiers["PlotArmor"] is PlotArmorStatModifier pa
-					    && !pa.HasAnnounced)
-					{
-						DialogueManager.Instance.QueueMessage($"{member.Actor.Name.ToUpper()} did not succumb.");
-						await DialogueManager.Instance.WaitForDialogue();
-						pa.HasAnnounced = true;
-					}
-				}
+				await ConvertDeadPartyMembers();
 
 				if (CurrentCommand.Actor is PartyMember
 				    && CurrentCommand.Action is Skill skill
@@ -805,7 +789,8 @@ public partial class BattleManager : Node
 					if (enemy.Actor.CurrentState == "toast")
 						continue;
 					enemy.Actor.SetHurt(false);
-					await enemy.Actor.ProcessBattleConditions();
+					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
+						$"{enemy.Actor.Name}.ProcessBattleConditions");
 					// enemy may have been removed during ProcessBattleConditions
 					if (!Enemies.Contains(enemy))
 						continue;
@@ -825,7 +810,7 @@ public partial class BattleManager : Node
 								GameManager.Instance.SetBattlebackGrayscale(true);
 								await Wait.Milliseconds(750);
 							}
-							await enemy.Actor.OnDefeat();
+							await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
 							enemy.Actor.SetState("toast", true);
 							if (enemy.Actor.FallsOffScreen)
 								DyingEnemies.Add(enemy.GetParent<Node2D>());
@@ -844,13 +829,17 @@ public partial class BattleManager : Node
 							GameManager.Instance.SetBattlebackGrayscale(true);
 							await Wait.Milliseconds(750);
 						}
-						await enemy.Actor.OnDefeat();
+						await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
 						enemy.Actor.SetState("toast", true);
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
 						DeferredDeathEnemies.Remove(enemy);
 					}
 				}
+
+				// enemy ProcessBattleConditions/OnDefeat hooks above may have zeroed party members
+				// convert them before they get a turn at 0 HP
+				await ConvertDeadPartyMembers();
 
 				if (DyingEnemies.Count > 0)
 					SetPhase(BattlePhase.EnemyDying);
@@ -861,6 +850,38 @@ public partial class BattleManager : Node
 		}
 	}
 	
+	private async Task ConvertDeadPartyMembers()
+	{
+		foreach (PartyMemberComponent member in CurrentParty)
+		{
+			member.Actor.SetHurt(false);
+			if (member.Actor.CurrentHP == 0 && member.Actor.CurrentState != "toast")
+			{
+				member.Actor.SetState("toast", true);
+				member.Actor.RemoveAllStatModifiers();
+				// remove charm from any enemies
+				foreach (EnemyComponent enemy in Enemies)
+				{
+					if (enemy.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charmMod)
+					    && charmMod is CharmStatModifier charm && charm.CharmedBy == member.Actor)
+						enemy.Actor.RemoveStatModifier("Charm");
+				}
+				AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
+			}
+
+			member.UpdateStateIcons();
+
+			if (member.Actor.HasStatModifier("PlotArmor")
+			    && member.Actor.StatModifiers["PlotArmor"] is PlotArmorStatModifier pa
+			    && !pa.HasAnnounced)
+			{
+				DialogueManager.Instance.QueueMessage($"{member.Actor.Name.ToUpper()} did not succumb.");
+				await DialogueManager.Instance.WaitForDialogue();
+				pa.HasAnnounced = true;
+			}
+		}
+	}
+
 	private BattleCommand GetNextAction()
 	{
 		// forced commands have the highest priority
@@ -879,17 +900,16 @@ public partial class BattleManager : Node
 		// followups
 		if (PendingFollowup != null)
 		{
-			BattleCommand followup = PendingFollowup;
+			PendingFollowupData followup = PendingFollowup;
 			PendingFollowup = null;
-			if (!(IsInvalidTarget(followup.Actor) || followup.Actor.Stunned))
+			// vanilla re-validates at use time and only then spends the energy
+			// an invalid followup is silently skipped and costs nothing
+			if (IsFollowupValid(followup))
 			{
-				PendingFollowupEnergyCost = 0;
-				return followup;
+				Energy = followup.IsReleaseEnergy ? 0 : Energy - 3;
+				return followup.Command;
 			}
-			// refund the energy spent on a followup that never got to execute
-			Energy = Math.Min(10, Energy + PendingFollowupEnergyCost);
-			PendingFollowupEnergyCost = 0;
-			if (followup.Action is Skill followupSkill && followupSkill.ShowFollowups)
+			if (followup.Command.Action is Skill followupSkill && followupSkill.ShowFollowups)
 				ForceHideFollowup = false;
 		}
 
@@ -974,13 +994,8 @@ public partial class BattleManager : Node
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
-		if (PendingFollowup != null)
-		{
-			// refund the energy spent on a followup discarded at the turn/stage boundary
-			Energy = Math.Min(10, Energy + PendingFollowupEnergyCost);
-			PendingFollowup = null;
-		}
-		PendingFollowupEnergyCost = 0;
+		// a followup discarded here never spent its energy, so there is nothing to refund
+		PendingFollowup = null;
 		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
@@ -994,23 +1009,31 @@ public partial class BattleManager : Node
 			{
 				foreach (StatModifier modifier in member.Actor.StatModifiers.Values)
 				{
-					modifier.OnStartOfTurn(member.Actor);
+					RunGuarded(() => modifier.OnStartOfTurn(member.Actor),
+						$"{modifier.GetType().Name}.OnStartOfTurn ({member.Actor.Name})");
 				}
 
-				await member.Actor.Weapon.StartOfTurn(member.Actor);
+				await RunGuarded(() => member.Actor.Weapon.StartOfTurn(member.Actor),
+					$"weapon {member.Actor.Weapon.Name}.StartOfTurn ({member.Actor.Name})");
 				if (member.Actor.Charm != null)
-					await member.Actor.Charm.StartOfTurn(member.Actor);
+					await RunGuarded(() => member.Actor.Charm.StartOfTurn(member.Actor),
+						$"charm {member.Actor.Charm.Name}.StartOfTurn ({member.Actor.Name})");
 			}
 
 			foreach (EnemyComponent e in Enemies.ToList())
 			{
 				if (e.Actor.CurrentState == "toast")
 					continue;
-				await e.Actor.ProcessStartOfTurn();
+				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
 			ProcessedStartOfTurn = true;
 		}
+
+		// a start-of-turn hook may have ended the battle or changed phase
+		// don't show the fight menu over it
+		if (Phase != BattlePhase.FightRun)
+			return;
 
 		GameManager.Instance.DiscordManager.SetBattling(Enemies.Count);
 		switch (CurrentParty.Count)
@@ -1203,7 +1226,8 @@ public partial class BattleManager : Node
 
 		BattleLogManager.Instance.ClearBattleLog();
 		GameManager.Instance.SetBattlebackGrayscale(false);
-		GD.Print("Processing action " + currentAction.Action.Name);
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print("Processing action " + currentAction.Action.Name);
 		List<Actor> resolvedTargets = [];
 		switch (currentAction.Action.Target)
 		{
@@ -1310,8 +1334,12 @@ public partial class BattleManager : Node
 		{
 			if (!skill.MeetsRequirements(currentAction.Actor))
 			{
-				BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-				                                       " is too AFRAID to move!");
+				if (currentAction.Actor.CurrentState is "afraid" or "stressed"
+				    || skill.RequirementFailureMessage == null)
+					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
+					                                       " is too AFRAID to move!");
+				else
+					BattleLogManager.Instance.QueueMessage(currentAction.Actor, skill.RequirementFailureMessage);
 				SetPhase(BattlePhase.WaitForBattleLog);
 				return;
 			}
@@ -1366,7 +1394,8 @@ public partial class BattleManager : Node
 			}
 		}
 
-		await currentAction.Action.Effect(currentAction.Actor, resolvedTargets);
+		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
+			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
 
 		if (BattleLogManager.Instance.IsProcessingMessage)
 			SetPhase(BattlePhase.WaitForBattleLog);
@@ -1416,10 +1445,10 @@ public partial class BattleManager : Node
 			return false;
 
 		// in base game, followups go after any other forced actions
-		if (skill.Target is SkillTarget.AllEnemies)
-			PendingFollowup = new BattleCommand(current.Actor, GetAllEnemies(), skill);
-		else
-			PendingFollowup = new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
+		BattleCommand command = skill.Target is SkillTarget.AllEnemies
+			? new BattleCommand(current.Actor, GetAllEnemies(), skill)
+			: new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
+		PendingFollowup = new PendingFollowupData(command, pair.Target, pair.SkillName);
 
 		// prevent followup bubbles from showing again if the followup itself is an attack
 		if (skill.ShowFollowups)
@@ -1450,7 +1479,7 @@ public partial class BattleManager : Node
 		if (self is PartyMember && skill.ShowFollowups)
 			// if the forced skill is an attack, hide the followup bubbles
 			ForceHideFollowup = true;
-		// forced commands execute in the order they were queued (FIFO), like the base game
+		// forced commands execute in the order they were queued
 		ForcedCommands.Add(new BattleCommand(self, targets, skill));
 		// if this actor hasn't had their normal turn, queue them for a priority turn after forced commands
 		// mimics base game behavior
@@ -1463,17 +1492,30 @@ public partial class BattleManager : Node
 		FollowupSelected = true;
 		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
 		CurrentParty.First(x => x.Actor == CurrentCommand.Actor).FadeOutFollowupsExcept(direction);
-		// remember the cost so it can be refunded if the followup is dropped before executing
-		if (PendingFollowup.Action.Name.Contains("Release Energy"))
+	}
+	
+	private bool IsFollowupValid(PendingFollowupData followup)
+	{
+		if (IsInvalidTarget(followup.Command.Actor) || followup.Command.Actor.Stunned)
+			return false;
+
+		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == followup.TargetPosition);
+		if (target == null || target.Actor.CurrentState == "toast")
+			return false;
+
+		if (followup.IsReleaseEnergy)
 		{
-			PendingFollowupEnergyCost = Energy;
-			Energy = 0;
+			if (Energy != 10 || CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+				return false;
 		}
-		else
-		{
-			PendingFollowupEnergyCost = 3;
-			Energy -= 3;
-		}
+		else if (Energy < 3)
+			return false;
+
+		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
+		if (followup.BaseSkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
+			return false;
+
+		return true;
 	}
 
 	private async void EndOfTurn()
@@ -1497,7 +1539,22 @@ public partial class BattleManager : Node
 			{
 				if (enemy.Actor.CurrentState == "toast")
 					continue;
-				await enemy.Actor.ProcessEndOfTurn();
+				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
+			}
+
+			// expire observe predictions the enemy never consumed during its turn
+			// ones set this turn (OBSERVE acts last) survive into the next turn
+			foreach (EnemyComponent enemy in Enemies)
+			{
+				if (enemy.Actor.ObserveSetThisTurn)
+				{
+					enemy.Actor.ObserveSetThisTurn = false;
+				}
+				else
+				{
+					enemy.Actor.ObserveTarget = null;
+					enemy.Actor.ObserveMultiTarget = false;
+				}
 			}
 
 			ProcessedEndOfTurn = true;
@@ -1661,12 +1718,37 @@ public partial class BattleManager : Node
 	private async Task EndOfBattle(bool victory)
 	{
 		foreach (PartyMemberComponent p in CurrentParty)
-			await p.Actor.OnEndOfBattle(victory);
+			await RunGuarded(() => p.Actor.OnEndOfBattle(victory), $"{p.Actor.Name}.OnEndOfBattle");
 		foreach (EnemyComponent e in Enemies)
 		{
 			if (e.Actor.CurrentState is "toast")
 				continue;
-			await e.Actor.OnEndOfBattle(victory);
+			await RunGuarded(() => e.Actor.OnEndOfBattle(victory), $"{e.Actor.Name}.OnEndOfBattle");
+		}
+	}
+
+	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
+	private static async Task RunGuarded(Func<Task> hook, string context)
+	{
+		try
+		{
+			await hook();
+		}
+		catch (Exception ex)
+		{
+			GD.PushError($"Unhandled exception in {context}: {ex}");
+		}
+	}
+
+	private static void RunGuarded(Action hook, string context)
+	{
+		try
+		{
+			hook();
+		}
+		catch (Exception ex)
+		{
+			GD.PushError($"Unhandled exception in {context}: {ex}");
 		}
 	}
 
@@ -1800,7 +1882,8 @@ public partial class BattleManager : Node
 		// we don't need to play a hitsound if the attack is a critical or if there's no damage
 		if (!critical && roundedInt > 0)
 		{
-			GD.Print("Effectiveness: " + effectiveness);
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print("Effectiveness: " + effectiveness);
 			if (effectiveness > 0)
 			{
 				BattleLogManager.Instance.QueueMessage("...It was a moving attack!");

@@ -36,6 +36,10 @@ public partial class BattleLogManager : Control
 	/// Returns true when the battle log is busy with messages.
 	/// </summary>
 	public bool IsProcessingMessage { get; private set; } = false;
+
+	// tracks the current "generation" of messages
+	// if the battlelog is ever cleared and the queue is emptied, lingering message events won't fire
+	private int Generation = 0;
 	public static BattleLogManager Instance { get; private set; }
 
 	public override void _EnterTree()
@@ -176,6 +180,7 @@ public partial class BattleLogManager : Control
 	/// </remarks>
 	public void ClearBattleLog()
 	{
+		Generation++;
 		MessageQueue.Clear();
 		LineQueue.Clear();
 		ActiveLines.ForEach(x => x.QueueFree());
@@ -208,6 +213,7 @@ public partial class BattleLogManager : Control
 	private async Task ProcessMessage()
 	{
 		IsProcessingMessage = true;
+		int gen = Generation;
 		while (MessageQueue.Count > 0)
 		{
 			string next = MessageQueue.Dequeue();
@@ -226,14 +232,17 @@ public partial class BattleLogManager : Control
 					LineQueue.Enqueue(line);
 			}
 
-			await ProcessLines();
+			await ProcessLines(gen);
+			// avoid firing the finished event if the message is no longer valid
+			if (gen != Generation)
+				return;
 		}
 
 		IsProcessingMessage = false;
 		EmitSignal(SignalName.FinishedLogging);
 	}
 
-	private async Task ProcessLines()
+	private async Task ProcessLines(int gen)
 	{
 		while (LineQueue.Count > 0)
 		{
@@ -263,6 +272,9 @@ public partial class BattleLogManager : Control
 			}
 
 			await ToSignal(GetTree().CreateTimer(MessageDelay), "timeout");
+			// exit early if the message is no longer valid
+			if (gen != Generation)
+				return;
 		}
 	}
 

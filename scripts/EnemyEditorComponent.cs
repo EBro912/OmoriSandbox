@@ -88,6 +88,8 @@ internal partial class EnemyEditorComponent : Control
 	public void Populate(string who)
 	{
 		Enemy enemy = Database.CreateEnemy(who);
+		if (enemy == null)
+			return; // CreateEnemy already logged the unknown name
 
 		SpriteFrames animation = enemy.Animation;
 		if (animation == null)

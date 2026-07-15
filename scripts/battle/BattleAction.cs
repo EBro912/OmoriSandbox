@@ -41,7 +41,8 @@ public class BattleAction
 		Priority = priority;
 	}
 
-	protected BattleAction(string name, string description, SkillTarget target, SkillPriority priority, Func<Actor, Actor, Task> effect)
+	protected BattleAction(string name, string description, SkillTarget target, SkillPriority priority,
+		Func<Actor, Actor, Task> effect)
 		: this(name, description, target, priority, async (self, targets) =>
 		{
 			if (targets.Count != 1)
@@ -49,7 +50,6 @@ public class BattleAction
 				GD.PrintErr($"Skill {name} with single target effect cannot have more than one target.");
 				return;
 			}
-
 			await effect(self, targets[0]);
 		}){}
 }

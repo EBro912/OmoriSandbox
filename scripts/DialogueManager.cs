@@ -131,6 +131,20 @@ public partial class DialogueManager : Node2D
 					ChoiceBox.OffsetLeft = CHOICE_BOX_DEFAULT_LEFT;
 					AnimateClose();
 				}
+				else
+				{
+					// more messages are queued, emit the choice now and move on
+					Cursor.Visible = false;
+					ChoiceBox.Visible = false;
+					ChoiceTextParent.Visible = false;
+					ChoiceBox.CustomMinimumSize = new Vector2(110, 20);
+					ChoiceBox.OffsetLeft = CHOICE_BOX_DEFAULT_LEFT;
+					// capture before BeginMessage overwrites the choice state
+					string choice = CurrentChoices[ChoiceIndex];
+					HasChoice = false;
+					EmitSignal(SignalName.ChoiceSelected, choice);
+					BeginMessage();
+				}
 			}
 			else if (Input.IsActionJustPressed("MenuUp"))
 			{
@@ -381,12 +395,16 @@ public partial class DialogueManager : Node2D
 		Cursor.Visible = true;
 	}
 
+	// invalidates pending pause timers from earlier messages/dialogues
+	private int PauseGeneration = 0;
+
 	private void WaitForTimer(double duration)
 	{
 		WaitingForTimer = true;
+		int gen = ++PauseGeneration;
 		GetTree().CreateTimer(duration).Timeout += () =>
 		{
-			if (!WaitingForTimer) return;
+			if (gen != PauseGeneration || !WaitingForTimer) return;
 			WaitingForTimer = false;
 			if (!Visible) return;
 			IsTyping = true;
@@ -558,6 +576,7 @@ public partial class DialogueManager : Node2D
 	{
 		MessageQueue.Clear();
 		OpenCloseTween?.Kill();
+		PauseGeneration++;
 		HasChoice = false;
 		WaitingForAnimation = false;
 		WaitingForInput = false;

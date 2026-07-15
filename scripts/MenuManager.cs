@@ -3,6 +3,7 @@ using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Menu;
 
@@ -151,12 +152,14 @@ internal partial class MenuManager : Node
 		if (CurrentMenu is ItemMenu itemMenu)
 		{
 			LastSelected[member] = new(CurrentState, itemMenu.CursorIndex, itemMenu.Page);
-			GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
 		}
 		else
 		{
 			LastSelected[member] = new(CurrentState, CurrentMenu.CursorIndex);
-			GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}");
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}");
 		}
 	}
 

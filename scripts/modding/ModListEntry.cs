@@ -20,4 +20,10 @@ internal partial class ModListEntry : Control
     {
         Icon.Texture = icon;
     }
+
+    public void MarkErrors()
+    {
+        NameVersion.Text += " (load errors, see log)";
+        NameVersion.AddThemeColorOverride("font_color", Colors.Orange);
+    }
 }

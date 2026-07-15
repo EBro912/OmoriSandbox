@@ -20,21 +20,21 @@ public sealed partial class BattlebackManager : Node
             Battlebacks.TryAdd(battleback.GetBaseName(), new StaticBattleback("res://assets/battlebacks/" + battleback));
     }
 
-    internal void AddBattleback(string resourcePath)
+    internal bool AddBattleback(string resourcePath)
     {
         string name = resourcePath.GetFile().GetBaseName();
         if (Battlebacks.ContainsKey(name))
         {
             GD.PushWarning($"Battleback '{name}' already exists, skipping.");
-            return;
+            return false;
         }
-        string ext = resourcePath.GetExtension();
+        string ext = resourcePath.GetExtension().ToLower();
         if (ext == "gif")
-            Battlebacks.TryAdd(name, new AnimatedBattleback(resourcePath));
-        else if (ext == "png")
-            Battlebacks.TryAdd(name, new StaticBattleback(resourcePath));
-        else
-            GD.PrintErr("Invalid battleback filetype! Must be .gif or .png: " + resourcePath);
+            return Battlebacks.TryAdd(name, new AnimatedBattleback(resourcePath));
+        if (ext == "png")
+            return Battlebacks.TryAdd(name, new StaticBattleback(resourcePath));
+        GD.PrintErr("Invalid battleback filetype! Must be .gif or .png: " + resourcePath);
+        return false;
     }
 
     /// <summary>

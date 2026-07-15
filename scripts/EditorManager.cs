@@ -524,6 +524,11 @@ internal partial class EditorManager : Node
 				GD.PrintErr($"Invalid position {entry.Position} for party member {entry.Name}, skipping!");
 				continue;
 			}
+			if (!Database.GetAllPartyMemberNames().Contains(entry.Name))
+			{
+				GD.PushWarning($"Skipping unknown party member \"{entry.Name}\" in preset");
+				continue;
+			}
 			Control card = BattleCard.Instantiate<Control>();
 			AddActorControls[entry.Position].AddChild(card);
 			card.Position = Vector2.Zero;
@@ -536,6 +541,11 @@ internal partial class EditorManager : Node
 		{
 			foreach (BattlePresetEnemy entry in preset.Enemies)
 			{
+				if (!Database.GetAllEnemyNames().Contains(entry.Name))
+				{
+					GD.PushWarning($"Skipping unknown enemy \"{entry.Name}\" in preset");
+					continue;
+				}
 				AnimatedSprite2D enemySprite = new();
 				AddEnemyControl.AddChild(enemySprite);
 				EnemyEditorComponent editor = EnemyEditor.Instantiate<EnemyEditorComponent>();
@@ -560,6 +570,11 @@ internal partial class EditorManager : Node
 				editor.KeepStatusEffectsCheckbox.ButtonPressed = entry.KeepStatusEffects;
 				foreach (BattlePresetEnemy enemy in entry.Enemies)
 				{
+					if (!Database.GetAllEnemyNames().Contains(enemy.Name))
+					{
+						GD.PushWarning($"Skipping unknown enemy \"{enemy.Name}\" in preset");
+						continue;
+					}
 					AnimatedSprite2D enemySprite = new();
 					editor.EnemyParent.AddChild(enemySprite);
 					EnemyEditorComponent subEditor = EnemyEditor.Instantiate<EnemyEditorComponent>();

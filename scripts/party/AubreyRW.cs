@@ -7,18 +7,25 @@ internal sealed class AubreyRW : PartyMember
 
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/aubrey_rw.tres");
 
-    public override int[] HPTree => [240];
+    private static readonly int[] HPTreeData = [240];
+    public override int[] HPTree => HPTreeData;
 
-    public override int[] JuiceTree => [25];
+    private static readonly int[] JuiceTreeData = [25];
+    public override int[] JuiceTree => JuiceTreeData;
 
-    public override int[] ATKTree => [22];
+    private static readonly int[] ATKTreeData = [22];
+    public override int[] ATKTree => ATKTreeData;
 
-    public override int[] DEFTree => [12];
+    private static readonly int[] DEFTreeData = [12];
+    public override int[] DEFTree => DEFTreeData;
 
-    public override int[] SPDTree => [12];
+    private static readonly int[] SPDTreeData = [12];
+    public override int[] SPDTree => SPDTreeData;
 
     public override int BaseLuck => 5;
-    public override string[] InvalidStates => ["miserable", "manic", "furious", "stressed"];
+    private static readonly string[] InvalidStatesData = ["miserable", "manic", "furious", "stressed"];
+    public override string[] InvalidStates => InvalidStatesData;
     public override bool IsRealWorld => true;
-    public override string[] EquippableWeapons => ["Nail Bat"];
+    private static readonly string[] EquippableWeaponsData = ["Nail Bat"];
+    public override string[] EquippableWeapons => EquippableWeaponsData;
 }

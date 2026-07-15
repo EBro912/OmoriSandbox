@@ -404,3 +404,6 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .idea/
+
+# csproj editor backups
+*.csproj.old*

@@ -24,8 +24,6 @@ public partial class PartyMemberComponent : Node
 	
 	private float DisplayedHP;
 	private float DisplayedJuice;
-	private float TargetHP;
-	private float TargetJuice;
 
     /// <summary>
     /// The <see cref="Actors.PartyMember"/> actor this component is attached to.
@@ -74,9 +72,7 @@ public partial class PartyMemberComponent : Node
 		JuiceBar.MaxValue = PartyMember.CurrentStats.MaxJuice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
-		TargetHP = PartyMember.CurrentHP;
 		DisplayedJuice = PartyMember.CurrentJuice;
-		TargetJuice = PartyMember.CurrentJuice;
 
 		if (followup != null)
 		{
@@ -89,8 +85,6 @@ public partial class PartyMemberComponent : Node
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 		PartyMember.OnStateChanged += StateChanged;
-		PartyMember.OnHPChanged += HPChanged;
-		PartyMember.OnJuiceChanged += JuiceChanged;
 		PartyMember.OnDamaged += Damaged;
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
 		AddChild(HurtTimer);
@@ -110,16 +104,6 @@ public partial class PartyMemberComponent : Node
 			StateAnimator.SetState(PartyMember.CurrentState);
 	}
 
-	private void HPChanged(object sender, EventArgs e)
-	{
-		TargetHP = PartyMember.CurrentHP;
-	}
-
-	private void JuiceChanged(object sender, EventArgs e)
-	{
-		TargetJuice = PartyMember.CurrentJuice;
-	}
-
 	private void Damaged(object sender, EventArgs e)
 	{
 		PartyMember.SetHurt(true);
@@ -128,8 +112,13 @@ public partial class PartyMemberComponent : Node
 
 	public override void _Process(double delta)
 	{
+		// nothing to animate once the displayed values have settled
+		// ReSharper disable twice CompareOfFloatsByEqualityOperator
+		if (DisplayedHP == PartyMember.CurrentHP && DisplayedJuice == PartyMember.CurrentJuice)
+			return;
+
 		float dt = (float)delta;
-		
+
 		DisplayedHP = Mathf.MoveToward(DisplayedHP, PartyMember.CurrentHP, dt * ((float)HPBar.MaxValue / 0.5f));
 		DisplayedJuice = Mathf.MoveToward(DisplayedJuice, PartyMember.CurrentJuice, dt * ((float)JuiceBar.MaxValue / 0.5f));
 
@@ -144,32 +133,8 @@ public partial class PartyMemberComponent : Node
 	{
 		if (!SettingsMenuManager.Instance.ShowStateIcons)
 			return;
-		
-		// this may need to be optimized, not the best practice to fully replace nodes
-		foreach (Node child in StateIcons.GetChildren())
-			child.Free();
-		
-		foreach (StatModifier modifier in PartyMember.StatModifiers.Values)
-		{
-			StateIcon[] icons = modifier.GetStateIcons();
-			foreach (StateIcon icon in icons)
-			{
-				string tooltip = modifier.TurnsLeft > -1 ? icon.Description + "\nTurns Left: " + modifier.TurnsLeft : icon.Description;
-				if (Database.TryGetStateIcon(icon.AssetName, out Texture2D texture))
-				{
-					TextureRect rect = new()
-					{
-						Texture = texture,
-						TooltipText = tooltip
-					};
-					StateIcons.AddChild(rect);
-				}
-				else
-				{
-					GD.PrintErr("Unknown state icon texture: " + icon.AssetName);
-				}
-			}
-		}
+
+		StateIconRenderer.Render(StateIcons, PartyMember);
 	}
 
 	internal bool SelectionBoxVisible

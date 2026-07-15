@@ -175,6 +175,8 @@ internal partial class PartyMemberEditorComponent : Control
 		}
 		
 		SelectedPartyMember = Database.CreatePartyMember(who);
+		if (SelectedPartyMember == null)
+			return; // CreatePartyMember already logged the unknown name
 
 		string attackSkill;
 		if (SelectedPartyMember is SunnyAlt)
