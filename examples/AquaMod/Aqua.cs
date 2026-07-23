@@ -3,6 +3,8 @@ using OmoriSandbox;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Modding;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace AquaMod;
 
