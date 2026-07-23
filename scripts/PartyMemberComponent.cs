@@ -73,6 +73,9 @@ public partial class PartyMemberComponent : Node
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
 		DisplayedJuice = PartyMember.CurrentJuice;
+		
+		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
+		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
 
 		if (followup != null)
 		{

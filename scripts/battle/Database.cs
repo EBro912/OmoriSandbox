@@ -1081,8 +1081,7 @@ public class Database
 				await AnimationManager.Instance.WaitForEncore();
 			}
 		).WithCustomRequirement(actor =>
-			!actor.HasStatModifier("Encore") && actor.CurrentState is not ("afraid" or "stressed"))
-		.WithRequirementFailureMessage("[actor]'s ENCORE is already active!");
+			!actor.HasStatModifier("Encore") && actor.CurrentState is not ("afraid" or "stressed"));
 
 		Skills["Cherish"] = new Skill(
 			name: "CHERISH",
@@ -6237,9 +6236,9 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(219, member);
-					member.AddTierStatModifier("AttackDown",3, silent: true);
-					member.AddTierStatModifier("DefenseDown", 3, silent: true);
-					member.AddTierStatModifier("SpeedDown", 3, silent: true);
+					member.AddTierStatModifier("AttackDown", silent: true);
+					member.AddTierStatModifier("DefenseDown", silent: true);
+					member.AddTierStatModifier("SpeedDown",  silent: true);
 				}
 			},
 			hidden: true

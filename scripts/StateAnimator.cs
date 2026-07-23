@@ -6,6 +6,8 @@ internal partial class StateAnimator : Node
 {
 	[Export] private Sprite2D StateSprite;
 	[Export] private Sprite2D FaceStateSprite;
+	
+	internal Sprite2D EmotionSprite => StateSprite;
 
 	// Atlas index of the above head emotion label
 	private readonly Dictionary<string, int> StateAtlases = new()

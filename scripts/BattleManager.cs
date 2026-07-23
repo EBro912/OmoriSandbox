@@ -667,7 +667,10 @@ public partial class BattleManager : Node
 	internal bool OnSelectItem(Item item)
 	{
 		SelectedAction = item;
-		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies &&
+		// VANILLA BUG: OMORI only blocks single-target revival items when nobody is toast
+		// multi-target revives, such as jam packets, can still be selected and consumed
+		// regardless of toast status
+		if (SelectedAction.Target is SkillTarget.DeadAlly &&
 		    CurrentParty.All(x => x.Actor.CurrentState != "toast"))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
@@ -1295,7 +1298,7 @@ public partial class BattleManager : Node
 				break;
 			case SkillTarget.AllDeadAllies:
 				List<PartyMember> deadAllies = GetDeadPartyMembers().Select(x => x.Actor).ToList();
-				if (currentAction.Actor is Enemy || deadAllies.Count == 0)
+				if (currentAction.Actor is Enemy || (deadAllies.Count == 0 && currentAction.Action is not Item))
 				{
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
 					                                       "'s skill did nothing.");
@@ -1303,7 +1306,11 @@ public partial class BattleManager : Node
 					return;
 				}
 
-				resolvedTargets.AddRange(deadAllies);
+				if (deadAllies.Count > 0)
+					resolvedTargets.AddRange(deadAllies);
+				else
+					// if nobody is toast, pass everybody so items like jam packets can still run the "it had no effect" logic
+					resolvedTargets.AddRange(GetAllPartyMembers().Select(x => x.Actor));
 				break;
 			case SkillTarget.AllyNotSelf:
 				if (currentAction.Targets[0].CurrentState is "toast")

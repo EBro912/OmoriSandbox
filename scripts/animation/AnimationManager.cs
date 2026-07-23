@@ -501,6 +501,13 @@ public partial class AnimationManager : Node
 			ShakeDirection = 1;
 		ShakePwr *= 0.9f;
 		ShakeDuration--;
+
+		// check for any remaining shake and snap back to the neutral position
+		if (ShakeDuration <= 0 && Math.Abs(delta) * 10f < 0.5f)
+		{
+			Shake = 0f;
+			ShakePwr = 0f;
+		}
 	}
 
 	/// <summary>
@@ -808,8 +815,10 @@ public partial class AnimationManager : Node
 	/// </remarks>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint. If left as 0, the tint will be instant.</param>
-	public void TintScreen(Color color, float duration = 0f)
+	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
+	public void TintScreen(Color color, float duration = 0f, int layer = -4)
 	{
+		ScreenTint.ZIndex = layer;
 		if (duration == 0f)
 			ScreenTint.Color = color;
 		else
@@ -824,9 +833,11 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint.</param>
+	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
 	/// <returns></returns>
-	public async Task WaitForTintScreen(Color color, float duration)
+	public async Task WaitForTintScreen(Color color, float duration, int layer = -4)
 	{
+		ScreenTint.ZIndex = layer;
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(ScreenTint, "color", color, duration);
 		await ToSignal(tween, Tween.SignalName.Finished);

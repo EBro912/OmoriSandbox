@@ -340,8 +340,8 @@ public abstract class Actor
 			string temp = CurrentState;
 			CurrentState = "plotarmor";
 			Sprite.Animation = "plotarmor";
-			AddStatModifier("PlotArmor");
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
+			AddStatModifier("PlotArmor");
 			CurrentState = temp;
 			return;
 		}

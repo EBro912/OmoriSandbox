@@ -10,7 +10,7 @@ public partial class EnemyInfoBox : Control
 {
 	protected Enemy Enemy;
 
-	[Export] private NinePatchRect Infobox;
+	[Export] protected NinePatchRect Infobox;
 	[Export] private Label NameLabel;
 	[Export] private TextureProgressBar HPBar;
 	[Export] private FlowContainer StateIcons;

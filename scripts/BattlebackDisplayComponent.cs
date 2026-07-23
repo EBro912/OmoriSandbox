@@ -40,17 +40,30 @@ internal partial class BattlebackDisplayComponent : TextureRect
 
     public override void _Process(double delta)
     {
-        if (CurrentBattleback is { FrameCount: > 1 })
+        if (CurrentBattleback != null && CurrentBattleback.FrameCount > 1)
         {
             Elapsed += delta;
 
-            double delay = CurrentBattleback.GetFrameDelay(CurrentFrame);
-            if (Elapsed >= delay)
+            // track accumulated time across as many frames as it covers,
+            // so fast-forwards don't leave leftover time
+            bool frameChanged = false;
+            for (int i = 0; i < CurrentBattleback.FrameCount; i++)
             {
+                double delay = CurrentBattleback.GetFrameDelay(CurrentFrame);
+                if (delay <= 0d)
+                {
+                    Elapsed = 0d;
+                    break;
+                }
+                if (Elapsed < delay)
+                    break;
                 Elapsed -= delay;
                 CurrentFrame = (CurrentFrame + 1) % CurrentBattleback.FrameCount;
-                Texture = CurrentBattleback.GetFrame(CurrentFrame);
+                frameChanged = true;
             }
+
+            if (frameChanged)
+                Texture = CurrentBattleback.GetFrame(CurrentFrame);
         }
     }
 }

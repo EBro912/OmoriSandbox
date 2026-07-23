@@ -132,6 +132,24 @@ internal class DiscordManager
     public void Shutdown()
     {
         if (DiscordDisabled) return;
+        try
+        {
+            // best-effort clear the activity on shutdown to prevent the activity from persisting in certain cases
+            // such as the stop button in the editor
+            bool acknowledged = false;
+            DiscordSDK.GetActivityManager().ClearActivity(_ => acknowledged = true);
+            // attempt a few times until acknowledged
+            for (int i = 0; i < 20 && !acknowledged; i++)
+            {
+                DiscordSDK.RunCallbacks();
+                OS.DelayMsec(10);
+            }
+        }
+        catch (ResultException)
+        {
+            // Discord isn't running or went away mid-shutdown, nothing to clear
+        }
         DiscordSDK.Dispose();
+        DiscordDisabled = true;
     }
 }
