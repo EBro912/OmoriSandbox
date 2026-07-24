@@ -135,7 +135,7 @@ internal sealed class BossmanHero : Enemy
 
             if (Roll() < 26)
             {
-                EnemyComponent gatorGuy = GatorGuys.FirstOrDefault(x => x.Actor.CurrentState != "toast");
+                EnemyComponent gatorGuy = GatorGuys.FirstOrDefault(x => !x.Actor.IsToast);
                 if (gatorGuy == null)
                     return;
                 AudioManager.Instance.PlaySFX("SE_dinosaur", 1.4f);

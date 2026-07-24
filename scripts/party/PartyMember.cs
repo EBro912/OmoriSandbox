@@ -52,18 +52,23 @@ public abstract class PartyMember : Actor
             GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
             return false;
         }
+        
+        // if the party member starts toast, they technically start neutral
+        bool startToast = actor.Emotion == "toast";
+        string emotion = startToast ? "neutral" : actor.Emotion;
         // fall back to neutral on unknown or invalid preset emotions
-        if (!animation.HasAnimation(actor.Emotion) || !IsStateValid(actor.Emotion))
+        if (!animation.HasAnimation(emotion) || !IsStateValid(emotion))
         {
-            GD.PushWarning($"Invalid emotion '{actor.Emotion}' for PartyMember {Name}, defaulting to neutral.");
+            GD.PushWarning($"Invalid emotion '{emotion}' for PartyMember {Name}, defaulting to neutral.");
             actor.Emotion = "neutral";
+            emotion = "neutral";
         }
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = actor.Emotion;
+		Sprite.Animation = emotion;
 		Sprite.Play();
-		SetState(actor.Emotion, true);
+		SetState(emotion, true);
 		
         // init stats
         Level = actor.Level;
@@ -86,10 +91,15 @@ public abstract class PartyMember : Actor
 			Charm = c;
 		}
 
-		if (actor.Emotion == "toast")
+		if (startToast)
+		{
 			CurrentHP = 0;
+			SetToast();
+		}
 		else
+		{
 			CurrentHP = CurrentStats.MaxHP;
+		}
 		CurrentJuice = CurrentStats.MaxJuice;
 
 		EquippedSkills = actor.Skills;

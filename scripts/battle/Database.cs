@@ -2719,7 +2719,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] makes HOMEMADE JAM!");
-				if (target.CurrentState != "toast")
+				if (!target.IsToast)
 				{
 					target = BattleManager.Instance.GetRandomDeadPartyMember();
 					if (target == null)
@@ -2730,6 +2730,7 @@ public class Database
 				}
 
 				await AnimationManager.Instance.WaitForAnimation(269, target);
+				target.Revive(target.CurrentHP);
 				target.SetState("neutral", true);
 				int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
 				target.Heal(heal);
@@ -7567,7 +7568,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LIFE JAM!");
-				if (target.CurrentState != "toast")
+				if (!target.IsToast)
 				{
 					target = BattleManager.Instance.GetRandomDeadPartyMember();
 					if (target == null)
@@ -7578,9 +7579,9 @@ public class Database
 				}
 				await AnimationManager.Instance.WaitForAnimation(269, target);
 				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Charm?.Name == "Breadphones"))
-					target.CurrentHP = target.CurrentStats.MaxHP;
+					target.Revive(target.CurrentStats.MaxHP);
 				else
-					target.CurrentHP = target.CurrentStats.MaxHP / 2;
+					target.Revive(target.CurrentStats.MaxHP / 2);
 				target.SetState("neutral", true);
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
 			},
@@ -7595,7 +7596,7 @@ public class Database
 		   effect: async (self, target) =>
 		   {
 			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DINO JAM!");
-			   if (target.CurrentState != "toast")
+			   if (!target.IsToast)
 			   {
 				   target = BattleManager.Instance.GetRandomDeadPartyMember();
 				   if (target == null)
@@ -7605,7 +7606,7 @@ public class Database
 				   }
 			   }
 			   await AnimationManager.Instance.WaitForAnimation(269, target);
-			   target.CurrentHP = target.CurrentStats.MaxHP;
+			   target.Revive(target.CurrentStats.MaxHP);
 			   target.SetState("neutral", true);
 			   BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
 		   },
@@ -7620,7 +7621,7 @@ public class Database
 		   effect: async (self, targets) =>
 		   {
 			   BattleLogManager.Instance.QueueMessage(self, "[actor] uses JAM PACKETS!");
-			   if (targets.All(x => x.CurrentState != "toast"))
+			   if (targets.All(x => !x.IsToast))
 			   {
 				   BattleLogManager.Instance.QueueMessage("It had no effect.");
 				   return;
@@ -7628,7 +7629,7 @@ public class Database
 			   foreach (Actor member in targets)
 			   {
 				   AnimationManager.Instance.PlayAnimation(269, member);
-				   member.CurrentHP = member.CurrentStats.MaxHP / 4;
+				   member.Revive(member.CurrentStats.MaxHP / 4);
 				   member.SetState("neutral", true);
 				   BattleLogManager.Instance.QueueMessage(self, member, "[target] rose again!");
 			   }

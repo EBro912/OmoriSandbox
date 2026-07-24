@@ -116,7 +116,11 @@ public abstract class Actor
 	/// </summary>
 	public bool Stunned = false;
 
-
+	/// <summary>
+	/// Whether the actor is toast.
+	/// </summary>
+	public bool IsToast { get; private set; }
+	
 	/// <summary>
 	/// The actor's base stats without any modifiers.
 	/// </summary>
@@ -429,7 +433,8 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Clears the active animation override (if any) and restores the sprite animation of the actor's current emotion.
+	/// Clears the active animation override (if any) and restores the sprite animation of the actor's current emotion.<br/>
+	/// Includes non-emotion vanilla states such as Plot Armor, Victory, and Toast.
 	/// </summary>
 	public virtual void ClearAnimation()
 	{
@@ -437,8 +442,46 @@ public abstract class Actor
 			return;
 
 		CurrentAnimation = null;
-		Sprite.Animation = CurrentState;
+		Sprite.Animation = IsToast ? "toast" : CurrentState;
 		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
+	}
+
+	/// <summary>
+	/// Makes this actor toast. Resets their emotion to neutral and plays the toast animation as an override.
+	/// </summary>
+	/// <remarks>
+	/// Does not change the actor's HP on its own.
+	/// </remarks>
+	public virtual void SetToast()
+	{
+		if (IsToast)
+			return;
+		
+		IsToast = true;
+		// toast has no stat modifier, so just reset to neutral
+		CurrentState = "neutral";
+		StateStatModifier = Database.CreateModifier("Neutral");
+		if (this is PartyMember member)
+			member.PlayAnimation("toast", EmotionAsset.Toast);
+		else
+			PlayAnimation("toast");
+	}
+
+	/// <summary>
+	/// Revives a toast actor with the given HP, clearing the toast animation. Does nothing if the actor isn't toast.
+	/// </summary>
+	/// <param name="hp">The HP the actor revives with.</param>
+	public void Revive(int hp)
+	{
+		if (!IsToast)
+		{
+			GD.PushWarning("Tried to revive an actor that was already alive!");
+			return;
+		}
+
+		IsToast = false;
+		ClearAnimation();
+		CurrentHP = hp;
 	}
 
 	/// <summary>

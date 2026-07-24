@@ -36,7 +36,7 @@ internal sealed class KiteKid : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        if (KidsKite.Actor.CurrentState == "toast")
+        if (KidsKite.Actor.IsToast)
         {
             KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
             AudioManager.Instance.PlaySFX("BA_Repair", 1f, 0.9f);
@@ -65,7 +65,7 @@ internal sealed class KiteKid : Enemy
         DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
         DialogueManager.Instance.QueueMessage(this, "How could we lose?");
         await DialogueManager.Instance.WaitForDialogue();
-        if (KidsKite != null && KidsKite.Actor.CurrentState != "toast")
+        if (KidsKite != null && !KidsKite.Actor.IsToast)
             KidsKite.Actor.CurrentHP = 0;
     }
 

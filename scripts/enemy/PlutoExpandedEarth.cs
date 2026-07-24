@@ -105,7 +105,7 @@ internal sealed class PlutoExpandedEarth : Enemy
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Ah...\! It seems that I have underestimated you once again.");
             await DialogueManager.Instance.WaitForDialogue();
             HasThrownEarth = true;
-            if (Earth != null && Earth.Actor.CurrentState is not "toast")
+            if (Earth != null && !Earth.Actor.IsToast)
             {
                 BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["PEEarthsFinale"]);
                 return;

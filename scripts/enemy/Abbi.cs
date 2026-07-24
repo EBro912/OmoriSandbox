@@ -38,7 +38,7 @@ internal sealed class Abbi : Enemy
         {
             for (int i = 0; i < 4; i++)
             {
-                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.CurrentState == "toast")
+                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.IsToast)
                 {
                     Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
                         layer: Layer + 1);

@@ -110,7 +110,7 @@ internal sealed class KiteKidAlt : Enemy
         DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
         DialogueManager.Instance.QueueMessage(this, "How could we lose?");
         await DialogueManager.Instance.WaitForDialogue();
-        if (KidsKite != null && KidsKite.Actor.CurrentState != "toast")
+        if (KidsKite != null && !KidsKite.Actor.IsToast)
             KidsKite.Actor.CurrentHP = 0;
     }
 

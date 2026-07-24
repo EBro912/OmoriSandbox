@@ -146,8 +146,6 @@ public class Aqua : Enemy
             PlayAnimation("amused");
             DialogueManager.Instance.QueueMessage(this, "Uuu, okay...");
             await DialogueManager.Instance.WaitForDialogue();
-            // reset animation so the toast conversion below can show the toast animation
-            ClearAnimation();
             CurrentHP = 0;
             return;
         }

@@ -30,14 +30,14 @@ internal sealed class Recyclepath : Enemy
         if (HasStatModifier("Stockpile") && Roll() < 61)
             return new BattleCommand(this, SelectTarget(), Skills["RPathFlingTrash"]);
         // we need to check these separately due to the sprite flipping behavior
-        if (LeftRecycultist == null || LeftRecycultist.Actor.CurrentState == "toast")
+        if (LeftRecycultist == null || LeftRecycultist.Actor.IsToast)
         {
             LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
                 fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
             return new BattleCommand(this, this, Skills["RPathSummon"]);
         }
 
-        if (RightRecycultist == null || RightRecycultist.Actor.CurrentState == "toast")
+        if (RightRecycultist == null || RightRecycultist.Actor.IsToast)
         {
             RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
                 fallsOffScreen: false, layer: Math.Max(0, Layer - 1));

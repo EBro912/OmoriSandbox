@@ -67,7 +67,7 @@ internal sealed class KingCrawler : Enemy
             return;
         }
         
-        if (SproutMole == null || SproutMole.Actor.CurrentState == "toast")
+        if (SproutMole == null || SproutMole.Actor.IsToast)
         {
             SproutMole =
                 BattleManager.Instance.SummonEnemy("LostSproutMole", CenterPoint - new Vector2(100, 0), layer: Layer + 1);

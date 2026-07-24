@@ -94,9 +94,18 @@ public partial class PartyMemberComponent : Node
 		AddChild(HurtTimer);
 
 		// Init already validated the emotion, delay this call to let everything initialize
-		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, PartyMember.CurrentState);
+		Callable.From(RefreshStateVisuals).CallDeferred();
 
 		return true;
+	}
+
+	private void RefreshStateVisuals()
+	{
+		// members spawning with an active animation override show its asset instead of their emotion
+		if (PartyMember.CurrentAnimationAsset != null)
+			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
+		else
+			StateAnimator.SetState(PartyMember.CurrentState);
 	}
 
 	private void StateChanged(object sender, EventArgs e)

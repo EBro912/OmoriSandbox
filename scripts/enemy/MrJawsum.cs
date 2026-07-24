@@ -26,11 +26,11 @@ internal sealed class MrJawsum : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (Gators.All(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+        if (Gators.All(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         if (Roll() < 21)
             return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
-        if (Gators.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+        if (Gators.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
     }
@@ -39,7 +39,7 @@ internal sealed class MrJawsum : Enemy
     {
         for (int i = 0; i < 2; i++)
         {
-            if (!GodotObject.IsInstanceValid(Gators[i]) || Gators[i].Actor.CurrentState is "toast")
+            if (!GodotObject.IsInstanceValid(Gators[i]) || Gators[i].Actor.IsToast)
             {
                 Gators[i] = BattleManager.Instance.SummonEnemy("GatorGuyJawsum",
                     new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));

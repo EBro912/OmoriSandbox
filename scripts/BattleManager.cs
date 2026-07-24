@@ -2,6 +2,7 @@ using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Menu;
@@ -303,7 +304,7 @@ public partial class BattleManager : Node
 							SetPhase(BattlePhase.FightRun);
 							return;
 						}
-					} while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast");
+					} while (CurrentParty[CurrentPartyMember].Actor.IsToast);
 
 					Actor prev = CurrentParty[CurrentPartyMember].Actor;
 					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
@@ -652,7 +653,7 @@ public partial class BattleManager : Node
 		}
 
 		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies &&
-		    CurrentParty.All(x => x.Actor.CurrentState != "toast"))
+		    CurrentParty.All(x => !x.Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return false;
@@ -671,7 +672,7 @@ public partial class BattleManager : Node
 		// multi-target revives, such as jam packets, can still be selected and consumed
 		// regardless of toast status
 		if (SelectedAction.Target is SkillTarget.DeadAlly &&
-		    CurrentParty.All(x => x.Actor.CurrentState != "toast"))
+		    CurrentParty.All(x => !x.Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return false;
@@ -748,7 +749,7 @@ public partial class BattleManager : Node
 				{
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
-						if (enemy.Actor.CurrentState == "toast")
+						if (enemy.Actor.IsToast)
 							continue;
 						await RunGuarded(() => enemy.Actor.ProcessStartOfCommands(),
 							$"{enemy.Actor.Name}.ProcessStartOfCommands");
@@ -789,7 +790,7 @@ public partial class BattleManager : Node
 
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
-					if (enemy.Actor.CurrentState == "toast")
+					if (enemy.Actor.IsToast)
 						continue;
 					enemy.Actor.SetHurt(false);
 					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
@@ -814,7 +815,7 @@ public partial class BattleManager : Node
 								await Wait.Milliseconds(750);
 							}
 							await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
-							enemy.Actor.SetState("toast", true);
+							enemy.Actor.SetToast();
 							if (enemy.Actor.FallsOffScreen)
 								DyingEnemies.Add(enemy.GetParent<Node2D>());
 						}
@@ -833,7 +834,7 @@ public partial class BattleManager : Node
 							await Wait.Milliseconds(750);
 						}
 						await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
-						enemy.Actor.SetState("toast", true);
+						enemy.Actor.SetToast();
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
 						DeferredDeathEnemies.Remove(enemy);
@@ -858,9 +859,9 @@ public partial class BattleManager : Node
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
 			member.Actor.SetHurt(false);
-			if (member.Actor.CurrentHP == 0 && member.Actor.CurrentState != "toast")
+			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast)
 			{
-				member.Actor.SetState("toast", true);
+				member.Actor.SetToast();
 				member.Actor.RemoveAllStatModifiers();
 				// remove charm from any enemies
 				foreach (EnemyComponent enemy in Enemies)
@@ -1008,7 +1009,7 @@ public partial class BattleManager : Node
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		if (!ProcessedStartOfTurn)
 		{
-			foreach (PartyMemberComponent member in CurrentParty.Where(x => x.Actor.CurrentState != "toast"))
+			foreach (PartyMemberComponent member in CurrentParty.Where(x => !x.Actor.IsToast))
 			{
 				foreach (StatModifier modifier in member.Actor.StatModifiers.Values)
 				{
@@ -1025,7 +1026,7 @@ public partial class BattleManager : Node
 
 			foreach (EnemyComponent e in Enemies.ToList())
 			{
-				if (e.Actor.CurrentState == "toast")
+				if (e.Actor.IsToast)
 					continue;
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
@@ -1061,7 +1062,7 @@ public partial class BattleManager : Node
 
 	private void HandlePlayerCommand()
 	{
-		while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast")
+		while (CurrentParty[CurrentPartyMember].Actor.IsToast)
 		{
 			CurrentPartyMember++;
 			if (CurrentPartyMember >= CurrentParty.Count)
@@ -1128,7 +1129,7 @@ public partial class BattleManager : Node
 
 		if ((SelectedAction.Target == SkillTarget.Ally ||
 		     (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
-		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState == "toast")
+		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1136,7 +1137,7 @@ public partial class BattleManager : Node
 
 		if ((SelectedAction.Target == SkillTarget.DeadAlly ||
 		     SelectedAction.Target == SkillTarget.AllDeadAllies && CurrentPartyMemberTarget > -1)
-		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState != "toast")
+		    && !CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1144,7 +1145,7 @@ public partial class BattleManager : Node
 
 		if (SelectedAction.Target == SkillTarget.AllyNotSelf &&
 		    (CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position
-		     || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState == "toast"))
+		     || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1277,7 +1278,7 @@ public partial class BattleManager : Node
 					resolvedTargets.Add(currentAction.Targets[0]);
 				break;
 			case SkillTarget.DeadAlly:
-				if (currentAction.Targets[0].CurrentState is not "toast")
+				if (!currentAction.Targets[0].IsToast)
 				{
 					Actor newTarget = currentAction.Targets[0] is Enemy
 						? null
@@ -1313,7 +1314,7 @@ public partial class BattleManager : Node
 					resolvedTargets.AddRange(GetAllPartyMembers().Select(x => x.Actor));
 				break;
 			case SkillTarget.AllyNotSelf:
-				if (currentAction.Targets[0].CurrentState is "toast")
+				if (currentAction.Targets[0].IsToast)
 				{
 					Actor newTarget = currentAction.Targets[0] is Enemy
 						? GetRandomAliveUniqueEnemy(currentAction.Actor)
@@ -1383,9 +1384,9 @@ public partial class BattleManager : Node
 							if (entry.Key.Position != component.Position) continue;
 							PartyMemberComponent target =
 								CurrentParty.FirstOrDefault(x => x.Position == entry.Value.Target);
-							bool disabled = target == null || target.Actor.CurrentState == "toast";
+							bool disabled = target == null || target.Actor.IsToast;
 							if (entry.Value.SkillName.StartsWith("ReleaseEnergy") &&
-							    CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+							    CurrentParty.Any(x => x.Actor.IsToast))
 								disabled = true;
 							// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
 							if (entry.Value.SkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
@@ -1420,7 +1421,7 @@ public partial class BattleManager : Node
 			return false;
 
 		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == pair.Target);
-		if (target == null || target.Actor.CurrentState == "toast")
+		if (target == null || target.Actor.IsToast)
 			return false;
 
 		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
@@ -1431,7 +1432,7 @@ public partial class BattleManager : Node
 		bool basil = false;
 		if (name.StartsWith("ReleaseEnergy"))
 		{
-			if (Energy != 10 || CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+			if (Energy != 10 || CurrentParty.Any(x => x.Actor.IsToast))
 				return false;
 
 			if (UseBasilReleaseEnergy)
@@ -1507,12 +1508,12 @@ public partial class BattleManager : Node
 			return false;
 
 		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == followup.TargetPosition);
-		if (target == null || target.Actor.CurrentState == "toast")
+		if (target == null || target.Actor.IsToast)
 			return false;
 
 		if (followup.IsReleaseEnergy)
 		{
-			if (Energy != 10 || CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
+			if (Energy != 10 || CurrentParty.Any(x => x.Actor.IsToast))
 				return false;
 		}
 		else if (Energy < 3)
@@ -1538,13 +1539,13 @@ public partial class BattleManager : Node
 			});
 			Enemies.ForEach(x =>
 			{
-				if (x.Actor.CurrentState != "toast")
+				if (!x.Actor.IsToast)
 					x.Actor.DecreaseStatTurnCounter();
 			});
 
 			foreach (EnemyComponent enemy in Enemies.ToList())
 			{
-				if (enemy.Actor.CurrentState == "toast")
+				if (enemy.Actor.IsToast)
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
@@ -1624,7 +1625,7 @@ public partial class BattleManager : Node
 		}
 
 		PartyMemberComponent omori =
-			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.CurrentState == "toast");
+			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.IsToast);
 		// if any omori is toast, the battle is over
 		// this may change in the future
 		if (omori != null)
@@ -1644,16 +1645,12 @@ public partial class BattleManager : Node
 		{
 			SetPhase(BattlePhase.BattleOver);
 			await EndOfBattle(true);
-			Dictionary<int, string> oldEmotions = [];
 			CurrentParty.ForEach(x =>
 			{
 				x.Actor.RemoveStatModifier("PlotArmor");
-				x.Actor.ClearAnimation();
-				if (x.Actor.CurrentState != "toast")
-				{
-					oldEmotions.Add(x.Position, x.Actor.CurrentState);
-					x.Actor.SetState("victory", true);
-				}
+				// the victory animation overrides plot armor
+				if (!x.Actor.IsToast)
+					x.Actor.PlayAnimation("victory", EmotionAsset.Victory);
 			});
 			if (GameType is GameModeType.BossRush)
 			{
@@ -1677,18 +1674,21 @@ public partial class BattleManager : Node
 						x.Actor.HasUsedPlotArmor = false;
 						if (Stages[CurrentStage].HealParty)
 						{
-							x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
+							if (x.Actor.IsToast)
+								x.Actor.Revive(x.Actor.CurrentStats.MaxHP);
+							else
+								x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
 							x.Actor.CurrentJuice = x.Actor.CurrentStats.MaxJuice;
 						}
 						else if (x.Actor.CurrentHP == 0)
 						{
-							x.Actor.CurrentHP = 1;
+							x.Actor.Revive(1);
 							x.Actor.SetState("neutral", true);
 						}
 
-						if (Stages[CurrentStage].KeepEmotion && oldEmotions.TryGetValue(x.Position, out string oldState))
-							x.Actor.SetState(oldState, true);
-						else
+						// drop the victory override, the emotion kept underneath shows again
+						x.Actor.ClearAnimation();
+						if (!Stages[CurrentStage].KeepEmotion)
 							x.Actor.SetState("neutral", true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();
@@ -1729,7 +1729,7 @@ public partial class BattleManager : Node
 			await RunGuarded(() => p.Actor.OnEndOfBattle(victory), $"{p.Actor.Name}.OnEndOfBattle");
 		foreach (EnemyComponent e in Enemies)
 		{
-			if (e.Actor.CurrentState is "toast")
+			if (e.Actor.IsToast)
 				continue;
 			await RunGuarded(() => e.Actor.OnEndOfBattle(victory), $"{e.Actor.Name}.OnEndOfBattle");
 		}
@@ -2450,7 +2450,7 @@ public partial class BattleManager : Node
 	/// <returns>True if the actor is considered invalid.</returns>
 	public bool IsInvalidTarget(Actor actor)
 	{
-		return actor == null || actor.CurrentState is "toast" || (actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor));
+		return actor == null || actor.IsToast || (actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor));
 	}
 
 	/// <returns>The <see cref="BattleCommand"/> that is currently being processed.</returns>
@@ -2472,7 +2472,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	public List<PartyMemberComponent> GetDeadPartyMembers()
 	{
-		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.CurrentState == "toast").ToList();
+		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.IsToast).ToList();
 	}
 
 	/// <summary>

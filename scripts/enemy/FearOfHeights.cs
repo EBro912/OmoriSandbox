@@ -41,7 +41,7 @@ internal sealed class FearOfHeights : Enemy
             {
                 // fear of heights bypasses plot armor
                 member.Actor.CurrentHP = 0;
-                member.Actor.SetState("toast", true);
+                member.Actor.SetToast();
             }
             await Wait.Milliseconds(1500);
             DialogueManager.Instance.QueueMessage("You hit the ground.");

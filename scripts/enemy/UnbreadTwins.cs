@@ -45,7 +45,7 @@ internal sealed class UnbreadTwins : Enemy
 					goto attack;
 				if (Roll() < 36)
 					goto cook;
-				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
 					goto bake;
 				goto nothing;
 			case "depressed":
@@ -53,7 +53,7 @@ internal sealed class UnbreadTwins : Enemy
 					goto attack;
 				if (Roll() < 36)
 					goto cook;
-				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
 					goto bake;
 				goto nothing;
 			case "sad":
@@ -63,7 +63,7 @@ internal sealed class UnbreadTwins : Enemy
 			default:
 				if (Roll() < 51)
 					goto attack;
-				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
 					goto bake;
 				goto nothing;
 		}
@@ -154,7 +154,7 @@ internal sealed class UnbreadTwins : Enemy
 	{
 		for (int i = 0; i < 2; i++)
 		{
-			if (!GodotObject.IsInstanceValid(Breads[i]) || Breads[i].Actor.CurrentState is "toast")
+			if (!GodotObject.IsInstanceValid(Breads[i]) || Breads[i].Actor.IsToast)
 			{
 				Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
 				return;

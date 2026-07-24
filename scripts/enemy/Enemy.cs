@@ -24,6 +24,10 @@ public abstract class Enemy : Actor
 			GD.PrintErr("Failed to load Sprite animations for Enemy: " + Name);
 			return;
 		}
+		// if the enemy starts toast, they technically start neutral
+		bool startToast = initialState == "toast";
+		if (startToast)
+			initialState = "neutral";
 		// init animation
 		Sprite = sprite;
 		Sprite.SpriteFrames = animation;
@@ -33,6 +37,8 @@ public abstract class Enemy : Actor
 		SetBaseStats(Stats);
 		CurrentHP = BaseStats.HP;
 		CurrentJuice = BaseStats.Juice;
+		if (startToast)
+			SetToast();
 
 		FallsOffScreen = fallsOffScreen;
 		GrayscaleOnDefeat = grayscaleOnDefeat;
