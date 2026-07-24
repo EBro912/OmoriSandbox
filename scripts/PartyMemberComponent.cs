@@ -87,7 +87,7 @@ public partial class PartyMemberComponent : Node
 		Position = actor.Position;
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
-		PartyMember.OnStateChanged += StateChanged;
+		PartyMember.OnEmotionChanged += EmotionChanged;
 		PartyMember.OnAnimationChanged += AnimationChanged;
 		PartyMember.OnDamaged += Damaged;
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
@@ -108,7 +108,7 @@ public partial class PartyMemberComponent : Node
 			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 	}
 
-	private void StateChanged(object sender, EventArgs e)
+	private void EmotionChanged(object sender, EventArgs e)
 	{
 		// while an animation override is active (such as plot armor), only the above-head label follows emotion changes
 		if (PartyMember.CurrentAnimation != null)

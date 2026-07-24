@@ -29,7 +29,7 @@ internal sealed class SpaceExHusband : Enemy
         if (emotion.Id == "neutral")
             return true;
 
-        // the photograph effect is played from OnStateChanged
+        // the photograph effect is played from OnEmotionChanged
         if (emotion.Id == DesiredEmotion)
             return true;
 
@@ -260,7 +260,7 @@ internal sealed class SpaceExHusband : Enemy
     public override async Task OnStartOfBattle()
     {
         AddStatModifier("SpaceExHusbandBlock", silent: true);
-        OnStateChanged += (_, _) =>
+        OnEmotionChanged += (_, _) =>
         {
             if (DesiringEmotion && CurrentEmotion.Id == DesiredEmotion)
                 AnimationManager.Instance.PlayPhotograph();

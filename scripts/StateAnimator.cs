@@ -69,8 +69,7 @@ internal partial class StateAnimator : Node
 			return emotion;
 
 		GD.PushWarning("Unknown emotion for state animator: " + state);
-		Database.TryGetEmotion("neutral", out emotion);
-		return emotion;
+		return Database.NeutralEmotion;
 	}
 
 	private void FadeInFace(Texture2D texture, Rect2? region)

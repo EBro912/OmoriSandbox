@@ -14,9 +14,9 @@ namespace OmoriSandbox.Actors;
 public abstract class Actor
 {
 	/// <summary>
-	/// Fired whenever the actor's state (emotion) changes.
+	/// Fired whenever the actor's emotion changes.
 	/// </summary>
-	public event EventHandler OnStateChanged;
+	public event EventHandler OnEmotionChanged;
 	/// <summary>
 	/// Fired whenever the actor's HP changes.
 	/// </summary>
@@ -50,10 +50,6 @@ public abstract class Actor
 	/// The actor's current <see cref="Emotion"/>. Defaults to neutral.
 	/// </summary>
 	public Emotion CurrentEmotion { get; private set; } = Database.NeutralEmotion;
-	/// <summary>
-	/// The id of the actor's current emotion. Shorthand for <see cref="CurrentEmotion"/>.Id.
-	/// </summary>
-	public string CurrentState => CurrentEmotion.Id;
 	/// <summary>
 	/// The emotion used in damage and advantage calculations.<br/>
 	/// Usually the same as <see cref="CurrentEmotion"/>, unless an emotion lock with an advantage override is active. See <see cref="LockEmotion"/>.
@@ -556,7 +552,7 @@ public abstract class Actor
 				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + emotion.DisplayName + "!");
 			}
 
-			OnStateChanged?.Invoke(this, EventArgs.Empty);
+			OnEmotionChanged?.Invoke(this, EventArgs.Empty);
 			// only update the sprite if no animation override is active
 			if (CurrentAnimation == null) {
 				Sprite.Animation = emotion.AnimationName;
@@ -571,17 +567,6 @@ public abstract class Actor
 		return false;
 	}
 
-    /// <summary>
-    /// Sets this actor's state (emotion). Shorthand for <see cref="SetEmotion(string, bool)"/>.
-    /// </summary>
-    /// <param name="state">The emotion to set this actor to.</param>
-    /// <param name="silent">If true, success/failure messages will not be logged.</param>
-    public void SetState(string state, bool silent = false)
-	{
-		SetEmotion(state, silent);
-	}
-
-
 	/// <summary>
 	/// Silently forces this actor to feel an emotion, bypassing emotion locks and validity checks. Mainly used for boss phase changes. Should be used sparingly.
 	/// </summary>
@@ -595,7 +580,7 @@ public abstract class Actor
 		}
 
 		CurrentEmotion = emotion;
-		OnStateChanged?.Invoke(this, EventArgs.Empty);
+		OnEmotionChanged?.Invoke(this, EventArgs.Empty);
 		if (CurrentAnimation == null)
 		{
 			Sprite.Animation = emotion.AnimationName;
