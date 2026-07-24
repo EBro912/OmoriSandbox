@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class FearOfSpiders : Enemy
@@ -9,9 +10,9 @@ internal sealed class FearOfSpiders : Enemy
     protected override Stats Stats => new(7500, 3000, 115, 35, 110, 30, 95);
     protected override string[] EquippedSkills => ["FOSAttack", "FOSDoNothing", "FOSSpinWeb", "FOSAttackAll"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral";
     }
 
     public override BattleCommand ProcessAI()

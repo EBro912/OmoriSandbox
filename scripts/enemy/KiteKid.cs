@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,9 +12,9 @@ internal sealed class KiteKid : Enemy
     protected override Stats Stats => new(750, 375, 24, 15, 25, 10, 95);
     protected override string[] EquippedSkills => ["KKAttack", "KKBrag"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -21,7 +22,7 @@ internal sealed class KiteKid : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["KKAttack"]);
         
-        if (CurrentState == "happy" || Roll() < 76)
+        if (CurrentEmotion.Id == "happy" || Roll() < 76)
             return new BattleCommand(this, SelectTarget(), Skills["KKAttack"]);
         
         return new BattleCommand(this, this, Skills["KKBrag"]);

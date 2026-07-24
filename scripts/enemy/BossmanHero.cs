@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -63,9 +64,9 @@ internal sealed class BossmanHero : Enemy
        If the contract offers 100% crit to the friends, damage and debuff stats will not be offered to the friends.
     */
     
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "toast";
+        return emotion.Id is "neutral";
     }
 
     private readonly EnemyComponent[] GatorGuys = new EnemyComponent[2];

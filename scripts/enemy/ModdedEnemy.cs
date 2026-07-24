@@ -1,6 +1,7 @@
 using Godot;
 using System.Linq;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Modding;
 
 namespace OmoriSandbox.Actors;
@@ -24,9 +25,9 @@ internal class ModdedEnemy : Enemy
 
     protected override string[] EquippedSkills => JsonEnemy.EquippedSkills ?? [];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return JsonEnemy.InvalidStates == null || !JsonEnemy.InvalidStates.Contains(state);
+        return JsonEnemy.InvalidStates == null || !JsonEnemy.InvalidStates.Contains(emotion.Id);
     }
 
     public override BattleCommand ProcessAI()
@@ -37,10 +38,10 @@ internal class ModdedEnemy : Enemy
             return new BattleCommand(this, this, new EmptyAction());
         }
         
-        JsonEnemyAIData data = JsonEnemy.AI.FirstOrDefault(x => x.Emotion == CurrentState);
+        JsonEnemyAIData data = JsonEnemy.AI.FirstOrDefault(x => x.Emotion == CurrentEmotion.Id);
         if (data.Equals(default(JsonEnemyAIData)))
         {
-            GD.PrintErr($"Modded enemy {Name} is missing AI data for emotion {CurrentState}");
+            GD.PrintErr($"Modded enemy {Name} is missing AI data for emotion {CurrentEmotion.Id}");
             return new BattleCommand(this, this, new EmptyAction());
         }
         

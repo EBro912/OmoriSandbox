@@ -1,6 +1,7 @@
 using Godot;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Boss : Enemy
@@ -13,9 +14,9 @@ internal sealed class Boss : Enemy
 
     protected override string[] EquippedSkills => ["BSSAttack", "BSSAttackTwice", "BSSDoNothing", "BSSAttackAll"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
 
     private int Stage = 0;
@@ -61,7 +62,7 @@ internal sealed class Boss : Enemy
             DialogueManager.Instance.QueueMessage(this, "It's time for my special move!");
             DialogueManager.Instance.QueueMessage("[font_size=52][wave freq=10][shake rate=20][center]BODY SLAM!!");
             await DialogueManager.Instance.WaitForDialogue();
-            SetState("angry", true);
+            SetEmotion("angry", true);
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["BSSAttackAll"]);
             Stage = 3;
         }

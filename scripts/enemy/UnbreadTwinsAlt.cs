@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class UnbreadTwinsAlt : Enemy
@@ -20,15 +21,12 @@ internal sealed class UnbreadTwinsAlt : Enemy
     private readonly EnemyComponent[] Breads = new EnemyComponent[2];
     private readonly int[] Offsets = [-270, 200];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        if (state == "toast")
-            return true;
-
         if (IsEmotionLocked)
             return false;
 
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -37,7 +35,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
             return new BattleCommand(this, observe, Skills["UBTAttack"]);
         
         // when Unbread Twins are emotion locked to sad, their AI uses depressed to prevent trying to cleanse sad
-        string state = CurrentState == "sad" && IsEmotionLocked ? "depressed" : CurrentState;
+        string state = CurrentEmotion.Id == "sad" && IsEmotionLocked ? "depressed" : CurrentEmotion.Id;
         switch (state) {
             case "miserable":
                 if (Roll() < 51)

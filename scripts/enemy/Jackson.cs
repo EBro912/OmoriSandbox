@@ -1,6 +1,7 @@
 using Godot;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Jackson : Enemy
@@ -13,9 +14,9 @@ internal sealed class Jackson : Enemy
 
     protected override string[] EquippedSkills => ["JKWalkSlowly", "JKAutoKill"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     private int Turn = 0;

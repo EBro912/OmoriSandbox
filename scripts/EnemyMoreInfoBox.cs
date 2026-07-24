@@ -29,7 +29,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		DEFLabel.Text = $"DEF: {stats.DEF}";
 		LCKLabel.Text = $"LCK: {stats.LCK}";
 		HITLabel.Text = $"HIT: {stats.HIT}";
-		Animator.SetStateAtlas(Enemy.CurrentState);
+		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
 		
 		// shift the emotion sprite relative to the size of the name
 		// keeps the sprite centered on the infobox
@@ -50,6 +50,6 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		DEFLabel.Text = $"DEF: {stats.DEF}";
 		LCKLabel.Text = $"LCK: {stats.LCK}";
 		HITLabel.Text = $"HIT: {stats.HIT}";
-		Animator.SetStateAtlas(Enemy.CurrentState);
+		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
 	}
 }

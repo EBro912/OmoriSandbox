@@ -1,6 +1,7 @@
 using Godot;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Animation;
  
 namespace OmoriSandbox.Actors;
@@ -14,47 +15,43 @@ internal sealed class SpaceExHusband : Enemy
 
     private Stats GetStatsForEmotion()
     {
-        return CurrentState switch
+        return CurrentEmotion.Group?.Id switch
         {
-            "sad" or "depressed" or "miserable" => new Stats(6000, 3000, 65, 85, 30, 5, 95),
-            "happy" or "ecstatic" or "manic" => new Stats(6000, 3000, 70, 35, 105, 25, 95),
-            "angry" or "enraged" or "furious" => new Stats(6000, 3000, 90, 15, 50, 10, 95),
+            "sad" => new Stats(6000, 3000, 65, 85, 30, 5, 95),
+            "happy" => new Stats(6000, 3000, 70, 35, 105, 25, 95),
+            "angry" => new Stats(6000, 3000, 90, 15, 50, 10, 95),
             _ => new Stats(6000, 3000, 80, 999, 50, 10, 95)
         };
     }
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        if (state == "neutral" || state == "toast")
+        if (emotion.Id == "neutral")
             return true;
 
         // the photograph effect is played from OnStateChanged
-        if (state == DesiredEmotion)
+        if (emotion.Id == DesiredEmotion)
             return true;
 
-        return CurrentState switch
-        {
-            "sad" => state == "depressed",
-            "depressed" => state == "miserable",
-            "happy" => state == "ecstatic",
-            "ecstatic" => state == "manic",
-            "angry" => state == "enraged",
-            "enraged" => state == "furious",
-            _ => false,
-        };
+        // outside a desire, only the next tier of his current group can be applied
+        return emotion.Group != null && emotion.Group == CurrentEmotion.Group && emotion.Tier == CurrentEmotion.Tier + 1;
     }
 
     public override void SetHurt(bool hurt)
     {
-        if (hurt && CurrentState == "neutral")
+        if (CurrentAnimation != null)
+            return;
+
+        // unlike other actors, he only shows the hurt animation while neutral (guarding his HEART)
+        if (hurt && CurrentEmotion.Id == "neutral")
             Sprite.Animation = "hurt";
         else
-            Sprite.Animation = CurrentState;
+            Sprite.Animation = CurrentEmotion.AnimationName;
     }
 
     public override BattleCommand ProcessAI()
     {
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
             case "ecstatic":
@@ -145,10 +142,10 @@ internal sealed class SpaceExHusband : Enemy
 
             TurnCounter = 0;
 
-            if (CurrentState != "neutral")
+            if (CurrentEmotion.Id != "neutral")
             {
                 AnimationManager.Instance.PlayPhotograph();
-                SetState("neutral", true);
+                SetEmotion("neutral", true);
                 await Wait.Milliseconds(1200);
                 DialogueManager.Instance.QueueMessage(this, @"Nay! I must guard my HEART.\! I must become one... with the ice...");
                 await DialogueManager.Instance.WaitForDialogue();
@@ -167,21 +164,21 @@ internal sealed class SpaceExHusband : Enemy
         switch (DesiredEmotion)
         {
             case "sad":
-                if (CurrentState == "sad" || CurrentState == "depressed" || CurrentState == "miserable")
+                if (CurrentEmotion.Group?.Id == "sad")
                 {
                     DialogueManager.Instance.QueueMessage(this, @"Oh...\! I can't believe she's really gone...");
                     return true;
                 }
                 break;
             case "happy":
-                if (CurrentState == "happy" || CurrentState == "ecstatic" || CurrentState == "manic")
+                if (CurrentEmotion.Group?.Id == "happy")
                 {
                     DialogueManager.Instance.QueueMessage(this, "I still do think fondly of those times...");
                     return true;
                 }
                 break;
             case "angry":
-                if (CurrentState == "angry" || CurrentState == "enraged" || CurrentState == "furious")
+                if (CurrentEmotion.Group?.Id == "angry")
                 {
                     DialogueManager.Instance.QueueMessage(this, @"GAH!\! HOW DARE SHE TREAT ME THAT WAY!");
                     return true;
@@ -265,7 +262,7 @@ internal sealed class SpaceExHusband : Enemy
         AddStatModifier("SpaceExHusbandBlock", silent: true);
         OnStateChanged += (_, _) =>
         {
-            if (DesiringEmotion && CurrentState == DesiredEmotion)
+            if (DesiringEmotion && CurrentEmotion.Id == DesiredEmotion)
                 AnimationManager.Instance.PlayPhotograph();
         };
         DialogueManager.Instance.QueueMessage(this, @"[br]I feel nothing...\![br]I am cold...\! like ice...");

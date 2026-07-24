@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -12,9 +13,9 @@ internal sealed class HeroBoss : Enemy
 	protected override Stats Stats => new(10000, 7000, 90, 100, 45, 10, 95);
 	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubrey", "HBossCallKel"];
 
-	public override bool IsStateValid(string state)
+	public override bool IsEmotionValid(Emotion emotion)
 	{
-		return state is "neutral" or "toast" or "happy" or "sad" or "angry";
+		return emotion.Id is "neutral" or "happy" or "sad" or "angry";
 	}
 	
 	private int TurnCount = 0;
@@ -63,14 +64,14 @@ internal sealed class HeroBoss : Enemy
 			return new BattleCommand(this, SelectTarget(), Skills["HAttack"]);
 		}
 
-		if (CurrentState is "neutral" or "sad")
+		if (CurrentEmotion.Id is "neutral" or "sad")
 		{
 			if (Roll() < 31)
 				return new BattleCommand(this, SelectTarget(), Skills["HBossSmile"]);
 			if (Roll() < 36)
 				return new BattleCommand(this, SelectTarget(), Skills["SpicyFood"]);
 		}
-		else if (CurrentState is "angry" or "happy")
+		else if (CurrentEmotion.Id is "angry" or "happy")
 		{
 			if (Roll() < 36)
 				return new BattleCommand(this, SelectTarget(), Skills["HBossSmile"]);

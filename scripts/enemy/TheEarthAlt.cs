@@ -1,6 +1,7 @@
 using Godot;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class TheEarthAlt : Enemy
@@ -11,9 +12,9 @@ internal sealed class TheEarthAlt : Enemy
 
     protected override string[] EquippedSkills => ["TEACruel", "TEAProtect"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -21,7 +22,7 @@ internal sealed class TheEarthAlt : Enemy
         if (HasObserveTarget(out _))
             return new BattleCommand(this, SelectAllTargets(), Skills["TEAProtect"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "sad":
                 if (Roll() < 51)

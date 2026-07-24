@@ -526,16 +526,16 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Checks if this actor can feel the given state (emotion).
+	/// Checks if this actor can feel the given emotion.
 	/// </summary>
-	/// <param name="state">The emotion to check.</param>
-	/// <returns>True if this actor can feel the given <paramref name="state"/>.</returns>
-	public virtual bool IsStateValid(string state) { return true; }
+	/// <param name="emotion">The emotion to check.</param>
+	/// <returns>True if this actor can feel the given <paramref name="emotion"/>.</returns>
+	public virtual bool IsEmotionValid(Emotion emotion) { return true; }
 
     /// <summary>
     /// Sets this actor's emotion by id. Will fail and log a battle message if the actor cannot feel the given emotion,
     /// or if their emotion is locked.<br/>
-    /// See <see cref="IsStateValid(string)"/> and <see cref="LockEmotion"/>.
+    /// See <see cref="IsEmotionValid(Emotion)"/> and <see cref="LockEmotion"/>.
     /// </summary>
     /// <param name="id">The id of the emotion to set this actor to.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
@@ -548,7 +548,7 @@ public abstract class Actor
 			return false;
 		}
 
-		if (!IsEmotionLocked && IsStateValid(id))
+		if (!IsEmotionLocked && IsEmotionValid(emotion))
 		{
 			CurrentEmotion = emotion;
 			if (!silent)

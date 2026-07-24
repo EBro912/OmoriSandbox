@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class ForestBunnyQuestion : Enemy
@@ -10,9 +11,9 @@ internal sealed class ForestBunnyQuestion : Enemy
 
     protected override Stats Stats => new(110, 55, 13, 6, 11, 10, 95);
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
 
     protected override string[] EquippedSkills => ["FBQAttack", "FBQDoNothing", "FBQBeCute", "FBQSadEyes"];
@@ -23,7 +24,7 @@ internal sealed class ForestBunnyQuestion : Enemy
             return new BattleCommand(this, observe, Skills["FBQAttack"]);
         
         Actor target = SelectTarget();
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 46)

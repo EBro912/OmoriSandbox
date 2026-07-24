@@ -11,15 +11,12 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/space_ex_boyfriend.tres");
     protected override Stats Stats => new(7000, 3500, 95, 50, 105, 12, 95);
     protected override string[] EquippedSkills => ["SEBAttack", "SEBDoNothing", "AngstySong", "AngrySong", "SpaceLaser", "BRBulletHell"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        if (state == "toast")
-            return true;
-
         if (IsEmotionLocked)
             return false;
 
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     // Space Ex-Boyfriend's locked emotions use slightly different stats than the generic angry line
@@ -44,7 +41,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SEBAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "furious":
                 if (Roll() < 36)

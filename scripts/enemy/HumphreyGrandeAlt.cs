@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
@@ -13,9 +14,9 @@ internal sealed class HumphreyGrandeAlt : Enemy
     protected override Stats Stats => new(9000, 4000, 100, 25, 1, 10, 95);
     protected override string[] EquippedSkills => ["HUGAttack"];
     
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
     
     public override BattleCommand ProcessAI()

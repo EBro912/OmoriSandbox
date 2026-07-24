@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Godot;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class SweetheartAlt : Enemy
@@ -14,15 +15,12 @@ internal sealed class SweetheartAlt : Enemy
 
 	private int Stage = 0;
 
-	public override bool IsStateValid(string state)
+	public override bool IsEmotionValid(Emotion emotion)
 	{
-		if (state == "toast")
-			return true;
-
 		if (IsEmotionLocked)
 			return false;
 
-		return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
+		return emotion.Id is "neutral" or "sad" or "happy" or "angry";
 	}
 
 
@@ -33,7 +31,7 @@ internal sealed class SweetheartAlt : Enemy
 		if (HasObserveTarget(out PartyMember observe))
 			return new BattleCommand(this, observe, Skills["SHAttack"]);
 		
-		switch (CurrentState)
+		switch (CurrentEmotion.Id)
 		{
 			case "manic":
 			case "ecstatic":

@@ -2,6 +2,7 @@ using Godot;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Roboheart : Enemy
@@ -10,9 +11,9 @@ internal sealed class Roboheart : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/roboheart.tres");
     protected override Stats Stats => new(2500, 1250, 45, 40, 60, 10, 95);
     protected override string[] EquippedSkills => ["RHAttack", "RHDoNothing", "RHLaser", "RHSnack", "RHExplode"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "happy" or "sad" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -23,7 +24,7 @@ internal sealed class Roboheart : Enemy
         if (CurrentHP < 250)
             return new BattleCommand(this, SelectAllTargets(), Skills["RHExplode"]);
 
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 31)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -12,9 +13,9 @@ internal sealed class KelBoss : Enemy
     protected override Stats Stats => new(9000, 9000, 100, 70, 230, 20, 100);
     protected override string[] EquippedSkills => ["KBossPassToAubrey", "KBossPassToHero", "KBossFlex", "KBossRainCloud", "KAttack", "RunNGun", "Annoy", "Tickle", "Rebound", "Curveball", "Ricochet"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "toast" or "happy" or "sad" or "angry";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
     
     private int TurnCount = 0;
@@ -32,7 +33,7 @@ internal sealed class KelBoss : Enemy
         if (TurnCount == 4)
             return new BattleCommand(this, SelectTarget(), Skills["RunNGun"]);
 
-        return CurrentState switch
+        return CurrentEmotion.Id switch
         {
             "happy" => ProcessHappy(),
             "sad" => ProcessSad(),
@@ -47,7 +48,7 @@ internal sealed class KelBoss : Enemy
         if (Roll() < 51)
         {
             PartyMember target = SelectAllTargets()
-                .FirstOrDefault(x => x.CurrentState is not "angry" and not "enraged" and not "furious");
+                .FirstOrDefault(x => x.CurrentEmotion.Group?.Id != "angry");
             if (target != null)
                 return new BattleCommand(this, target, Skills["Annoy"]);
         }
@@ -89,7 +90,7 @@ internal sealed class KelBoss : Enemy
         if (Roll() < 51)
         {
             PartyMember target = SelectAllTargets()
-                .FirstOrDefault(x => x.CurrentState is not "angry" and not "enraged" and not "furious");
+                .FirstOrDefault(x => x.CurrentEmotion.Group?.Id != "angry");
             if (target != null)
                 return new BattleCommand(this, target, Skills["Annoy"]);
         }
@@ -165,7 +166,7 @@ internal sealed class KelBoss : Enemy
         if (Roll() < 36)
         {
             PartyMember target = SelectAllTargets()
-                .FirstOrDefault(x => x.CurrentState is not "angry" and not "enraged" and not "furious");
+                .FirstOrDefault(x => x.CurrentEmotion.Group?.Id != "angry");
             if (target != null)
                 return new BattleCommand(this, target, Skills["Annoy"]);
         }

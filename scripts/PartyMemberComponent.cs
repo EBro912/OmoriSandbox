@@ -105,16 +105,16 @@ public partial class PartyMemberComponent : Node
 		if (PartyMember.CurrentAnimationAsset != null)
 			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
 		else
-			StateAnimator.SetState(PartyMember.CurrentState);
+			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 	}
 
 	private void StateChanged(object sender, EventArgs e)
 	{
 		// while an animation override is active (such as plot armor), only the above-head label follows emotion changes
 		if (PartyMember.CurrentAnimation != null)
-			StateAnimator.SetStateAtlas(PartyMember.CurrentState);
+			StateAnimator.SetStateAtlas(PartyMember.CurrentEmotion.Id);
 		else
-			StateAnimator.SetState(PartyMember.CurrentState);
+			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 	}
 
 	private void AnimationChanged(object sender, EventArgs e)
@@ -126,7 +126,7 @@ public partial class PartyMemberComponent : Node
 		}
 		else
 		{
-			StateAnimator.SetState(PartyMember.CurrentState);
+			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 		}
 	}
 

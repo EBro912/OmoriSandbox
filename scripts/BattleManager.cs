@@ -1342,7 +1342,7 @@ public partial class BattleManager : Node
 		{
 			if (!skill.MeetsRequirements(currentAction.Actor))
 			{
-				if (currentAction.Actor.CurrentState is "afraid" or "stressed"
+				if (currentAction.Actor.CurrentEmotion.BlocksActions
 				    || skill.RequirementFailureMessage == null)
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
 					                                       " is too AFRAID to move!");
@@ -1367,7 +1367,7 @@ public partial class BattleManager : Node
 			}
 
 			if (currentAction.Actor is PartyMember && skill.ShowFollowups &&
-			    currentAction.Actor.CurrentState is not ("afraid" or "stressed"))
+			    !currentAction.Actor.CurrentEmotion.BlocksActions)
 			{
 				if (ForceHideFollowup)
 				{
@@ -1683,13 +1683,13 @@ public partial class BattleManager : Node
 						else if (x.Actor.CurrentHP == 0)
 						{
 							x.Actor.Revive(1);
-							x.Actor.SetState("neutral", true);
+							x.Actor.SetEmotion("neutral", true);
 						}
 
 						// drop the victory override, the emotion kept underneath shows again
 						x.Actor.ClearAnimation();
 						if (!Stages[CurrentStage].KeepEmotion)
-							x.Actor.SetState("neutral", true);
+							x.Actor.SetEmotion("neutral", true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();
 						x.UpdateStateIcons();
@@ -1797,14 +1797,14 @@ public partial class BattleManager : Node
 
 		float damage = Math.Max(0, damageFunc());
 		// locked bosses resolve advantage as their locked emotion
-		string selfState = self.EffectiveEmotion.Id;
-		string targetState = target.EffectiveEmotion.Id;
+		Emotion selfEmotion = self.EffectiveEmotion;
+		Emotion targetEmotion = target.EffectiveEmotion;
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
-			damage = CalculateEmotionModifiers(selfState, targetState, damage, out effectiveness, attackElement);
+			damage = CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -1842,21 +1842,12 @@ public partial class BattleManager : Node
 
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
 
+		// sadness converts part of the damage to juice loss, using the lock-resolved emotion's bleed fraction
 		int juiceLost = 0;
-		switch (targetState)
+		if (targetEmotion.JuiceBleedFraction > 0)
 		{
-			case "miserable":
-				juiceLost = (int)Math.Min(rounded, target.CurrentJuice);
-				rounded -= juiceLost;
-				break;
-			case "depressed":
-				juiceLost = Math.Min((int)Math.Floor(rounded * 0.5f), target.CurrentJuice);
-				rounded -= juiceLost;
-				break;
-			case "sad":
-				juiceLost = Math.Min((int)Math.Floor(rounded * 0.3f), target.CurrentJuice);
-				rounded -= juiceLost;
-				break;
+			juiceLost = Math.Min((int)Math.Floor(rounded * targetEmotion.JuiceBleedFraction), target.CurrentJuice);
+			rounded -= juiceLost;
 		}
 
 		target.CurrentJuice -= juiceLost;
@@ -1956,12 +1947,9 @@ public partial class BattleManager : Node
 
 		float damage = damageFunc();
 		// locked bosses resolve advantage as their locked emotion
-		string selfState = self.EffectiveEmotion.Id;
-		string targetState = target.EffectiveEmotion.Id;
-
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
-		damage = CalculateEmotionModifiers(selfState, targetState, damage, out _, attackElement);
+		damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out _, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -2023,7 +2011,8 @@ public partial class BattleManager : Node
 	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f)
 	{
 		float baseHealing = healFunc();
-		baseHealing = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, baseHealing, out _);
+		// vanilla's bugged healing reads the raw emotions, ignoring locks
+		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
 		int rounded = (int)Math.Round(baseHealing, MidpointRounding.AwayFromZero);
 		target.Heal(rounded);
@@ -2043,7 +2032,8 @@ public partial class BattleManager : Node
 	public void HealJuice(Actor self, Actor target, Func<float> healFunc)
 	{
 		float baseJuice = healFunc();
-		float finalJuice = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, baseJuice, out _);
+		// vanilla's bugged healing reads the raw emotions, ignoring locks
+		float finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
 		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
 		target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
@@ -2058,87 +2048,60 @@ public partial class BattleManager : Node
 		return damage + v;
 	}
 
-	private readonly int[,] EffectivenessMatrix = new int[3, 3]
-	{
-		//			angry sad happy
-		/* angry */ { 0, -1, 1 },
-		/* sad   */ { 1, 0, -1 },
-		/* happy */ { -1, 1, 0 }
-	};
-
+	// weaknesses and resistances by tier
 	private readonly float[] weakness = [1.5f, 2f, 2.5f];
 	private readonly float[] resistance = [0.8f, 0.65f, 0.5f];
 
-	private float CalculateEmotionModifiers(string self, string target, float damage, out int effect, string attackElement = null)
+	private float CalculateEmotionModifiers(Emotion self, Emotion target, float damage, out int effect, string attackElement = null)
 	{
-		// exploit emotion type
-		if (attackElement == "exploit" && target != "neutral")
+		Emotion neutral = Database.NeutralEmotion;
+
+		// the exploit attack element is always a "moving" hit against any emotion
+		if (attackElement == "exploit" && target != neutral)
 		{
 			effect = 1;
-			if (target is "afraid" or "stressed")
-				return damage * 1.5f;
-			int tier = GetEmotionTier(target);
-			if (tier < 0)
+			if (target.DefensiveRateOverrides.TryGetValue("exploit", out float exploitRate))
+				return damage * exploitRate;
+			if (target.Group == null)
 			{
-				GD.PrintErr("Got negative emotion tier for emotion: " + target);
+				GD.PushWarning("Emotion " + target.Id + " has no group or exploit rate, EXPLOIT will deal normal damage to it.");
 				return damage;
 			}
 
-			return damage * weakness[tier];
+			return damage * weakness[TierIndex(target)];
 		}
 
-		if (self != "neutral" && target == "afraid")
+		// emotions that are weak to all emotions like afraid check for any emotion
+		if (self != neutral && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
 		{
-			// afraid takes 50% more damage from all emotions
 			effect = 0;
-			return damage * 1.5f;
+			return damage * emotionRate;
 		}
 
-		int selfIndex = GetEffectivenessIndex(self);
-		int targetIndex = GetEffectivenessIndex(target);
 		effect = 0;
-		if (selfIndex == -1 || targetIndex == -1)
+		if (self.Group == null || target.Group == null)
 		{
 			return damage;
 		}
 
-		int targetTier = GetEmotionTier(target);
-		int effectiveness = EffectivenessMatrix[targetIndex, selfIndex];
 		float multiplier = 1.0f;
-
-		if (effectiveness > 0)
+		if (self.Group.BeatsGroupId == target.Group.Id)
 		{
-			multiplier = weakness[targetTier];
+			effect = 1;
+			multiplier = weakness[TierIndex(target)];
 		}
-		else if (effectiveness < 0)
+		else if (target.Group.BeatsGroupId == self.Group.Id)
 		{
-			multiplier = resistance[targetTier];
+			effect = -1;
+			multiplier = resistance[TierIndex(target)];
 		}
 
-		effect = effectiveness;
 		return damage * multiplier;
 	}
-
-	private int GetEffectivenessIndex(string emotion)
+	
+	private int TierIndex(Emotion emotion)
 	{
-		return emotion switch
-		{
-			"angry" or "enraged" or "furious" => 0,
-			"sad" or "depressed" or "miserable" => 1,
-			"happy" or "ecstatic" or "manic" => 2,
-			_ => -1
-		};
-	}
-
-	private int GetEmotionTier(string emotion)
-	{
-		return emotion switch
-		{
-			"miserable" or "manic" or "furious" => 2,
-			"depressed" or "ecstatic" or "enraged" => 1,
-			"sad" or "happy" or "angry" => 0,
-			_ => -1,
-		};
+		return Math.Clamp(emotion.Tier, 0, weakness.Length - 1);
 	}
 
 	/// <summary>
@@ -2147,59 +2110,17 @@ public partial class BattleManager : Node
 	/// <param name="who"></param>
 	public void RandomEmotion(Actor who)
 	{
-		int roll = GameManager.Instance.Random.RandiRange(0, 2);
-		string state = "";
-		switch (roll)
-		{
-			case 0:
-				state = "sad";
-				switch (who.CurrentState)
-				{
-					case "miserable":
-						return;
-					case "depressed":
-						state = "miserable";
-						break;
-					case "sad":
-						state = "depressed";
-						break;
-				}
+		IReadOnlyList<EmotionGroup> pool = Database.GetRandomEmotionGroups();
+		if (pool.Count == 0)
+			return;
 
-				break;
-			case 1:
-				state = "angry";
-				switch (who.CurrentState)
-				{
-					case "furious":
-						return;
-					case "enraged":
-						state = "furious";
-						break;
-					case "angry":
-						state = "enraged";
-						break;
-				}
+		EmotionGroup group = pool[GameManager.Instance.Random.RandiRange(0, pool.Count - 1)];
+		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
+			return; // already at the group's highest tier
 
-				break;
-			case 2:
-				state = "happy";
-				switch (who.CurrentState)
-				{
-					case "manic":
-						return;
-					case "ecstatic":
-						state = "manic";
-						break;
-					case "happy":
-						state = "ecstatic";
-						break;
-				}
-
-				break;
-		}
-
-		if (who.IsStateValid(state))
-			who.SetState(state);
+		// unlike MakeEmotion, capped and invalid targets fail silently
+		if (who.IsEmotionValid(next))
+			who.SetEmotion(next.Id);
 	}
 
 	/// <summary>
@@ -2311,29 +2232,51 @@ public partial class BattleManager : Node
 	}
 	
 	/// <summary>
+	/// Makes the given <see cref="Actor"/> feel an emotion of the given group, if possible.
+	/// Increases the tier if the actor already feels an emotion of the group.
+	/// </summary>
+	/// <param name="who">The <see cref="Actor"/> to change.</param>
+	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
+	public void MakeEmotion(Actor who, string groupId)
+	{
+		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group))
+		{
+			GD.PrintErr("Unknown emotion group: " + groupId);
+			return;
+		}
+
+		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
+		{
+			ShowMaxTierMessage(who, group);
+			return;
+		}
+
+		if (who.IsEmotionValid(next))
+			who.SetEmotion(next.Id);
+		else
+			ShowMaxTierMessage(who, group);
+	}
+	
+	private bool TryGetNextEmotionInGroup(Actor who, EmotionGroup group, out Emotion next)
+	{
+		Emotion current = who.CurrentEmotion;
+		int tier = current.Group == group ? current.Tier + 1 : 0;
+		return Database.TryGetEmotionByGroupTier(group.Id, tier, out next);
+	}
+
+	private void ShowMaxTierMessage(Actor who, EmotionGroup group)
+	{
+		if (group.MaxTierMessage != null)
+			BattleLogManager.Instance.QueueMessage(null, who, group.MaxTierMessage);
+	}
+
+	/// <summary>
 	/// Makes the given <see cref="Actor"/> sad, if possible. Increases the tier if the actor is already sad.
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make sad.</param>
 	public void MakeSad(Actor who)
 	{
-		string state = "sad";
-		string current = who.CurrentState;
-		switch (current)
-		{
-			case "miserable":
-				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get SADDER!");
-				return;
-			case "depressed":
-				state = "miserable";
-				break;
-			case "sad":
-				state = "depressed";
-				break;
-		}
-		if (who.IsStateValid(state))
-			who.SetState(state);
-		else
-			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get SADDER!");
+		MakeEmotion(who, "sad");
 	}
 
 	/// <summary>
@@ -2342,24 +2285,7 @@ public partial class BattleManager : Node
 	/// <param name="who">The <see cref="Actor"/> to make happy.</param>
 	public void MakeHappy(Actor who)
 	{
-		string state = "happy";
-		string current = who.CurrentState;
-		switch (current)
-		{
-			case "manic":
-				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get HAPPIER!");
-				return;
-			case "ecstatic":
-				state = "manic";
-				break;
-			case "happy":
-				state = "ecstatic";
-				break;
-		}
-		if (who.IsStateValid(state))
-			who.SetState(state);
-		else
-			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get HAPPIER!");
+		MakeEmotion(who, "happy");
 	}
 
 	/// <summary>
@@ -2368,24 +2294,7 @@ public partial class BattleManager : Node
 	/// <param name="who">The <see cref="Actor"/> to make angry.</param>
 	public void MakeAngry(Actor who)
 	{
-		string state = "angry";
-		string current = who.CurrentState;
-		switch (current)
-		{
-			case "furious":
-				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get ANGRIER!");
-				return;
-			case "enraged":
-				state = "furious";
-				break;
-			case "angry":
-				state = "enraged";
-				break;
-		}
-		if (who.IsStateValid(state))
-			who.SetState(state);
-		else
-			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get ANGRIER!");
+		MakeEmotion(who, "angry");
 	}
 
 	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>

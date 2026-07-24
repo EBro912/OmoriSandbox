@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class DownloadWindow : Enemy
@@ -8,10 +9,9 @@ internal sealed class DownloadWindow : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/download_window.tres");
     protected override Stats Stats => new(600, 210, 10, 5, 1, 10, 95);
     protected override string[] EquippedSkills => ["Crash", "DWDoNothing1", "DWDoNothing2"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "happy" || emotion.Id == "sad" || emotion.Id == "angry";
     }
 
     private int TurnCounter = 0;

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -13,9 +14,9 @@ internal sealed class PlutoExpandedAlt : Enemy
     protected override Stats Stats => new(10000, 5000, 85, 65, 70, 15, 95);
     protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEExpandFurther", "PEEarthsFinale"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "hurt" or "toast" or "sad" or "angry" or "happy";
+        return emotion.Id is "neutral" or "sad" or "angry" or "happy";
     }
 
     public override BattleCommand ProcessAI()

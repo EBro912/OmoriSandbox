@@ -57,7 +57,7 @@ public abstract class PartyMember : Actor
         bool startToast = actor.Emotion == "toast";
         string emotion = startToast ? "neutral" : actor.Emotion;
         // fall back to neutral on unknown or invalid preset emotions
-        if (!animation.HasAnimation(emotion) || !IsStateValid(emotion))
+        if (!Database.TryGetEmotion(emotion, out Emotion preset) || !animation.HasAnimation(preset.AnimationName) || !IsEmotionValid(preset))
         {
             GD.PushWarning($"Invalid emotion '{emotion}' for PartyMember {Name}, defaulting to neutral.");
             actor.Emotion = "neutral";
@@ -66,9 +66,8 @@ public abstract class PartyMember : Actor
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = emotion;
+		SetEmotion(emotion, true);
 		Sprite.Play();
-		SetState(emotion, true);
 		
         // init stats
         Level = actor.Level;
@@ -134,13 +133,13 @@ public abstract class PartyMember : Actor
 	}
 
 	/// <inheritdoc/>
-	public override bool IsStateValid(string state)
+	public override bool IsEmotionValid(Emotion emotion)
 	{
-		if (state is "neutral" or "toast" or "victory")
+		if (emotion.Id == "neutral")
 			return true;
 		if (Charm?.Name == "Paper Bag")
 			return false;
-		return !InvalidStates.Contains(state);
+		return !InvalidStates.Contains(emotion.Id);
 	}
 
     /// <inheritdoc/>
@@ -195,7 +194,7 @@ public abstract class PartyMember : Actor
 	/// </summary>
 	public virtual string[] EquippableWeapons { get; protected set; } = [];
 	/// <summary>
-	/// A list of invalid states this party member cannot feel. Used in <see cref="IsStateValid(string)"/>
+	/// A list of invalid emotion ids this party member cannot feel. Used in <see cref="IsEmotionValid(Emotion)"/>
 	/// </summary>
 	public abstract string[] InvalidStates { get; }
 	/// <summary>

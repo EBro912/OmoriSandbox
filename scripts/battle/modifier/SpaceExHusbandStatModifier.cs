@@ -18,7 +18,7 @@ public sealed class SpaceExHusbandStatModifier : StatModifier
         if (isAttacking)
             return;
 
-        if (defender.CurrentState is not "neutral") 
+        if (defender.CurrentEmotion.Id is not "neutral") 
             return;
         
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();

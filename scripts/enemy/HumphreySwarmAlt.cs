@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
@@ -13,9 +14,9 @@ internal sealed class HumphreySwarmAlt : Enemy
     protected override Stats Stats => new(9999, 5000, 10, 150, 65, 10, 95);
     protected override string[] EquippedSkills => ["HUSAttack", "HUSAttack2", "HUSAttack3"];
     
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     private int Turn = 0;
@@ -32,7 +33,7 @@ internal sealed class HumphreySwarmAlt : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["HUSAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "angry":
                 if (Roll() < 31)

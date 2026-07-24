@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class LostSproutMoleKC : Enemy
@@ -11,9 +12,9 @@ internal sealed class LostSproutMoleKC : Enemy
     protected override Stats Stats => new(500, 200, 50, 50, 50, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
 
-	public override bool IsStateValid(string state)
+	public override bool IsEmotionValid(Emotion emotion)
 	{
-		return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+		return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
 	}
     public override BattleCommand ProcessAI()
 	{
@@ -23,7 +24,7 @@ internal sealed class LostSproutMoleKC : Enemy
 		if (HasObserveTarget(out PartyMember observe))
 			return new BattleCommand(this, observe, Skills["LSMAttack"]);
 		
-		switch (CurrentState)
+		switch (CurrentEmotion.Id)
 		{
 			case "happy":
 				if (Roll() < 36)

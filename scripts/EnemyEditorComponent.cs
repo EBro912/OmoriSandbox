@@ -1,6 +1,7 @@
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Editor;
@@ -116,7 +117,13 @@ internal partial class EnemyEditorComponent : Control
 		EmotionDropdown.Clear();
 		foreach (string state in States)
 		{
-			if (enemy.IsStateValid(state))
+			bool valid = state switch
+			{
+				"hurt" => animation.HasAnimation("hurt"),
+				"toast" => true,
+				_ => Database.TryGetEmotion(state, out Emotion emotion) && enemy.IsEmotionValid(emotion)
+			};
+			if (valid)
 			{
 				EmotionDropdown.AddItem(state);
 			}

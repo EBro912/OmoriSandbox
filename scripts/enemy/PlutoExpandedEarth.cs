@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -15,9 +16,9 @@ internal sealed class PlutoExpandedEarth : Enemy
     protected override Stats Stats => new(10000, 5000, 85, 65, 70, 15, 95);
     protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEEarthsFinale", "PEMeteor"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "hurt" or "toast" or "sad" or "angry" or "happy";
+        return emotion.Id is "neutral" or "sad" or "angry" or "happy";
     }
 
     private EnemyComponent Earth;
@@ -31,7 +32,7 @@ internal sealed class PlutoExpandedEarth : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["PEHeadbutt"]);
         
-        List<PartyMember> sad = party.Where(x => x.CurrentState is "sad" or "depressed" or "miserable").ToList();
+        List<PartyMember> sad = party.Where(x => x.CurrentEmotion.Group?.Id == "sad").ToList();
         if (sad.Count > 0)
             return new BattleCommand(this, sad[GameManager.Instance.Random.RandiRange(0, sad.Count - 1)], Skills["PEHeadbutt"]);
         if (Roll() < 56)

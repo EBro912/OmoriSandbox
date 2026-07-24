@@ -139,6 +139,14 @@ public class Database
 		return EmotionOrder;
 	}
 
+	// groups that opt into random emotion rolls, in registration order
+	private static readonly List<EmotionGroup> RandomEmotionGroups = [];
+
+	internal static IReadOnlyList<EmotionGroup> GetRandomEmotionGroups()
+	{
+		return RandomEmotionGroups;
+	}
+
 	// tracks which mod registered each modded entry, keyed by "kind:id", for collision reporting
 	private static readonly Dictionary<string, string> RegistrationOwners = [];
 
@@ -197,6 +205,8 @@ public class Database
 		if (!TryRegister(EmotionGroups, "EmotionGroup", group.Id, group))
 			return false;
 		group.Registered = true;
+		if (group.IncludedInRandomEmotion)
+			RandomEmotionGroups.Add(group);
 		return true;
 	}
 
@@ -214,6 +224,8 @@ public class Database
 	{
 		EmotionGroups.Add(group.Id, group);
 		group.Registered = true;
+		if (group.IncludedInRandomEmotion)
+			RandomEmotionGroups.Add(group);
 	}
 
 	private static void AddEmotion(Emotion emotion)
@@ -493,7 +505,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(8, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] lunges at [target]!");
-				if (self.CurrentState is "happy" or "ecstatic" or "manic")
+				if (self.CurrentEmotion.Group?.Id == "happy")
 					BattleManager.Instance.Damage(self, target,
 						() => (self.CurrentStats.ATK + self.CurrentStats.LCK) * 2f - target.CurrentStats.DEF, false);
 				else
@@ -511,7 +523,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(9, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] stabs [target].");
-				if (self.CurrentState is "sad" or "depressed" or "miserable")
+				if (self.CurrentEmotion.Group?.Id == "sad")
 					BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2f, false,
 						guaranteeCrit: true);
 				else
@@ -529,7 +541,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(10, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] tricks [target].");
-				if (target.CurrentState is "happy" or "ecstatic" or "manic")
+				if (target.CurrentEmotion.Group?.Id == "happy")
 				{
 					AnimationManager.Instance.PlayAnimation(219, target);
 					target.AddTierStatModifier("SpeedDown", 3);
@@ -616,7 +628,7 @@ public class Database
 				{
 					BattleManager.Instance.Damage(self, target, () =>
 					{
-						if (self.CurrentState is "angry" or "enraged" or "furious")
+						if (self.CurrentEmotion.Group?.Id == "angry")
 						{
 							return self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF;
 						}
@@ -657,7 +669,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(12, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] mocks [target].");
-				if (target.CurrentState is "angry" or "enraged" or "furious")
+				if (target.CurrentEmotion.Group?.Id == "angry")
 				{
 					AnimationManager.Instance.PlayAnimation(219, target);
 					target.AddTierStatModifier("AttackDown", 3);
@@ -678,7 +690,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(11, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] shuns [target].");
-				if (target.CurrentState is "sad" or "depressed" or "miserable")
+				if (target.CurrentEmotion.Group?.Id == "sad")
 				{
 					AnimationManager.Instance.PlayAnimation(219, target);
 					target.AddTierStatModifier("DefenseDown", 3);
@@ -716,15 +728,15 @@ public class Database
 			cost: 30,
 			effect: async (self, target) =>
 			{
-				switch (target.CurrentState)
+				switch (target.CurrentEmotion.Group?.Id)
 				{
-					case "happy" or "ecstatic" or "manic":
+					case "happy":
 						await AnimationManager.Instance.WaitForAnimation(10, target);
 						break;
-					case "sad" or "depressed" or "miserable":
+					case "sad":
 						await AnimationManager.Instance.WaitForAnimation(11, target);
 						break;
-					case "angry" or "enraged" or "furious":
+					case "angry":
 						await AnimationManager.Instance.WaitForAnimation(12, target);
 						break;
 					default:
@@ -733,7 +745,7 @@ public class Database
 				}
 
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s EMOTIONS!");
-				if (target.CurrentState != "neutral")
+				if (target.CurrentEmotion.Id != "neutral")
 				{
 					BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 3.5f - target.CurrentStats.DEF, false);
@@ -755,12 +767,11 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] releases his ultimate\nattack!");
 				await AnimationManager.Instance.WaitForScreenAnimation(13, targets[0] is Enemy);
-				float multiplier = self.CurrentState switch
+				float multiplier = self.CurrentEmotion.Group == null ? 3f : self.CurrentEmotion.Tier switch
 				{
-					"manic" or "miserable" or "furious" => 6f,
-					"ecstatic" or "depressed" or "enraged" => 5f,
-					"happy" or "sad" or "angry" => 4f,
-					_ => 3f
+					>= 2 => 6f,
+					1 => 5f,
+					_ => 4f
 				};
 				foreach (Actor enemy in targets)
 				{
@@ -953,7 +964,7 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(219, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
 				target.AddTierStatModifier("SpeedDown", 2);
-				target.SetState("sad");
+				target.SetEmotion("sad");
 				BattleManager.Instance.Damage(self, target,
 					() => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
@@ -974,7 +985,7 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(219, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
 				target.AddTierStatModifier("SpeedDown", 3);
-				target.SetState("sad");
+				target.SetEmotion("sad");
 				BattleManager.Instance.Damage(self, target,
 					() => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
@@ -1119,12 +1130,12 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(104, false);
 				await Wait.Milliseconds(2500);
 				target.Heal((int)Math.Round(target.CurrentStats.MaxHP * 0.5, MidpointRounding.AwayFromZero));
-				target.SetState("neutral", true);
+				target.SetEmotion("neutral", true);
 				AudioManager.Instance.FadeBGMTo(1f);
 			},
 			priority: SkillPriority.First
 			// calm down can be used while afraid
-		).WithCustomRequirement((actor) => actor.CurrentState is not "stressed");
+		).WithCustomRequirement((actor) => actor.CurrentEmotion.Id is not "stressed");
 
 		Skills["Focus"] = new Skill(
 			name: "FOCUS",
@@ -1192,7 +1203,7 @@ public class Database
 				await AnimationManager.Instance.WaitForEncore();
 			}
 		).WithCustomRequirement(actor =>
-			!actor.HasStatModifier("Encore") && actor.CurrentState is not ("afraid" or "stressed"));
+			!actor.HasStatModifier("Encore") && !actor.CurrentEmotion.BlocksActions);
 
 		Skills["Cherish"] = new Skill(
 			name: "CHERISH",
@@ -1276,11 +1287,11 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					BattleManager.Instance.HealJuice(self, member, () => member.CurrentStats.MaxJuice * 0.2f);
-					string modifier = member.CurrentState switch
+					string modifier = member.CurrentEmotion.Group?.Id switch
 					{
-						"happy" or "ecstatic" or "manic" => "SpeedUp",
-						"sad" or "depressed" or "miserable" => "DefenseUp",
-						"angry" or "enraged" or "furious" => "AttackUp",
+						"happy" => "SpeedUp",
+						"sad" => "DefenseUp",
+						"angry" => "AttackUp",
 						_ => null
 					};
 					if (modifier != null)
@@ -1583,7 +1594,8 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(30, target is Enemy);
 				await Wait.Milliseconds(1500);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
-				if (self.CurrentState is "angry" or "enraged")
+				// vanilla intended behavior: FURIOUS is excluded from the bonus, so only the first two tiers count
+				if (self.CurrentEmotion.Group?.Id == "angry" && self.CurrentEmotion.Tier <= 1)
 					BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF, false);
 				else
@@ -1593,7 +1605,7 @@ public class Database
 			}
 		).WithCustomRequirement(actor =>
 		{
-			if (actor.CurrentState is ("afraid" or "stressed"))
+			if (actor.CurrentEmotion.BlocksActions)
 				return false;
 			double neededHp = Math.Floor(actor.CurrentStats.MaxHP * 0.2d);
 			return actor.CurrentHP >= neededHp;
@@ -1678,10 +1690,10 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(46, target);
 				await Wait.Milliseconds(500);
-				if (target.CurrentState is "happy" or "ecstatic" or "manic")
+				if (target.CurrentEmotion.Group?.Id == "happy")
 				{
 					// very nice
-					if (target.CurrentState is "ecstatic" or "manic")
+					if (target.CurrentEmotion.Tier >= 1)
 						await AnimationManager.Instance.WaitForAnimation(279, target);
 					else
 						await AnimationManager.Instance.WaitForAnimation(278, target);
@@ -1924,8 +1936,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] and [actor]'s ATTACK ROSE!");
 				AnimationManager.Instance.PlayAnimation(214, self);
 				AnimationManager.Instance.PlayAnimation(214, other);
-				self.SetState("enraged");
-				other.SetState("enraged");
+				self.SetEmotion("enraged");
+				other.SetEmotion("enraged");
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -1996,7 +2008,7 @@ public class Database
 				self.Heal(heal);
 				self.HealJuice(juice);
 				self.AddTierStatModifier("DefenseUp", 3);
-				self.SetState("ecstatic");
+				self.SetEmotion("ecstatic");
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -2046,7 +2058,7 @@ public class Database
 			}
 		).WithCustomRequirement(actor =>
 		{
-			if (actor.CurrentState is ("afraid" or "stressed"))
+			if (actor.CurrentEmotion.BlocksActions)
 				return false;
 			// vanilla YEP requires the 20% HP cost to be strictly payable
 			return actor.CurrentHP > (int)Math.Round(actor.CurrentStats.MaxHP * 0.2f, MidpointRounding.AwayFromZero);
@@ -2144,7 +2156,7 @@ public class Database
 				await Wait.Milliseconds(500);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a curveball...");
 				int damage;
-				if (target.CurrentState != "neutral")
+				if (target.CurrentEmotion.Id != "neutral")
 					damage = BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF, false);
 				else
@@ -2226,7 +2238,7 @@ public class Database
 			cost: 25,
 			effect: async (_, target) =>
 			{
-				if (target.CurrentState is "sad" or "depressed" or "miserable")
+				if (target.CurrentEmotion.Group?.Id == "sad")
 				{
 					AnimationManager.Instance.PlayAnimation(76, target);
 					await Wait.Milliseconds(1000);
@@ -2288,7 +2300,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(60, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a snowball at [target]!");
-				if (target.CurrentState is "sad" or "depressed" or "miserable")
+				if (target.CurrentEmotion.Group?.Id == "sad")
 				{
 					BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF, false);
@@ -2364,7 +2376,7 @@ public class Database
 				int energy = BattleManager.Instance.Energy;
 				BattleManager.Instance.Damage(self, first, () => 1, true, 0f, false, true);
 				BattleManager.Instance.Energy = energy;
-				first.SetState("sad");
+				first.SetEmotion("sad");
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -2384,7 +2396,7 @@ public class Database
 				BattleManager.Instance.Damage(self, target,
 					() => (first.CurrentStats.ATK * 1.5f) + (self.CurrentStats.ATK * 1.5f) - target.CurrentStats.DEF,
 					false);
-				first.SetState("happy");
+				first.SetEmotion("happy");
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -2404,7 +2416,7 @@ public class Database
 				BattleManager.Instance.Damage(self, target,
 					() => (first.CurrentStats.ATK * 2f) + (self.CurrentStats.ATK * 2f) - target.CurrentStats.DEF,
 					false);
-				first.SetState("ecstatic");
+				first.SetEmotion("ecstatic");
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -2561,8 +2573,8 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] massages [target]!");
 				await AnimationManager.Instance.WaitForScreenAnimation(86, target is Enemy);
-				target.SetState("neutral", true);
-				if (target.CurrentState == "neutral")
+				target.SetEmotion("neutral", true);
+				if (target.CurrentEmotion.Id == "neutral")
 					BattleLogManager.Instance.QueueMessage(target.Name.ToUpper() + " calms down...");
 			}
 		);
@@ -2842,7 +2854,7 @@ public class Database
 
 				await AnimationManager.Instance.WaitForAnimation(269, target);
 				target.Revive(target.CurrentHP);
-				target.SetState("neutral", true);
+				target.SetEmotion("neutral", true);
 				int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
 				target.Heal(heal);
 				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
@@ -3012,8 +3024,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
-				if (fourth.CurrentState is "sad" or "depressed")
-					fourth.SetState("neutral", true);
+				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
+					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -3039,8 +3051,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
-				if (fourth.CurrentState is "sad" or "depressed")
-					fourth.SetState("neutral", true);
+				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
+					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -3066,8 +3078,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
-				if (fourth.CurrentState is "sad" or "depressed")
-					fourth.SetState("neutral", true);
+				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
+					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -3883,7 +3895,7 @@ public class Database
 		   {
 			   await AnimationManager.Instance.WaitForAnimation(180, target);
 			   BattleLogManager.Instance.QueueMessage(target, "[actor] do their best to not\nbe SAD.");
-			   target.SetState("neutral", true);
+			   target.SetEmotion("neutral", true);
 		   },
 		   hidden: true
 		);
@@ -4010,7 +4022,7 @@ public class Database
 			   await Wait.Milliseconds(1500);
 			   foreach (Actor member in targets)
 			   {
-				   member.SetState("afraid");
+				   member.SetEmotion("afraid");
 			   }
 		   },
 		   hidden: true
@@ -4781,7 +4793,7 @@ public class Database
 			  await AnimationManager.Instance.WaitForAnimation(209, target);
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoves [target].");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK, neverCrit: true);
-			  target.SetState("afraid");
+			  target.SetEmotion("afraid");
 		  },
 		  hidden: true
 		);
@@ -5780,7 +5792,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(197, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps around [target]!");
 				BattleManager.Instance.Damage(self, target, () => 100, false, 0.1f, neverCrit: true);
-				target.SetState("afraid");
+				target.SetEmotion("afraid");
 			},
 			hidden: true
 		);
@@ -6969,7 +6981,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] says mean things about [target]!");
-				target.SetState("sad");
+				target.SetEmotion("sad");
 				await Task.CompletedTask;
 			},
 			hidden: true
@@ -7053,7 +7065,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!");
-				target.SetState("angry");
+				target.SetEmotion("angry");
 				await Task.CompletedTask;
 			},
 			hidden: true
@@ -7109,7 +7121,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!");
-				target.SetState("sad");
+				target.SetEmotion("sad");
 				await Task.CompletedTask;
 			},
 			hidden: true
@@ -7170,7 +7182,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!");
-				target.SetState("sad");
+				target.SetEmotion("sad");
 				await Task.CompletedTask;
 			},
 			hidden: true
@@ -7719,7 +7731,7 @@ public class Database
 					target.Revive(target.CurrentStats.MaxHP);
 				else
 					target.Revive(target.CurrentStats.MaxHP / 2);
-				target.SetState("neutral", true);
+				target.SetEmotion("neutral", true);
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
 			},
 			spritesheetPath: "res://assets/system/itemConsumables.png",
@@ -7744,7 +7756,7 @@ public class Database
 			   }
 			   await AnimationManager.Instance.WaitForAnimation(269, target);
 			   target.Revive(target.CurrentStats.MaxHP);
-			   target.SetState("neutral", true);
+			   target.SetEmotion("neutral", true);
 			   BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
 		   },
 		   spritesheetPath: "res://assets/system/itemConsumables.png",
@@ -7767,7 +7779,7 @@ public class Database
 			   {
 				   AnimationManager.Instance.PlayAnimation(269, member);
 				   member.Revive(member.CurrentStats.MaxHP / 4);
-				   member.SetState("neutral", true);
+				   member.SetEmotion("neutral", true);
 				   BattleLogManager.Instance.QueueMessage(self, member, "[target] rose again!");
 			   }
 			   await Task.CompletedTask;
@@ -7970,14 +7982,14 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DANDELION!");
 				AudioManager.Instance.PlaySFX("BA_calm_down", 1, 0.9f);
-				if (target.CurrentState == "neutral" || target.IsEmotionLocked)
+				if (target.CurrentEmotion.Id == "neutral" || target.IsEmotionLocked)
 				{
 					BattleLogManager.Instance.QueueMessage("It had no effect.");
 				}
 				else
 				{
 					BattleLogManager.Instance.QueueMessage(self, target, "[target] feels NEUTRAL.");
-					target.SetState("neutral", true);
+					target.SetEmotion("neutral", true);
 				}
 				await Task.CompletedTask;
 			},
@@ -8049,7 +8061,7 @@ public class Database
 		Equipment["Tenderizer"] = new Equipment("Tenderizer",[new StatBonus(StatType.ATK, 30), new StatBonus(StatType.HIT, 100)]);
 		Equipment["LOL Sword"] = new Equipment("LOL Sword", [new StatBonus(StatType.MaxJuice, 10), new StatBonus(StatType.ATK, 14), new StatBonus(StatType.HIT, 100)]).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("happy", true);
+			actor.SetEmotion("happy", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Ol' Reliable"] = new Equipment("Ol' Reliable", [new StatBonus(StatType.MaxHP, 20), new StatBonus(StatType.MaxJuice, 20), new StatBonus(StatType.ATK, 20), new StatBonus(StatType.HIT, 100)]);
@@ -8085,7 +8097,7 @@ public class Database
 			new StatBonus(StatType.SPD, 10), new StatBonus(StatType.LCK, 10)], true);
 		Equipment["Daisy"] = new Equipment("Daisy", [new StatBonus(StatType.MaxHP, 10)], true).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("happy", true);
+			actor.SetEmotion("happy", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Eye Patch"] = new Equipment("Eye Patch", [new StatBonus(StatType.ATK, 7), new StatBonus(StatType.HIT, -25)], true);
@@ -8093,7 +8105,7 @@ public class Database
 		Equipment["Fedora"] = new Equipment("Fedora", new StatBonus(StatType.DEF, 5), true);
 		Equipment["Finger"] = new Equipment("Finger", [new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, -5)], true).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("angry", true);
+			actor.SetEmotion("angry", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Fox Tail"] = new Equipment("Fox Tail", true).WithApplyEffect(() =>
@@ -8108,13 +8120,13 @@ public class Database
 			new StatBonus(StatType.DEF, 3), new StatBonus(StatType.SPD, 15)], true);
 		Equipment["Heart String"] = new Equipment("Heart String", [new StatBonus(StatType.MaxHP, 30)], true).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("happy", true);
+			actor.SetEmotion("happy", true);
 			return Task.CompletedTask;
 		});
 		Equipment["High Heels"] = new Equipment("High Heels", [new StatBonus(StatType.ATK, 10), new StatBonus(StatType.SPD, 10)], true);
 		Equipment["Homework"] = new Equipment("Homework", true).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("sad", true);
+			actor.SetEmotion("sad", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Inner Tube"] = new Equipment("Inner Tube", true).WithApplyEffect(() =>
@@ -8132,7 +8144,7 @@ public class Database
 		Equipment["Pretty Bow"] = new Equipment("Pretty Bow", [new StatBonus(StatType.MaxHP, 50), new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, 3)], true);
 		Equipment["Punching Bag"] = new Equipment("Punching Bag", true).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("angry", true);
+			actor.SetEmotion("angry", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Rabbit Foot"] = new Equipment("Rabbit Foot", [new StatBonus(StatType.SPD, 15), new StatBonus(StatType.LCK, 10)], true);
@@ -8142,7 +8154,7 @@ public class Database
 		});
 		Equipment["Deep Poetry Book"] = new Equipment("Deep Poetry Book", true).WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("sad", true);
+			actor.SetEmotion("sad", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Rubber Duck"] = new Equipment("Rubber Duck", new StatBonus(StatType.DEF, 7), true);
@@ -8161,7 +8173,7 @@ public class Database
 			new StatBonus(StatType.ATK, 3), new StatBonus(StatType.DEF, 3), new StatBonus(StatType.SPD, 3), new StatBonus(StatType.LCK, 3)], true)
 			.WithStartOfBattleEffect((actor) =>
 		{
-			actor.SetState("happy", true);
+			actor.SetEmotion("happy", true);
 			return Task.CompletedTask;
 		});
 		Equipment["Wishbone"] = new Equipment("Wishbone", new StatBonus(StatType.LCK, 7), true);

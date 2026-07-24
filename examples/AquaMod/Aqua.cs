@@ -4,6 +4,7 @@ using Godot;
 using OmoriSandbox;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Modding;
 
 namespace AquaMod;
@@ -26,9 +27,9 @@ public class Aqua : Enemy
     protected override Stats Stats => new(3060, 0, 16, 0, 20, 10, 40);
     protected override string[] EquippedSkills => ["AQKnifeFan", "AQKnifeChain", "AQKnifeCircle", "AQOmega"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "toast";
+        return emotion.Id is "neutral";
     }
 
     private int Mercy = 0;
