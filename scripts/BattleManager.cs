@@ -1776,9 +1776,11 @@ public partial class BattleManager : Node
 	/// <param name="guaranteeCrit">If this attack should guarantee a critical hit.</param>
 	/// <param name="neverCrit">If this attack should never be a critical hit.</param>
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
+	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
+	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
 	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied.</returns>
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
-		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false)
+		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null)
 	{
 		if (!neverMiss)
 		{
@@ -1794,24 +1796,15 @@ public partial class BattleManager : Node
 		}
 
 		float damage = Math.Max(0, damageFunc());
-		string selfState = self.CurrentState;
-		string targetState = target.CurrentState;
-
-		if (self.HasLockedEmotion())
-		{
-			selfState = (self.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
-
-		if (target.HasLockedEmotion())
-		{
-			targetState = (target.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
+		// locked bosses resolve advantage as their locked emotion
+		string selfState = self.EffectiveEmotion.Id;
+		string targetState = target.EffectiveEmotion.Id;
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
-			damage = CalculateEmotionModifiers(selfState, targetState, damage, out effectiveness);
+			damage = CalculateEmotionModifiers(selfState, targetState, damage, out effectiveness, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -1942,9 +1935,11 @@ public partial class BattleManager : Node
 	/// <param name="guaranteeCrit">If this attack should guarantee a critical hit.</param>
 	/// <param name="neverCrit">If this attack should never be a critical hit.</param>
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
+	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
+	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
 	/// <returns>The final juice damage after all critical, emotion, and stat modifications have been applied.</returns>
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
-		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false)
+		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null)
 	{
 		if (!neverMiss)
 		{
@@ -1960,22 +1955,13 @@ public partial class BattleManager : Node
 		}
 
 		float damage = damageFunc();
-		string selfState = self.CurrentState;
-		string targetState = target.CurrentState;
-
-		if (self.HasLockedEmotion())
-		{
-			selfState = (self.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
-
-		if (target.HasLockedEmotion())
-		{
-			targetState = (target.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
+		// locked bosses resolve advantage as their locked emotion
+		string selfState = self.EffectiveEmotion.Id;
+		string targetState = target.EffectiveEmotion.Id;
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
-		damage = CalculateEmotionModifiers(selfState, targetState, damage, out _);
+		damage = CalculateEmotionModifiers(selfState, targetState, damage, out _, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -2083,10 +2069,10 @@ public partial class BattleManager : Node
 	private readonly float[] weakness = [1.5f, 2f, 2.5f];
 	private readonly float[] resistance = [0.8f, 0.65f, 0.5f];
 
-	private float CalculateEmotionModifiers(string self, string target, float damage, out int effect)
+	private float CalculateEmotionModifiers(string self, string target, float damage, out int effect, string attackElement = null)
 	{
 		// exploit emotion type
-		if (self == "emotion" && target != "neutral")
+		if (attackElement == "exploit" && target != "neutral")
 		{
 			effect = 1;
 			if (target is "afraid" or "stressed")

@@ -15,7 +15,6 @@ internal sealed class UnbreadTwins : Enemy
 	protected override string[] EquippedSkills => ["UBTAttack", "UBTDoNothing", "UBTCheerUp", "UBTCook", "UBTBakeBread"];
 
 	private static readonly string[] SpawnPool = ["BunBunny", "Creepypasta", "Slice", "Sourdough", "Sesame", "LivingBread"];
-	private bool EmotionLocked = false;
 	private int Stage = 0;
 
 	private readonly EnemyComponent[] Breads = new EnemyComponent[2];
@@ -26,7 +25,7 @@ internal sealed class UnbreadTwins : Enemy
 		if (state == "toast")
 			return true;
 
-		if (EmotionLocked)
+		if (IsEmotionLocked)
 			return false;
 
 		return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
@@ -38,7 +37,7 @@ internal sealed class UnbreadTwins : Enemy
 			return new BattleCommand(this, observe, Skills["UBTAttack"]);
 		
 		// when Unbread Twins are emotion locked to sad, their AI uses depressed to prevent trying to cleanse sad
-		string state = CurrentState == "sad" && EmotionLocked ? "depressed" : CurrentState;
+		string state = CurrentState == "sad" && IsEmotionLocked ? "depressed" : CurrentState;
 		switch (state) {
 			case "miserable":
 				if (Roll() < 51)
@@ -92,11 +91,11 @@ internal sealed class UnbreadTwins : Enemy
 			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"[wave freq=10][br]Fresh bread...\! fresh bread...\! Every day, it's fresh bread...");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10][br]Ohooooooooo...");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("UnbreadTwinsSad", "sad");
+			SetEmotionForced("sad");
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS became SAD...");
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS can no longer become HAPPY or ANGRY!");
 			await DialogueManager.Instance.WaitForDialogue();
-			EmotionLocked = true;
+			LockEmotion("sad");
 			Stage = 1;
 		}
 
@@ -113,7 +112,7 @@ internal sealed class UnbreadTwins : Enemy
 			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, "We're running out of supplies! What do we do, BISCUIT!?");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooooo!");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("UnbreadTwinsDepressed", "depressed");
+			SetEmotionForced("depressed");
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS became DEPRESSED...");
 			await DialogueManager.Instance.WaitForDialogue();
 			Stage = 3;
@@ -124,7 +123,7 @@ internal sealed class UnbreadTwins : Enemy
 			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"We're running low on everything!\! We have almost nothing left...");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooo...");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("UnbreadTwinsMiserable", "miserable");
+			SetEmotionForced("miserable");
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS became MISERABLE...");
 			await DialogueManager.Instance.WaitForDialogue();
 			Stage = 4;

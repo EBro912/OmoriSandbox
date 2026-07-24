@@ -86,12 +86,7 @@ public class StatModifier
     public virtual void ApplyStats(ref Stats stats)
     {
         // base class simply applies all stat bonuses to the provided stats
-        foreach (StatBonus bonus in Bonuses)
-        {
-            int stat = stats.GetStat(bonus.Type);
-            stat = (int)Math.Round(stat * bonus.Multiplier + bonus.FlatBonus);
-            stats.SetStat(bonus.Type, stat);
-        }
+        StatBonus.ApplyAll(ref stats, Bonuses);
     }
 
     /// <summary>
@@ -112,12 +107,6 @@ public class StatModifier
     /// <param name="juice">The current juice cost.</param>
     /// <param name="actor">The actor this modifier is attached to.</param>
     public virtual void OverrideJuiceCost(ref int juice, Actor actor) {}
-
-    /// <summary>
-    /// Called during emotion checks in damage calculation.
-    /// </summary>
-    /// <returns>The overriden emotion that should be used.</returns>
-    public virtual string OverrideEmotion() { return "neutral"; }
 
     /// <summary>
     /// Sets the number of turns left on this modifier. Will be clamped to the max turns set previously.

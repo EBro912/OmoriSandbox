@@ -55,6 +55,11 @@ public abstract class Actor
 	/// </summary>
 	public string CurrentState => CurrentEmotion.Id;
 	/// <summary>
+	/// The emotion used in damage and advantage calculations.<br/>
+	/// Usually the same as <see cref="CurrentEmotion"/>, unless an emotion lock with an advantage override is active. See <see cref="LockEmotion"/>.
+	/// </summary>
+	public Emotion EffectiveEmotion => IsEmotionLocked && LockedAdvantageEmotion != null ? LockedAdvantageEmotion : CurrentEmotion;
+	/// <summary>
 	/// The name of the animation currently overriding this actor's sprite, or null if no override is active.<br/>
 	/// While an override is active, emotion changes will not change the animation override until cleared. See <see cref="PlayAnimation"/>.
 	/// </summary>
@@ -81,10 +86,6 @@ public abstract class Actor
 	/// The <see cref="StatModifier"/>s the actor currently has.
 	/// </summary>
 	public readonly Dictionary<string, StatModifier> StatModifiers = [];
-	/// <summary>
-	/// The <see cref="StatModifier"/> that the actor's emotion gives.
-	/// </summary>
-	public StatModifier StateStatModifier { get; private set; } = new StatModifier([]);
 
 	private int _CurrentHP = 0;
 	/// <summary>
@@ -149,7 +150,8 @@ public abstract class Actor
 		{
 			Stats current = GetBaseStats();
 
-			StateStatModifier.ApplyStats(ref current);
+			// emotion stats always apply before any other modifiers
+			StatBonus.ApplyAll(ref current, GetEmotionStatBonuses(CurrentEmotion));
 
 			foreach (StatModifier mod in StatModifiers.Values)
 			{
@@ -326,12 +328,47 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Checks if this actor currently has a locked emotion.
+	/// Whether this actor's emotion is currently locked. See <see cref="LockEmotion"/>.
 	/// </summary>
-	/// <returns>True if the actor's <see cref="StateStatModifier"/> is a <see cref="EmotionLockStatModifier"/>.</returns>
-	public bool HasLockedEmotion()
+	public bool IsEmotionLocked { get; private set; }
+
+	private Emotion LockedAdvantageEmotion;
+
+	/// <summary>
+	/// Locks this actor's emotion, preventing any changes through <see cref="SetEmotion"/> until <see cref="UnlockEmotion"/> is called.<br/>
+	/// Mainly used by bosses. <see cref="SetEmotionForced"/> bypasses the lock.
+	/// </summary>
+	/// <param name="advantageAsId">If set, damage calculations treat this actor as feeling that emotion instead of the displayed one.<br/>
+	/// Vanilla lock bosses use their group's base emotion, so emotion advantage against them never scales past the base tier.</param>
+	public void LockEmotion(string advantageAsId = null)
 	{
-		return StateStatModifier is EmotionLockStatModifier;
+		IsEmotionLocked = true;
+		LockedAdvantageEmotion = null;
+		if (advantageAsId == null)
+			return;
+
+		if (Database.TryGetEmotion(advantageAsId, out Emotion emotion))
+			LockedAdvantageEmotion = emotion;
+		else
+			GD.PushWarning("Unknown emotion for emotion lock: " + advantageAsId);
+	}
+
+	/// <summary>
+	/// Unlocks this actor's emotion. See <see cref="LockEmotion"/>.
+	/// </summary>
+	public void UnlockEmotion()
+	{
+		IsEmotionLocked = false;
+		LockedAdvantageEmotion = null;
+	}
+
+	/// <summary>
+	/// The stat bonuses granted by the given emotion. Bosses whose locked emotions use alternate stats can override this.
+	/// </summary>
+	/// <param name="emotion">The emotion to get the stat bonuses of.</param>
+	protected virtual StatBonus[] GetEmotionStatBonuses(Emotion emotion)
+	{
+		return emotion.StatBonuses;
 	}
 
 	/// <summary>
@@ -462,9 +499,9 @@ public abstract class Actor
 			return;
 		
 		IsToast = true;
-		// toast has no stat modifier, so just reset to neutral
+		// toast clears any emotion lock and resets the emotion (and its stats) to neutral
+		UnlockEmotion();
 		CurrentEmotion = Database.NeutralEmotion;
-		StateStatModifier = Database.CreateModifier("Neutral");
 		if (this is PartyMember member)
 			member.PlayAnimation("toast", EmotionAsset.Toast);
 		else
@@ -496,8 +533,9 @@ public abstract class Actor
 	public virtual bool IsStateValid(string state) { return true; }
 
     /// <summary>
-    /// Sets this actor's emotion by id. Will fail and log a battle message if the actor cannot feel the given emotion.<br/>
-    /// See <see cref="IsStateValid(string)"/>.
+    /// Sets this actor's emotion by id. Will fail and log a battle message if the actor cannot feel the given emotion,
+    /// or if their emotion is locked.<br/>
+    /// See <see cref="IsStateValid(string)"/> and <see cref="LockEmotion"/>.
     /// </summary>
     /// <param name="id">The id of the emotion to set this actor to.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
@@ -510,17 +548,13 @@ public abstract class Actor
 			return false;
 		}
 
-		if (IsStateValid(id))
+		if (!IsEmotionLocked && IsStateValid(id))
 		{
 			CurrentEmotion = emotion;
 			if (!silent)
 			{
 				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + emotion.DisplayName + "!");
 			}
-
-			// kinda dumb but the rest of the modifiers are capitalized so whatever
-			StatModifier mod = Database.CreateModifier(Capitalize(id));
-			StateStatModifier = mod ?? Database.CreateModifier("Neutral");
 
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
 			// only update the sprite if no animation override is active
@@ -549,23 +583,22 @@ public abstract class Actor
 
 
 	/// <summary>
-	/// Forces this actor to have a state (emotion) without any validity checks. Mainly used for bosses like Sweetheart. Should be used sparingly.
+	/// Silently forces this actor to feel an emotion, bypassing emotion locks and validity checks. Mainly used for boss phase changes. Should be used sparingly.
 	/// </summary>
-	/// <param name="state">The emotion to force this actor to have.</param>
-	/// <param name="fakeState">If set, the actor will feel the <paramref name="fakeState"/> but use the stats of the <paramref name="state"/>.</param>
-	public void ForceState(string state, string fakeState = null)
+	/// <param name="id">The id of the emotion to force this actor to feel.</param>
+	public void SetEmotionForced(string id)
 	{
-		// TODO: replace with a real emotion lock once boss emotions move off EmotionLockStatModifier
-		string display = fakeState ?? state;
-		if (Database.TryGetEmotion(display, out Emotion emotion))
-			CurrentEmotion = emotion;
-		else
-			GD.PushWarning("Unknown emotion for ForceState: " + display);
-		Sprite.Animation = display;
-		StatModifier mod = Database.CreateModifier(Capitalize(state));
-		if (mod != null)
+		if (!Database.TryGetEmotion(id, out Emotion emotion))
 		{
-			StateStatModifier = mod;
+			GD.PrintErr("Unknown emotion: " + id);
+			return;
+		}
+
+		CurrentEmotion = emotion;
+		OnStateChanged?.Invoke(this, EventArgs.Empty);
+		if (CurrentAnimation == null)
+		{
+			Sprite.Animation = emotion.AnimationName;
 		}
 	}
 	/// <summary>
@@ -577,12 +610,4 @@ public abstract class Actor
 	/// </summary>
 	/// <param name="victory">Whether the battle was won by the player.</param>
 	public virtual async Task OnEndOfBattle(bool victory) { await Task.CompletedTask; }
-
-	private string Capitalize(string s)
-	{
-		// using ToCharArray avoids an extra string allocation
-		char[] a = s.ToCharArray();
-		a[0] = char.ToUpper(a[0]);
-		return new string(a);
-	}
 }

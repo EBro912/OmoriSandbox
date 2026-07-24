@@ -12,7 +12,6 @@ internal sealed class SweetheartAlt : Enemy
 
 	protected override string[] EquippedSkills => ["SHAttack", "SharpInsult", "SwingMace", "Brag"];
 
-	private bool EmotionLocked = false;
 	private int Stage = 0;
 
 	public override bool IsStateValid(string state)
@@ -20,7 +19,7 @@ internal sealed class SweetheartAlt : Enemy
 		if (state == "toast")
 			return true;
 
-		if (EmotionLocked)
+		if (IsEmotionLocked)
 			return false;
 
 		return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
@@ -116,11 +115,11 @@ internal sealed class SweetheartAlt : Enemy
 		{
 			DialogueManager.Instance.QueueMessage(this, @"It's pointless, you fools!\! You cannot dampen my positive energy!");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("SweetheartHappy", "happy");
+			SetEmotionForced("happy");
 			DialogueManager.Instance.QueueMessage("SWEETHEART became HAPPY!");
 			DialogueManager.Instance.QueueMessage("SWEETHEART can no longer become SAD or ANGRY!");
 			await DialogueManager.Instance.WaitForDialogue();
-			EmotionLocked = true;
+			LockEmotion("happy");
 			Stage = 1;
 		}
 		
@@ -134,28 +133,28 @@ internal sealed class SweetheartAlt : Enemy
 		
 		if (CurrentHP < 3800 && Stage <= 2)
 		{
-			EmotionLocked = false;
+			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, @"Oho!\! My beauty and grace is boundless and everlasting...");
 			DialogueManager.Instance.QueueMessage(this, "It's a shame that you won't be able to enjoy it for much longer!");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("SweetheartEcstatic", "ecstatic");
+			SetEmotionForced("ecstatic");
 			DialogueManager.Instance.QueueMessage("SWEETHEART became ECSTATIC!");
 			await DialogueManager.Instance.WaitForDialogue();
-			EmotionLocked = true;
+			LockEmotion("happy");
 			Stage = 3;
 		}
 		
 		if (CurrentHP < 2280 && Stage <= 3)
 		{
-			EmotionLocked = false;
+			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, "Hmph! I see you are still standing.");
 			DialogueManager.Instance.QueueMessage(this, "Cockroaches are resilient, I suppose!");
 			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
 			await DialogueManager.Instance.WaitForDialogue();
-			ForceState("SweetheartManic", "manic");
+			SetEmotionForced("manic");
 			DialogueManager.Instance.QueueMessage("SWEETHEART became MANIC!");
 			await DialogueManager.Instance.WaitForDialogue();
-			EmotionLocked = true;
+			LockEmotion("happy");
 			Stage = 4;
 		}
 	}

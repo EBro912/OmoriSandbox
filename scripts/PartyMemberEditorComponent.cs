@@ -5,7 +5,6 @@ using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 using System.Linq;
-using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Editor;
 internal partial class PartyMemberEditorComponent : Control
@@ -32,7 +31,7 @@ internal partial class PartyMemberEditorComponent : Control
 	private Equipment SelectedWeapon;
 	private Equipment SelectedCharm;
 	private Stats BaseStats;
-	private StatModifier Emotion;
+	private Emotion SelectedEmotion;
 
 	public int ActorPosition { get; private set; }
 
@@ -201,7 +200,7 @@ internal partial class PartyMemberEditorComponent : Control
 		Face.SpriteFrames = animation;
 		Face.Play("neutral");
 		Animator.SetState("neutral");
-		Emotion = null;
+		SelectedEmotion = null;
 
 		LevelSlider.SetValueNoSignal(1);
 		LevelSliderValue.Text = "1";
@@ -234,7 +233,8 @@ internal partial class PartyMemberEditorComponent : Control
 				Animator.SetState(state);
 				break;
 		}
-		Emotion = state is "neutral" ? null : Database.CreateModifier(state.Capitalize());
+		// pseudo-states like hurt/toast/victory aren't emotions and preview no stat bonuses
+		SelectedEmotion = Database.TryGetEmotion(state, out Emotion emotion) ? emotion : null;
 	}
 
 	public Stats GetAdjustedStats()
@@ -262,7 +262,8 @@ internal partial class PartyMemberEditorComponent : Control
 		Stats stats = BaseStats + StatAdjustmentEditor.GetStats();
 		SelectedWeapon.Apply(ref stats);
 		SelectedCharm?.Apply(ref stats);
-		Emotion?.ApplyStats(ref stats);
+		if (SelectedEmotion != null)
+			StatBonus.ApplyAll(ref stats, SelectedEmotion.StatBonuses);
 		HealthLabel.Text = $"{stats.MaxHP}/{stats.MaxHP}";
 		JuiceLabel.Text = $"{stats.MaxJuice}/{stats.MaxJuice}";
 		StatAdjustmentEditor.UpdateStats(stats);

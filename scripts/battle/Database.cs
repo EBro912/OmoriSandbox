@@ -25,12 +25,12 @@ public class Database
 	private static readonly SortedDictionary<string, Equipment> Equipment = [];
 	private static readonly Dictionary<string, Func<StatModifier>> Modifiers = [];
 	private static readonly Dictionary<string, Texture2D> StateIcons = [];
-	private static readonly Dictionary<string, EmotionGroup> EmotionFamilies = [];
+	private static readonly Dictionary<string, EmotionGroup> EmotionGroups = [];
 	private static readonly Dictionary<string, Emotion> Emotions = [];
 
 	// keep a separate list of emotion ids to easily display in menus
 	private static readonly List<string> EmotionOrder = [];
-	private static readonly Dictionary<(string Family, int Tier), Emotion> EmotionTiers = [];
+	private static readonly Dictionary<(string Group, int Tier), Emotion> EmotionTiers = [];
 
 	static Database()
 	{
@@ -104,32 +104,32 @@ public class Database
 	/// <param name="id">The id of the group to search for.</param>
 	/// <param name="group">The returned group, if a match is found.</param>
 	/// <returns>Whether the group exists in the database.</returns>
-	public static bool TryGetEmotionFamily(string id, out EmotionGroup group)
+	public static bool TryGetEmotionGroup(string id, out EmotionGroup group)
 	{
 		if (id == null)
 		{
 			group = null;
 			return false;
 		}
-		return EmotionFamilies.TryGetValue(id, out group);
+		return EmotionGroups.TryGetValue(id, out group);
 	}
 
 	/// <summary>
 	/// Tries to get the <see cref="Emotion"/> at the given <paramref name="tier"/> of a group.
 	/// Used for emotion escalation (happy -> ecstatic -> manic).
 	/// </summary>
-	/// <param name="familyId">The id of the group.</param>
+	/// <param name="groupId">The id of the group.</param>
 	/// <param name="tier">The 0-based tier to look up.</param>
 	/// <param name="emotion">The returned emotion, if a match is found.</param>
 	/// <returns>Whether an emotion exists at that tier of the group.</returns>
-	public static bool TryGetEmotionByFamilyTier(string familyId, int tier, out Emotion emotion)
+	public static bool TryGetEmotionByGroupTier(string groupId, int tier, out Emotion emotion)
 	{
-		if (familyId == null)
+		if (groupId == null)
 		{
 			emotion = null;
 			return false;
 		}
-		return EmotionTiers.TryGetValue((familyId, tier), out emotion);
+		return EmotionTiers.TryGetValue((groupId, tier), out emotion);
 	}
 
 	internal static Emotion NeutralEmotion => Emotions["neutral"];
@@ -192,9 +192,9 @@ public class Database
 		return TryRegister(Modifiers, "StatModifier", id, func);
 	}
 
-	internal static bool RegisterModdedEmotionFamily(EmotionGroup group)
+	internal static bool RegisterModdedEmotionGroup(EmotionGroup group)
 	{
-		if (!TryRegister(EmotionFamilies, "EmotionGroup", group.Id, group))
+		if (!TryRegister(EmotionGroups, "EmotionGroup", group.Id, group))
 			return false;
 		group.Registered = true;
 		return true;
@@ -210,9 +210,9 @@ public class Database
 		return true;
 	}
 
-	private static void AddEmotionFamily(EmotionGroup group)
+	private static void AddEmotionGroup(EmotionGroup group)
 	{
-		EmotionFamilies.Add(group.Id, group);
+		EmotionGroups.Add(group.Id, group);
 		group.Registered = true;
 	}
 
@@ -229,12 +229,12 @@ public class Database
 	{
 		if (emotion.GroupId == null)
 			return;
-		if (!EmotionFamilies.TryGetValue(emotion.GroupId, out EmotionGroup family))
+		if (!EmotionGroups.TryGetValue(emotion.GroupId, out EmotionGroup group))
 		{
 			GD.PrintErr($"Emotion {emotion.Id} references unknown group {emotion.GroupId}! Register the group first.");
 			return;
 		}
-		emotion.Group = family;
+		emotion.Group = group;
 		if (!EmotionTiers.TryAdd((emotion.GroupId, emotion.Tier), emotion))
 			GD.PrintErr($"Group {emotion.GroupId} already has an emotion at tier {emotion.Tier}; {emotion.Id} will not participate in escalation!");
 	}
@@ -3428,7 +3428,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				target.ForceState("angry");
+				target.SetEmotionForced("angry");
 				BattleLogManager.Instance.ClearAndShowMessage(target, target, "[target] becomes ANGRIER!");
 				await Task.CompletedTask;
 			},
@@ -4586,10 +4586,8 @@ public class Database
 			 {
 				 await AnimationManager.Instance.WaitForAnimation(124, target);
 				 BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s\nEMOTION!");
-				 string old = self.CurrentState;
-				 self.ForceState("EmotionExploit", old);
-				 BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0f, neverCrit: true);
-				 self.ForceState(old);
+				 // vanilla implements EXPLOIT as an attack with the EMOTION element; the attacker keeps their own emotion stats
+				 BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0f, neverCrit: true, attackElement: "exploit");
 			 },
 			 hidden: true
 		);
@@ -7385,9 +7383,9 @@ public class Database
 		#endregion
 
 		#region EMOTIONS
-		AddEmotionFamily(new EmotionGroup("happy").WithBeatsGroup("angry").WithMaxTierMessage("[target] can't get HAPPIER!").WithRandomEmotion());
-		AddEmotionFamily(new EmotionGroup("angry").WithBeatsGroup("sad").WithMaxTierMessage("[target] can't get ANGRIER!").WithRandomEmotion());
-		AddEmotionFamily(new EmotionGroup("sad").WithBeatsGroup("happy").WithMaxTierMessage("[target] can't get SADDER!").WithRandomEmotion());
+		AddEmotionGroup(new EmotionGroup("happy").WithBeatsGroup("angry").WithMaxTierMessage("[target] can't get HAPPIER!").WithRandomEmotion());
+		AddEmotionGroup(new EmotionGroup("angry").WithBeatsGroup("sad").WithMaxTierMessage("[target] can't get ANGRIER!").WithRandomEmotion());
+		AddEmotionGroup(new EmotionGroup("sad").WithBeatsGroup("happy").WithMaxTierMessage("[target] can't get SADDER!").WithRandomEmotion());
 
 		AddEmotion(new Emotion("neutral")
 			.WithAsset(EmotionAsset.Vanilla(0, 0, 0)));
@@ -7421,7 +7419,6 @@ public class Database
 		AddEmotion(new Emotion("furious").WithGroup("angry", 2)
 			.WithStatBonuses(new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.15f))
 			.WithAsset(EmotionAsset.Vanilla(11, 2, 2)));
-		// afraid grants no stat bonuses; its 1.5x taken-damage rules live in the defensive rates
 		AddEmotion(new Emotion("afraid")
 			.WithBlocksActions()
 			.WithDefensiveRate("emotion", 1.5f)
@@ -7435,17 +7432,6 @@ public class Database
 		#endregion
 
 		#region MODIFIERS
-		Modifiers.Add("Neutral", () => new StatModifier());
-		Modifiers.Add("Happy", () => new StatModifier(new StatBonus(StatType.LCK, 2f), new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.HIT, -10)));
-		Modifiers.Add("Ecstatic", () => new StatModifier(new StatBonus(StatType.LCK, 3f), new StatBonus(StatType.SPD, 1.5f), new StatBonus(StatType.HIT, -20)));
-		Modifiers.Add("Manic", () => new StatModifier(new StatBonus(StatType.LCK, 4f), new StatBonus(StatType.SPD, 2f), new StatBonus(StatType.HIT, -30)));
-		Modifiers.Add("Angry", () => new StatModifier(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 0.5f)));
-		Modifiers.Add("Enraged", () => new StatModifier(new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.3f)));
-		Modifiers.Add("Furious", () => new StatModifier(new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.15f)));
-		Modifiers.Add("Sad", () => new StatModifier(new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.SPD, 0.8f)));
-		Modifiers.Add("Depressed", () => new StatModifier(new StatBonus(StatType.DEF, 1.35f), new StatBonus(StatType.SPD, 0.65f)));
-		Modifiers.Add("Miserable", () => new StatModifier(new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.SPD, 0.5f)));
-		Modifiers.Add("Stressed", () => new StatModifier(new StatBonus(StatType.ATK, 1.2f), new StatBonus(StatType.DEF, 0.9f)));
 		Modifiers.Add("AttackUp", () => CreateBuffDebuff(new StatBonus(StatType.ATK, 1.1f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.ATK, 1.5f))
 			.WithMessages("ATTACK rose!", "ATTACK cannot go\nany higher!")
 			.WithStateIcons(new StateIcon("bnw_+1att", "Attack Up 1: x1.1 ATK"), new StateIcon("bnw_+2att", "Attack Up 2: x1.25 ATK"), new StateIcon("bnw_+3att", "Attack Up 3: x1.5 ATK")));
@@ -7494,22 +7480,12 @@ public class Database
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
 		Modifiers.Add("Immortal", () => new ImmortalStatModifier());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
-		Modifiers.Add("SweetheartHappy", () => new EmotionLockStatModifier("happy", new StatBonus(StatType.LCK, 2f), new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.HIT, -10)));
-		Modifiers.Add("SweetheartEcstatic", () => new EmotionLockStatModifier("happy", new StatBonus(StatType.LCK, 3f), new StatBonus(StatType.SPD, 1.5f), new StatBonus(StatType.HIT, -20)));
-		Modifiers.Add("SweetheartManic", () => new EmotionLockStatModifier("happy", new StatBonus(StatType.LCK, 4f), new StatBonus(StatType.SPD, 2f), new StatBonus(StatType.HIT, -30)));
-		Modifiers.Add("SpaceExAngry", () => new EmotionLockStatModifier("angry", new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 0.9f)));
-		Modifiers.Add("SpaceExEnraged", () => new EmotionLockStatModifier("angry", new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.5f)));
-		Modifiers.Add("SpaceExFurious", () => new EmotionLockStatModifier("angry", new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.3f)));
-		Modifiers.Add("UnbreadTwinsSad", () => new EmotionLockStatModifier("sad", new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.SPD, 0.8f)));
-		Modifiers.Add("UnbreadTwinsDepressed", () => new EmotionLockStatModifier("sad", new StatBonus(StatType.DEF, 1.35f), new StatBonus(StatType.SPD, 0.65f)));
-		Modifiers.Add("UnbreadTwinsMiserable", () => new EmotionLockStatModifier("sad", new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.SPD, 0.5f)));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
 		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1));
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
 		Modifiers.Add("Charm", () => new CharmStatModifier(1));
-		Modifiers.Add("EmotionExploit", () => new EmotionLockStatModifier("emotion"));
 		Modifiers.Add("SpaceExHusbandBlock", () => new SpaceExHusbandStatModifier());
 		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(10));
 		Modifiers.Add("PlutoCharging", () => new StatModifier(3, new StatBonus(StatType.DEF, 3f)));
@@ -7994,8 +7970,7 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DANDELION!");
 				AudioManager.Instance.PlaySFX("BA_calm_down", 1, 0.9f);
-				// this should be changed once boss specific/special states are improved
-				if (target.CurrentState == "neutral" || target.HasLockedEmotion())
+				if (target.CurrentState == "neutral" || target.IsEmotionLocked)
 				{
 					BattleLogManager.Instance.QueueMessage("It had no effect.");
 				}

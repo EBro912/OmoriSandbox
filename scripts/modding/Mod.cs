@@ -95,18 +95,18 @@ public abstract partial class Mod : Node
 
     /// <summary>
     /// Registers a new <see cref="EmotionGroup"/> to the database.<br/>
-    /// Register families before the emotions that belong to them.
+    /// Register groups before the emotions that belong to them.
     /// </summary>
     /// <param name="group">The group to add. Its id doubles as the group's attack element.</param>
-    protected static void RegisterEmotionFamily(EmotionGroup group)
+    protected static void RegisterEmotionGroup(EmotionGroup group)
     {
-        Database.RegisterModdedEmotionFamily(group);
+        Database.RegisterModdedEmotionGroup(group);
     }
 
     /// <summary>
     /// Registers a new <see cref="Emotion"/> to the database.<br/>
-    /// Actors opt in to a custom emotion by having an animation matching its id (or <see cref="Emotion.AnimationName"/>)
-    /// in their SpriteFrames and by not listing the id in their invalid states.
+    /// Requires the actor to have an animation matching its id (or <see cref="Emotion.AnimationName"/>)
+    /// in their SpriteFrames and are able to feel the emotion.
     /// Example:
     /// <code>
     /// RegisterEmotion(new Emotion("smug")
