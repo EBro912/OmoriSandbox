@@ -1,6 +1,7 @@
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using System;
 using System.Threading.Tasks;
@@ -90,5 +91,33 @@ public abstract partial class Mod : Node
     protected static void RegisterStatModifier(string id, Func<StatModifier> func)
     {
         Database.RegisterModdedStatModifier(id, func);
+    }
+
+    /// <summary>
+    /// Registers a new <see cref="EmotionGroup"/> to the database.<br/>
+    /// Register families before the emotions that belong to them.
+    /// </summary>
+    /// <param name="group">The group to add. Its id doubles as the group's attack element.</param>
+    protected static void RegisterEmotionFamily(EmotionGroup group)
+    {
+        Database.RegisterModdedEmotionFamily(group);
+    }
+
+    /// <summary>
+    /// Registers a new <see cref="Emotion"/> to the database.<br/>
+    /// Actors opt in to a custom emotion by having an animation matching its id (or <see cref="Emotion.AnimationName"/>)
+    /// in their SpriteFrames and by not listing the id in their invalid states.
+    /// Example:
+    /// <code>
+    /// RegisterEmotion(new Emotion("smug")
+    ///     .WithGroup("happy", tier: 1)
+    ///     .WithStatBonuses(new StatBonus(StatType.LCK, 2.5f), new StatBonus(StatType.HIT, -15))
+    ///     .WithAsset(EmotionAsset.FromModTextures("MyMod/sprites/smug_label.png", "MyMod/sprites/smug_face.png")));
+    /// </code>
+    /// </summary>
+    /// <param name="emotion">The emotion to add.</param>
+    protected static void RegisterEmotion(Emotion emotion)
+    {
+        Database.RegisterModdedEmotion(emotion);
     }
 }

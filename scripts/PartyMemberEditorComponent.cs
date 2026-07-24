@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 using System.Linq;
 using OmoriSandbox.Battle.Modifier;
@@ -35,7 +36,8 @@ internal partial class PartyMemberEditorComponent : Control
 
 	public int ActorPosition { get; private set; }
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "afraid", "stressed", "hurt", "toast", "victory"];
+	// registered emotions plus the pseudo-states party members can be spawned in
+	private static string[] States => [.. Database.GetAllEmotionIds(), "hurt", "toast", "victory"];
 	private string[] EquippableWeapons = [];
 	
 	public override void _Ready()
@@ -217,8 +219,21 @@ internal partial class PartyMemberEditorComponent : Control
 	private void UpdateState(string state)
 	{
 		Face.Animation = state;
-		if (state != "hurt")
-			Animator.SetState(state);
+		switch (state)
+		{
+			// hurt doesn't update the emotion HUD
+			case "hurt":
+				break;
+			case "toast":
+				Animator.ShowAsset(EmotionAsset.Toast);
+				break;
+			case "victory":
+				Animator.ShowAsset(EmotionAsset.Victory);
+				break;
+			default:
+				Animator.SetState(state);
+				break;
+		}
 		Emotion = state is "neutral" ? null : Database.CreateModifier(state.Capitalize());
 	}
 

@@ -19,7 +19,8 @@ internal partial class EnemyEditorComponent : Control
 
 	private AnimatedSprite2D Animator;
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "afraid", "stressed", "hurt", "toast"];
+	// registered emotions plus the pseudo-states enemies can be spawned in
+	private static string[] States => [.. Database.GetAllEmotionIds(), "hurt", "toast"];
 
 	public override void _EnterTree()
 	{

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Godot;
+using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox;
@@ -7,55 +7,27 @@ internal partial class StateAnimator : Node
 {
 	[Export] private Sprite2D StateSprite;
 	[Export] private Sprite2D FaceStateSprite;
-	
+
 	internal Sprite2D EmotionSprite => StateSprite;
 
-	// Atlas index of the above head emotion label
-	private readonly Dictionary<string, int> StateAtlases = new()
-	{
-		{ "neutral", 0 },
-		{ "victory", 0 },
-		{ "toast", 1 },
-		{ "stressed", 2},
-		{ "happy", 3 },
-		{ "ecstatic", 4 },
-		{ "manic", 5 },
-		{ "sad", 6 },
-		{ "depressed", 7 },
-		{ "miserable", 8 },
-		{ "angry", 9 },
-		{ "enraged", 10 },
-		{ "furious", 11 },
-		{ "afraid", 12 }
-	};
+	// the default atlas textures provided by the scene
+	private Texture2D DefaultLabelTexture;
+	private Texture2D DefaultFaceTexture;
 
-	private readonly Dictionary<string, (int, int)> FaceStateAtlases = new()
+	public override void _Ready()
 	{
-		{ "neutral", (0, 0) },
-		{ "victory", (0, 0) },
-		{ "toast", (1, 0) },
-		{ "stressed", (1, 0) },
-		{ "happy", (2, 0) },
-		{ "ecstatic", (3, 0) },
-		{ "manic", (0, 1) },
-		{ "sad", (1, 1) },
-		{ "depressed", (2, 1) },
-		{ "miserable", (3, 1) },
-		{ "angry", (0, 2) },
-		{ "enraged", (1, 2) },
-		{ "furious", (2, 2) },
-		{ "afraid", (3, 2) },
-		{ "plotarmor", (3, 2) }	
-	};
+		DefaultLabelTexture = StateSprite?.Texture;
+		DefaultFaceTexture = FaceStateSprite?.Texture;
+	}
 
 	public void SetState(string state)
 	{
-		// these are really only split up because of the special case with plot armor
-		// if emotion changes while in plot armor, the above head sprite changes
-		// but the back sprite does not
-		// TODO: improve once emotions are moved away from just being strings
-		SetStateAtlas(state);
-		SetFaceStateAtlas(state);
+		ShowAsset(Resolve(state).Asset);
+	}
+
+	public void SetStateAtlas(string state)
+	{
+		ShowLabel(Resolve(state).Asset);
 	}
 
 	/// <summary>
@@ -66,26 +38,42 @@ internal partial class StateAnimator : Node
 		if (asset == null)
 			return;
 
-		if (asset.LabelAtlasRow.HasValue)
-			StateSprite.RegionRect = StateAtlas(asset.LabelAtlasRow.Value);
-		if (asset.FaceAtlasCell.HasValue)
-			FadeInFace(FaceStateAtlas(asset.FaceAtlasCell.Value.X, asset.FaceAtlasCell.Value.Y));
+		ShowLabel(asset);
+		if (asset.FaceTexture != null)
+			FadeInFace(asset.FaceTexture, null);
+		else if (asset.FaceAtlasCell.HasValue)
+			FadeInFace(DefaultFaceTexture, FaceStateAtlas(asset.FaceAtlasCell.Value.X, asset.FaceAtlasCell.Value.Y));
 	}
 
-	public void SetStateAtlas(string state)
+	private void ShowLabel(EmotionAsset asset)
 	{
-		StateSprite.RegionRect = StateAtlas(StateAtlases.GetValueOrDefault(state, 1));
-	}
-
-	private void SetFaceStateAtlas(string state)
-	{
-		if (!FaceStateAtlases.TryGetValue(state, out (int, int) index))
+		if (asset == null)
 			return;
 
-		FadeInFace(FaceStateAtlas(index.Item1, index.Item2));
+		if (asset.LabelTexture != null)
+		{
+			StateSprite.RegionEnabled = false;
+			StateSprite.Texture = asset.LabelTexture;
+		}
+		else if (asset.LabelAtlasRow.HasValue)
+		{
+			StateSprite.Texture = DefaultLabelTexture;
+			StateSprite.RegionEnabled = true;
+			StateSprite.RegionRect = StateAtlas(asset.LabelAtlasRow.Value);
+		}
 	}
 
-	private void FadeInFace(Rect2 target)
+	private static Emotion Resolve(string state)
+	{
+		if (Database.TryGetEmotion(state, out Emotion emotion))
+			return emotion;
+
+		GD.PushWarning("Unknown emotion for state animator: " + state);
+		Database.TryGetEmotion("neutral", out emotion);
+		return emotion;
+	}
+
+	private void FadeInFace(Texture2D texture, Rect2? region)
 	{
 		if (FaceStateSprite == null)
 			return;
@@ -97,7 +85,10 @@ internal partial class StateAnimator : Node
 		GetParent().AddChild(newFaceSprite);
 		newFaceSprite.ZIndex = -3;
 		newFaceSprite.Modulate = Colors.Transparent;
-		newFaceSprite.RegionRect = target;
+		newFaceSprite.Texture = texture;
+		newFaceSprite.RegionEnabled = region.HasValue;
+		if (region.HasValue)
+			newFaceSprite.RegionRect = region.Value;
 		Tween tween = newFaceSprite.CreateTween();
 		tween.TweenProperty(newFaceSprite, "modulate:a", 1f, 0.25f);
 		tween.TweenCallback(Callable.From(() =>

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Editor;
@@ -24,6 +25,12 @@ public class Database
 	private static readonly SortedDictionary<string, Equipment> Equipment = [];
 	private static readonly Dictionary<string, Func<StatModifier>> Modifiers = [];
 	private static readonly Dictionary<string, Texture2D> StateIcons = [];
+	private static readonly Dictionary<string, EmotionGroup> EmotionFamilies = [];
+	private static readonly Dictionary<string, Emotion> Emotions = [];
+
+	// keep a separate list of emotion ids to easily display in menus
+	private static readonly List<string> EmotionOrder = [];
+	private static readonly Dictionary<(string Family, int Tier), Emotion> EmotionTiers = [];
 
 	static Database()
 	{
@@ -73,6 +80,63 @@ public class Database
 	public static bool TryGetStateIcon(string name, out Texture2D texture)
 	{
 		return StateIcons.TryGetValue(name, out texture);
+	}
+
+	/// <summary>
+	/// Tries to get an <see cref="Emotion"/> of the given <paramref name="id"/> from the database.
+	/// </summary>
+	/// <param name="id">The id of the emotion to search for.</param>
+	/// <param name="emotion">The returned emotion, if a match is found.</param>
+	/// <returns>Whether the emotion exists in the database.</returns>
+	public static bool TryGetEmotion(string id, out Emotion emotion)
+	{
+		if (id == null)
+		{
+			emotion = null;
+			return false;
+		}
+		return Emotions.TryGetValue(id, out emotion);
+	}
+
+	/// <summary>
+	/// Tries to get an <see cref="EmotionGroup"/> of the given <paramref name="id"/> from the database.
+	/// </summary>
+	/// <param name="id">The id of the group to search for.</param>
+	/// <param name="group">The returned group, if a match is found.</param>
+	/// <returns>Whether the group exists in the database.</returns>
+	public static bool TryGetEmotionFamily(string id, out EmotionGroup group)
+	{
+		if (id == null)
+		{
+			group = null;
+			return false;
+		}
+		return EmotionFamilies.TryGetValue(id, out group);
+	}
+
+	/// <summary>
+	/// Tries to get the <see cref="Emotion"/> at the given <paramref name="tier"/> of a group.
+	/// Used for emotion escalation (happy -> ecstatic -> manic).
+	/// </summary>
+	/// <param name="familyId">The id of the group.</param>
+	/// <param name="tier">The 0-based tier to look up.</param>
+	/// <param name="emotion">The returned emotion, if a match is found.</param>
+	/// <returns>Whether an emotion exists at that tier of the group.</returns>
+	public static bool TryGetEmotionByFamilyTier(string familyId, int tier, out Emotion emotion)
+	{
+		if (familyId == null)
+		{
+			emotion = null;
+			return false;
+		}
+		return EmotionTiers.TryGetValue((familyId, tier), out emotion);
+	}
+
+	internal static Emotion NeutralEmotion => Emotions["neutral"];
+
+	internal static IEnumerable<string> GetAllEmotionIds()
+	{
+		return EmotionOrder;
 	}
 
 	// tracks which mod registered each modded entry, keyed by "kind:id", for collision reporting
@@ -126,6 +190,53 @@ public class Database
 	internal static bool RegisterModdedStatModifier(string id, Func<StatModifier> func)
 	{
 		return TryRegister(Modifiers, "StatModifier", id, func);
+	}
+
+	internal static bool RegisterModdedEmotionFamily(EmotionGroup group)
+	{
+		if (!TryRegister(EmotionFamilies, "EmotionGroup", group.Id, group))
+			return false;
+		group.Registered = true;
+		return true;
+	}
+
+	internal static bool RegisterModdedEmotion(Emotion emotion)
+	{
+		if (!TryRegister(Emotions, "Emotion", emotion.Id, emotion))
+			return false;
+		EmotionOrder.Add(emotion.Id);
+		LinkEmotion(emotion);
+		emotion.Registered = true;
+		return true;
+	}
+
+	private static void AddEmotionFamily(EmotionGroup group)
+	{
+		EmotionFamilies.Add(group.Id, group);
+		group.Registered = true;
+	}
+
+	private static void AddEmotion(Emotion emotion)
+	{
+		Emotions.Add(emotion.Id, emotion);
+		EmotionOrder.Add(emotion.Id);
+		LinkEmotion(emotion);
+		emotion.Registered = true;
+	}
+
+	// resolves the emotion's group reference and hooks it into the escalation ladder
+	private static void LinkEmotion(Emotion emotion)
+	{
+		if (emotion.GroupId == null)
+			return;
+		if (!EmotionFamilies.TryGetValue(emotion.GroupId, out EmotionGroup family))
+		{
+			GD.PrintErr($"Emotion {emotion.Id} references unknown group {emotion.GroupId}! Register the group first.");
+			return;
+		}
+		emotion.Group = family;
+		if (!EmotionTiers.TryAdd((emotion.GroupId, emotion.Tier), emotion))
+			GD.PrintErr($"Group {emotion.GroupId} already has an emotion at tier {emotion.Tier}; {emotion.Id} will not participate in escalation!");
 	}
 
 	internal static bool RegisterModdedSkill(string id, Skill skill)
@@ -7271,6 +7382,56 @@ public class Database
 			hidden: true
 		);
 		
+		#endregion
+
+		#region EMOTIONS
+		AddEmotionFamily(new EmotionGroup("happy").WithBeatsGroup("angry").WithMaxTierMessage("[target] can't get HAPPIER!").WithRandomEmotion());
+		AddEmotionFamily(new EmotionGroup("angry").WithBeatsGroup("sad").WithMaxTierMessage("[target] can't get ANGRIER!").WithRandomEmotion());
+		AddEmotionFamily(new EmotionGroup("sad").WithBeatsGroup("happy").WithMaxTierMessage("[target] can't get SADDER!").WithRandomEmotion());
+
+		AddEmotion(new Emotion("neutral")
+			.WithAsset(EmotionAsset.Vanilla(0, 0, 0)));
+		AddEmotion(new Emotion("happy").WithGroup("happy", 0)
+			.WithStatBonuses(new StatBonus(StatType.LCK, 2f), new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.HIT, -10))
+			.WithAsset(EmotionAsset.Vanilla(3, 2, 0)));
+		AddEmotion(new Emotion("sad").WithGroup("sad", 0)
+			.WithStatBonuses(new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.SPD, 0.8f))
+			.WithJuiceBleed(0.3f)
+			.WithAsset(EmotionAsset.Vanilla(6, 1, 1)));
+		AddEmotion(new Emotion("angry").WithGroup("angry", 0)
+			.WithStatBonuses(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 0.5f))
+			.WithAsset(EmotionAsset.Vanilla(9, 0, 2)));
+		AddEmotion(new Emotion("ecstatic").WithGroup("happy", 1)
+			.WithStatBonuses(new StatBonus(StatType.LCK, 3f), new StatBonus(StatType.SPD, 1.5f), new StatBonus(StatType.HIT, -20))
+			.WithAsset(EmotionAsset.Vanilla(4, 3, 0)));
+		AddEmotion(new Emotion("depressed").WithGroup("sad", 1)
+			.WithStatBonuses(new StatBonus(StatType.DEF, 1.35f), new StatBonus(StatType.SPD, 0.65f))
+			.WithJuiceBleed(0.5f)
+			.WithAsset(EmotionAsset.Vanilla(7, 2, 1)));
+		AddEmotion(new Emotion("enraged").WithGroup("angry", 1)
+			.WithStatBonuses(new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.3f))
+			.WithAsset(EmotionAsset.Vanilla(10, 1, 2)));
+		AddEmotion(new Emotion("manic").WithGroup("happy", 2)
+			.WithStatBonuses(new StatBonus(StatType.LCK, 4f), new StatBonus(StatType.SPD, 2f), new StatBonus(StatType.HIT, -30))
+			.WithAsset(EmotionAsset.Vanilla(5, 0, 1)));
+		AddEmotion(new Emotion("miserable").WithGroup("sad", 2)
+			.WithStatBonuses(new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.SPD, 0.5f))
+			.WithJuiceBleed(1f)
+			.WithAsset(EmotionAsset.Vanilla(8, 3, 1)));
+		AddEmotion(new Emotion("furious").WithGroup("angry", 2)
+			.WithStatBonuses(new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.15f))
+			.WithAsset(EmotionAsset.Vanilla(11, 2, 2)));
+		// afraid grants no stat bonuses; its 1.5x taken-damage rules live in the defensive rates
+		AddEmotion(new Emotion("afraid")
+			.WithBlocksActions()
+			.WithDefensiveRate("emotion", 1.5f)
+			.WithDefensiveRate("exploit", 1.5f)
+			.WithAsset(EmotionAsset.Vanilla(12, 3, 2)));
+		AddEmotion(new Emotion("stressed")
+			.WithBlocksActions()
+			.WithStatBonuses(new StatBonus(StatType.ATK, 1.2f), new StatBonus(StatType.DEF, 0.9f))
+			.WithDefensiveRate("exploit", 1.5f)
+			.WithAsset(EmotionAsset.Vanilla(2, 1, 0)));
 		#endregion
 
 		#region MODIFIERS

@@ -24,16 +24,20 @@ public abstract class Enemy : Actor
 			GD.PrintErr("Failed to load Sprite animations for Enemy: " + Name);
 			return;
 		}
-		// if the enemy starts toast, they technically start neutral
+		// presets may start an enemy toast
 		bool startToast = initialState == "toast";
 		if (startToast)
 			initialState = "neutral";
 		// init animation
 		Sprite = sprite;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = initialState;
+
+		if (!SetEmotion(initialState, true))
+		{
+			GD.PushWarning($"Invalid emotion '{initialState}' for Enemy {Name}, defaulting to neutral.");
+			SetEmotion("neutral", true);
+		}
 		Sprite.Play();
-		CurrentState = initialState;
 		SetBaseStats(Stats);
 		CurrentHP = BaseStats.HP;
 		CurrentJuice = BaseStats.Juice;

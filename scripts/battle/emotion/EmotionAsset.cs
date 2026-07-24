@@ -1,4 +1,5 @@
 using Godot;
+using Path = System.IO.Path;
 
 namespace OmoriSandbox.Battle.Emotions;
 
@@ -17,6 +18,16 @@ public sealed class EmotionAsset
 	/// </summary>
 	public Vector2I? FaceAtlasCell { get; private init; }
 
+	/// <summary>
+	/// A custom above-head label texture, if any. Takes priority over <see cref="LabelAtlasRow"/>.
+	/// </summary>
+	public Texture2D LabelTexture { get; private init; }
+
+	/// <summary>
+	/// A custom back portrait texture, if any. Takes priority over <see cref="FaceAtlasCell"/>.
+	/// </summary>
+	public Texture2D FaceTexture { get; private init; }
+
 	private EmotionAsset() { }
 
 	/// <summary>
@@ -32,6 +43,40 @@ public sealed class EmotionAsset
 			LabelAtlasRow = labelRow,
 			FaceAtlasCell = new Vector2I(faceX, faceY)
 		};
+	}
+
+	/// <summary>
+	/// Creates an asset with custom textures, loaded from the mods folder.<br/>
+	/// Must be a full path from the mod's folder.<br/>
+	/// Example: <c>MyMod/sprites/smug_label.png</c>.<br/>
+	/// Recommended sizes: 98x22 for the label, 100x100 for the portrait.
+	/// </summary>
+	/// <param name="labelPath">The path to the above-head label texture, or null for no label override.</param>
+	/// <param name="facePath">The path to the back portrait texture, or null for no portrait override.</param>
+	public static EmotionAsset FromModTextures(string labelPath, string facePath)
+	{
+		return new EmotionAsset
+		{
+			LabelTexture = LoadModTexture(labelPath),
+			FaceTexture = LoadModTexture(facePath)
+		};
+	}
+
+	private static Texture2D LoadModTexture(string path)
+	{
+		if (path == null)
+			return null;
+		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || Path.IsPathRooted(path))
+		{
+			GD.PushError($"Invalid emotion asset path '{path}' (path traversal not allowed)");
+			return null;
+		}
+		if (!FileAccess.FileExists("user://mods/" + path))
+		{
+			GD.PushError("Failed to find emotion asset at path: user://mods/" + path);
+			return null;
+		}
+		return ImageTexture.CreateFromImage(Image.LoadFromFile("user://mods/" + path));
 	}
 
 	/// <summary>

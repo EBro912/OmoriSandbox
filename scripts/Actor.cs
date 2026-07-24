@@ -47,9 +47,13 @@ public abstract class Actor
 	/// </summary>
 	public Vector2 CenterPoint = Vector2.Zero;
 	/// <summary>
-	/// The actor's current state (emotion).
+	/// The actor's current <see cref="Emotion"/>. Defaults to neutral.
 	/// </summary>
-	public string CurrentState;
+	public Emotion CurrentEmotion { get; private set; } = Database.NeutralEmotion;
+	/// <summary>
+	/// The id of the actor's current emotion. Shorthand for <see cref="CurrentEmotion"/>.Id.
+	/// </summary>
+	public string CurrentState => CurrentEmotion.Id;
 	/// <summary>
 	/// The name of the animation currently overriding this actor's sprite, or null if no override is active.<br/>
 	/// While an override is active, emotion changes will not change the animation override until cleared. See <see cref="PlayAnimation"/>.
@@ -410,7 +414,7 @@ public abstract class Actor
 		if (CurrentAnimation != null)
 			return;
 
-		Sprite.Animation = hurt ? "hurt" : CurrentState;
+		Sprite.Animation = hurt ? "hurt" : CurrentEmotion.AnimationName;
 	}
 
 	/// <summary>
@@ -442,7 +446,7 @@ public abstract class Actor
 			return;
 
 		CurrentAnimation = null;
-		Sprite.Animation = IsToast ? "toast" : CurrentState;
+		Sprite.Animation = IsToast ? "toast" : CurrentEmotion.AnimationName;
 		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -459,7 +463,7 @@ public abstract class Actor
 		
 		IsToast = true;
 		// toast has no stat modifier, so just reset to neutral
-		CurrentState = "neutral";
+		CurrentEmotion = Database.NeutralEmotion;
 		StateStatModifier = Database.CreateModifier("Neutral");
 		if (this is PartyMember member)
 			member.PlayAnimation("toast", EmotionAsset.Toast);
@@ -492,35 +496,55 @@ public abstract class Actor
 	public virtual bool IsStateValid(string state) { return true; }
 
     /// <summary>
-    /// Sets this actor's state to the given state (emotion). Will fail and log a battle message if the actor cannot feel the given <paramref name="state"/>.<br/>
+    /// Sets this actor's emotion by id. Will fail and log a battle message if the actor cannot feel the given emotion.<br/>
     /// See <see cref="IsStateValid(string)"/>.
     /// </summary>
-    /// <param name="state">The emotion to set this actor to.</param>
+    /// <param name="id">The id of the emotion to set this actor to.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
-    public void SetState(string state, bool silent = false)
+    /// <returns>Whether the emotion was applied.</returns>
+    public bool SetEmotion(string id, bool silent = false)
 	{
-		if (IsStateValid(state))
+		if (!Database.TryGetEmotion(id, out Emotion emotion))
 		{
-			CurrentState = state;
+			GD.PrintErr("Unknown emotion: " + id);
+			return false;
+		}
+
+		if (IsStateValid(id))
+		{
+			CurrentEmotion = emotion;
 			if (!silent)
 			{
-				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + state.ToUpper() + "!");
+				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + emotion.DisplayName + "!");
 			}
 
 			// kinda dumb but the rest of the modifiers are capitalized so whatever
-			StatModifier mod = Database.CreateModifier(Capitalize(CurrentState));
+			StatModifier mod = Database.CreateModifier(Capitalize(id));
 			StateStatModifier = mod ?? Database.CreateModifier("Neutral");
 
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
 			// only update the sprite if no animation override is active
 			if (CurrentAnimation == null) {
-				Sprite.Animation = state;
+				Sprite.Animation = emotion.AnimationName;
 			}
+			return true;
 		}
-		else if (!silent)
+
+		if (!silent)
 		{
-			BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot be " + state.ToUpper() + "!");
+			BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot be " + emotion.DisplayName + "!");
 		}
+		return false;
+	}
+
+    /// <summary>
+    /// Sets this actor's state (emotion). Shorthand for <see cref="SetEmotion(string, bool)"/>.
+    /// </summary>
+    /// <param name="state">The emotion to set this actor to.</param>
+    /// <param name="silent">If true, success/failure messages will not be logged.</param>
+    public void SetState(string state, bool silent = false)
+	{
+		SetEmotion(state, silent);
 	}
 
 
@@ -531,17 +555,13 @@ public abstract class Actor
 	/// <param name="fakeState">If set, the actor will feel the <paramref name="fakeState"/> but use the stats of the <paramref name="state"/>.</param>
 	public void ForceState(string state, string fakeState = null)
 	{
-		// TODO: attach emotion/animation info to non-emotion modifiers, like boss specific emotions
-		if (fakeState != null)
-		{
-			Sprite.Animation = fakeState;
-			CurrentState = fakeState;
-		}
+		// TODO: replace with a real emotion lock once boss emotions move off EmotionLockStatModifier
+		string display = fakeState ?? state;
+		if (Database.TryGetEmotion(display, out Emotion emotion))
+			CurrentEmotion = emotion;
 		else
-		{
-			Sprite.Animation = state;
-			CurrentState = state;
-		}
+			GD.PushWarning("Unknown emotion for ForceState: " + display);
+		Sprite.Animation = display;
 		StatModifier mod = Database.CreateModifier(Capitalize(state));
 		if (mod != null)
 		{
