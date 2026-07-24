@@ -1648,6 +1648,7 @@ public partial class BattleManager : Node
 			CurrentParty.ForEach(x =>
 			{
 				x.Actor.RemoveStatModifier("PlotArmor");
+				x.Actor.ClearAnimation();
 				if (x.Actor.CurrentState != "toast")
 				{
 					oldEmotions.Add(x.Position, x.Actor.CurrentState);

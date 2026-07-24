@@ -54,16 +54,16 @@ public class Aqua : Enemy
             switch (Duplicates)
             {
                 case 1:
-                    DialogueManager.Instance.QueueMessage("Didn't we play that old game already?");
-                    DialogueManager.Instance.QueueMessage("Let's do something else!");
+                    DialogueManager.Instance.QueueMessage(this, "Didn't we play that old game already?");
+                    DialogueManager.Instance.QueueMessage(this, "Let's do something else!");
                     break;
                 case 2:
-                    DialogueManager.Instance.QueueMessage("What a dull game.");
-                    DialogueManager.Instance.QueueMessage("Wouldn't you rather play with something sharp!?");
+                    DialogueManager.Instance.QueueMessage(this, "What a dull game.");
+                    DialogueManager.Instance.QueueMessage(this, "Wouldn't you rather play with something sharp!?");
                     break;
                 default:
-                    DialogueManager.Instance.QueueMessage( @"Hum,\. is that all you can do?");
-                    DialogueManager.Instance.QueueMessage(@"After all,\. humans are actually a little boring!");
+                    DialogueManager.Instance.QueueMessage(this, @"Hum,\. is that all you can do?");
+                    DialogueManager.Instance.QueueMessage(this, @"After all,\. humans are actually a little boring!");
                     break;
             }
             await DialogueManager.Instance.WaitForDialogue();
@@ -82,10 +82,10 @@ public class Aqua : Enemy
             case "care":
                 DialogueManager.Instance.QueueMessage(this, @"HAHA! What is that!?\. Can humans change their shape so!?");
                 await DialogueManager.Instance.WaitForDialogue();
-                ForceState("toast");
+                PlayAnimation("toast");
                 DialogueManager.Instance.QueueMessage(this, "...");
                 await DialogueManager.Instance.WaitForDialogue();
-                ForceState("amused");
+                PlayAnimation("amused");
                 DialogueManager.Instance.QueueMessage(this, "I knew that!!");
                 break;
             case "dance":
@@ -101,12 +101,12 @@ public class Aqua : Enemy
     {
         if (UsedOmega)
         {
-            ForceState("laugh");
+            PlayAnimation("laugh");
             DialogueManager.Instance.QueueMessage(this, @"Uee hee hee!! Now, your turn,\. your turn!!");
             DialogueManager.Instance.QueueMessage(this, "Magic, magic, Omega, magic!");
             await DialogueManager.Instance.WaitForDialogue();
             await Wait.Seconds(3);
-            ForceState("toast");
+            PlayAnimation("toast");
             AudioManager.Instance.StopBGM();
             DialogueManager.Instance.QueueMessage(this, "...what?");
             DialogueManager.Instance.QueueMessage(this, "You can't do it!?");
@@ -139,13 +139,15 @@ public class Aqua : Enemy
             DialogueManager.Instance.QueueMessage(this, @"Uuu? What, what? End up what?\. Is it another type of game...?");
             DialogueManager.Instance.QueueMessage("SETH", "N-No, I'm just worried that...");
             await DialogueManager.Instance.WaitForDialogue();
-            ForceState("laugh");
+            PlayAnimation("laugh");
             DialogueManager.Instance.QueueMessage(this, "Don't worry, you can play too!!");
             DialogueManager.Instance.QueueMessage("SETH", "That's not what I'm saying!!! Just give up!! I'm going to retreat, too!");
             await DialogueManager.Instance.WaitForDialogue();
-            ForceState("amused");
+            PlayAnimation("amused");
             DialogueManager.Instance.QueueMessage(this, "Uuu, okay...");
             await DialogueManager.Instance.WaitForDialogue();
+            // reset animation so the toast conversion below can show the toast animation
+            ClearAnimation();
             CurrentHP = 0;
             return;
         }

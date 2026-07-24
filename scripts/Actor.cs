@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,10 @@ public abstract class Actor
 	/// Fired whenever the actor takes damage.
 	/// </summary>
 	public event EventHandler OnDamaged;
+	/// <summary>
+	/// Fired whenever the actor's animation override changes. See <see cref="PlayAnimation"/> and <see cref="ClearAnimation"/>.
+	/// </summary>
+	public event EventHandler OnAnimationChanged;
 	
 	/// <summary>
 	/// The name of the actor.
@@ -45,6 +50,11 @@ public abstract class Actor
 	/// The actor's current state (emotion).
 	/// </summary>
 	public string CurrentState;
+	/// <summary>
+	/// The name of the animation currently overriding this actor's sprite, or null if no override is active.<br/>
+	/// While an override is active, emotion changes will not change the animation override until cleared. See <see cref="PlayAnimation"/>.
+	/// </summary>
+	public string CurrentAnimation { get; private set; }
 	/// <summary>
 	/// The skills the actor has equipped.
 	/// </summary>
@@ -336,13 +346,8 @@ public abstract class Actor
 		{
 			CurrentHP = 1;
 			member.HasUsedPlotArmor = true;
-			// temporarily set our state to plotarmor to trigger the state animator
-			string temp = CurrentState;
-			CurrentState = "plotarmor";
-			Sprite.Animation = "plotarmor";
-			OnStateChanged?.Invoke(this, EventArgs.Empty);
+			member.PlayAnimation("plotarmor", EmotionAsset.PlotArmor);
 			AddStatModifier("PlotArmor");
-			CurrentState = temp;
 			return;
 		}
 
@@ -392,13 +397,48 @@ public abstract class Actor
 	/// <summary>
 	/// Makes this actor appear visually hurt.
 	/// </summary>
+	/// <remarks>
+	/// Does nothing while an animation override is active (such as Plot Armor).
+	/// </remarks>
 	/// <param name="hurt">Whether this actor should appear hurt.</param>
 	public virtual void SetHurt(bool hurt)
 	{
-		if (HasStatModifier("PlotArmor"))
+		if (CurrentAnimation != null)
 			return;
 
 		Sprite.Animation = hurt ? "hurt" : CurrentState;
+	}
+
+	/// <summary>
+	/// Overrides this actor's sprite animation, without changing their emotion or stats.<br/>
+	/// The override stays active until cleared or overwritten, including any emotion changes and damage.<br/>
+	/// See <see cref="ClearAnimation"/>.
+	/// </summary>
+	/// <param name="animationName">The animation to play. Must exist in the actor's SpriteFrames.</param>
+	public virtual void PlayAnimation(string animationName)
+	{
+		if (Sprite?.SpriteFrames == null || !Sprite.SpriteFrames.HasAnimation(animationName))
+		{
+			GD.PushWarning(Name + " cannot play unknown animation: " + animationName);
+			return;
+		}
+
+		CurrentAnimation = animationName;
+		Sprite.Animation = animationName;
+		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
+	}
+
+	/// <summary>
+	/// Clears the active animation override (if any) and restores the sprite animation of the actor's current emotion.
+	/// </summary>
+	public virtual void ClearAnimation()
+	{
+		if (CurrentAnimation == null)
+			return;
+
+		CurrentAnimation = null;
+		Sprite.Animation = CurrentState;
+		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
 	}
 
 	/// <summary>
@@ -429,8 +469,8 @@ public abstract class Actor
 			StateStatModifier = mod ?? Database.CreateModifier("Neutral");
 
 			OnStateChanged?.Invoke(this, EventArgs.Empty);
-			// only update the face sprite if we're not in plot armor
-			if (!HasStatModifier("PlotArmor")) {
+			// only update the sprite if no animation override is active
+			if (CurrentAnimation == null) {
 				Sprite.Animation = state;
 			}
 		}

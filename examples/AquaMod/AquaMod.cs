@@ -22,7 +22,7 @@ public partial class AquaMod : Mod
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws a chain of knives!");
                 if (self is Aqua)
-                    self.ForceState("chain");
+                    self.PlayAnimation("chain");
                 Tween tween;
                 for (int i = 0; i < 6; i++)
                 {
@@ -36,7 +36,7 @@ public partial class AquaMod : Mod
                 tween = CreateTween();
                 tween.TweenProperty(self.Sprite, "offset", Vector2.Zero, 0.2f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
                 await ToSignal(tween, Tween.SignalName.Finished);
-                self.ForceState("neutral");
+                self.ClearAnimation();
             }
         ));
         
@@ -107,12 +107,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("pose");
-                    target.ForceState("pose");
+                    target.PlayAnimation("pose");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy posed back!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("pose");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {
@@ -133,12 +133,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("spin");
-                    target.ForceState("spin");
+                    target.PlayAnimation("spin");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy spun around, too!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("spin");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {
@@ -159,12 +159,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("laugh");
-                    target.ForceState("laugh");
+                    target.PlayAnimation("laugh");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy laughed!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("care");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {
@@ -185,12 +185,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("dance");
-                    target.ForceState("dance");
+                    target.PlayAnimation("dance");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy danced, too!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("dance");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {

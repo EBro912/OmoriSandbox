@@ -3,6 +3,7 @@ using Godot;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,6 +12,38 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class PartyMember : Actor
 {
+	/// <summary>
+	/// Optional label/portrait asset shown on the battlecard while a <see cref="Actor.CurrentAnimation"/> override is active.
+	/// </summary>
+	public EmotionAsset CurrentAnimationAsset { get; private set; }
+
+	/// <inheritdoc/>
+	public override void PlayAnimation(string animationName)
+	{
+		CurrentAnimationAsset = null;
+		base.PlayAnimation(animationName);
+	}
+
+	/// <summary>
+	/// Overrides this PartyMember's emotion animation and shows the given label/portrait asset on their battlecard.<br/>
+	/// See <see cref="Actor.PlayAnimation(string)"/>.<br/>
+	/// If another animation override is already active, it will be replaced.
+	/// </summary>
+	/// <param name="animationName">The animation to play. Must exist in the actor's SpriteFrames.</param>
+	/// <param name="asset">The label/portrait asset to show while the override is active.</param>
+	public void PlayAnimation(string animationName, EmotionAsset asset)
+	{
+		CurrentAnimationAsset = asset;
+		base.PlayAnimation(animationName);
+	}
+
+	/// <inheritdoc/>
+	public override void ClearAnimation()
+	{
+		CurrentAnimationAsset = null;
+		base.ClearAnimation();
+	}
+
 	internal bool Init(AnimatedSprite2D face, BattlePresetActor actor)
 	{
 		SpriteFrames animation = Animation;

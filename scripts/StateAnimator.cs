@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox;
 internal partial class StateAnimator : Node
@@ -51,10 +52,24 @@ internal partial class StateAnimator : Node
 	{
 		// these are really only split up because of the special case with plot armor
 		// if emotion changes while in plot armor, the above head sprite changes
-		// but the back sprited does not
+		// but the back sprite does not
 		// TODO: improve once emotions are moved away from just being strings
 		SetStateAtlas(state);
 		SetFaceStateAtlas(state);
+	}
+
+	/// <summary>
+	/// Shows a specific label/portrait asset instead of an emotion.
+	/// </summary>
+	public void ShowAsset(EmotionAsset asset)
+	{
+		if (asset == null)
+			return;
+
+		if (asset.LabelAtlasRow.HasValue)
+			StateSprite.RegionRect = StateAtlas(asset.LabelAtlasRow.Value);
+		if (asset.FaceAtlasCell.HasValue)
+			FadeInFace(FaceStateAtlas(asset.FaceAtlasCell.Value.X, asset.FaceAtlasCell.Value.Y));
 	}
 
 	public void SetStateAtlas(string state)
@@ -66,8 +81,15 @@ internal partial class StateAnimator : Node
 	{
 		if (!FaceStateAtlases.TryGetValue(state, out (int, int) index))
 			return;
-		
-		Rect2 target = FaceStateAtlas(index.Item1, index.Item2);
+
+		FadeInFace(FaceStateAtlas(index.Item1, index.Item2));
+	}
+
+	private void FadeInFace(Rect2 target)
+	{
+		if (FaceStateSprite == null)
+			return;
+
 		// emotions in the original game have a "fade in" effect here
 		// so we do that by making a copy of the back sprite and fading in the new one
 		FaceStateSprite.ZIndex = -4;
