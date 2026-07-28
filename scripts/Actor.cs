@@ -295,17 +295,17 @@ public abstract class Actor
 	/// Returns the current tier of a stat modifier.
 	/// </summary>
 	/// <remarks>
-	/// If the actor does not have the requested modifier or if it is not a tiered stat modifier, -1 is returned.
+	/// If the actor does not have the requested modifier or if it is not a tiered stat modifier, 0 is returned.
 	/// </remarks>
 	/// <param name="modifier">The modifier to get the current tier of.</param>
-	/// <returns>The current tier if the actor has the tiered modifier, otherwise -1.</returns>
+	/// <returns>The current tier if the actor has the tiered modifier, otherwise 0.</returns>
 	public int GetStatModifierTier(string modifier)
 	{
 		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod))
-			return -1;
+			return 0;
 		if (mod is TierStatModifier tier)
 			return tier.CurrentTier;
-		return -1;
+		return 0;
 	}
 
 	/// <summary>
@@ -356,6 +356,56 @@ public abstract class Actor
 	{
 		IsEmotionLocked = false;
 		LockedAdvantageEmotion = null;
+	}
+
+	/// <summary>
+	/// Returns the 1-based tier of the actor's current emotion within the given group,
+	/// or 0 if the actor is not feeling an emotion of that group at all.
+	/// </summary>
+	/// <param name="groupId">The id of the emotion group to check.</param>
+	public int GetEmotionTier(string groupId)
+	{
+		return CurrentEmotion.Group?.Id == groupId ? CurrentEmotion.Tier : 0;
+	}
+
+	/// <summary>
+	/// Whether the actor is feeling an emotion of the given group, at or above the given tier.
+	/// </summary>
+	/// <param name="groupId">The id of the emotion group to check.</param>
+	/// <param name="minTier">The minimum 1-based tier to check for. Values below 1 are treated as 1.</param>
+	public bool IsFeeling(string groupId, int minTier = 1)
+	{
+		return GetEmotionTier(groupId) >= Math.Max(minTier, 1);
+	}
+
+	/// <summary>
+	/// Whether the actor is feeling the exact emotion with the given id.
+	/// </summary>
+	/// <param name="emotionId">The id of the emotion to check.</param>
+	public bool HasEmotion(string emotionId)
+	{
+		return CurrentEmotion.Id == emotionId;
+	}
+
+	/// <summary>
+	/// Like <see cref="GetEmotionTier"/>, but reads <see cref="EffectiveEmotion"/>, respecting
+	/// the advantage override of <see cref="LockEmotion"/>. Use for logic that must match damage calculations.
+	/// </summary>
+	/// <param name="groupId">The id of the emotion group to check.</param>
+	public int GetEffectiveEmotionTier(string groupId)
+	{
+		return EffectiveEmotion.Group?.Id == groupId ? EffectiveEmotion.Tier : 0;
+	}
+
+	/// <summary>
+	/// Like <see cref="IsFeeling"/>, but reads <see cref="EffectiveEmotion"/>, respecting
+	/// the advantage override of <see cref="LockEmotion"/>. Use for logic that must match damage calculations.
+	/// </summary>
+	/// <param name="groupId">The id of the emotion group to check.</param>
+	/// <param name="minTier">The minimum 1-based tier to check for. Values below 1 are treated as 1.</param>
+	public bool IsEffectivelyFeeling(string groupId, int minTier = 1)
+	{
+		return GetEffectiveEmotionTier(groupId) >= Math.Max(minTier, 1);
 	}
 
 	/// <summary>

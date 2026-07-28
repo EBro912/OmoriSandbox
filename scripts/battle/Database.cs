@@ -119,7 +119,7 @@ public class Database
 	/// Used for emotion escalation (happy -> ecstatic -> manic).
 	/// </summary>
 	/// <param name="groupId">The id of the group.</param>
-	/// <param name="tier">The 0-based tier to look up.</param>
+	/// <param name="tier">The 1-based tier to look up (base emotion = tier 1).</param>
 	/// <param name="emotion">The returned emotion, if a match is found.</param>
 	/// <returns>Whether an emotion exists at that tier of the group.</returns>
 	public static bool TryGetEmotionByGroupTier(string groupId, int tier, out Emotion emotion)
@@ -769,8 +769,8 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(13, targets[0] is Enemy);
 				float multiplier = self.CurrentEmotion.Group == null ? 3f : self.CurrentEmotion.Tier switch
 				{
-					>= 2 => 6f,
-					1 => 5f,
+					>= 3 => 6f,
+					2 => 5f,
 					_ => 4f
 				};
 				foreach (Actor enemy in targets)
@@ -1595,7 +1595,7 @@ public class Database
 				await Wait.Milliseconds(1500);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
 				// vanilla intended behavior: FURIOUS is excluded from the bonus, so only the first two tiers count
-				if (self.CurrentEmotion.Group?.Id == "angry" && self.CurrentEmotion.Tier <= 1)
+				if (self.GetEmotionTier("angry") is 1 or 2)
 					BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF, false);
 				else
@@ -1690,10 +1690,10 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(46, target);
 				await Wait.Milliseconds(500);
-				if (target.CurrentEmotion.Group?.Id == "happy")
+				if (target.IsFeeling("happy"))
 				{
 					// very nice
-					if (target.CurrentEmotion.Tier >= 1)
+					if (target.GetEmotionTier("happy") >= 2)
 						await AnimationManager.Instance.WaitForAnimation(279, target);
 					else
 						await AnimationManager.Instance.WaitForAnimation(278, target);
@@ -7401,34 +7401,34 @@ public class Database
 
 		AddEmotion(new Emotion("neutral")
 			.WithAsset(EmotionAsset.Vanilla(0, 0, 0)));
-		AddEmotion(new Emotion("happy").WithGroup("happy", 0)
+		AddEmotion(new Emotion("happy").WithGroup("happy", 1)
 			.WithStatBonuses(new StatBonus(StatType.LCK, 2f), new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.HIT, -10))
 			.WithAsset(EmotionAsset.Vanilla(3, 2, 0)));
-		AddEmotion(new Emotion("sad").WithGroup("sad", 0)
+		AddEmotion(new Emotion("sad").WithGroup("sad", 1)
 			.WithStatBonuses(new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.SPD, 0.8f))
 			.WithJuiceBleed(0.3f)
 			.WithAsset(EmotionAsset.Vanilla(6, 1, 1)));
-		AddEmotion(new Emotion("angry").WithGroup("angry", 0)
+		AddEmotion(new Emotion("angry").WithGroup("angry", 1)
 			.WithStatBonuses(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 0.5f))
 			.WithAsset(EmotionAsset.Vanilla(9, 0, 2)));
-		AddEmotion(new Emotion("ecstatic").WithGroup("happy", 1)
+		AddEmotion(new Emotion("ecstatic").WithGroup("happy", 2)
 			.WithStatBonuses(new StatBonus(StatType.LCK, 3f), new StatBonus(StatType.SPD, 1.5f), new StatBonus(StatType.HIT, -20))
 			.WithAsset(EmotionAsset.Vanilla(4, 3, 0)));
-		AddEmotion(new Emotion("depressed").WithGroup("sad", 1)
+		AddEmotion(new Emotion("depressed").WithGroup("sad", 2)
 			.WithStatBonuses(new StatBonus(StatType.DEF, 1.35f), new StatBonus(StatType.SPD, 0.65f))
 			.WithJuiceBleed(0.5f)
 			.WithAsset(EmotionAsset.Vanilla(7, 2, 1)));
-		AddEmotion(new Emotion("enraged").WithGroup("angry", 1)
+		AddEmotion(new Emotion("enraged").WithGroup("angry", 2)
 			.WithStatBonuses(new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.3f))
 			.WithAsset(EmotionAsset.Vanilla(10, 1, 2)));
-		AddEmotion(new Emotion("manic").WithGroup("happy", 2)
+		AddEmotion(new Emotion("manic").WithGroup("happy", 3)
 			.WithStatBonuses(new StatBonus(StatType.LCK, 4f), new StatBonus(StatType.SPD, 2f), new StatBonus(StatType.HIT, -30))
 			.WithAsset(EmotionAsset.Vanilla(5, 0, 1)));
-		AddEmotion(new Emotion("miserable").WithGroup("sad", 2)
+		AddEmotion(new Emotion("miserable").WithGroup("sad", 3)
 			.WithStatBonuses(new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.SPD, 0.5f))
 			.WithJuiceBleed(1f)
 			.WithAsset(EmotionAsset.Vanilla(8, 3, 1)));
-		AddEmotion(new Emotion("furious").WithGroup("angry", 2)
+		AddEmotion(new Emotion("furious").WithGroup("angry", 3)
 			.WithStatBonuses(new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.15f))
 			.WithAsset(EmotionAsset.Vanilla(11, 2, 2)));
 		AddEmotion(new Emotion("afraid")

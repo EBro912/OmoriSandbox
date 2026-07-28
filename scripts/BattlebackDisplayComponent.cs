@@ -4,6 +4,12 @@ namespace OmoriSandbox;
 
 internal partial class BattlebackDisplayComponent : TextureRect
 {
+    // the number of horizontal repeats on each side
+    [Export] private int Tiles = 1;
+
+    private const float ScreenWidth = 640f;
+    private const float ScreenHeight = 480f;
+
     private IBattleback CurrentBattleback;
     private int CurrentFrame;
     private double Elapsed;
@@ -17,6 +23,7 @@ internal partial class BattlebackDisplayComponent : TextureRect
             CurrentFrame = 0;
             Elapsed = 0;
             Texture = battleback.GetFrame(0);
+            ApplyLayout();
         }
         else
         {
@@ -31,6 +38,19 @@ internal partial class BattlebackDisplayComponent : TextureRect
         CurrentBattleback = null;
         CurrentFrame = 0;
         Elapsed = 0;
+        ApplyLayout();
+    }
+
+    // center the middle tile on the screen so battlebacks with non-640x480 dimensions display centered
+    private void ApplyLayout()
+    {
+        if (Texture == null)
+            return;
+
+        Vector2 tex = Texture.GetSize();
+        Size = new Vector2(Tiles * tex.X, tex.Y);
+        // round so odd-dimension textures keep pixel alignment
+        Position = new Vector2(Mathf.Round(ScreenWidth / 2f - Tiles * tex.X / 2f), Mathf.Round((ScreenHeight - tex.Y) / 2f));
     }
 
     public override void _Ready()

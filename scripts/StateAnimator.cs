@@ -16,8 +16,15 @@ internal partial class StateAnimator : Node
 
 	public override void _Ready()
 	{
-		DefaultLabelTexture = StateSprite?.Texture;
-		DefaultFaceTexture = FaceStateSprite?.Texture;
+		CacheDefaultTextures();
+	}
+
+	// the atlas textures come from the scene, capture them before the first write so
+	// anything run before _Ready (e.g. infoboxes configured before AddChild) are safe
+	private void CacheDefaultTextures()
+	{
+		DefaultLabelTexture ??= StateSprite?.Texture;
+		DefaultFaceTexture ??= FaceStateSprite?.Texture;
 	}
 
 	public void SetState(string state)
@@ -38,6 +45,7 @@ internal partial class StateAnimator : Node
 		if (asset == null)
 			return;
 
+		CacheDefaultTextures();
 		ShowLabel(asset);
 		if (asset.FaceTexture != null)
 			FadeInFace(asset.FaceTexture, null);
@@ -50,6 +58,7 @@ internal partial class StateAnimator : Node
 		if (asset == null)
 			return;
 
+		CacheDefaultTextures();
 		if (asset.LabelTexture != null)
 		{
 			StateSprite.RegionEnabled = false;

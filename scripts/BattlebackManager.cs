@@ -17,7 +17,9 @@ public sealed partial class BattlebackManager : Node
         Instance = this;
         
         foreach (string battleback in ResourceLoader.ListDirectory("res://assets/battlebacks"))
+        {
             Battlebacks.TryAdd(battleback.GetBaseName(), new StaticBattleback("res://assets/battlebacks/" + battleback));
+        }
     }
 
     internal bool AddBattleback(string resourcePath)

@@ -110,7 +110,7 @@ public abstract partial class Mod : Node
     /// Example:
     /// <code>
     /// RegisterEmotion(new Emotion("smug")
-    ///     .WithGroup("happy", tier: 1)
+    ///     .WithGroup("happy", tier: 4) // tiers are 1-based, tier 4 extends above MANIC
     ///     .WithStatBonuses(new StatBonus(StatType.LCK, 2.5f), new StatBonus(StatType.HIT, -15))
     ///     .WithAsset(EmotionAsset.FromModTextures("MyMod/sprites/smug_label.png", "MyMod/sprites/smug_face.png")));
     /// </code>

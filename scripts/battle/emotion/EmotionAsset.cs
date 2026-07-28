@@ -46,6 +46,20 @@ public sealed class EmotionAsset
 	}
 
 	/// <summary>
+	/// Creates an asset that only changes the battlecard back portrait, leaving the
+	/// above-head emotion label untouched (it keeps showing the actor's current emotion).
+	/// </summary>
+	/// <param name="faceX">The column of the back portrait atlas.</param>
+	/// <param name="faceY">The row of the back portrait atlas.</param>
+	public static EmotionAsset FaceOnly(int faceX, int faceY)
+	{
+		return new EmotionAsset
+		{
+			FaceAtlasCell = new Vector2I(faceX, faceY)
+		};
+	}
+
+	/// <summary>
 	/// Creates an asset with custom textures, loaded from the mods folder.<br/>
 	/// Must be a full path from the mod's folder.<br/>
 	/// Example: <c>MyMod/sprites/smug_label.png</c>.<br/>
@@ -91,6 +105,7 @@ public sealed class EmotionAsset
 
 	/// <summary>
 	/// The asset shown while Plot Armor is active.
+	/// Only overrides the back portrait, the above-head label keeps showing the current emotion.
 	/// </summary>
-	public static readonly EmotionAsset PlotArmor = Vanilla(1, 3, 2);
+	public static readonly EmotionAsset PlotArmor = FaceOnly(3, 2);
 }

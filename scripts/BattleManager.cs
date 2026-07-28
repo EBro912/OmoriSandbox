@@ -1778,16 +1778,17 @@ public partial class BattleManager : Node
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
 	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
 	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
+	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
 	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied.</returns>
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
-		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null)
+		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
 		if (!neverMiss)
 		{
 			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
 			if (miss)
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
+				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
 				// Miss text spawns a little further down
 				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
@@ -1816,7 +1817,7 @@ public partial class BattleManager : Node
 		if (critical)
 		{
 			damage *= 1.5f;
-			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
+			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 
@@ -1878,23 +1879,23 @@ public partial class BattleManager : Node
 				GD.Print("Effectiveness: " + effectiveness);
 			if (effectiveness > 0)
 			{
-				BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
+				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
 				AudioManager.Instance.PlaySFX("se_impact_double", 1f, 0.9f);
 			}
 			else if (effectiveness < 0)
 			{
-				BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
+				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
 				AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 0.9f);
 			}
 			else
 				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
 		}
 
-		BattleLogManager.Instance.QueueMessage(self, target, "[target] takes " + roundedInt + " damage!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] takes " + roundedInt + " damage!");
 
 		if (juiceLost > 0)
 		{
-			BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
 			SpawnDamageNumber(juiceLost, target.CenterPoint, DamageType.JuiceLoss);
 		}
 
@@ -1928,16 +1929,17 @@ public partial class BattleManager : Node
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
 	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
 	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
+	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
 	/// <returns>The final juice damage after all critical, emotion, and stat modifications have been applied.</returns>
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
-		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null)
+		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
 		if (!neverMiss)
 		{
 			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
 			if (miss)
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
+				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
 				// Miss text spawns a little further down
 				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
@@ -1959,7 +1961,7 @@ public partial class BattleManager : Node
 		if (critical)
 		{
 			damage *= 1.5f;
-			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
+			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 
@@ -1991,7 +1993,7 @@ public partial class BattleManager : Node
 		int roundedInt = (int)rounded;
 		target.DamageJuice(roundedInt);
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
-		BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 		return roundedInt;
 	}
@@ -2008,7 +2010,8 @@ public partial class BattleManager : Node
 	/// <param name="target">The target being healed.</param>
 	/// <param name="healFunc">The function to use in the heal calculation.</param>
 	/// <param name="variance">The healing variance. Healed HP will be multiplied between (1 - variance) and (1 + variance).</param>
-	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f)
+	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
+	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f, bool silent = false)
 	{
 		float baseHealing = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
@@ -2017,7 +2020,7 @@ public partial class BattleManager : Node
 		int rounded = (int)Math.Round(baseHealing, MidpointRounding.AwayFromZero);
 		target.Heal(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
-		BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 	}
 
 	/// <summary>
@@ -2029,7 +2032,8 @@ public partial class BattleManager : Node
 	/// <param name="self">The healer.</param>
 	/// <param name="target">The target being healed.</param>
 	/// <param name="healFunc">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance).</param>
-	public void HealJuice(Actor self, Actor target, Func<float> healFunc)
+	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
+	public void HealJuice(Actor self, Actor target, Func<float> healFunc, bool silent = false)
 	{
 		float baseJuice = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
@@ -2037,7 +2041,7 @@ public partial class BattleManager : Node
 		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
 		target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
-		BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 	}
 
 	// RPGMaker applyVariance method
@@ -2101,7 +2105,7 @@ public partial class BattleManager : Node
 	
 	private int TierIndex(Emotion emotion)
 	{
-		return Math.Clamp(emotion.Tier, 0, weakness.Length - 1);
+		return Math.Clamp(emotion.Tier - 1, 0, weakness.Length - 1);
 	}
 
 	/// <summary>
@@ -2260,7 +2264,7 @@ public partial class BattleManager : Node
 	private bool TryGetNextEmotionInGroup(Actor who, EmotionGroup group, out Emotion next)
 	{
 		Emotion current = who.CurrentEmotion;
-		int tier = current.Group == group ? current.Tier + 1 : 0;
+		int tier = current.Group == group ? current.Tier + 1 : 1;
 		return Database.TryGetEmotionByGroupTier(group.Id, tier, out next);
 	}
 

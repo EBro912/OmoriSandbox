@@ -55,7 +55,7 @@
 blend_mode = 1
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
-viewport_path = NodePath("BattleCanvas/UI/Battleback/FullScreenEffects/SubViewport")
+viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
@@ -73,11 +73,12 @@ script = ExtResource("18_txyw0")
 [node name="ModManager" type="Node" parent="BattleCanvas" unique_id=1949733735]
 script = ExtResource("2_j8jky")
 
-[node name="GameManager" type="Node" parent="BattleCanvas" unique_id=980653838 node_paths=PackedStringArray("BattlebackParent", "FPSLabel", "Party")]
+[node name="GameManager" type="Node" parent="BattleCanvas" unique_id=980653838 node_paths=PackedStringArray("BattlebackParent", "BattlebackRoot", "FPSLabel", "Party")]
 script = ExtResource("14_a8y0u")
 BattlecardUI = ExtResource("5_tefeu")
 EnemyNode = ExtResource("8_choun")
-BattlebackParent = NodePath("../UI/Battleback")
+BattlebackParent = NodePath("../UI/BattlebackRoot/Battleback")
+BattlebackRoot = NodePath("../UI/BattlebackRoot")
 FPSLabel = NodePath("../UI/HBoxContainer/FPS")
 Party = NodePath("../UI/Party")
 GreyscaleMaterial = ExtResource("7_ty1g6")
@@ -103,24 +104,24 @@ ToyMenu = NodePath("../UI/ToyMenu")
 EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 
-[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("Battleback", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
+[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
 script = ExtResource("12_5q0nq")
-Battleback = NodePath("../UI/Battleback")
-ReleaseEnergy = NodePath("../UI/Battleback/FullScreenEffects/ReleaseEnergy")
-ReleaseEnergyBasil = NodePath("../UI/Battleback/FullScreenEffects/ReleaseEnergyBasil")
-RedHands = NodePath("../UI/Battleback/FullScreenEffects/RedHands")
-FlowerCrown = NodePath("../UI/Battleback/FullScreenEffects/FlowerCrown")
-Photograph = NodePath("../UI/Battleback/FullScreenEffects/Photograph")
-Snaley = NodePath("../UI/Battleback/FullScreenEffects/Snaley")
-HumphreySwarm = NodePath("../UI/Battleback/FullScreenEffects/HumphreySwarm")
-Encore = NodePath("../UI/Battleback/FullScreenEffects/Encore")
-Cherish = NodePath("../UI/Battleback/FullScreenEffects/Cherish")
-HumphreySwallow = NodePath("../UI/Battleback/FullScreenEffects/HumphreySwallow")
-HumphreyFaceSwallow = NodePath("../UI/Battleback/FullScreenEffects/HumphreyFaceSwallow")
+BattlebackRoot = NodePath("../UI/BattlebackRoot")
+ReleaseEnergy = NodePath("../UI/BattlebackRoot/FullScreenEffects/ReleaseEnergy")
+ReleaseEnergyBasil = NodePath("../UI/BattlebackRoot/FullScreenEffects/ReleaseEnergyBasil")
+RedHands = NodePath("../UI/BattlebackRoot/FullScreenEffects/RedHands")
+FlowerCrown = NodePath("../UI/BattlebackRoot/FullScreenEffects/FlowerCrown")
+Photograph = NodePath("../UI/BattlebackRoot/FullScreenEffects/Photograph")
+Snaley = NodePath("../UI/BattlebackRoot/FullScreenEffects/Snaley")
+HumphreySwarm = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreySwarm")
+Encore = NodePath("../UI/BattlebackRoot/FullScreenEffects/Encore")
+Cherish = NodePath("../UI/BattlebackRoot/FullScreenEffects/Cherish")
+HumphreySwallow = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreySwallow")
+HumphreyFaceSwallow = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreyFaceSwallow")
 PerfectheartOverlaySprite = ExtResource("13_dgi5k")
-PerfectheartOverlayParent = NodePath("../UI/Battleback/FullScreenEffects/SubViewport/PerfectheartOverlayParent")
-FullScreenEffectNode = NodePath("../UI/Battleback/FullScreenEffects")
-ScreenTint = NodePath("../UI/Battleback/FullScreenEffects/ScreenTint")
+PerfectheartOverlayParent = NodePath("../UI/BattlebackRoot/FullScreenEffects/SubViewport/PerfectheartOverlayParent")
+FullScreenEffectNode = NodePath("../UI/BattlebackRoot/FullScreenEffects")
+ScreenTint = NodePath("../UI/BattlebackRoot/FullScreenEffects/ScreenTint")
 
 [node name="AudioManager" type="Node" parent="BattleCanvas" unique_id=943710295 node_paths=PackedStringArray("BGM")]
 script = ExtResource("11_ya4ey")
@@ -198,8 +199,11 @@ theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 12
 text = "Restart Queued..."
 
-[node name="Battleback" type="TextureRect" parent="BattleCanvas/UI" unique_id=38412468]
+[node name="BattlebackRoot" type="Node2D" parent="BattleCanvas/UI" unique_id=1620997341]
+
+[node name="Battleback" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot" unique_id=38412468]
 z_index = -100
+use_parent_material = true
 layout_mode = 0
 offset_left = -640.0
 offset_right = 1280.0
@@ -207,42 +211,42 @@ offset_bottom = 480.0
 texture = ExtResource("14_og1vs")
 stretch_mode = 1
 script = ExtResource("19_vc5cj")
+Tiles = 3
 
-[node name="FullScreenEffects" type="Node2D" parent="BattleCanvas/UI/Battleback" unique_id=143668311]
+[node name="FullScreenEffects" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot" unique_id=143668311]
 z_as_relative = false
-position = Vector2(640, 0)
 
-[node name="ReleaseEnergy" type="AnimatedSprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=302289833]
+[node name="ReleaseEnergy" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=302289833]
 visible = false
 z_index = 20
 position = Vector2(320, 243.5)
 scale = Vector2(1, 1.01458)
 sprite_frames = ExtResource("11_dp3eg")
 
-[node name="RedHands" type="AnimatedSprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1775720142]
+[node name="RedHands" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1775720142]
 visible = false
 z_index = 20
 position = Vector2(320, 243.5)
 scale = Vector2(1, 1.02937)
 sprite_frames = ExtResource("13_og1vs")
 
-[node name="FlowerCrown" type="AnimatedSprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1799073211]
+[node name="FlowerCrown" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1799073211]
 visible = false
 position = Vector2(320, 239.5)
 sprite_frames = ExtResource("14_2wyq8")
 
-[node name="ReleaseEnergyBasil" type="AnimatedSprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1264285396]
+[node name="ReleaseEnergyBasil" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1264285396]
 visible = false
 position = Vector2(320, 239.5)
 sprite_frames = ExtResource("15_vxglm")
 
-[node name="Photograph" type="ColorRect" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=203532065]
+[node name="Photograph" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=203532065]
 visible = false
 z_index = -4
 offset_right = 640.0
 offset_bottom = 480.0
 
-[node name="Snaley" type="TextureRect" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=827367663]
+[node name="Snaley" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=827367663]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -258,34 +262,34 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 texture = ExtResource("22_5he1u")
 
-[node name="HumphreySwarm" type="TextureRect" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1112993350]
+[node name="HumphreySwarm" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1112993350]
 visible = false
 z_index = -4
 offset_right = 640.0
 offset_bottom = 959.00055
 texture = ExtResource("23_5poiv")
 
-[node name="Encore" type="TextureRect" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1396240916]
+[node name="Encore" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1396240916]
 visible = false
 z_index = -4
 offset_right = 640.0
 offset_bottom = 544.0
 texture = ExtResource("24_cjqg0")
 
-[node name="Cherish" type="TextureRect" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1238961025]
+[node name="Cherish" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1238961025]
 visible = false
 z_index = -4
 offset_right = 40.0
 offset_bottom = 40.0
 texture = ExtResource("25_vchkt")
 
-[node name="HumphreySwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1791212192]
+[node name="HumphreySwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1791212192]
 visible = false
 z_index = -4
 position = Vector2(320, 240)
 sprite_frames = ExtResource("24_2cjbq")
 
-[node name="HumphreyFaceSwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=250320552]
+[node name="HumphreyFaceSwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=250320552]
 visible = false
 z_index = 1
 position = Vector2(320, 240)
@@ -293,7 +297,7 @@ sprite_frames = ExtResource("25_chjal")
 frame = 11
 frame_progress = 1.0
 
-[node name="ScreenTint" type="ColorRect" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=154174975]
+[node name="ScreenTint" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=154174975]
 z_index = -4
 anchors_preset = 15
 anchor_right = 1.0
@@ -304,16 +308,16 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0)
 
-[node name="SubViewport" type="SubViewport" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=2079552982]
+[node name="SubViewport" type="SubViewport" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=2079552982]
 disable_3d = true
 transparent_bg = true
 anisotropic_filtering_level = 2
 size = Vector2i(640, 480)
 render_target_update_mode = 4
 
-[node name="PerfectheartOverlayParent" type="Node2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects/SubViewport" unique_id=2133650331]
+[node name="PerfectheartOverlayParent" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport" unique_id=2133650331]
 
-[node name="PerfectheartOverlay" type="Sprite2D" parent="BattleCanvas/UI/Battleback/FullScreenEffects" unique_id=1605337624]
+[node name="PerfectheartOverlay" type="Sprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1605337624]
 z_index = -4
 material = SubResource("CanvasItemMaterial_5q0nq")
 texture = SubResource("ViewportTexture_dgi5k")

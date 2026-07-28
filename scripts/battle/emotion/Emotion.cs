@@ -35,7 +35,7 @@ public sealed class Emotion
 	public EmotionGroup Group { get; internal set; }
 
 	/// <summary>
-	/// The 0-based tier within the group (happy = 0, ecstatic = 1, manic = 2). 0 for group-less emotions.
+	/// The 1-based tier within the group (happy = 1, ecstatic = 2, manic = 3). 0 for group-less emotions ("not a tiered emotion").
 	/// </summary>
 	public int Tier { get; private set; }
 
@@ -112,11 +112,16 @@ public sealed class Emotion
 	/// Places this emotion in a group at the given tier, hooking it into the advantage triangle and escalation ladder.
 	/// </summary>
 	/// <param name="groupId">The id of the group. Must be registered before this emotion.</param>
-	/// <param name="tier">The 0-based tier within the group.</param>
+	/// <param name="tier">The 1-based tier within the group. Must be at least 1.</param>
 	public Emotion WithGroup(string groupId, int tier)
 	{
 		if (Frozen())
 			return this;
+		if (tier < 1)
+		{
+			GD.PushError($"Emotion {Id} must use a 1-based tier (base emotion = 1), group not applied.");
+			return this;
+		}
 		GroupId = groupId;
 		Tier = tier;
 		return this;

@@ -22,7 +22,7 @@ public partial class AnimationManager : Node
 	[Signal]
 	public delegate void AnimationFinishedEventHandler();
 
-	[Export] private TextureRect Battleback;
+	[Export] private Node2D BattlebackRoot;
 	[Export] private AnimatedSprite2D ReleaseEnergy;
 	[Export] private AnimatedSprite2D ReleaseEnergyBasil;
 	[Export] private AnimatedSprite2D RedHands;
@@ -40,8 +40,8 @@ public partial class AnimationManager : Node
 	[Export] private ColorRect ScreenTint;
 
 	private Dictionary<int, RPGMAnimatedSprite> Animations = [];
-
-	private const float FPS = 15f;
+	
+	internal const float FPS = 15f;
 	private float FrameDuration = 1f / FPS;
 	private float FrameTimer = 0f;
 	private List<PlayingAnimation> PlayingAnimations = [];
@@ -451,9 +451,7 @@ public partial class AnimationManager : Node
 			UpdateShake();
 		}
 
-		float x = 0f;
-		x += (float)Math.Round(Shake) - 640f;
-		Battleback.Position = new Vector2(x, 0);
+		BattlebackRoot.Position = new Vector2((float)Math.Round(Shake), 0);
 	}
 
 	private void NextFrame()
@@ -516,7 +514,7 @@ public partial class AnimationManager : Node
 	/// </summary>
 	public void InitShake(Shake shake)
 	{
-		Battleback.Position = new Vector2(-640, 0);
+		BattlebackRoot.Position = Vector2.Zero;
 		Shake = 0f;
 		ShakePwr = shake.Power;
 		ShakeSpd = shake.Speed;
@@ -525,7 +523,7 @@ public partial class AnimationManager : Node
 
 	private void ResetShake()
 	{
-		Battleback.Position = new Vector2(-640, 0);
+		BattlebackRoot.Position = Vector2.Zero;
 		Shake = 0f;
 		ShakePwr = 0f;
 		ShakeSpd = 0f;

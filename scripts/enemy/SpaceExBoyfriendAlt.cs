@@ -26,9 +26,9 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         {
             return emotion.Tier switch
             {
-                0 => [new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 0.9f)],
-                1 => [new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.5f)],
-                2 => [new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.3f)],
+                1 => [new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 0.9f)],
+                2 => [new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.5f)],
+                3 => [new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.3f)],
                 _ => base.GetEmotionStatBonuses(emotion)
             };
         }

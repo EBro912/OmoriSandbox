@@ -24,6 +24,7 @@ public partial class GameManager : Node
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
 	[Export] private BattlebackDisplayComponent BattlebackParent;
+	[Export] private Node2D BattlebackRoot;
 	[Export] private Label FPSLabel;
 	[Export] private Node Party;
 	[Export] private Material GreyscaleMaterial;
@@ -101,7 +102,7 @@ public partial class GameManager : Node
 	/// <param name="enabled">Whether the greyscale filter should be enabled.</param>
 	public void SetBattlebackGrayscale(bool enabled)
 	{
-		BattlebackParent.Material = enabled ? GreyscaleMaterial : null;
+		BattlebackRoot.Material = enabled ? GreyscaleMaterial : null;
 	}
 
 	internal void LoadBattlePreset(BattlePreset preset, int startingStage)
@@ -189,12 +190,16 @@ public partial class GameManager : Node
 		DespawnEnemies();
 	}
 
+	// add enemy nodes to a group to make keeping track of them easier
+	// they are mixed in with other non-enemy nodes
+	private const string EnemyNodeGroup = "battle_enemies";
+
 	internal void DespawnEnemies()
 	{
-		// skip the first child as the first child is the FullscreenEffects
-		foreach (Node child in BattlebackParent.GetChildren().Skip(1))
+		foreach (Node child in BattlebackRoot.GetChildren())
 		{
-			child.QueueFree();
+			if (child.IsInGroup(EnemyNodeGroup))
+				child.QueueFree();
 		}
 	}
 
@@ -204,7 +209,8 @@ public partial class GameManager : Node
 		if (instance == null)
 			return null;
 		Node2D node = EnemyNode.Instantiate<Node2D>();
-		BattlebackParent.AddChild(node);
+		node.AddToGroup(EnemyNodeGroup);
+		BattlebackRoot.AddChild(node);
 		if (SettingsMenuManager.Instance.LogDebug)
 			GD.Print("Spawning enemy at: " + position);
 		node.GlobalPosition = position;
