@@ -1461,7 +1461,8 @@ public class Database
 					true, 0.1f);
 				BattleManager.Instance.MakeAngry(first);
 				BattleManager.Instance.MakeAngry(self);
-			}
+			},
+			hidden: true
 		).WithCustomRequirement((_) => true);
 
 		Skills["Mull"] = new Skill(
@@ -1483,7 +1484,8 @@ public class Database
 				BattleManager.Instance.MakeSad(first);
 				BattleManager.Instance.MakeSad(self);
 				await Task.CompletedTask;
-			}
+			},
+			hidden: true
 		).WithCustomRequirement((_) => true);
 
 		Skills["Comfort"] = new Skill(
@@ -1505,7 +1507,8 @@ public class Database
 				BattleManager.Instance.MakeHappy(first);
 				BattleManager.Instance.MakeHappy(self);
 				await Task.CompletedTask;
-			}
+			},
+			hidden: true
 		).WithCustomRequirement((_) => true);
 
 		Skills["ReleaseEnergyBasil"] = new Skill(

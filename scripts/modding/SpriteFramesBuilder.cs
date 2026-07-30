@@ -67,7 +67,7 @@ public class SpriteFramesBuilder
         
         SpriteFrames.AddAnimation(animationId);
         SpriteFrames.SetAnimationSpeed(animationId, fps);
-        SpriteFrames.SetAnimationLoop(animationId, true);
+        SpriteFrames.SetAnimationLoopMode(animationId, SpriteFrames.LoopMode.Linear);
         foreach (int index in indices)
         {
             int column = index % Columns;
@@ -84,11 +84,12 @@ public class SpriteFramesBuilder
     }
 
     /// <summary>
-    /// Disables looping on an existing animation on the current SpriteFramesBuilder.
+    /// Sets the loop mode of the given animation ID. By default, all animation use Linear looping.
     /// </summary>
     /// <param name="animationId">The animation ID to disable looping on.</param>
+    /// 
     /// <returns></returns>
-    public SpriteFramesBuilder DisableAnimationLoop(string animationId)
+    public SpriteFramesBuilder SetAnimationLoopMode(string animationId, SpriteFrames.LoopMode mode)
     {
         // return early if the builder was never properly initialized
         if (SpriteFrames == null)
@@ -100,7 +101,7 @@ public class SpriteFramesBuilder
             return this;
         }
         
-        SpriteFrames.SetAnimationLoop(animationId, false);
+        SpriteFrames.SetAnimationLoopMode(animationId, mode);
         return this;
     }
 

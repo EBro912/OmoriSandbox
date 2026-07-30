@@ -39,6 +39,10 @@ public partial class PartyMemberComponent : Node
     /// Whether the <see cref="Actors.PartyMember"/> has a followup.
     /// </summary>
     public bool HasFollowup => FollowupBubbles != null;
+    /// <summary>
+    /// The followup set assigned to the <see cref="Actors.PartyMember"/>, or null when followups are disabled.
+    /// </summary>
+    internal FollowupSet FollowupSet { get; private set; }
 
     private Timer HurtTimer = new()
     {
@@ -46,7 +50,7 @@ public partial class PartyMemberComponent : Node
 	    OneShot = true
     };
 
-    internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, BattlePresetActor actor)
+    internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, FollowupSet set, BattlePresetActor actor)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
@@ -80,8 +84,10 @@ public partial class PartyMemberComponent : Node
 		if (followup != null)
 		{
             FollowupBubbles bubbles = followup.Instantiate<FollowupBubbles>();
+			bubbles.ApplySet(set, actor.Position);
 			GetParent().AddChild(bubbles);
 			FollowupBubbles = bubbles;
+			FollowupSet = set;
 		}
 
 		Position = actor.Position;

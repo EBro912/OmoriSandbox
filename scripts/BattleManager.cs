@@ -81,7 +81,6 @@ public partial class BattleManager : Node
 	private bool ForceHideFollowup = false;
 	private int FollowupTier = 1;
 	private bool UseBasilReleaseEnergy = false;
-	private bool UseBasilFollowups = false;
 	private bool DamageNumbersDisabled = false;
 	private bool DebugDamageHeld = false;
 
@@ -115,29 +114,6 @@ public partial class BattleManager : Node
 		{ (2, InputDirection.Up), (3, 1) },
 		{ (3, InputDirection.Left), (1, 0) },
 		{ (3, InputDirection.Down), (2, 0) },
-	};
-
-	// table used for handling followup behavior
-	// has a followup target and followup skill to use
-	private Dictionary<(int Position, InputDirection Direction), (int Target, string SkillName)> FollowupTable = new()
-	{
-		// the skill names here will get their tier number added later
-		// Omori
-		{ (0, InputDirection.Up), (0, "AttackAgain") },
-		{ (0, InputDirection.Right), (0, "Trip") },
-		{ (0, InputDirection.Down), (0, "ReleaseEnergy") },
-
-		// Aubrey
-		{ (1, InputDirection.Up), (3, "LookAtHero") },
-		{ (1, InputDirection.Right), (2, "LookAtKel") },
-		{ (1, InputDirection.Down), (0, "LookAtOmori") },
-
-		// Hero
-		{ (3, InputDirection.Up), (1, "CallAubrey") },
-		{ (3, InputDirection.Left), (0, "CallOmori") },
-		{ (3, InputDirection.Down), (2, "CallKel") },
-
-		// Kel and Basil are added dynamically in Init()
 	};
 
 	public override void _EnterTree()
@@ -189,7 +165,6 @@ public partial class BattleManager : Node
 		Items = preset.Items.ToDictionary();
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
-		UseBasilFollowups = preset.BasilFollowups;
 		UseBasilReleaseEnergy = preset.BasilReleaseEnergy;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		EndOfBattleOptionsContainer.Visible = false;
@@ -208,20 +183,6 @@ public partial class BattleManager : Node
 		AddChild(Delay);
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
-
-		// update the FollowupTable depending on if Basil followups are enabled
-		if (UseBasilFollowups)
-		{
-			FollowupTable[(2, InputDirection.Down)] = (0, "Comfort");
-			FollowupTable[(2, InputDirection.Left)] = (0, "Mull");
-			FollowupTable[(2, InputDirection.Up)] = (0, "Vent");
-		}
-		else
-		{
-			FollowupTable[(2, InputDirection.Down)] = (0, "PassToOmori");
-			FollowupTable[(2, InputDirection.Left)] = (1, "PassToAubrey");
-			FollowupTable[(2, InputDirection.Up)] = (3, "PassToHero");
-		}
 
 		DamageNumber.CacheTexture(ResourceLoader.Load<Texture2D>("res://assets/system/Damage.png"));
 
@@ -1376,23 +1337,15 @@ public partial class BattleManager : Node
 				else
 				{
 					PartyMemberComponent component = CurrentParty.First(x => x.Actor == currentAction.Actor);
-					if (component.HasFollowup)
+					if (component.HasFollowup && component.FollowupSet != null)
 					{
 						HashSet<InputDirection> disabledDirections = [];
-						foreach (var entry in FollowupTable)
+						foreach (var entry in component.FollowupSet.Entries)
 						{
-							if (entry.Key.Position != component.Position) continue;
-							PartyMemberComponent target =
-								CurrentParty.FirstOrDefault(x => x.Position == entry.Value.Target);
-							bool disabled = target == null || target.Actor.IsToast;
-							if (entry.Value.SkillName.StartsWith("ReleaseEnergy") &&
-							    CurrentParty.Any(x => x.Actor.IsToast))
-								disabled = true;
-							// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
-							if (entry.Value.SkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
-								disabled = true;
-							if (disabled)
-								disabledDirections.Add(entry.Key.Direction);
+							// each bubble already grays itself on energy via its own cost
+							if (!IsFollowupEntryUsable(entry.Value.TargetPosition, entry.Value.BaseSkillName,
+								    includeEnergy: false))
+								disabledDirections.Add(FollowupSets.DirectionFor(entry.Key, component.Position));
 						}
 
 						component.FadeInFollowups(disabledDirections);
@@ -1417,37 +1370,19 @@ public partial class BattleManager : Node
 			return false;
 
 		PartyMemberComponent current = CurrentParty.First(x => x.Actor == CurrentCommand.Actor);
-		if (!FollowupTable.TryGetValue((current.Position, direction), out var pair))
+		FollowupInput? role = FollowupSets.InputFor(direction, current.Position);
+		if (role == null || current.FollowupSet == null ||
+		    !current.FollowupSet.Entries.TryGetValue(role.Value, out FollowupEntry pair))
 			return false;
 
-		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == pair.Target);
-		if (target == null || target.Actor.IsToast)
+		if (!IsFollowupEntryUsable(pair.TargetPosition, pair.BaseSkillName, includeEnergy: true))
 			return false;
 
-		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
-		if (pair.SkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
-			return false;
-
-		string name = pair.SkillName;
-		bool basil = false;
+		string name = pair.BaseSkillName;
 		if (name.StartsWith("ReleaseEnergy"))
-		{
-			if (Energy != 10 || CurrentParty.Any(x => x.Actor.IsToast))
-				return false;
-
-			if (UseBasilReleaseEnergy)
-				name += "Basil";
-			else
-				name += FollowupTier;
-		}
-		else
-		{
-			if (current.Position == 2 && UseBasilFollowups)
-				basil = true;
-
-			if (!basil)
-				name += FollowupTier;
-		}
+			name += UseBasilReleaseEnergy ? "Basil" : FollowupTier.ToString();
+		else if (current.FollowupSet.Tiered)
+			name += FollowupTier;
 
 		if (!Database.TryGetSkill(name, out Skill skill))
 			return false;
@@ -1456,7 +1391,7 @@ public partial class BattleManager : Node
 		BattleCommand command = skill.Target is SkillTarget.AllEnemies
 			? new BattleCommand(current.Actor, GetAllEnemies(), skill)
 			: new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
-		PendingFollowup = new PendingFollowupData(command, pair.Target, pair.SkillName);
+		PendingFollowup = new PendingFollowupData(command, pair.TargetPosition, pair.BaseSkillName);
 
 		// prevent followup bubbles from showing again if the followup itself is an attack
 		if (skill.ShowFollowups)
@@ -1502,28 +1437,35 @@ public partial class BattleManager : Node
 		CurrentParty.First(x => x.Actor == CurrentCommand.Actor).FadeOutFollowupsExcept(direction);
 	}
 	
+	private bool IsFollowupEntryUsable(int targetPosition, string baseSkillName, bool includeEnergy)
+	{
+		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == targetPosition);
+		if (target == null || target.Actor.IsToast)
+			return false;
+
+		if (baseSkillName.StartsWith("ReleaseEnergy"))
+		{
+			if (CurrentParty.Any(x => x.Actor.IsToast))
+				return false;
+			if (includeEnergy && Energy != 10)
+				return false;
+		}
+		else if (includeEnergy && Energy < 3)
+			return false;
+
+		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
+		if (baseSkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
+			return false;
+
+		return true;
+	}
+
 	private bool IsFollowupValid(PendingFollowupData followup)
 	{
 		if (IsInvalidTarget(followup.Command.Actor) || followup.Command.Actor.Stunned)
 			return false;
 
-		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == followup.TargetPosition);
-		if (target == null || target.Actor.IsToast)
-			return false;
-
-		if (followup.IsReleaseEnergy)
-		{
-			if (Energy != 10 || CurrentParty.Any(x => x.Actor.IsToast))
-				return false;
-		}
-		else if (Energy < 3)
-			return false;
-
-		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
-		if (followup.BaseSkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
-			return false;
-
-		return true;
+		return IsFollowupEntryUsable(followup.TargetPosition, followup.BaseSkillName, includeEnergy: true);
 	}
 
 	private async void EndOfTurn()

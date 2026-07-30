@@ -368,7 +368,7 @@ internal partial class ModManager : Node
 		{
 			spriteFrames.AddAnimation(data.Emotion);
 			spriteFrames.SetAnimationSpeed(data.Emotion, data.Fps);
-			spriteFrames.SetAnimationLoop(data.Emotion, true);
+			spriteFrames.SetAnimationLoopMode(data.Emotion, SpriteFrames.LoopMode.Linear);
 			foreach (int idx in data.Frames)
 			{
 				if (idx < 0 || idx >= totalCells)
@@ -463,7 +463,7 @@ internal partial class ModManager : Node
 		{
 			spriteFrames.AddAnimation(data.Emotion);
 			spriteFrames.SetAnimationSpeed(data.Emotion, data.Fps);
-			spriteFrames.SetAnimationLoop(data.Emotion, true);
+			spriteFrames.SetAnimationLoopMode(data.Emotion, SpriteFrames.LoopMode.Linear);
 			foreach (int idx in data.Frames)
 			{
 				if (idx < 0 || idx >= totalCells)

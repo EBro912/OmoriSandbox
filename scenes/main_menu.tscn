@@ -57,7 +57,7 @@ TitlePresetDropdown = NodePath("../Main/MainControls/PresetSelector/PresetDropdo
 StageSelectorParent = NodePath("../Main/MainControls/StageSelector")
 StageSelectorSpinBox = NodePath("../Main/MainControls/StageSelector/StageSpinBox")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "BasilFollowupsCheckbox", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "BasilReleaseEnergyCheckbox", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -74,10 +74,9 @@ StartingEnergySlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/S
 StartingEnergyValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy/Label2")
 FollowupTierSlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/HSlider")
 FollowupTierValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/Label2")
-BasilFollowupsCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/BasilFollowups")
-BasilReleaseEnergyCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/BasilReleaseEnergy")
-DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/DisableDialogue")
-DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/GridContainer/DisableDamageNumbers")
+BasilReleaseEnergyCheckbox = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/BasilReleaseEnergy")
+DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDialogue")
+DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDamageNumbers")
 AddItemButton = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/AddItemButton")
 ItemContainer = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/ScrollContainer/ItemsContainer")
 SearchInput = NodePath("../Editor/SettingsTabs/Tools/Skill Search/VBoxContainer/HBoxContainer/SearchInput")
@@ -1441,32 +1440,24 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1"
 
-[node name="GridContainer" type="GridContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=2018227542]
+[node name="OtherSettings" type="VBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1817215259]
 layout_mode = 2
-columns = 2
 
-[node name="BasilFollowups" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=1442207599]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Use Basil Followups"
-
-[node name="BasilReleaseEnergy" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=756327374]
+[node name="BasilReleaseEnergy" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=756327374]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Basil Release Energy"
 
-[node name="DisableDialogue" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=1424746557]
+[node name="DisableDialogue" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1424746557]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Dialogue"
 
-[node name="DisableDamageNumbers" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/GridContainer" unique_id=1427138058]
+[node name="DisableDamageNumbers" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1427138058]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20

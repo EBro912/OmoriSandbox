@@ -1,4 +1,5 @@
 using Godot;
+using OmoriSandbox.Battle;
 
 namespace OmoriSandbox;
 
@@ -14,6 +15,23 @@ internal partial class FollowupDirection : Sprite2D
         Finger = GetChild<CursorBounce>(0);
         Finger.StopBounce();
         Modulate = Colors.Transparent;
+    }
+
+    // apply graphics from a followup entry
+    // in base game, followup graphics are hardcoded based on actor position
+    internal void Apply(FollowupEntry entry)
+    {
+        Texture = ResourceLoader.Load<Texture2D>(entry.TexturePath);
+        RegionEnabled = entry.TextureRegion.HasValue;
+        if (entry.TextureRegion.HasValue)
+            RegionRect = entry.TextureRegion.Value;
+        Cost = entry.Cost;
+        if (entry.IsReleaseEnergy)
+        {
+            FollowupFreakOutComponent freakOut = new();
+            freakOut.Init(this);
+            AddChild(freakOut);
+        }
     }
 
     public void ShowBubble(bool targetAvailable)

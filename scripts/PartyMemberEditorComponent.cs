@@ -15,7 +15,7 @@ internal partial class PartyMemberEditorComponent : Control
 	[Export] public OptionButton EmotionDropdown { get; private set; }
 	[Export] public HSlider LevelSlider { get; private set; }
 	[Export] private Label LevelSliderValue;
-	[Export] public CheckBox DisableFollowups { get; private set; }
+	[Export] public OptionButton FollowupSetDropdown { get; private set; }
 	[Export] public LineEdit AttackSkill { get; private set; }
 	[Export] public LineEdit[] Skills;
 	[Export] private Button RemoveButton;
@@ -78,6 +78,10 @@ internal partial class PartyMemberEditorComponent : Control
 			RecalculateStats();
 		};
 
+		FollowupSetDropdown.AddItem(FollowupSets.NoneId);
+		foreach (FollowupSet set in FollowupSets.All)
+			FollowupSetDropdown.AddItem(set.Id);
+
 		FilterEquippableCheckbox.Toggled += (toggled) =>
 		{
 			FilterWeapons(toggled);
@@ -106,6 +110,7 @@ internal partial class PartyMemberEditorComponent : Control
 		JuiceLabel = BattleCard.GetNode<Label>("Battlecard/JuiceLabel");
 		
 		ActorPosition = position;
+		FollowupSetDropdown.Selected = FollowupSetDropdown.GetItemIndex(FollowupSets.DefaultIdForPosition(position));
 
 		RemoveButton.Pressed += () =>
 		{
@@ -120,12 +125,12 @@ internal partial class PartyMemberEditorComponent : Control
 		RecalculateStats();
 	}
 
-	public void Init(Control battleCard, BattlePresetActor actor)
+	public void Init(Control battleCard, BattlePresetActor actor, string followupSetId)
 	{
-		Init(battleCard, actor.Name, actor.Weapon, actor.Charm, actor.Level, actor.FollowupsDisabled, actor.Emotion, actor.Skills, actor.Position, actor.AdjustedStats);
+		Init(battleCard, actor.Name, actor.Weapon, actor.Charm, actor.Level, followupSetId, actor.Emotion, actor.Skills, actor.Position, actor.AdjustedStats);
 	}
-	
-	public void Init(Control battleCard, string name, string weapon, string charm, int level, bool followupsDisabled, string emotion, string[] skills, int position, Stats adjustedStats)
+
+	public void Init(Control battleCard, string name, string weapon, string charm, int level, string followupSetId, string emotion, string[] skills, int position, Stats adjustedStats)
 	{
 		BattleCard = battleCard;
 		Animator = BattleCard.GetNode<StateAnimator>("Battlecard/StateAnimatorComponent");
@@ -147,7 +152,10 @@ internal partial class PartyMemberEditorComponent : Control
 		WeaponDropdown.Selected = WeaponDropdown.GetItemIndex(weapon);
 		CharmDropdown.Selected = CharmDropdown.GetItemIndex(charm);
 		EmotionDropdown.Selected = EmotionDropdown.GetItemIndex(emotion);
-		DisableFollowups.ButtonPressed = followupsDisabled;
+		int followupIndex = FollowupSetDropdown.GetItemIndex(followupSetId);
+		FollowupSetDropdown.Selected = followupIndex != -1
+			? followupIndex
+			: FollowupSetDropdown.GetItemIndex(FollowupSets.DefaultIdForPosition(position));
 		LevelSlider.SetValueNoSignal(level);
 		LevelSliderValue.Text = level.ToString();
 		UpdateState(emotion);

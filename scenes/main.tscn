@@ -11,7 +11,6 @@
 [ext_resource type="PackedScene" uid="uid://dcw23mfavolv2" path="res://scenes/kel_followup.tscn" id="7_gqmmt"]
 [ext_resource type="Material" uid="uid://c5e4afccx5edf" path="res://assets/grayscale_shader.tres" id="7_ty1g6"]
 [ext_resource type="PackedScene" uid="uid://u0o0invoxvnj" path="res://scenes/enemy.tscn" id="8_choun"]
-[ext_resource type="PackedScene" uid="uid://dag4g5i5bp6xa" path="res://scenes/basil_followup.tscn" id="8_vxglm"]
 [ext_resource type="Texture2D" uid="uid://b75xtstrsgcbh" path="res://assets/system/bsys_battlelog.png" id="9_85g3d"]
 [ext_resource type="Script" uid="uid://cfj46ohy2ou47" path="res://scripts/BattleLogManager.cs" id="9_eb6dy"]
 [ext_resource type="Script" uid="uid://x1plm141bj2x" path="res://scripts/BattleManager.cs" id="9_y6deb"]
@@ -82,7 +81,7 @@ BattlebackRoot = NodePath("../UI/BattlebackRoot")
 FPSLabel = NodePath("../UI/HBoxContainer/FPS")
 Party = NodePath("../UI/Party")
 GreyscaleMaterial = ExtResource("7_ty1g6")
-Followups = Array[PackedScene]([ExtResource("4_muem4"), ExtResource("5_dp3eg"), ExtResource("7_gqmmt"), ExtResource("6_0ld40"), ExtResource("8_vxglm")])
+Followups = Array[PackedScene]([ExtResource("4_muem4"), ExtResource("5_dp3eg"), ExtResource("7_gqmmt"), ExtResource("6_0ld40")])
 
 [node name="BattleManager" type="Node" parent="BattleCanvas" unique_id=2138218027 node_paths=PackedStringArray("EnergyText", "EnergyBar", "EnergyDots", "EndOfBattleOptionsContainer", "StageSelectorContainer", "StageSelectorSpinBox", "RestartLabel")]
 script = ExtResource("9_y6deb")

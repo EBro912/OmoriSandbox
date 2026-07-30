@@ -124,16 +124,9 @@ public partial class GameManager : Node
 				continue;
 			}
 
-			PackedScene followup = null;
-			if (!entry.FollowupsDisabled)
-			{
-				if (preset.BasilFollowups && entry.Position == 2)
-					followup = Followups[4];
-				else
-					followup = Followups[entry.Position];
-			}
+			FollowupSet set = FollowupSets.Get(FollowupSets.ResolveId(preset, entry));
 
-			PartyMemberComponent actor = SpawnPartyMember(followup, entry);
+			PartyMemberComponent actor = SpawnPartyMember(set, entry);
 
 			if (actor == null)
 			{
@@ -221,7 +214,7 @@ public partial class GameManager : Node
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(PackedScene followup, BattlePresetActor actor)
+	private PartyMemberComponent SpawnPartyMember(FollowupSet set, BattlePresetActor actor)
 	{
 		PartyMember instance = Database.CreatePartyMember(actor.Name);
 		if (instance == null)
@@ -238,7 +231,9 @@ public partial class GameManager : Node
 		};
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		if (!component.SetPartyMember(instance, followup, actor))
+		// the slot provides the bubble layout, the set only provides graphics and skills
+		PackedScene followup = set == null ? null : Followups[actor.Position];
+		if (!component.SetPartyMember(instance, followup, set, actor))
 		{
 			card.QueueFree();
 			return null;

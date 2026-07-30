@@ -8,7 +8,7 @@
 [ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="5_r4oqs"]
 [ext_resource type="PackedScene" uid="uid://chwhfaladnv86" path="res://scenes/stat_adjustment_editor.tscn" id="6_pf1e0"]
 
-[node name="PartyMemberEditorComponent" type="TabContainer" unique_id=268931947 node_paths=PackedStringArray("ActorDropdown", "WeaponDropdown", "CharmDropdown", "EmotionDropdown", "LevelSlider", "LevelSliderValue", "DisableFollowups", "AttackSkill", "Skills", "RemoveButton", "FilterEquippableCheckbox", "StatAdjustmentEditor")]
+[node name="PartyMemberEditorComponent" type="TabContainer" unique_id=268931947 node_paths=PackedStringArray("ActorDropdown", "WeaponDropdown", "CharmDropdown", "EmotionDropdown", "LevelSlider", "LevelSliderValue", "FollowupSetDropdown", "AttackSkill", "Skills", "RemoveButton", "FilterEquippableCheckbox", "StatAdjustmentEditor")]
 offset_right = 297.0
 offset_bottom = 318.0
 mouse_filter = 2
@@ -24,7 +24,7 @@ CharmDropdown = NodePath("Edit/VBoxContainer/Charm/CharmDropdown")
 EmotionDropdown = NodePath("Edit/VBoxContainer/Emotion/EmotionDropdown")
 LevelSlider = NodePath("Edit/VBoxContainer/Level/LevelSlider")
 LevelSliderValue = NodePath("Edit/VBoxContainer/Level/LevelSliderValue")
-DisableFollowups = NodePath("Edit/VBoxContainer/DisableFollowups")
+FollowupSetDropdown = NodePath("Edit/VBoxContainer/FollowupSet/FollowupSetDropdown")
 AttackSkill = NodePath("Edit/VBoxContainer/AttackSkill/Skill")
 Skills = [NodePath("Edit/VBoxContainer/Skills/Skill1/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill2/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill3/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill4/Skill")]
 RemoveButton = NodePath("Edit/VBoxContainer/Remove")
@@ -150,11 +150,25 @@ rounded = true
 layout_mode = 2
 text = "1"
 
-[node name="DisableFollowups" type="CheckBox" parent="Edit/VBoxContainer" unique_id=1995409961]
+[node name="FollowupSet" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1095825863]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Edit/VBoxContainer/FollowupSet" unique_id=305253229]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
-text = "Disable Followups"
+text = "Followups"
+
+[node name="FollowupSetDropdown" type="OptionButton" parent="Edit/VBoxContainer/FollowupSet" unique_id=2056505193]
+layout_mode = 2
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("2_pn8h2")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("3_nfq3q")
+theme_override_styles/pressed = ExtResource("5_r4oqs")
+theme_override_styles/hover = ExtResource("4_r4oqs")
+allow_reselect = true
 
 [node name="Label" type="Label" parent="Edit/VBoxContainer" unique_id=1430212832]
 layout_mode = 2

@@ -626,7 +626,7 @@ public partial class AnimationManager : Node
 			Position = position,
 			ZIndex = layer
 		};
-		sprite.SpriteFrames.SetAnimationLoop(animationName, false);
+		sprite.SpriteFrames.SetAnimationLoopMode(animationName, SpriteFrames.LoopMode.None);
 		AddChild(sprite);
 		sprite.Play();
 		void Finished()
@@ -655,7 +655,7 @@ public partial class AnimationManager : Node
 			Position = position,
 			ZIndex = layer
 		};
-		sprite.SpriteFrames.SetAnimationLoop(animationName, false);
+		sprite.SpriteFrames.SetAnimationLoopMode(animationName, SpriteFrames.LoopMode.None);
 		AddChild(sprite);
 		sprite.Play();
 		await ToSignal(sprite, AnimatedSprite2D.SignalName.AnimationFinished);

@@ -314,7 +314,6 @@ internal partial class EditorManager : Node
 			Name = PresetInput.Text,
 			StartingEnergy = (int)StartingEnergySlider.Value,
 			FollowupTier = (int)FollowupTierSlider.Value,
-			BasilFollowups = BasilFollowupsCheckbox.ButtonPressed,
 			BasilReleaseEnergy = BasilReleaseEnergyCheckbox.ButtonPressed,
 			DisableDialogue = DisableDialogue.ButtonPressed,
 			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed
@@ -362,7 +361,7 @@ internal partial class EditorManager : Node
 					Weapon = editor.WeaponDropdown.GetItemText(editor.WeaponDropdown.Selected),
 					Charm = editor.CharmDropdown.GetItemText(editor.CharmDropdown.Selected),
 					Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
-					FollowupsDisabled = editor.DisableFollowups.ButtonPressed,
+					FollowupSet = editor.FollowupSetDropdown.GetItemText(editor.FollowupSetDropdown.Selected),
 					Skills = skills,
 					Position = editor.ActorPosition,
 					AdjustedStats = editor.GetAdjustedStats()
@@ -478,7 +477,6 @@ internal partial class EditorManager : Node
 
 		StartingEnergySlider.Value = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTierSlider.Value = Math.Clamp(preset.FollowupTier, 1, 3);
-		BasilFollowupsCheckbox.ButtonPressed = preset.BasilFollowups;
 		BasilReleaseEnergyCheckbox.ButtonPressed = preset.BasilReleaseEnergy;
 		DisableDialogue.ButtonPressed = preset.DisableDialogue;
 		DisableDamageNumbers.ButtonPressed = preset.DisableDamageNumbers;
@@ -534,7 +532,7 @@ internal partial class EditorManager : Node
 			card.Position = Vector2.Zero;
 			PartyMemberEditorComponent editor = PartyMemberEditor.Instantiate<PartyMemberEditorComponent>();
 			ActorTabs.AddChild(editor);
-			editor.Init(card, entry);
+			editor.Init(card, entry, FollowupSets.ResolveId(preset, entry));
 		}
 
 		if (preset.Type is GameModeType.Normal)
@@ -725,7 +723,6 @@ internal partial class EditorManager : Node
 		}
 		
 		FollowupTierSlider.Value = 1;
-		BasilFollowupsCheckbox.ButtonPressed = false;
 		BasilReleaseEnergyCheckbox.ButtonPressed = false;
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
@@ -769,7 +766,6 @@ internal partial class EditorManager : Node
     [Export] private Label StartingEnergyValue;
     [Export] private HSlider FollowupTierSlider;
     [Export] private Label FollowupTierValue;
-    [Export] private CheckBox BasilFollowupsCheckbox;
     [Export] private CheckBox BasilReleaseEnergyCheckbox;
     [Export] private CheckBox DisableDialogue;
     [Export] private CheckBox DisableDamageNumbers;

@@ -5,6 +5,8 @@ namespace OmoriSandbox;
 internal partial class FollowupFreakOutComponent : Node
 {
     [Export] private FollowupDirection Target;
+    
+    internal void Init(FollowupDirection target) => Target = target;
 
     private const float FPS = 30f;
     private float FrameDuration = 1f / FPS;
