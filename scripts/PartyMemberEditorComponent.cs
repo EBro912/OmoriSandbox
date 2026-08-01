@@ -17,7 +17,9 @@ internal partial class PartyMemberEditorComponent : Control
 	[Export] private Label LevelSliderValue;
 	[Export] public OptionButton FollowupSetDropdown { get; private set; }
 	[Export] public LineEdit AttackSkill { get; private set; }
-	[Export] public LineEdit[] Skills;
+	[Export] private GridContainer SkillsContainer;
+	[Export] private Control SkillSlotTemplate;
+	[Export] private Button AddSkillSlotButton;
 	[Export] private Button RemoveButton;
 	[Export] private CheckBox FilterEquippableCheckbox;
 	[Export] private StatAdjustmentEditor StatAdjustmentEditor;
@@ -81,6 +83,9 @@ internal partial class PartyMemberEditorComponent : Control
 		FollowupSetDropdown.AddItem(FollowupSets.NoneId);
 		foreach (FollowupSet set in FollowupSets.All)
 			FollowupSetDropdown.AddItem(set.Id);
+
+		AddSkillSlotButton.Pressed += AddSkillSlot;
+		SetSkillSlotCount(4);
 
 		FilterEquippableCheckbox.Toggled += (toggled) =>
 		{
@@ -163,10 +168,9 @@ internal partial class PartyMemberEditorComponent : Control
 		{
 			// first index should always be the attack skill
 			AttackSkill.Text = skills[0];
-			for (int i = 1; i < skills.Length; i++)
-			{
-				Skills[i - 1].Text = skills[i];
-			}
+			SetSkillSlotCount(Mathf.Max(4, skills.Length - 1));
+			for (int i = 0; i < SkillsContainer.GetChildCount(); i++)
+				GetSlotLineEdit(i).Text = i < skills.Length - 1 ? skills[i + 1] : "";
 		}
 
 		int index = level - 1;
@@ -248,6 +252,60 @@ internal partial class PartyMemberEditorComponent : Control
 	public Stats GetAdjustedStats()
 	{
 		return StatAdjustmentEditor.GetStats();
+	}
+
+	private LineEdit GetSlotLineEdit(int index)
+	{
+		return SkillsContainer.GetChild(index).GetNode<LineEdit>("Skill");
+	}
+
+	private void AddSkillSlot()
+	{
+		HBoxContainer row = (HBoxContainer)SkillSlotTemplate.Duplicate();
+		row.Visible = true;
+		row.GetNode<Button>("RemoveSlot").Pressed += () =>
+		{
+			SkillsContainer.RemoveChild(row);
+			row.QueueFree();
+			RenumberSlots();
+		};
+		SkillsContainer.AddChild(row);
+		RenumberSlots();
+	}
+
+	private void SetSkillSlotCount(int count)
+	{
+		while (SkillsContainer.GetChildCount() < count)
+			AddSkillSlot();
+		while (SkillsContainer.GetChildCount() > count)
+		{
+			Node row = SkillsContainer.GetChild(SkillsContainer.GetChildCount() - 1);
+			SkillsContainer.RemoveChild(row);
+			row.QueueFree();
+		}
+		RenumberSlots();
+	}
+
+	private void RenumberSlots()
+	{
+		for (int i = 0; i < SkillsContainer.GetChildCount(); i++)
+		{
+			Node row = SkillsContainer.GetChild(i);
+			row.GetNode<Label>("Label").Text = $"Skill {i + 1}";
+			// the default 4 slots are permanent, only extras can be removed
+			row.GetNode<Button>("RemoveSlot").Visible = i >= 4;
+		}
+	}
+
+	public string[] GetSkills()
+	{
+		List<string> skills = [AttackSkill.Text];
+		for (int i = 0; i < SkillsContainer.GetChildCount(); i++)
+			skills.Add(GetSlotLineEdit(i).Text);
+		// old presets always carry 5 entries, trim unused extra slots but keep the shape
+		while (skills.Count > 5 && string.IsNullOrWhiteSpace(skills[^1]))
+			skills.RemoveAt(skills.Count - 1);
+		return [.. skills];
 	}
 
 	private void FilterWeapons(bool toggled)

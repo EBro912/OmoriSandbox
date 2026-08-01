@@ -17,6 +17,8 @@ internal partial class FollowupBubbles : Node2D
             FollowupInput? role = FollowupSets.InputFor(direction.InputDir, position);
             if (role != null && set.Entries.TryGetValue(role.Value, out FollowupEntry entry))
                 direction.Apply(entry);
+            else
+                direction.Disable();
         }
     }
 

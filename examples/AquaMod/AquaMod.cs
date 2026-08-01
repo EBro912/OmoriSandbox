@@ -3,6 +3,7 @@ using OmoriSandbox;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Modding;
+using System.Collections.Generic;
 
 namespace AquaMod;
 
@@ -17,7 +18,6 @@ public partial class AquaMod : Mod
             description: "AQKnifeChain",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws a chain of knives!");
@@ -45,7 +45,6 @@ public partial class AquaMod : Mod
             description: "AQKnifeFan",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws a fan of knives!");
@@ -63,7 +62,6 @@ public partial class AquaMod : Mod
             description: "AQKnifeCircle",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws knives in a circle!");
@@ -81,7 +79,6 @@ public partial class AquaMod : Mod
             description: "AQOmega",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] uses her OMEGA attack!");

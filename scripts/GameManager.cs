@@ -125,6 +125,8 @@ public partial class GameManager : Node
 			}
 
 			FollowupSet set = FollowupSets.Get(FollowupSets.ResolveId(preset, entry));
+			if (set != null)
+				FollowupSets.WarnMissingSkills(set, preset);
 
 			PartyMemberComponent actor = SpawnPartyMember(set, entry);
 

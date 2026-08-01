@@ -592,7 +592,7 @@ region_rect = Rect2(835, 172, 180, 40)
 [node name="Cursor" parent="BattleCanvas/UI/BattleMenu" unique_id=587240618 instance=ExtResource("24_qkpxi")]
 visible = true
 
-[node name="SkillMenu" type="NinePatchRect" parent="BattleCanvas/UI" unique_id=1066892326 node_paths=PackedStringArray("SkillLabels", "CostText", "CursorSprite")]
+[node name="SkillMenu" type="NinePatchRect" parent="BattleCanvas/UI" unique_id=1066892326 node_paths=PackedStringArray("SkillLabels", "CostText", "PageUpSprite", "PageDownSprite", "CursorSprite")]
 visible = false
 layout_mode = 1
 anchors_preset = 7
@@ -615,6 +615,8 @@ patch_margin_right = 6
 script = ExtResource("19_og1vs")
 SkillLabels = [NodePath("Skill1"), NodePath("Skill3"), NodePath("Skill2"), NodePath("Skill4")]
 CostText = NodePath("Cost/Value")
+PageUpSprite = NodePath("PageUp")
+PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
 
 [node name="Line2D" type="Line2D" parent="BattleCanvas/UI/SkillMenu" unique_id=744042075]
@@ -697,6 +699,21 @@ script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/SkillMenu" unique_id=504568155 instance=ExtResource("24_qkpxi")]
 visible = true
+
+[node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu"]
+visible = false
+position = Vector2(350, 35)
+texture = ExtResource("26_kmb1v")
+flip_v = true
+region_enabled = true
+region_rect = Rect2(151, 111, 10, 5)
+
+[node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu"]
+visible = false
+position = Vector2(350, 90)
+texture = ExtResource("26_kmb1v")
+region_enabled = true
+region_rect = Rect2(151, 111, 10, 5)
 
 [node name="ColorRect" type="ColorRect" parent="BattleCanvas/UI/SkillMenu" unique_id=1336403908]
 z_index = -1

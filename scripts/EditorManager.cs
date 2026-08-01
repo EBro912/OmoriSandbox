@@ -350,10 +350,6 @@ internal partial class EditorManager : Node
 		{
 			if (child is PartyMemberEditorComponent editor)
 			{
-				string[] skills = new string[5];
-				skills[0] = editor.AttackSkill.Text;
-				for (int i = 0; i < 4; i++)
-					skills[i + 1] = editor.Skills[i].Text;
 				BattlePresetActor actor = new()
 				{
 					Name = editor.ActorDropdown.GetItemText(editor.ActorDropdown.Selected),
@@ -362,7 +358,7 @@ internal partial class EditorManager : Node
 					Charm = editor.CharmDropdown.GetItemText(editor.CharmDropdown.Selected),
 					Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
 					FollowupSet = editor.FollowupSetDropdown.GetItemText(editor.FollowupSetDropdown.Selected),
-					Skills = skills,
+					Skills = editor.GetSkills(),
 					Position = editor.ActorPosition,
 					AdjustedStats = editor.GetAdjustedStats()
 				};

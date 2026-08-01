@@ -504,8 +504,7 @@ internal partial class ModManager : Node
 			}
 		}
 	}
-
-
+	
 	private void LoadSFX(string root, string dir, ModLoadReport report)
 	{
 		string path = $"user://mods/{root}/{dir}";

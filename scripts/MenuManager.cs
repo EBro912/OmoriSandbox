@@ -163,6 +163,12 @@ internal partial class MenuManager : Node
 			if (SettingsMenuManager.Instance.LogDebug)
 				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
 		}
+		else if (CurrentMenu is SkillMenu skillMenu)
+		{
+			LastSelected[member] = new(CurrentState, skillMenu.CursorIndex, skillMenu.Page);
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {skillMenu.Page}");
+		}
 		else
 		{
 			LastSelected[member] = new(CurrentState, CurrentMenu.CursorIndex);

@@ -4,6 +4,7 @@ using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using OmoriSandbox.Extensions;
 
@@ -119,5 +120,20 @@ public abstract partial class Mod : Node
     protected static void RegisterEmotion(Emotion emotion)
     {
         Database.RegisterModdedEmotion(emotion);
+    }
+
+    /// <summary>
+    /// Registers a new followup set. It appears in the editor's followup dropdown after the
+    /// vanilla sets and can be assigned to any party member slot.<br/>
+    /// A set maps up to three <see cref="FollowupInput"/> directions to <see cref="FollowupEntry"/>
+    /// bubbles, omitted directions are hidden in battle.
+    /// </summary>
+    /// <param name="id">The ID of the set. This is how it appears in the editor dropdown and in presets.</param>
+    /// <param name="entries">The bubbles by role. <see cref="FollowupInput.Horizontal"/> faces the enemies from the member's slot.</param>
+    /// <param name="tiered">Whether the battle's followup tier (1-3) is appended to each skill name,
+    /// requiring skills like <c>MySkill1</c>/<c>MySkill2</c>/<c>MySkill3</c> to be registered.</param>
+    protected static void RegisterFollowupSet(string id, IReadOnlyDictionary<FollowupInput, FollowupEntry> entries, bool tiered = false)
+    {
+        Database.RegisterModdedFollowupSet(id, entries, tiered);
     }
 }
