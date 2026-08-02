@@ -314,7 +314,6 @@ internal partial class EditorManager : Node
 			Name = PresetInput.Text,
 			StartingEnergy = (int)StartingEnergySlider.Value,
 			FollowupTier = (int)FollowupTierSlider.Value,
-			BasilReleaseEnergy = BasilReleaseEnergyCheckbox.ButtonPressed,
 			DisableDialogue = DisableDialogue.ButtonPressed,
 			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed
 		};
@@ -473,7 +472,6 @@ internal partial class EditorManager : Node
 
 		StartingEnergySlider.Value = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTierSlider.Value = Math.Clamp(preset.FollowupTier, 1, 3);
-		BasilReleaseEnergyCheckbox.ButtonPressed = preset.BasilReleaseEnergy;
 		DisableDialogue.ButtonPressed = preset.DisableDialogue;
 		DisableDamageNumbers.ButtonPressed = preset.DisableDamageNumbers;
 		
@@ -719,7 +717,6 @@ internal partial class EditorManager : Node
 		}
 		
 		FollowupTierSlider.Value = 1;
-		BasilReleaseEnergyCheckbox.ButtonPressed = false;
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
 
@@ -762,7 +759,6 @@ internal partial class EditorManager : Node
     [Export] private Label StartingEnergyValue;
     [Export] private HSlider FollowupTierSlider;
     [Export] private Label FollowupTierValue;
-    [Export] private CheckBox BasilReleaseEnergyCheckbox;
     [Export] private CheckBox DisableDialogue;
     [Export] private CheckBox DisableDamageNumbers;
     [Export] private Button AddItemButton;

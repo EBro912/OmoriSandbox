@@ -8,7 +8,6 @@
   "StartingEnergy": 3,
   "FollowupTier": 1,
   "BasilFollowups": false,
-  "BasilReleaseEnergy": false,
   "DisableDialogue": false,
   "DisableDamageNumbers": false,
   "Items": {

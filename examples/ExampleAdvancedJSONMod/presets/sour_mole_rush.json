@@ -3,7 +3,6 @@
   "Name": "Sour Mole Rush",
   "StartingEnergy": 3,
   "FollowupTier": 3,
-  "BasilReleaseEnergy": false,
   "DisableDialogue": false,
   "DisableDamageNumbers": false,
   "Items": {

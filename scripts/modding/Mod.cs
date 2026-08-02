@@ -129,13 +129,8 @@ public abstract partial class Mod : Node
     /// bubbles, omitted directions are hidden in battle.
     /// </summary>
     /// <remarks>
-    /// Entries whose skill name starts with <c>ReleaseEnergy</c> opt into release-energy behavior:
-    /// the bubble costs 10 energy, requires exactly 10 energy with no toast party member, drains
-    /// all energy when used, and shows the freak-out overlay.<br/>
-    /// The exact name <c>ReleaseEnergy</c> defers to the vanilla skills, resolving to
-    /// <c>ReleaseEnergy1</c>-<c>ReleaseEnergy3</c> by followup tier or <c>ReleaseEnergyBasil</c>
-    /// when the preset enables Basil Release Energy. Any other prefixed name resolves like a
-    /// normal followup skill, with the tier appended only when <paramref name="tiered"/> is true.
+    /// Entries whose skill name starts with <c>ReleaseEnergy</c> are considered Release Energy skills and will
+    /// cost 10 energy to use, as well as requiring the entire party being alive.
     /// </remarks>
     /// <param name="id">The ID of the set. This is how it appears in the editor dropdown and in presets.</param>
     /// <param name="entries">The bubbles by role. <see cref="FollowupInput.Horizontal"/> faces the enemies from the member's slot.</param>

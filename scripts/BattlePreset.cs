@@ -17,7 +17,9 @@ internal class BattlePreset
     // legacy, kept for reading old presets
     public bool BasilFollowups { get; set; } = false;
     public bool ShouldSerializeBasilFollowups() => false;
+    // legacy, kept for reading old presets
     public bool BasilReleaseEnergy { get; set; } = false;
+    public bool ShouldSerializeBasilReleaseEnergy() => false;
     public bool DisableDialogue { get; set; } = false;
     public bool DisableDamageNumbers { get; set; } = false;
     public Dictionary<string, int> Items { get; set; } = [];

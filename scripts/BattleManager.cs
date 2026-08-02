@@ -80,7 +80,6 @@ public partial class BattleManager : Node
 	private bool FollowupSelected = false;
 	private bool ForceHideFollowup = false;
 	private int FollowupTier = 1;
-	private bool UseBasilReleaseEnergy = false;
 	private bool DamageNumbersDisabled = false;
 	private bool DebugDamageHeld = false;
 
@@ -165,7 +164,6 @@ public partial class BattleManager : Node
 		Items = preset.Items.ToDictionary();
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
-		UseBasilReleaseEnergy = preset.BasilReleaseEnergy;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
@@ -1379,11 +1377,11 @@ public partial class BattleManager : Node
 			return false;
 
 		string name = pair.BaseSkillName;
-		// only the exact vanilla name defers to the tier/Basil release energy skills;
-		// other "ReleaseEnergy"-prefixed names resolve like any other followup skill
+		
+		// certain followups like Basil's Release Energy have no tier
 		if (name == "ReleaseEnergy")
-			name += UseBasilReleaseEnergy ? "Basil" : FollowupTier.ToString();
-		else if (current.FollowupSet.Tiered)
+			name += FollowupTier.ToString();
+		else if (name != "ReleaseEnergyBasil" && current.FollowupSet.Tiered)
 			name += FollowupTier;
 
 		if (!Database.TryGetSkill(name, out Skill skill))

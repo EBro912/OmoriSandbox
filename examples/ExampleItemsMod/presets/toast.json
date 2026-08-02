@@ -7,7 +7,6 @@
   "BGMLoopPoint": 0.0,
   "StartingEnergy": 3,
   "FollowupTier": 1,
-  "BasilReleaseEnergy": false,
   "DisableDialogue": false,
   "DisableDamageNumbers": false,
   "Items": {

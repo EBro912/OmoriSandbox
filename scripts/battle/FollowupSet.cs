@@ -99,8 +99,9 @@ public readonly struct FollowupEntry
 	/// Whether this followup uses release-energy behavior, opted into by a skill name starting
 	/// with <c>ReleaseEnergy</c>: the bubble costs 10 energy, is only usable at exactly 10 energy
 	/// with no toast party member, drains all energy when used, and shows the freak-out overlay.<br/>
-	/// Only the exact name <c>ReleaseEnergy</c> additionally resolves to the vanilla tier/Basil
-	/// skills (<c>ReleaseEnergy1</c>-<c>3</c> / <c>ReleaseEnergyBasil</c>).
+	/// The exact name <c>ReleaseEnergy</c> additionally resolves to the vanilla tier skills
+	/// (<c>ReleaseEnergy1</c>-<c>3</c>), and the exact name <c>ReleaseEnergyBasil</c> resolves
+	/// as-is even in tiered sets.
 	/// </summary>
 	public bool IsReleaseEnergy => BaseSkillName.StartsWith("ReleaseEnergy");
 	internal int Cost => IsReleaseEnergy ? 10 : 3;
@@ -138,6 +139,16 @@ internal static class FollowupSets
 				{ FollowupInput.Up, new FollowupEntry(0, "AttackAgain", BubbleSheet, new Rect2(0, -1, 127, 99)) },
 				{ FollowupInput.Horizontal, new FollowupEntry(0, "Trip", BubbleSheet, new Rect2(127, 0, 127, 99)) },
 				{ FollowupInput.Down, new FollowupEntry(0, "ReleaseEnergy", BubbleSheet, new Rect2(258, 0, 127, 99)) },
+			},
+		},
+		new()
+		{
+			Id = "Omori (Basil RE)",
+			Entries = new Dictionary<FollowupInput, FollowupEntry>
+			{
+				{ FollowupInput.Up, new FollowupEntry(0, "AttackAgain", BubbleSheet, new Rect2(0, -1, 127, 99)) },
+				{ FollowupInput.Horizontal, new FollowupEntry(0, "Trip", BubbleSheet, new Rect2(127, 0, 127, 99)) },
+				{ FollowupInput.Down, new FollowupEntry(0, "ReleaseEnergyBasil", BubbleSheet, new Rect2(258, 0, 127, 99)) },
 			},
 		},
 		new()
@@ -241,18 +252,24 @@ internal static class FollowupSets
 	// helper to resolve older presets that predate the followup changes
 	public static string ResolveId(BattlePreset preset, BattlePresetActor actor)
 	{
+		string id;
 		if (!string.IsNullOrEmpty(actor.FollowupSet))
 		{
-			if (actor.FollowupSet == NoneId || Get(actor.FollowupSet) != null)
-				return actor.FollowupSet;
-			return NoneId;
+			id = actor.FollowupSet == NoneId || Get(actor.FollowupSet) != null
+				? actor.FollowupSet
+				: NoneId;
 		}
+		else if (actor.FollowupsDisabled)
+			id = NoneId;
+		else if (preset.BasilFollowups && actor.Position == 2)
+			id = "Basil";
+		else
+			id = DefaultIdForPosition(actor.Position);
 
-		if (actor.FollowupsDisabled)
-			return NoneId;
-		if (preset.BasilFollowups && actor.Position == 2)
-			return "Basil";
-		return DefaultIdForPosition(actor.Position);
+		// the legacy checkbox swapped Omori's ReleaseEnergy for the Basil variant
+		if (id == "Omori" && preset.BasilReleaseEnergy)
+			id = "Omori (Basil RE)";
+		return id;
 	}
 	
 	internal static void WarnMissingSkills(FollowupSet set, BattlePreset preset)
@@ -261,8 +278,8 @@ internal static class FollowupSets
 		{
 			string name = entry.BaseSkillName;
 			if (entry.BaseSkillName == "ReleaseEnergy")
-				name += preset.BasilReleaseEnergy ? "Basil" : preset.FollowupTier.ToString();
-			else if (set.Tiered)
+				name += preset.FollowupTier.ToString();
+			else if (name != "ReleaseEnergyBasil" && set.Tiered)
 				name += preset.FollowupTier;
 			if (!Database.TryGetSkill(name, out _))
 				GD.PushWarning($"Followup set \"{set.Id}\": skill \"{name}\" is not registered, followup will do nothing");
