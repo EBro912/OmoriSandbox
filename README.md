@@ -10,16 +10,14 @@ A battle simulator/sandbox for _OMORI_, written in C# for the Godot engine. It a
 ## Installation
 Simply download the latest release archive from the "Releases" section and extract the contents to any folder. There are two versions to choose from:
 ### For Windows Users:
-- `OmoriSandbox.zip` uses the Vulkan renderer and works best on newer systems. Recommended for most users.
-- `OmoriSandbox_Compat.zip` uses the OpenGL renderer and works best on older systems. Use this if you're having issues with the Vulkan version.
+Download `OmoriSandbox.zip`.
 
-Either archive should contain two executables:
+The archive should contain two executables:
 - `OmoriSandbox.console.exe`: Runs the Sandbox alongside a separate console window. Useful for viewing debug information and any errors that may occur while using the Sandbox. (Recommended)
 - `OmoriSandbox.exe`: Runs just the Sandbox without a console.
 
 ### For Linux Users
-- `OmoriSandbox_Linux.zip` uses the Vulkan renderer and works best on newer systems. Recommended for most users.
-- `OmoriSandbox_Linux_Compat.zip` uses the OpenGL renderer and works best on older systems. Use this if you're having issues with the Vulkan version.
+Download `OmoriSandbox_Linux.zip`.
 
 To run the Sandbox, you can either use the provided `OmoriSandbox.sh` script, or run the `OmoriSandbox.x86_64` executable directly.
 
