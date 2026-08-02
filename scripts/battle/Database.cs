@@ -6257,9 +6257,10 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(219, member);
+					// intentionally tier 1 (unlike BMHDebuffFriends' tier 3)
 					member.AddTierStatModifier("AttackDown", silent: true);
 					member.AddTierStatModifier("DefenseDown", silent: true);
-					member.AddTierStatModifier("SpeedDown",  silent: true);
+					member.AddTierStatModifier("SpeedDown", silent: true);
 				}
 			},
 			hidden: true
@@ -7479,7 +7480,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses PRUNE JUICE!");
 				AnimationManager.Instance.PlayAnimation(213, target);
 				int total = 30;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 45;
 				target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
@@ -7504,7 +7505,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses ROTTEN MILK!");
 				AnimationManager.Instance.PlayAnimation(213, target);
 				int total = 10;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 15;
 				target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
@@ -7531,7 +7532,7 @@ public class Database
 				await Wait.Milliseconds(2000);
 				AnimationManager.Instance.PlayAnimation(214, target);
 				int total = 10;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 15;
 				target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
@@ -7583,7 +7584,7 @@ public class Database
 					}
 				}
 				await AnimationManager.Instance.WaitForAnimation(269, target);
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Charm?.Name == "Breadphones"))
+				if (BattleManager.Instance.PartyHasLivingCharm("Breadphones"))
 					target.Revive(target.CurrentStats.MaxHP);
 				else
 					target.Revive(target.CurrentStats.MaxHP / 2);
@@ -8135,7 +8136,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
 				AnimationManager.Instance.PlayAnimation(212, target);
 				int heal = healing;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 					heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
 				target.Heal(heal);
 				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
@@ -8161,7 +8162,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
 				AnimationManager.Instance.PlayAnimation(213, target);
 				int total = juice;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
 				target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
@@ -8187,7 +8188,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
 				AnimationManager.Instance.PlayAnimation(213, target);
 				float juice = target.CurrentStats.MaxJuice * percentage;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					juice *= 1.5f;
 				int finalJuice = (int)Math.Round(juice, MidpointRounding.AwayFromZero);
 				target.HealJuice(finalJuice);
@@ -8214,7 +8215,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
 				AnimationManager.Instance.PlayAnimation(212, target);
 				float heal = target.CurrentStats.MaxHP * percentage;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 					heal *= 1.5f;
 				int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
 				target.Heal(finalHeal);
@@ -8240,7 +8241,7 @@ public class Database
 		   {
 			   BattleLogManager.Instance.QueueMessage(self, $"[actor] uses {name.ToUpper()}!");
 			   int heal = healing;
-			   if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name is "Frying Pan" or "Ol' Reliable"))
+			   if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 				   heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
 			   foreach (Actor member in targets)
 			   {
@@ -8269,7 +8270,7 @@ public class Database
 		   {
 			   BattleLogManager.Instance.QueueMessage(self, $"[actor] uses {name.ToUpper()}!");
 			   int total = juice;
-			   if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name is "Blender" or "Ol' Reliable"))
+			   if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 				   total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
 			   foreach (Actor member in targets)
 			   {
@@ -8300,10 +8301,10 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(212, target);
 				int heal = healing;
 				int total = juice;
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Frying Pan" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 					heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
 				// donald compiler please come save us donald compiler please save us
-				if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Blender" || x.Actor.Weapon.Name == "Ol' Reliable"))
+				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
 				target.Heal(heal);
 				target.HealJuice(total);

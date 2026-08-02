@@ -96,7 +96,11 @@ public readonly struct FollowupEntry
 	}
 
 	/// <summary>
-	/// Whether this followup triggers Release Energy.
+	/// Whether this followup uses release-energy behavior, opted into by a skill name starting
+	/// with <c>ReleaseEnergy</c>: the bubble costs 10 energy, is only usable at exactly 10 energy
+	/// with no toast party member, drains all energy when used, and shows the freak-out overlay.<br/>
+	/// Only the exact name <c>ReleaseEnergy</c> additionally resolves to the vanilla tier/Basil
+	/// skills (<c>ReleaseEnergy1</c>-<c>3</c> / <c>ReleaseEnergyBasil</c>).
 	/// </summary>
 	public bool IsReleaseEnergy => BaseSkillName.StartsWith("ReleaseEnergy");
 	internal int Cost => IsReleaseEnergy ? 10 : 3;
@@ -256,7 +260,7 @@ internal static class FollowupSets
 		foreach (FollowupEntry entry in set.Entries.Values)
 		{
 			string name = entry.BaseSkillName;
-			if (entry.IsReleaseEnergy)
+			if (entry.BaseSkillName == "ReleaseEnergy")
 				name += preset.BasilReleaseEnergy ? "Basil" : preset.FollowupTier.ToString();
 			else if (set.Tiered)
 				name += preset.FollowupTier;

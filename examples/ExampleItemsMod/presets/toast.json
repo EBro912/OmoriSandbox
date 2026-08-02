@@ -1,0 +1,55 @@
+{
+  "Type": 0,
+  "Name": "Toast Tasting",
+  "Battleback": "battleback_vf_default",
+  "BGM": "battle_vf",
+  "BGMPitch": 1.0,
+  "BGMLoopPoint": 0.0,
+  "StartingEnergy": 3,
+  "FollowupTier": 1,
+  "BasilReleaseEnergy": false,
+  "DisableDialogue": false,
+  "DisableDamageNumbers": false,
+  "Items": {
+    "Burnt Toast": 5,
+    "Crumbs": 3,
+    "Bigger Rubber Band": 2
+  },
+  "Actors": [
+    {
+      "Name": "Omori",
+      "Level": 20,
+      "Weapon": "Butter Knife",
+      "Charm": "6-leaf Clover",
+      "Emotion": "neutral",
+      "Skills": [
+        "OAttack",
+        "Trick",
+        "Mock",
+        "Guard"
+      ],
+      "Position": 0
+    },
+    {
+      "Name": "Hero",
+      "Level": 20,
+      "Weapon": "Spatula",
+      "Charm": "Chef's Hat",
+      "Emotion": "neutral",
+      "Skills": [
+        "HAttack",
+        "Massage",
+        "Cook",
+        "Smile"
+      ],
+      "Position": 3
+    }
+  ],
+  "Enemies": [
+    {
+      "Name": "LivingBread",
+      "Position": "Vector2(320, 240)"
+    }
+  ],
+  "Stages": []
+}

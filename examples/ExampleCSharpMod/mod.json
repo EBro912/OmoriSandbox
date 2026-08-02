@@ -1,0 +1,8 @@
+{
+	"id": "examplecsharpmod",
+	"name": "ExampleCSharpMod",
+	"description": "Example mod: the minimal C# mod — registers a single custom party member (Tony).",
+	"author": "alltoasters",
+	"version": "1.0.0",
+	"icon": ""
+}

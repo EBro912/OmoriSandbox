@@ -1,0 +1,90 @@
+{
+  "Type": 0,
+  "Name": "Sour Mole Ambush",
+  "Battleback": "battleback_sm_sour",
+  "BGM": "battle_vf",
+  "BGMPitch": 0.94,
+  "BGMLoopPoint": 0.0,
+  "StartingEnergy": 5,
+  "FollowupTier": 2,
+  "BasilReleaseEnergy": false,
+  "DisableDialogue": true,
+  "DisableDamageNumbers": false,
+  "Items": {
+    "Life Jam": 2,
+    "Jam Packets": 5,
+    "Dandelion": 3
+  },
+  "Actors": [
+    {
+      "Name": "Evil Tony",
+      "Level": 20,
+      "Weapon": "Rusty Knife",
+      "Charm": "Cool Glasses",
+      "Emotion": "angry",
+      "FollowupSet": "Omori",
+      "Skills": [
+        "OAttack",
+        "Observe",
+        "Trick",
+        "Mock",
+        "Guard"
+      ],
+      "Position": 0,
+      "AdjustedStats": {
+        "HP": 0,
+        "MaxHP": 50,
+        "Juice": 0,
+        "MaxJuice": 0,
+        "ATK": 10,
+        "DEF": 0,
+        "SPD": 5,
+        "LCK": 0,
+        "HIT": 0
+      }
+    },
+    {
+      "Name": "Kel",
+      "Level": 20,
+      "Weapon": "Rubber Ball",
+      "Charm": "None",
+      "Emotion": "neutral",
+      "FollowupSet": "None",
+      "Skills": [
+        "KAttack",
+        "Annoy",
+        "Rebound",
+        "JuiceMe",
+        "Flex"
+      ],
+      "Position": 2
+    }
+  ],
+  "Enemies": [
+    {
+      "Name": "Sour Sprout Mole",
+      "Position": "Vector2(180, 240)",
+      "Emotion": "neutral",
+      "Layer": 0.0,
+      "FallsOffScreen": true,
+      "GrayscaleOnDefeat": false
+    },
+    {
+      "Name": "Sour Sprout Mole",
+      "Position": "Vector2(320, 250)",
+      "Emotion": "angry",
+      "Layer": 1.0,
+      "FallsOffScreen": false,
+      "GrayscaleOnDefeat": true
+    },
+    {
+      "Name": "Sour Sprout Mole",
+      "Position": "Vector2(460, 240)",
+      "Emotion": "happy",
+      "Layer": 0.0,
+      "FallsOffScreen": false,
+      "GrayscaleOnDefeat": false
+    }
+  ],
+  "Stages": []
+}

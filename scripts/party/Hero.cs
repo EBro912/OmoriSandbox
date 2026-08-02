@@ -1,5 +1,4 @@
 using Godot;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OmoriSandbox.Actors;
@@ -24,7 +23,7 @@ internal sealed class Hero : PartyMember
     public override bool IsRealWorld => false;
     public override async Task OnStartOfBattle()
     {
-        if (BattleManager.Instance.GetAllPartyMembers().Any(x => x.Actor.Weapon.Name == "Hero's Trophy")) {
+        if (BattleManager.Instance.PartyHasLivingWeapon("Hero's Trophy")) {
             SetEmotion("sad", true);
         }
         await base.OnStartOfBattle();

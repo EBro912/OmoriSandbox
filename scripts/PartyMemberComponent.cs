@@ -125,15 +125,11 @@ public partial class PartyMemberComponent : Node
 
 	private void AnimationChanged(object sender, EventArgs e)
 	{
-		if (PartyMember.CurrentAnimation != null)
-		{
-			if (PartyMember.CurrentAnimationAsset != null)
-				StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
-		}
+		// an override without an asset (base PlayAnimation) keeps the battlecard on the emotion
+		if (PartyMember.CurrentAnimation != null && PartyMember.CurrentAnimationAsset != null)
+			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
 		else
-		{
 			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
-		}
 	}
 
 	private void Damaged(object sender, EventArgs e)

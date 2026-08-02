@@ -76,6 +76,33 @@ public sealed class EmotionAsset
 		};
 	}
 
+	/// <summary>
+	/// Creates an asset with custom textures loaded from the mods folder, taking regions into
+	/// a spritesheet.<br/>
+	/// Paths must be full paths from the mods folder, e.g. <c>MyMod/sprites/emotions.png</c>;
+	/// both may point at the same sheet.<br/>
+	/// Recommended region sizes: 98x22 for the label, 100x100 for the portrait.
+	/// </summary>
+	/// <param name="labelPath">The path to the spritesheet holding the above-head label, or null for no label override.</param>
+	/// <param name="labelRegion">The region of the label within its sheet, or null to use the whole texture.</param>
+	/// <param name="facePath">The path to the spritesheet holding the back portrait, or null for no portrait override.</param>
+	/// <param name="faceRegion">The region of the portrait within its sheet, or null to use the whole texture.</param>
+	public static EmotionAsset FromModTextures(string labelPath, Rect2? labelRegion, string facePath, Rect2? faceRegion)
+	{
+		return new EmotionAsset
+		{
+			LabelTexture = CreateRegionTexture(LoadModTexture(labelPath), labelRegion),
+			FaceTexture = CreateRegionTexture(LoadModTexture(facePath), faceRegion)
+		};
+	}
+
+	private static Texture2D CreateRegionTexture(Texture2D texture, Rect2? region)
+	{
+		if (texture == null || region == null)
+			return texture;
+		return new AtlasTexture { Atlas = texture, Region = region.Value };
+	}
+
 	private static Texture2D LoadModTexture(string path)
 	{
 		if (path == null)

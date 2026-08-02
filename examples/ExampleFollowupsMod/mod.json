@@ -1,0 +1,8 @@
+{
+	"id": "examplefollowupsmod",
+	"name": "ExampleFollowupsMod",
+	"description": "Example mod: a custom followup set and a custom emotion, using only vanilla graphics. The OmoriEx set reuses Omori's bubble art with EX variants of his followup skills, including a single-skill custom release energy. SMUG is a new emotion group that beats the happy group.",
+	"author": "alltoasters",
+	"version": "1.0.0",
+	"icon": ""
+}

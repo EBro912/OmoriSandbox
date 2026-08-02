@@ -1379,7 +1379,9 @@ public partial class BattleManager : Node
 			return false;
 
 		string name = pair.BaseSkillName;
-		if (name.StartsWith("ReleaseEnergy"))
+		// only the exact vanilla name defers to the tier/Basil release energy skills;
+		// other "ReleaseEnergy"-prefixed names resolve like any other followup skill
+		if (name == "ReleaseEnergy")
 			name += UseBasilReleaseEnergy ? "Basil" : FollowupTier.ToString();
 		else if (current.FollowupSet.Tiered)
 			name += FollowupTier;
@@ -2017,6 +2019,13 @@ public partial class BattleManager : Node
 			return damage * weakness[TierIndex(target)];
 		}
 
+		// a rate keyed by the attacker's group overrides the tier-based multiplier
+		if (self.Group != null && target.DefensiveRateOverrides.TryGetValue(self.Group.Id, out float groupRate))
+		{
+			effect = groupRate > 1f ? 1 : groupRate < 1f ? -1 : 0;
+			return damage * groupRate;
+		}
+
 		// emotions that are weak to all emotions like afraid check for any emotion
 		if (self != neutral && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
 		{
@@ -2325,6 +2334,28 @@ public partial class BattleManager : Node
 	public List<PartyMemberComponent> GetAllPartyMembers()
 	{
 		return CurrentParty;
+	}
+
+	/// <summary>
+	/// Whether any living party member has one of the given weapons equipped.
+	/// </summary>
+	/// <remarks>
+	/// Equipment perks (such as the FRYING PAN snack boost) do not apply while their wearer is toast.
+	/// </remarks>
+	public bool PartyHasLivingWeapon(params string[] weaponNames)
+	{
+		return GetAlivePartyMembers().Any(x => weaponNames.Contains(x.Actor.Weapon?.Name));
+	}
+
+	/// <summary>
+	/// Whether any living party member has the given charm equipped.
+	/// </summary>
+	/// <remarks>
+	/// Equipment perks (such as the BREADPHONES full-heal revive) do not apply while their wearer is toast.
+	/// </remarks>
+	public bool PartyHasLivingCharm(string charmName)
+	{
+		return GetAlivePartyMembers().Any(x => x.Actor.Charm?.Name == charmName);
 	}
 
 	/// <summary>

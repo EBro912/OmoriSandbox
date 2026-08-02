@@ -1,6 +1,6 @@
 {
-	"name": "Inverted Sprout Mole",
-	"atlas": "inverted.png",
+	"name": "Sour Sprout Mole",
+	"atlas": "sour_sprout_mole.png",
 	"width": 140,
 	"height": 218,
 	"animation": [
@@ -35,15 +35,17 @@
 			"frames": [8, 9, 10, 11]
 		}
 	],
-	"hp": 170,
+	"hp": 190,
 	"juice": 75,
-	"atk": 22,
+	"atk": 24,
 	"def": 10,
-	"spd": 13,
+	"spd": 15,
 	"lck": 5,
 	"hit": 95,
 	"invalidStates": ["enraged", "furious", "depressed", "miserable", "ecstatic", "manic", "afraid", "stressed"],
 	"equippedSkills": ["LSMAttack", "LSMDoNothing", "LSMRunAround"],
+	"observeSingleSkill": "LSMAttack",
+	"observeMultiSkill": "LSMRunAround",
 	"ai": [
 		{
 			"emotion": "happy",

@@ -1,0 +1,8 @@
+{
+	"id": "exampleitemsmod",
+	"name": "ExampleItemsMod",
+	"description": "Example mod: adds bread-themed items, equipment and stat modifiers. Includes snacks and a toy, a weapon and a charm using all three equipment overrides, and a custom stat modifier with a state icon.",
+	"author": "alltoasters",
+	"version": "1.0.0",
+	"icon": ""
+}

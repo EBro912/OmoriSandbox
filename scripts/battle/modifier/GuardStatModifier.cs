@@ -13,7 +13,7 @@ public sealed class GuardStatModifier : StatModifier
     /// <inheritdoc/>
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
-        if (phase is DamagePhase.PreRounding && !isAttacking)
+        if (phase is DamagePhase.PreRounding && !isAttacking && !defender.Stunned)
             damage *= 0.5f;
     }
 }

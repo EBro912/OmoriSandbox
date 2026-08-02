@@ -10,6 +10,7 @@ namespace OmoriSandbox.Actors;
 
 // TODO: Remaining enemies
 // Omori
+// Mari
 
 /// <summary>
 /// An <see cref="Actor"/> that is considered an enemy. Can be inherited to create a new enemy.
@@ -224,8 +225,6 @@ public abstract class Enemy : Actor
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;
-	// freshness marker: predictions set this turn survive to the next turn, where the AI can
-	// consume them; anything older is stale and gets cleared at end of turn
 	internal bool ObserveSetThisTurn;
 
 	/// <summary>

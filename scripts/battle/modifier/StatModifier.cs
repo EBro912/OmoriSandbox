@@ -109,7 +109,8 @@ public class StatModifier
     public virtual void OverrideJuiceCost(ref int juice, Actor actor) {}
 
     /// <summary>
-    /// Sets the number of turns left on this modifier. Will be clamped to the max turns set previously.
+    /// Sets the number of turns left on this modifier. If the value exceeds the max turns
+    /// set previously, the max is raised to match (unless the modifier is turnless).
     /// </summary>
     /// <param name="turnsLeft">The number of turns left to set this modifier to.</param>
     public void SetTurnsLeft(int turnsLeft)

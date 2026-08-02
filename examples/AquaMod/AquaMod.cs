@@ -2,8 +2,8 @@
 using OmoriSandbox;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Modding;
-using System.Collections.Generic;
 
 namespace AquaMod;
 
@@ -77,16 +77,18 @@ public partial class AquaMod : Mod
         RegisterSkill("AQOmega", new Skill(
             name: "AQOmega",
             description: "AQOmega",
-            target: SkillTarget.Enemy,
+            target: SkillTarget.AllEnemies,
             cost: 0,
-            effect: async (self, target) =>
+            effect: async (self, targets) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] uses her OMEGA attack!");
                 await Wait.Milliseconds(1000);
-                AnimationManager.Instance.PlayAnimation(13, target);
+                foreach (Actor target in targets)
+                    AnimationManager.Instance.PlayAnimation(13, target);
                 for (int i = 0; i < 10; i++)
                 {
-                    BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 5 - target.CurrentStats.DEF, false, 0.1f, neverCrit: true);
+                    foreach (Actor target in targets)
+                        BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 5 - target.CurrentStats.DEF, false, 0.1f, neverCrit: true);
                     await Wait.Milliseconds(350);
                 }
             }
