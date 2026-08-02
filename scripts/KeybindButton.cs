@@ -10,9 +10,13 @@ internal partial class KeybindButton : Control
     private bool WaitingForInput = false;
     private const double WaitTimeout = 10d;
     private double WaitTime = 0;
-    
+
+    // only one keybind may capture input at a time
+    private static KeybindButton CurrentlyCapturing;
+    internal static bool IsCapturing => CurrentlyCapturing != null;
+
     private Button KeyButton;
-    
+
     public override void _Ready()
     {
         GetNode<Label>("ActionLabel").Text = AssociatedAction;
@@ -22,23 +26,30 @@ internal partial class KeybindButton : Control
         {
             if (WaitingForInput)
                 return;
+            CurrentlyCapturing?.CancelCapture();
+            CurrentlyCapturing = this;
             WaitingForInput = true;
             KeyButton.Text = "...";
         };
     }
 
+    private void CancelCapture()
+    {
+        WaitingForInput = false;
+        WaitTime = 0;
+        KeyButton.Text = OS.GetKeycodeString(CurrentKey);
+        if (CurrentlyCapturing == this)
+            CurrentlyCapturing = null;
+    }
+
     public override void _Process(double delta)
     {
-        if (!WaitingForInput) 
+        if (!WaitingForInput)
             return;
-        
+
         WaitTime += delta;
         if (WaitTime >= WaitTimeout)
-        {
-            WaitingForInput = false;
-            KeyButton.Text = OS.GetKeycodeString(CurrentKey);
-            WaitTime = 0;
-        }
+            CancelCapture();
     }
 
     public override void _Input(InputEvent @event)
@@ -52,6 +63,11 @@ internal partial class KeybindButton : Control
             UpdateKeybind();
             KeyButton.Text = OS.GetKeycodeString(CurrentKey);
             WaitingForInput = false;
+            WaitTime = 0;
+            if (CurrentlyCapturing == this)
+                CurrentlyCapturing = null;
+            // don't let the captured key also trigger whatever it is bound to
+            GetViewport().SetInputAsHandled();
         }
     }
 

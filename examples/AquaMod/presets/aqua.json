@@ -1,0 +1,58 @@
+{
+  "Type": 0,
+  "Name": "aqua",
+  "Battleback": "deltarune_battleback",
+  "BGM": "petal_dance",
+  "BGMPitch": 1.0,
+  "BGMLoopPoint": 0.0,
+  "StartingEnergy": 3,
+  "FollowupTier": 1,
+  "BasilFollowups": false,
+  "DisableDialogue": false,
+  "DisableDamageNumbers": false,
+  "Items": {
+    "Cheeseburger": 3,
+    "Hot Dog": 3,
+    "Bread": 5
+  },
+  "Actors": [
+    {
+      "Name": "Omori",
+      "Level": 35,
+      "Weapon": "Knife",
+      "Charm": "Red Ribbon",
+      "Emotion": "neutral",
+      "FollowupsDisabled": true,
+      "Skills": [
+        "OAttack",
+        "CoolPose",
+        "Spin",
+        "Care",
+        "Dance"
+      ],
+      "Position": 0,
+      "AdjustedStats": {
+        "HP": 0,
+        "MaxHP": 0,
+        "Juice": 0,
+        "MaxJuice": 0,
+        "ATK": 0,
+        "DEF": 0,
+        "SPD": 0,
+        "LCK": 0,
+        "HIT": 0
+      }
+    }
+  ],
+  "Enemies": [
+    {
+      "Name": "Aqua",
+      "Position": "Vector2(320, 240)",
+      "Emotion": "neutral",
+      "Layer": 0.0,
+      "FallsOffScreen": false,
+      "GrayscaleOnDefeat": false
+    }
+  ],
+  "Stages": []
+}

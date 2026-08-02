@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -9,9 +10,9 @@ public class SnaleyThree : Enemy
     public override string Name => "SNALEY";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/snaley.tres");
     protected override Stats Stats => new(2000, 1000, 40, 30, 40, 15, 200);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state != "afraid" && state != "stressed";
+        return emotion.Id != "afraid" && emotion.Id != "stressed";
     }
     protected override string[] EquippedSkills => ["RabbitAttack", "SNDoNothing", "SNAttackFollowup", "SNFollowup", "SNReleaseEnergy", "SNMegaphone"];
 
@@ -59,8 +60,8 @@ public class SnaleyThree : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, "Heh! You aren't the only ones who can use EMOTIONS!");
             await DialogueManager.Instance.WaitForDialogue();
-            if (CurrentState != "ecstatic" && CurrentState != "manic")
-                SetState("happy", true);
+            if (CurrentEmotion.Id != "ecstatic" && CurrentEmotion.Id != "manic")
+                SetEmotion("happy", true);
             DialogueManager.Instance.QueueMessage("SNALEY is HAPPY!");
             await DialogueManager.Instance.WaitForDialogue();
         }

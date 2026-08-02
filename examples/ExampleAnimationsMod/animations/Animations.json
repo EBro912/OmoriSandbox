@@ -1,0 +1,39 @@
+[
+	{
+		"id": 900,
+		"name": "Sour Attack <layer:3>",
+		"animation1Name": "sour_attack",
+		"animation1Hue": 0,
+		"animation2Name": "",
+		"animation2Hue": 0,
+		"position": 1,
+		"frames": [
+			[[0, 0, 0, 100, 0, 0, 255, 1]],
+			[[0, 0, 0, 100, 0, 0, 255, 1]],
+			[[1, 0, 0, 100, 0, 0, 255, 1]],
+			[[1, 0, 0, 100, 0, 0, 255, 1]],
+			[[2, 0, 0, 100, 0, 0, 255, 1]],
+			[[2, 0, 0, 100, 0, 0, 255, 1]],
+			[[3, 0, 0, 100, 0, 0, 255, 1]],
+			[[3, 0, 0, 100, 0, 0, 255, 1]],
+			[[4, 0, 0, 100, 0, 0, 255, 1]],
+			[[4, 0, 0, 100, 0, 0, 255, 1]]
+		],
+		"timings": [
+			{
+				"frame": 0,
+				"se": { "name": "BA_basic_attack_omori", "pan": 0, "pitch": 100, "volume": 90 },
+				"flashColor": [255, 255, 255, 255],
+				"flashDuration": 0,
+				"flashScope": 0
+			},
+			{
+				"frame": 6,
+				"se": { "name": "ft_doShake", "pan": 0, "pitch": 100, "volume": 90 },
+				"flashColor": [255, 100, 0, 0],
+				"flashDuration": 5,
+				"flashScope": 0
+			}
+		]
+	}
+]

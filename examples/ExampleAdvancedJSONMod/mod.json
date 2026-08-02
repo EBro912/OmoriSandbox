@@ -1,0 +1,8 @@
+{
+	"id": "exampleadvancedjsonmod",
+	"name": "ExampleAdvancedJSONMod",
+	"description": "Example mod: the advanced JSON-only mod, including an actor with plot armor and weapon restrictions, enemy with observe skills, a static battleback, state icons, and normal + boss rush presets. Note: the stateicons folder only registers icons; displaying them requires a C# stat modifier (see ExampleItemsMod).",
+	"author": "alltoasters",
+	"version": "1.0.0",
+	"icon": "icon.png"
+}

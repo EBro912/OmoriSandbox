@@ -1,8 +1,10 @@
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using OmoriSandbox.Extensions;
 
@@ -90,5 +92,52 @@ public abstract partial class Mod : Node
     protected static void RegisterStatModifier(string id, Func<StatModifier> func)
     {
         Database.RegisterModdedStatModifier(id, func);
+    }
+
+    /// <summary>
+    /// Registers a new <see cref="EmotionGroup"/> to the database.<br/>
+    /// Register groups before the emotions that belong to them.
+    /// </summary>
+    /// <param name="group">The group to add. Its id doubles as the group's attack element.</param>
+    protected static void RegisterEmotionGroup(EmotionGroup group)
+    {
+        Database.RegisterModdedEmotionGroup(group);
+    }
+
+    /// <summary>
+    /// Registers a new <see cref="Emotion"/> to the database.<br/>
+    /// Requires the actor to have an animation matching its id (or <see cref="Emotion.AnimationName"/>)
+    /// in their SpriteFrames and are able to feel the emotion.
+    /// Example:
+    /// <code>
+    /// RegisterEmotion(new Emotion("smug")
+    ///     .WithGroup("happy", tier: 4) // tiers are 1-based, tier 4 extends above MANIC
+    ///     .WithStatBonuses(new StatBonus(StatType.LCK, 2.5f), new StatBonus(StatType.HIT, -15))
+    ///     .WithAsset(EmotionAsset.FromModTextures("MyMod/sprites/smug_label.png", "MyMod/sprites/smug_face.png")));
+    /// </code>
+    /// </summary>
+    /// <param name="emotion">The emotion to add.</param>
+    protected static void RegisterEmotion(Emotion emotion)
+    {
+        Database.RegisterModdedEmotion(emotion);
+    }
+
+    /// <summary>
+    /// Registers a new followup set. It appears in the editor's followup dropdown after the
+    /// vanilla sets and can be assigned to any party member slot.<br/>
+    /// A set maps up to three <see cref="FollowupInput"/> directions to <see cref="FollowupEntry"/>
+    /// bubbles, omitted directions are hidden in battle.
+    /// </summary>
+    /// <remarks>
+    /// Entries whose skill name starts with <c>ReleaseEnergy</c> are considered Release Energy skills and will
+    /// cost 10 energy to use, as well as requiring the entire party being alive.
+    /// </remarks>
+    /// <param name="id">The ID of the set. This is how it appears in the editor dropdown and in presets.</param>
+    /// <param name="entries">The bubbles by role. <see cref="FollowupInput.Horizontal"/> faces the enemies from the member's slot.</param>
+    /// <param name="tiered">Whether the battle's followup tier (1-3) is appended to each skill name,
+    /// requiring skills like <c>MySkill1</c>/<c>MySkill2</c>/<c>MySkill3</c> to be registered.</param>
+    protected static void RegisterFollowupSet(string id, IReadOnlyDictionary<FollowupInput, FollowupEntry> entries, bool tiered = false)
+    {
+        Database.RegisterModdedFollowupSet(id, entries, tiered);
     }
 }

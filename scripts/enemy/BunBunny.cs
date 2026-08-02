@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class BunBunny : Enemy
@@ -7,9 +8,9 @@ internal sealed class BunBunny : Enemy
     public override string Name => "BUN BUNNY";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/bun_bunny.tres");
     protected override Stats Stats => new(400, 200, 35, 35, 30, 10, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
     protected override string[] EquippedSkills => ["BBAttack", "BBDoNothing", "BBHide"];
   
@@ -18,7 +19,7 @@ internal sealed class BunBunny : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["BBAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 41)

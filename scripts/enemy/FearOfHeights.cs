@@ -1,6 +1,7 @@
 using Godot;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Actors;
@@ -11,9 +12,9 @@ internal sealed class FearOfHeights : Enemy
     protected override Stats Stats => new(6000, 4000, 120, 100, 80, 10, 95);
     protected override string[] EquippedSkills => ["FOHAttack", "FOHDoNothing", "FOHGrab", "FOHHands", "FOHShove"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral";
     }
 
     public override BattleCommand ProcessAI()
@@ -41,7 +42,7 @@ internal sealed class FearOfHeights : Enemy
             {
                 // fear of heights bypasses plot armor
                 member.Actor.CurrentHP = 0;
-                member.Actor.SetState("toast", true);
+                member.Actor.SetToast();
             }
             await Wait.Milliseconds(1500);
             DialogueManager.Instance.QueueMessage("You hit the ground.");

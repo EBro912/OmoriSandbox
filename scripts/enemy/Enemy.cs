@@ -10,6 +10,7 @@ namespace OmoriSandbox.Actors;
 
 // TODO: Remaining enemies
 // Omori
+// Mari
 
 /// <summary>
 /// An <see cref="Actor"/> that is considered an enemy. Can be inherited to create a new enemy.
@@ -24,15 +25,25 @@ public abstract class Enemy : Actor
 			GD.PrintErr("Failed to load Sprite animations for Enemy: " + Name);
 			return;
 		}
+		// presets may start an enemy toast
+		bool startToast = initialState == "toast";
+		if (startToast)
+			initialState = "neutral";
 		// init animation
 		Sprite = sprite;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = initialState;
+
+		if (!SetEmotion(initialState, true))
+		{
+			GD.PushWarning($"Invalid emotion '{initialState}' for Enemy {Name}, defaulting to neutral.");
+			SetEmotion("neutral", true);
+		}
 		Sprite.Play();
-		CurrentState = initialState;
 		SetBaseStats(Stats);
 		CurrentHP = BaseStats.HP;
 		CurrentJuice = BaseStats.Juice;
+		if (startToast)
+			SetToast();
 
 		FallsOffScreen = fallsOffScreen;
 		GrayscaleOnDefeat = grayscaleOnDefeat;
@@ -183,8 +194,14 @@ public abstract class Enemy : Actor
 		{
 			return Skills.Values.Any(x => x.Target is SkillTarget.AllAllies or SkillTarget.AllDeadAllies
 				or SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
-		} 
+		}
 	}
+	/// <summary>
+	/// Whether this enemy has a skill that hits several party members at once.
+	/// Used by OBSERVE to pick a valid multi-target prediction.
+	/// </summary>
+	internal bool HasMultiTargetPartySkill =>
+		Skills.Values.Any(x => x.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
 	/// <summary>
 	/// Called after each action finishes. Mainly used for boss events.
 	/// </summary>
@@ -208,6 +225,7 @@ public abstract class Enemy : Actor
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;
+	internal bool ObserveSetThisTurn;
 
 	/// <summary>
 	/// Whether this enemy is currently observing a target.

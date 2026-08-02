@@ -2,6 +2,7 @@ using Godot;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class NefariousChip : Enemy
@@ -10,9 +11,9 @@ internal sealed class NefariousChip : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/nefarious_chip.tres");
     protected override Stats Stats => new(3456, 1700, 43, 47, 10, 15, 95);
     protected override string[] EquippedSkills => ["NCAttack", "NCDoNothing", "NCLaugh", "NCCookies", "NCCookiesHappy"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "happy" or "sad" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -20,7 +21,7 @@ internal sealed class NefariousChip : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["NCAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 26)

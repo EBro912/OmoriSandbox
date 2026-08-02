@@ -47,8 +47,25 @@ internal struct JsonEnemyMod
             report.Error("enemies", Name, $"Invalid dimensions (Width={Width}, Height={Height}), must be > 0");
             return false;
         }
+        if (HIT <= 0)
+            report.Warn("enemies", Name, "HIT is missing or 0, this enemy's missable attacks will always miss");
         if (AI == null)
             report.Warn("enemies", Name, "No AI data defined");
+        else
+        {
+            foreach (JsonEnemyAIData table in AI)
+            {
+                if (table.Entries == null || table.Entries.Length == 0)
+                {
+                    report.Warn("enemies", Name,
+                        $"AI table for emotion '{table.Emotion}' has no entries");
+                    continue;
+                }
+                if (table.Entries[^1].Chance < 100)
+                    report.Warn("enemies", Name,
+                        $"AI table for emotion '{table.Emotion}' has no 100% chance entry, the enemy can fail to pick an action");
+            }
+        }
         return true;
     }
 }

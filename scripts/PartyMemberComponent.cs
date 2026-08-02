@@ -24,8 +24,6 @@ public partial class PartyMemberComponent : Node
 	
 	private float DisplayedHP;
 	private float DisplayedJuice;
-	private float TargetHP;
-	private float TargetJuice;
 
     /// <summary>
     /// The <see cref="Actors.PartyMember"/> actor this component is attached to.
@@ -41,6 +39,10 @@ public partial class PartyMemberComponent : Node
     /// Whether the <see cref="Actors.PartyMember"/> has a followup.
     /// </summary>
     public bool HasFollowup => FollowupBubbles != null;
+    /// <summary>
+    /// The followup set assigned to the <see cref="Actors.PartyMember"/>, or null when followups are disabled.
+    /// </summary>
+    internal FollowupSet FollowupSet { get; private set; }
 
     private Timer HurtTimer = new()
     {
@@ -48,14 +50,15 @@ public partial class PartyMemberComponent : Node
 	    OneShot = true
     };
 
-    internal void SetPartyMember(PartyMember partyMember, PackedScene followup, BattlePresetActor actor)
+    internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, FollowupSet set, BattlePresetActor actor)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
 		StateAnimator = GetNode<StateAnimator>("../Battlecard/StateAnimatorComponent");
 		if (actor.Emotion is "hurt" or "victory")
 			actor.Emotion = "neutral";
-		PartyMember.Init(face, actor);
+		if (!PartyMember.Init(face, actor))
+			return false;
 		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");
@@ -73,50 +76,60 @@ public partial class PartyMemberComponent : Node
 		JuiceBar.MaxValue = PartyMember.CurrentStats.MaxJuice;
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
-		TargetHP = PartyMember.CurrentHP;
 		DisplayedJuice = PartyMember.CurrentJuice;
-		TargetJuice = PartyMember.CurrentJuice;
+		
+		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
+		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
 
 		if (followup != null)
 		{
             FollowupBubbles bubbles = followup.Instantiate<FollowupBubbles>();
+			bubbles.ApplySet(set, actor.Position);
 			GetParent().AddChild(bubbles);
 			FollowupBubbles = bubbles;
+			FollowupSet = set;
 		}
 
 		Position = actor.Position;
 
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
-		PartyMember.OnStateChanged += StateChanged;
-		PartyMember.OnHPChanged += HPChanged;
-		PartyMember.OnJuiceChanged += JuiceChanged;
+		PartyMember.OnEmotionChanged += EmotionChanged;
+		PartyMember.OnAnimationChanged += AnimationChanged;
 		PartyMember.OnDamaged += Damaged;
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
 		AddChild(HurtTimer);
-		
-		PartyMember.Sprite.Animation = actor.Emotion;
-		PartyMember.CurrentState = actor.Emotion;
-		// delay this call to let everything initialize
-		StateAnimator.CallDeferred(StateAnimator.MethodName.SetState, actor.Emotion);
+
+		// Init already validated the emotion, delay this call to let everything initialize
+		Callable.From(RefreshStateVisuals).CallDeferred();
+
+		return true;
 	}
 
-	private void StateChanged(object sender, EventArgs e)
+	private void RefreshStateVisuals()
 	{
-		// avoid updating the background during plot armor
-		if (PartyMember.HasStatModifier("PlotArmor"))
-			StateAnimator.SetStateAtlas(PartyMember.CurrentState);
+		// members spawning with an active animation override show its asset instead of their emotion
+		if (PartyMember.CurrentAnimationAsset != null)
+			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
 		else
-			StateAnimator.SetState(PartyMember.CurrentState);
+			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 	}
 
-	private void HPChanged(object sender, EventArgs e)
+	private void EmotionChanged(object sender, EventArgs e)
 	{
-		TargetHP = PartyMember.CurrentHP;
+		// while an animation override is active (such as plot armor), only the above-head label follows emotion changes
+		if (PartyMember.CurrentAnimation != null)
+			StateAnimator.SetStateAtlas(PartyMember.CurrentEmotion.Id);
+		else
+			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 	}
 
-	private void JuiceChanged(object sender, EventArgs e)
+	private void AnimationChanged(object sender, EventArgs e)
 	{
-		TargetJuice = PartyMember.CurrentJuice;
+		// an override without an asset (base PlayAnimation) keeps the battlecard on the emotion
+		if (PartyMember.CurrentAnimation != null && PartyMember.CurrentAnimationAsset != null)
+			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
+		else
+			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
 	}
 
 	private void Damaged(object sender, EventArgs e)
@@ -127,8 +140,13 @@ public partial class PartyMemberComponent : Node
 
 	public override void _Process(double delta)
 	{
+		// nothing to animate once the displayed values have settled
+		// ReSharper disable twice CompareOfFloatsByEqualityOperator
+		if (DisplayedHP == PartyMember.CurrentHP && DisplayedJuice == PartyMember.CurrentJuice)
+			return;
+
 		float dt = (float)delta;
-		
+
 		DisplayedHP = Mathf.MoveToward(DisplayedHP, PartyMember.CurrentHP, dt * ((float)HPBar.MaxValue / 0.5f));
 		DisplayedJuice = Mathf.MoveToward(DisplayedJuice, PartyMember.CurrentJuice, dt * ((float)JuiceBar.MaxValue / 0.5f));
 
@@ -143,32 +161,8 @@ public partial class PartyMemberComponent : Node
 	{
 		if (!SettingsMenuManager.Instance.ShowStateIcons)
 			return;
-		
-		// this may need to be optimized, not the best practice to fully replace nodes
-		foreach (Node child in StateIcons.GetChildren())
-			child.Free();
-		
-		foreach (StatModifier modifier in PartyMember.StatModifiers.Values)
-		{
-			StateIcon[] icons = modifier.GetStateIcons();
-			foreach (StateIcon icon in icons)
-			{
-				string tooltip = modifier.TurnsLeft > -1 ? icon.Description + "\nTurns Left: " + modifier.TurnsLeft : icon.Description;
-				if (Database.TryGetStateIcon(icon.AssetName, out Texture2D texture))
-				{
-					TextureRect rect = new()
-					{
-						Texture = texture,
-						TooltipText = tooltip
-					};
-					StateIcons.AddChild(rect);
-				}
-				else
-				{
-					GD.PrintErr("Unknown state icon texture: " + icon.AssetName);
-				}
-			}
-		}
+
+		StateIconRenderer.Render(StateIcons, PartyMember);
 	}
 
 	internal bool SelectionBoxVisible

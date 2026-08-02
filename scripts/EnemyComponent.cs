@@ -35,8 +35,8 @@ public partial class EnemyComponent : Node
 		else
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox.tscn")
 				.Instantiate<EnemyInfoBox>();
-		InfoBox.SetEnemy(Enemy);
 		AddChild(InfoBox);
+		InfoBox.SetEnemy(Enemy);
 		ShowInfoBox(false);
 		
 		Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;

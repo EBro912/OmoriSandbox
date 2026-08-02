@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -9,9 +10,9 @@ internal sealed class SnaleyTwo : Enemy
     public override string Name => "SNALEY";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/snaley.tres");
     protected override Stats Stats => new(1500, 750, 35, 25, 35, 10, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state != "afraid" && state != "stressed";
+        return emotion.Id != "afraid" && emotion.Id != "stressed";
     }
     protected override string[] EquippedSkills => ["SNAttack", "SNDoNothing", "SNBeatdown", "SNAttackFollowup", "SNFollowup"];
 
@@ -66,8 +67,8 @@ internal sealed class SnaleyTwo : Enemy
         }
         else if (Turn == 2)
         {
-            if (CurrentState != "ecstatic" && CurrentState != "manic")
-                SetState("happy", true);
+            if (CurrentEmotion.Id != "ecstatic" && CurrentEmotion.Id != "manic")
+                SetEmotion("happy", true);
             DialogueManager.Instance.QueueMessage(this, @"How was that!?\! One of these days, I'll be as strong as you!");
             await DialogueManager.Instance.WaitForDialogue();
         }

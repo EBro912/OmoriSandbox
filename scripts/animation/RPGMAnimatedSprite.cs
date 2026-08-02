@@ -56,7 +56,23 @@ internal class RPGMAnimatedSprite
 		FrameShake[frame] = new Shake(power * DIVIDEND, speed * DIVIDEND, duration);
 	}
 
+	// avoid creating a fresh AtlasTexture per cell per redraw
+	private readonly Dictionary<int, AtlasTexture> TextureCache = [];
+
 	public AtlasTexture GetTextureAt(int pattern)
+	{
+		if (pattern < 0)
+			return null;
+
+		if (TextureCache.TryGetValue(pattern, out AtlasTexture cached))
+			return cached;
+
+		AtlasTexture result = BuildTextureAt(pattern);
+		TextureCache[pattern] = result;
+		return result;
+	}
+
+	private AtlasTexture BuildTextureAt(int pattern)
 	{
 		if (Texture != null && pattern < 100)
 		{
@@ -109,7 +125,7 @@ internal class RPGMAnimatedSprite
 	public int FrameCount => Frames.Count;
 }
 
-internal struct Frame(int pattern = 0, float x = 0, float y = 0, float scale = 100, float rotation = 0, bool mirror = false, float opacity = 255)
+internal struct Frame(int pattern = 0, float x = 0, float y = 0, float scale = 100, float rotation = 0, bool mirror = false, float opacity = 255, int blend = 0)
 {
 	public readonly int Pattern = pattern;
 	public readonly float X = x;
@@ -118,6 +134,8 @@ internal struct Frame(int pattern = 0, float x = 0, float y = 0, float scale = 1
 	public readonly float Rotation = rotation;
 	public readonly bool Mirror = mirror;
 	public readonly float Opacity = opacity;
+	// RPGM blend modes: 0 = normal, 1 = additive
+	public readonly bool Additive = blend == 1;
 }
 
 internal struct SFX(string name, float pitch = 100f, float volume = 100f)

@@ -2,6 +2,7 @@ using Godot;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class SlimeGirlsAlt : Enemy
@@ -14,9 +15,9 @@ internal sealed class SlimeGirlsAlt : Enemy
 
 	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "ChainsawAlt", "SlimeUltimateAttack", "SGSelfAngry"];
 
-	public override bool IsStateValid(string state)
+	public override bool IsEmotionValid(Emotion emotion)
 	{
-		return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+		return emotion.Id is "neutral" or "sad" or "happy" or "angry";
 	}
 
 	private int Stage = 0;
@@ -29,7 +30,7 @@ internal sealed class SlimeGirlsAlt : Enemy
 		if (HasObserveTarget(out PartyMember observe))
 			return new BattleCommand(this, observe, Skills["ComboAttack"]);
 		
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
 		{
 			case "happy":
 				if (Roll() < 16)

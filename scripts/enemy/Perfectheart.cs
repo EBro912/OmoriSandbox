@@ -2,6 +2,7 @@ using Godot;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Actors;
@@ -13,9 +14,9 @@ internal sealed class Perfectheart : Enemy
 
     protected override string[] EquippedSkills => ["PHStealHeart", "PHStealBreath", "PHWrath", "PHExploitEmotion", "PHSpare", "PHAngelicVoice"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     private bool SecondPhase = false;
@@ -63,7 +64,7 @@ internal sealed class Perfectheart : Enemy
             await Wait.Milliseconds(2000);
             AnimationManager.Instance.PlayAnimation(216, this);
             CurrentHP = CurrentStats.MaxHP;
-            SetState("neutral", true);
+            SetEmotion("neutral", true);
             RemoveAllStatModifiers();
             await Wait.Milliseconds(1000);
             SecondPhase = true;

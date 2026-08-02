@@ -1,4 +1,5 @@
 using Godot;
+using Path = System.IO.Path;
 
 namespace OmoriSandbox.Modding;
 
@@ -22,6 +23,12 @@ public class SpriteFramesBuilder
     /// <param name="height">The height of a single sprite in the atlas.</param>
     public SpriteFramesBuilder(string atlasPath, int width, int height)
     {
+        if (string.IsNullOrWhiteSpace(atlasPath) || atlasPath.Contains("..") || atlasPath.Contains("://") ||
+            Path.IsPathRooted(atlasPath))
+        {
+            GD.PushError($"Invalid atlas path '{atlasPath}' (path traversal not allowed)");
+            return;
+        }
         if (!FileAccess.FileExists("user://mods/" + atlasPath))
         {
             GD.PushError("Failed to find atlas at path: user://mods/" + atlasPath);
@@ -40,7 +47,7 @@ public class SpriteFramesBuilder
     }
 
     /// <summary>
-    /// Adds an emotion animation to the current SpriteFramesBuilder.<br/>
+    /// Adds an animation to the current SpriteFramesBuilder.<br/>
     /// </summary>
     /// <param name="animationId">The ID this animation corresponds to.</param>
     /// <param name="fps">The FPS of the animation.</param>
@@ -60,7 +67,7 @@ public class SpriteFramesBuilder
         
         SpriteFrames.AddAnimation(animationId);
         SpriteFrames.SetAnimationSpeed(animationId, fps);
-        SpriteFrames.SetAnimationLoop(animationId, true);
+        SpriteFrames.SetAnimationLoopMode(animationId, SpriteFrames.LoopMode.Linear);
         foreach (int index in indices)
         {
             int column = index % Columns;
@@ -73,6 +80,28 @@ public class SpriteFramesBuilder
             SpriteFrames.AddFrame(animationId, tex);
         }
 
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the loop mode of the given animation ID. By default, all animation use Linear looping.
+    /// </summary>
+    /// <param name="animationId">The animation ID to disable looping on.</param>
+    /// 
+    /// <returns></returns>
+    public SpriteFramesBuilder SetAnimationLoopMode(string animationId, SpriteFrames.LoopMode mode)
+    {
+        // return early if the builder was never properly initialized
+        if (SpriteFrames == null)
+            return this;
+        
+        if (!SpriteFrames.HasAnimation(animationId))
+        {
+            GD.PushWarning($"SpriteFrames does not have an animation named {animationId}, skipping!");
+            return this;
+        }
+        
+        SpriteFrames.SetAnimationLoopMode(animationId, mode);
         return this;
     }
 

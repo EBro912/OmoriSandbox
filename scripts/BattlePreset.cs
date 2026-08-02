@@ -14,8 +14,12 @@ internal class BattlePreset
     public double BGMLoopPoint { get; set; } = 0d;
     public int StartingEnergy { get; set; } = 3;
     public int FollowupTier { get; set; } = 1;
+    // legacy, kept for reading old presets
     public bool BasilFollowups { get; set; } = false;
+    public bool ShouldSerializeBasilFollowups() => false;
+    // legacy, kept for reading old presets
     public bool BasilReleaseEnergy { get; set; } = false;
+    public bool ShouldSerializeBasilReleaseEnergy() => false;
     public bool DisableDialogue { get; set; } = false;
     public bool DisableDamageNumbers { get; set; } = false;
     public Dictionary<string, int> Items { get; set; } = [];
@@ -33,7 +37,10 @@ internal class BattlePresetActor
     public string Weapon { get; set; } = "Baguette";
     public string Charm { get; set; } = "None";
     public string Emotion { get; set; } = "neutral";
+    // legacy, kept for reading old presets
     public bool FollowupsDisabled { get; set; } = false;
+    public bool ShouldSerializeFollowupsDisabled() => false;
+    public string FollowupSet { get; set; } = null;
     public string[] Skills { get; set; } = ["OAttack", "", "", "", ""];
     [JsonRequired] public int Position { get; set; }
     public Stats AdjustedStats { get; set; } = new();

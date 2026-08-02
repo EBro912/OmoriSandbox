@@ -1,0 +1,58 @@
+{
+  "Type": 0,
+  "Name": "Smug Showdown",
+  "Battleback": "battleback_vf_default",
+  "BGM": "battle_vf",
+  "BGMPitch": 1.0,
+  "BGMLoopPoint": 0.0,
+  "StartingEnergy": 10,
+  "FollowupTier": 1,
+  "DisableDialogue": false,
+  "DisableDamageNumbers": false,
+  "Items": {
+    "Confetti": 3,
+    "Dandelion": 2
+  },
+  "Actors": [
+    {
+      "Name": "Omori",
+      "Level": 25,
+      "Weapon": "Knife",
+      "Charm": "None",
+      "Emotion": "neutral",
+      "FollowupSet": "OmoriEx",
+      "Skills": [
+        "OAttack",
+        "Trick",
+        "Mock",
+        "Guard"
+      ],
+      "Position": 0
+    },
+    {
+      "Name": "Aubrey",
+      "Level": 25,
+      "Weapon": "Stuffed Toy",
+      "Charm": "None",
+      "Emotion": "smug",
+      "Skills": [
+        "AAttack",
+        "Headbutt",
+        "PowerHit",
+        "Twirl"
+      ],
+      "Position": 1
+    }
+  ],
+  "Enemies": [
+    {
+      "Name": "LostSproutMole",
+      "Position": "Vector2(280, 220)"
+    },
+    {
+      "Name": "LostSproutMole",
+      "Position": "Vector2(400, 260)"
+    }
+  ],
+  "Stages": []
+}

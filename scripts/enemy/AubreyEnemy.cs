@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Actors;
@@ -15,10 +16,9 @@ internal sealed class AubreyEnemy : Enemy
 
     protected override string[] EquippedSkills => ["AEAttack", "AEDoNothing", "AEHeadbutt"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy"
-              || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
 
     protected override PartyMember SelectTarget()

@@ -2,6 +2,7 @@
 using OmoriSandbox;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Modding;
 
 namespace AquaMod;
@@ -17,12 +18,11 @@ public partial class AquaMod : Mod
             description: "AQKnifeChain",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws a chain of knives!");
                 if (self is Aqua)
-                    self.ForceState("chain");
+                    self.PlayAnimation("chain");
                 Tween tween;
                 for (int i = 0; i < 6; i++)
                 {
@@ -36,7 +36,7 @@ public partial class AquaMod : Mod
                 tween = CreateTween();
                 tween.TweenProperty(self.Sprite, "offset", Vector2.Zero, 0.2f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
                 await ToSignal(tween, Tween.SignalName.Finished);
-                self.ForceState("neutral");
+                self.ClearAnimation();
             }
         ));
         
@@ -45,7 +45,6 @@ public partial class AquaMod : Mod
             description: "AQKnifeFan",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws a fan of knives!");
@@ -63,7 +62,6 @@ public partial class AquaMod : Mod
             description: "AQKnifeCircle",
             target: SkillTarget.Enemy,
             cost: 0,
-            hidden: true,
             effect: async (self, target) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] throws knives in a circle!");
@@ -81,15 +79,16 @@ public partial class AquaMod : Mod
             description: "AQOmega",
             target: SkillTarget.AllEnemies,
             cost: 0,
-            hidden: true,
-            effect: async (self, target) =>
+            effect: async (self, targets) =>
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] uses her OMEGA attack!");
                 await Wait.Milliseconds(1000);
-                AnimationManager.Instance.PlayAnimation(13, target);
+                foreach (Actor target in targets)
+                    AnimationManager.Instance.PlayAnimation(13, target);
                 for (int i = 0; i < 10; i++)
                 {
-                    BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 5 - target.CurrentStats.DEF, false, 0.1f, neverCrit: true);
+                    foreach (Actor target in targets)
+                        BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 5 - target.CurrentStats.DEF, false, 0.1f, neverCrit: true);
                     await Wait.Milliseconds(350);
                 }
             }
@@ -107,12 +106,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("pose");
-                    target.ForceState("pose");
+                    target.PlayAnimation("pose");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy posed back!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("pose");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {
@@ -133,12 +132,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("spin");
-                    target.ForceState("spin");
+                    target.PlayAnimation("spin");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy spun around, too!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("spin");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {
@@ -159,12 +158,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("laugh");
-                    target.ForceState("laugh");
+                    target.PlayAnimation("laugh");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy laughed!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("care");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {
@@ -185,12 +184,12 @@ public partial class AquaMod : Mod
                 if (target is Aqua enemy)
                 {
                     enemy.AddMercy("dance");
-                    target.ForceState("dance");
+                    target.PlayAnimation("dance");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy danced, too!");
                     await Wait.Milliseconds(1000);
                     await enemy.DoACTDialogue("dance");
-                    target.ForceState("neutral");
+                    target.ClearAnimation();
                 }
                 else
                 {

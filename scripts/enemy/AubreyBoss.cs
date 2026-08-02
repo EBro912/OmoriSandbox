@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -12,9 +13,9 @@ internal sealed class AubreyBoss : Enemy
     protected override Stats Stats => new(12000, 4000, 120, 55, 75, 15, 95);
     protected override string[] EquippedSkills => ["AAttack", "ABossBeatdown", "ABossLookAtKel", "ABossLookAtHero", "PowerHit", "WindUpThrow", "MoodWrecker", "PepTalk", "ABossTwirl"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "toast" or "happy" or "sad" or "angry";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
 
     private int TurnCount = 0;
@@ -30,7 +31,7 @@ internal sealed class AubreyBoss : Enemy
         if (TurnCount == 3)
         {
             Enemy kel = SelectAllEnemies().MaxBy(x => x.CurrentStats.SPD);
-            if (kel != null && kel.CurrentState is not "happy")
+            if (kel != null && kel.CurrentEmotion.Id is not "happy")
                 return new BattleCommand(this, kel, Skills["PepTalk"]);
         }
 
@@ -39,7 +40,7 @@ internal sealed class AubreyBoss : Enemy
         if (target != null)
             return new BattleCommand(this, target, Skills["ABossBeatdown"]);
 
-        target = targets.FirstOrDefault(x => x.CurrentState is "happy" or "ecstatic" or "manic");
+        target = targets.FirstOrDefault(x => x.CurrentEmotion.Group?.Id == "happy");
         if (target != null)
             return new BattleCommand(this, target, Skills["MoodWrecker"]);
 
@@ -74,7 +75,7 @@ internal sealed class AubreyBoss : Enemy
             return new BattleCommand(this, targets, Skills["WindUpThrow"]);
         }
 
-        target = targets.FirstOrDefault(x => x.CurrentState is "angry" or "enraged" or "furious");
+        target = targets.FirstOrDefault(x => x.CurrentEmotion.Group?.Id == "angry");
         if (target != null)
             return new BattleCommand(this, target, Skills["ABossTwirl"]);
         

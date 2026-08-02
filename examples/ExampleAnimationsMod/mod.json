@@ -1,0 +1,8 @@
+{
+	"id": "exampleanimationsmod",
+	"name": "ExampleAnimationsMod",
+	"description": "Example mod: custom battle animations. Animations.json imports a new RPGMaker style animation (ID 900, recolored mod texture), Animations.jsond fills a texture-less vanilla animation slot (ID 221) from delta ops reusing a vanilla sheet. Preview both in the main menu's Animation Viewer, and play them from C# via AnimationManager.PlayAnimation. Note: despite the name, a .jsond delta cannot modify an already-registered ID.",
+	"author": "alltoasters",
+	"version": "1.0.0",
+	"icon": "icon.png"
+}

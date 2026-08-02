@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Actors;
@@ -15,9 +16,9 @@ internal sealed class Charlene : Enemy
 
     protected override string[] EquippedSkills => ["CHAttack", "CHDoNothing"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     protected override PartyMember SelectTarget()

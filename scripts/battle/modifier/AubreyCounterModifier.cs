@@ -14,16 +14,17 @@ public sealed class AubreyCounterModifier : StatModifier
     
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
-        if (phase is DamagePhase.PostApply)
+        if (phase is DamagePhase.PreApply)
         {
             if (isAttacking)
             {
-                // if we're attacking, presumably this is a counterattack
-                // so we can reset this value back to false
                 HasCounteredThisTurn = false;
                 return;
             }
-
+        }
+        
+        if (phase is DamagePhase.PostApply)
+        {
             if (HasCounteredThisTurn)
                 return;
 

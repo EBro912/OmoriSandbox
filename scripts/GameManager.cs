@@ -19,11 +19,12 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.0.1";
+	public const string Version = "OmoriSandbox v1.1.0";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
 	[Export] private BattlebackDisplayComponent BattlebackParent;
+	[Export] private Node2D BattlebackRoot;
 	[Export] private Label FPSLabel;
 	[Export] private Node Party;
 	[Export] private Material GreyscaleMaterial;
@@ -37,9 +38,19 @@ public partial class GameManager : Node
 	internal DiscordManager DiscordManager { get; private set; }
 	public static GameManager Instance { get; private set; }
 
+	private double DisplayedFPS = -1;
+
 	public override void _PhysicsProcess(double delta)
 	{
-		FPSLabel.Text = $"{(SettingsMenuManager.Instance.ShowFPS ? Engine.GetFramesPerSecond() : "")} {Version}";
+		// only rebuild the label text when the displayed value actually changes
+		double fps = SettingsMenuManager.Instance.ShowFPS ? Engine.GetFramesPerSecond() : -1;
+		// possible loss of precision here is fine because we only care about whole number changes
+		// ReSharper disable once CompareOfFloatsByEqualityOperator
+		if (fps != DisplayedFPS)
+		{
+			DisplayedFPS = fps;
+			FPSLabel.Text = $"{(fps >= 0 ? fps : "")} {Version}";
+		}
 
 		DiscordManager.Tick();
 	}
@@ -91,7 +102,7 @@ public partial class GameManager : Node
 	/// <param name="enabled">Whether the greyscale filter should be enabled.</param>
 	public void SetBattlebackGrayscale(bool enabled)
 	{
-		BattlebackParent.Material = enabled ? GreyscaleMaterial : null;
+		BattlebackRoot.Material = enabled ? GreyscaleMaterial : null;
 	}
 
 	internal void LoadBattlePreset(BattlePreset preset, int startingStage)
@@ -107,16 +118,17 @@ public partial class GameManager : Node
 				continue;
 			}
 
-			PackedScene followup = null;
-			if (!entry.FollowupsDisabled)
+			if (entry.Position is < 0 or > 3)
 			{
-				if (preset.BasilFollowups && entry.Position == 2)
-					followup = Followups[4];
-				else
-					followup = Followups[entry.Position];
+				GD.PrintErr($"Invalid position {entry.Position} for party member {entry.Name}, skipping!");
+				continue;
 			}
 
-			PartyMemberComponent actor = SpawnPartyMember(followup, entry);
+			FollowupSet set = FollowupSets.Get(FollowupSets.ResolveId(preset, entry));
+			if (set != null)
+				FollowupSets.WarnMissingSkills(set, preset);
+
+			PartyMemberComponent actor = SpawnPartyMember(set, entry);
 
 			if (actor == null)
 			{
@@ -129,9 +141,20 @@ public partial class GameManager : Node
 
 		foreach (BattlePresetEnemy entry in preset.Enemies)
 		{
+			if (string.IsNullOrWhiteSpace(entry.Position))
+			{
+				GD.PrintErr($"Missing position for enemy {entry.Name}, skipping!");
+				continue;
+			}
 			if (!entry.Position.StartsWith("Vector2"))
 				entry.Position = "Vector2" + entry.Position;
-			Vector2 position = GD.StrToVar(entry.Position).AsVector2();
+			Variant parsedPosition = GD.StrToVar(entry.Position);
+			if (parsedPosition.VariantType != Variant.Type.Vector2)
+			{
+				GD.PrintErr($"Invalid position \"{entry.Position}\" for enemy {entry.Name}, skipping!");
+				continue;
+			}
+			Vector2 position = parsedPosition.AsVector2();
 			while (enemy.Any(x => x.Actor.CenterPoint == position))
 			{
 				// prevent stacking
@@ -162,12 +185,16 @@ public partial class GameManager : Node
 		DespawnEnemies();
 	}
 
+	// add enemy nodes to a group to make keeping track of them easier
+	// they are mixed in with other non-enemy nodes
+	private const string EnemyNodeGroup = "battle_enemies";
+
 	internal void DespawnEnemies()
 	{
-		// skip the first child as the first child is the FullscreenEffects
-		foreach (Node child in BattlebackParent.GetChildren().Skip(1))
+		foreach (Node child in BattlebackRoot.GetChildren())
 		{
-			child.QueueFree();
+			if (child.IsInGroup(EnemyNodeGroup))
+				child.QueueFree();
 		}
 	}
 
@@ -177,8 +204,10 @@ public partial class GameManager : Node
 		if (instance == null)
 			return null;
 		Node2D node = EnemyNode.Instantiate<Node2D>();
-		BattlebackParent.AddChild(node);
-		GD.Print("Spawning enemy at: " + position);
+		node.AddToGroup(EnemyNodeGroup);
+		BattlebackRoot.AddChild(node);
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print("Spawning enemy at: " + position);
 		node.GlobalPosition = position;
 		EnemyComponent component = new();
 		node.AddChild(component);
@@ -187,7 +216,7 @@ public partial class GameManager : Node
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(PackedScene followup, BattlePresetActor actor)
+	private PartyMemberComponent SpawnPartyMember(FollowupSet set, BattlePresetActor actor)
 	{
 		PartyMember instance = Database.CreatePartyMember(actor.Name);
 		if (instance == null)
@@ -204,7 +233,13 @@ public partial class GameManager : Node
 		};
 		PartyMemberComponent component = new();
 		card.AddChild(component);
-		component.SetPartyMember(instance, followup, actor);
+		// the slot provides the bubble layout, the set only provides graphics and skills
+		PackedScene followup = set == null ? null : Followups[actor.Position];
+		if (!component.SetPartyMember(instance, followup, set, actor))
+		{
+			card.QueueFree();
+			return null;
+		}
 		return component;
 	}
 }

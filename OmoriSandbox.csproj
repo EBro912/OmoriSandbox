@@ -1,4 +1,4 @@
-﻿<Project Sdk="Godot.NET.Sdk/4.6.0">
+﻿<Project Sdk="Godot.NET.Sdk/4.7.1">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -13,8 +13,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ExportRelease|AnyCPU'">
     <NoWarn>1701;1702</NoWarn>
   </PropertyGroup>
-  <ItemGroup>    
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Discord Game SDK native library for Linux -->
+    <None Include="libdiscord_game_sdk.so" Condition="Exists('libdiscord_game_sdk.so')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

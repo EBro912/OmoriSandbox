@@ -36,7 +36,7 @@ internal partial class EditorManager : Node
 			ConfirmationDialog dialog = new()
 			{
 				Title = "Confirmation",
-				DialogText = "Are you sure you return?\nAll unsaved progress will be lost.",
+				DialogText = "Are you sure you want to return?\nAll unsaved progress will be lost.",
 				Unresizable = true
 			};
 			dialog.Confirmed += () =>
@@ -54,6 +54,9 @@ internal partial class EditorManager : Node
 		{
 			control.GetChild<Button>(0).Pressed += () =>
 			{
+				// each position holds a single battlecard preview
+				if (control.GetChildCount() > 1)
+					return;
 				Control card = BattleCard.Instantiate<Control>();
 				control.AddChild(card);
 				card.Position = Vector2.Zero;
@@ -156,6 +159,8 @@ internal partial class EditorManager : Node
 
 		RemoveStageButton.Pressed += () =>
 		{
+			if (StageTabs.GetTabCount() == 0)
+				return;
 			BGMPreview.Stop();
 			Node tab = StageTabs.GetChild(StageTabs.CurrentTab);
 			tab.Free();
@@ -242,6 +247,12 @@ internal partial class EditorManager : Node
 		if (string.IsNullOrWhiteSpace(PresetInput.Text))
 			return;
 
+		if (!PresetManager.IsValidPresetName(PresetInput.Text))
+		{
+			ShowWindow("Error", "Preset name contains invalid characters");
+			return;
+		}
+
 		if (ActorTabs.GetChildCount() == 0)
 		{
 			ShowWindow("Error", "Preset must have at least one actor");
@@ -303,8 +314,6 @@ internal partial class EditorManager : Node
 			Name = PresetInput.Text,
 			StartingEnergy = (int)StartingEnergySlider.Value,
 			FollowupTier = (int)FollowupTierSlider.Value,
-			BasilFollowups = BasilFollowupsCheckbox.ButtonPressed,
-			BasilReleaseEnergy = BasilReleaseEnergyCheckbox.ButtonPressed,
 			DisableDialogue = DisableDialogue.ButtonPressed,
 			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed
 		};
@@ -328,7 +337,11 @@ internal partial class EditorManager : Node
 			{
 				OptionButton dropdown = container.GetChild<OptionButton>(0);
 				SpinBox quantity = container.GetChild<SpinBox>(1);
-				items.Add(dropdown.GetItemText(dropdown.Selected), (int)quantity.Value);
+				string key = dropdown.GetItemText(dropdown.Selected);
+				if (items.ContainsKey(key))
+					items[key] += (int)quantity.Value;
+				else
+					items.Add(dropdown.GetItemText(dropdown.Selected), (int)quantity.Value);
 			}
 		}
 
@@ -336,10 +349,6 @@ internal partial class EditorManager : Node
 		{
 			if (child is PartyMemberEditorComponent editor)
 			{
-				string[] skills = new string[5];
-				skills[0] = editor.AttackSkill.Text;
-				for (int i = 0; i < 4; i++)
-					skills[i + 1] = editor.Skills[i].Text;
 				BattlePresetActor actor = new()
 				{
 					Name = editor.ActorDropdown.GetItemText(editor.ActorDropdown.Selected),
@@ -347,8 +356,8 @@ internal partial class EditorManager : Node
 					Weapon = editor.WeaponDropdown.GetItemText(editor.WeaponDropdown.Selected),
 					Charm = editor.CharmDropdown.GetItemText(editor.CharmDropdown.Selected),
 					Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
-					FollowupsDisabled = editor.DisableFollowups.ButtonPressed,
-					Skills = skills,
+					FollowupSet = editor.FollowupSetDropdown.GetItemText(editor.FollowupSetDropdown.Selected),
+					Skills = editor.GetSkills(),
 					Position = editor.ActorPosition,
 					AdjustedStats = editor.GetAdjustedStats()
 				};
@@ -463,8 +472,6 @@ internal partial class EditorManager : Node
 
 		StartingEnergySlider.Value = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTierSlider.Value = Math.Clamp(preset.FollowupTier, 1, 3);
-		BasilFollowupsCheckbox.ButtonPressed = preset.BasilFollowups;
-		BasilReleaseEnergyCheckbox.ButtonPressed = preset.BasilReleaseEnergy;
 		DisableDialogue.ButtonPressed = preset.DisableDialogue;
 		DisableDamageNumbers.ButtonPressed = preset.DisableDamageNumbers;
 		
@@ -504,18 +511,33 @@ internal partial class EditorManager : Node
 		
 		foreach (BattlePresetActor entry in preset.Actors)
 		{
+			if (entry.Position < 0 || entry.Position >= AddActorControls.Length)
+			{
+				GD.PrintErr($"Invalid position {entry.Position} for party member {entry.Name}, skipping!");
+				continue;
+			}
+			if (!Database.GetAllPartyMemberNames().Contains(entry.Name))
+			{
+				GD.PushWarning($"Skipping unknown party member \"{entry.Name}\" in preset");
+				continue;
+			}
 			Control card = BattleCard.Instantiate<Control>();
 			AddActorControls[entry.Position].AddChild(card);
 			card.Position = Vector2.Zero;
 			PartyMemberEditorComponent editor = PartyMemberEditor.Instantiate<PartyMemberEditorComponent>();
 			ActorTabs.AddChild(editor);
-			editor.Init(card, entry);
+			editor.Init(card, entry, FollowupSets.ResolveId(preset, entry));
 		}
 
 		if (preset.Type is GameModeType.Normal)
 		{
 			foreach (BattlePresetEnemy entry in preset.Enemies)
 			{
+				if (!Database.GetAllEnemyNames().Contains(entry.Name))
+				{
+					GD.PushWarning($"Skipping unknown enemy \"{entry.Name}\" in preset");
+					continue;
+				}
 				AnimatedSprite2D enemySprite = new();
 				AddEnemyControl.AddChild(enemySprite);
 				EnemyEditorComponent editor = EnemyEditor.Instantiate<EnemyEditorComponent>();
@@ -540,6 +562,11 @@ internal partial class EditorManager : Node
 				editor.KeepStatusEffectsCheckbox.ButtonPressed = entry.KeepStatusEffects;
 				foreach (BattlePresetEnemy enemy in entry.Enemies)
 				{
+					if (!Database.GetAllEnemyNames().Contains(enemy.Name))
+					{
+						GD.PushWarning($"Skipping unknown enemy \"{enemy.Name}\" in preset");
+						continue;
+					}
 					AnimatedSprite2D enemySprite = new();
 					editor.EnemyParent.AddChild(enemySprite);
 					EnemyEditorComponent subEditor = EnemyEditor.Instantiate<EnemyEditorComponent>();
@@ -637,11 +664,11 @@ internal partial class EditorManager : Node
 
 	private void ResetToDefault()
 	{
-		// remove battlecard previews
+		// remove battlecard previews (child 0 is the add button)
 		foreach (Control control in AddActorControls)
 		{
-			if (control.GetChildCount() > 1)
-				control.GetChild<Control>(1).Free();
+			for (int i = control.GetChildCount() - 1; i > 0; i--)
+				control.GetChild(i).Free();
 		}
 
 		// remove party member tabs
@@ -690,8 +717,6 @@ internal partial class EditorManager : Node
 		}
 		
 		FollowupTierSlider.Value = 1;
-		BasilFollowupsCheckbox.ButtonPressed = false;
-		BasilReleaseEnergyCheckbox.ButtonPressed = false;
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
 
@@ -734,8 +759,6 @@ internal partial class EditorManager : Node
     [Export] private Label StartingEnergyValue;
     [Export] private HSlider FollowupTierSlider;
     [Export] private Label FollowupTierValue;
-    [Export] private CheckBox BasilFollowupsCheckbox;
-    [Export] private CheckBox BasilReleaseEnergyCheckbox;
     [Export] private CheckBox DisableDialogue;
     [Export] private CheckBox DisableDamageNumbers;
     [Export] private Button AddItemButton;

@@ -1,8 +1,9 @@
+using System;
 using Godot;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
-using OmoriSandbox.Battle.Modifier;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,29 +12,71 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class PartyMember : Actor
 {
-	internal void Init(AnimatedSprite2D face, BattlePresetActor actor)
+	/// <summary>
+	/// Optional label/portrait asset shown on the battlecard while a <see cref="Actor.CurrentAnimation"/> override is active.
+	/// </summary>
+	public EmotionAsset CurrentAnimationAsset { get; private set; }
+
+	/// <inheritdoc/>
+	public override void PlayAnimation(string animationName)
+	{
+		CurrentAnimationAsset = null;
+		base.PlayAnimation(animationName);
+	}
+
+	/// <summary>
+	/// Overrides this PartyMember's emotion animation and shows the given label/portrait asset on their battlecard.<br/>
+	/// See <see cref="Actor.PlayAnimation(string)"/>.<br/>
+	/// If another animation override is already active, it will be replaced.
+	/// </summary>
+	/// <param name="animationName">The animation to play. Must exist in the actor's SpriteFrames.</param>
+	/// <param name="asset">The label/portrait asset to show while the override is active.</param>
+	public void PlayAnimation(string animationName, EmotionAsset asset)
+	{
+		CurrentAnimationAsset = asset;
+		base.PlayAnimation(animationName);
+	}
+
+	/// <inheritdoc/>
+	public override void ClearAnimation()
+	{
+		CurrentAnimationAsset = null;
+		base.ClearAnimation();
+	}
+
+	internal bool Init(AnimatedSprite2D face, BattlePresetActor actor)
 	{
 		SpriteFrames animation = Animation;
         if (animation == null)
         {
             GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
-            return;
+            return false;
+        }
+        
+        // if the party member starts toast, they technically start neutral
+        bool startToast = actor.Emotion == "toast";
+        string emotion = startToast ? "neutral" : actor.Emotion;
+        // fall back to neutral on unknown or invalid preset emotions
+        if (!Database.TryGetEmotion(emotion, out Emotion preset) || !animation.HasAnimation(preset.AnimationName) || !IsEmotionValid(preset))
+        {
+            GD.PushWarning($"Invalid emotion '{emotion}' for PartyMember {Name}, defaulting to neutral.");
+            actor.Emotion = "neutral";
+            emotion = "neutral";
         }
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;
-		Sprite.Animation = actor.Emotion;
+		SetEmotion(emotion, true);
 		Sprite.Play();
-		SetState(actor.Emotion, true);
 		
         // init stats
         Level = actor.Level;
-        int idx = actor.Level - 1;
+        int idx = Math.Clamp(actor.Level, 1, HPTree.Length) - 1;
 		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
 		if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
 		{
 			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
-			return;
+			return false;
 		}
 		Weapon = w;
 		
@@ -42,15 +85,20 @@ public abstract class PartyMember : Actor
 			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
 			{
 				GD.PrintErr("Failed to find Charm: " + actor.Charm);
-				return;
+				return false;
 			}
 			Charm = c;
 		}
 
-		if (actor.Emotion == "toast")
+		if (startToast)
+		{
 			CurrentHP = 0;
+			SetToast();
+		}
 		else
+		{
 			CurrentHP = CurrentStats.MaxHP;
+		}
 		CurrentJuice = CurrentStats.MaxJuice;
 
 		EquippedSkills = actor.Skills;
@@ -68,6 +116,8 @@ public abstract class PartyMember : Actor
 			}
 			GD.PrintErr("Unknown skill: " + s);
 		}
+
+		return true;
 	}
 
 	/// <summary>
@@ -83,13 +133,13 @@ public abstract class PartyMember : Actor
 	}
 
 	/// <inheritdoc/>
-	public override bool IsStateValid(string state)
+	public override bool IsEmotionValid(Emotion emotion)
 	{
-		if (state is "neutral" or "toast" or "victory")
+		if (emotion.Id == "neutral")
 			return true;
 		if (Charm?.Name == "Paper Bag")
 			return false;
-		return !InvalidStates.Contains(state);
+		return !InvalidStates.Contains(emotion.Id);
 	}
 
     /// <inheritdoc/>
@@ -144,7 +194,7 @@ public abstract class PartyMember : Actor
 	/// </summary>
 	public virtual string[] EquippableWeapons { get; protected set; } = [];
 	/// <summary>
-	/// A list of invalid states this party member cannot feel. Used in <see cref="IsStateValid(string)"/>
+	/// A list of invalid emotion ids this party member cannot feel. Used in <see cref="IsEmotionValid(Emotion)"/>
 	/// </summary>
 	public abstract string[] InvalidStates { get; }
 	/// <summary>

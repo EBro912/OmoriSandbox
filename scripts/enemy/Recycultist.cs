@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -22,10 +23,9 @@ internal sealed class Recycultist : Enemy
 
     protected override string[] EquippedSkills => ["RCultGatherTrash", "RCultFlingTrash"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
 
     public override BattleCommand ProcessAI()

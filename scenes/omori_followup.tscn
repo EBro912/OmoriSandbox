@@ -1,15 +1,14 @@
-[gd_scene load_steps=7 format=3 uid="uid://b8h6qs361gmp5"]
+[gd_scene load_steps=6 format=3 uid="uid://b8h6qs361gmp5"]
 
 [ext_resource type="Script" uid="uid://i0jitv8wumfr" path="res://scripts/FollowupBubbles.cs" id="1_de6qi"]
 [ext_resource type="Texture2D" uid="uid://bp4sh5ji6jwpv" path="res://assets/system/ACS_Bubble.png" id="1_t8imw"]
 [ext_resource type="Texture2D" uid="uid://kbjbvwx6bpq5" path="res://assets/system/ACSArrows.png" id="2_1tklj"]
 [ext_resource type="Script" uid="uid://ddwjgbjgtbsv" path="res://scripts/FollowupDirection.cs" id="2_ldk6r"]
 [ext_resource type="Script" uid="uid://c3w7m65ic8go4" path="res://scripts/CursorBounce.cs" id="4_de6qi"]
-[ext_resource type="Script" uid="uid://d4f1w7popcx8k" path="res://scripts/FollowupFreakOutComponent.cs" id="6_k2x7e"]
 
 [node name="omori_followup" type="Node2D" node_paths=PackedStringArray("Directions")]
 script = ExtResource("1_de6qi")
-Directions = [NodePath("BubbleUp"), NodePath("BubbleLeft"), NodePath("BubbleDown")]
+Directions = [NodePath("BubbleUp"), NodePath("BubbleRight"), NodePath("BubbleDown")]
 
 [node name="BubbleUp" type="Sprite2D" parent="."]
 position = Vector2(67, -30)
@@ -27,7 +26,7 @@ region_rect = Rect2(96, 0, 29, 29)
 script = ExtResource("4_de6qi")
 Direction = 1
 
-[node name="BubbleLeft" type="Sprite2D" parent="."]
+[node name="BubbleRight" type="Sprite2D" parent="."]
 position = Vector2(156, 1)
 texture = ExtResource("1_t8imw")
 region_enabled = true
@@ -35,7 +34,7 @@ region_rect = Rect2(127, 0, 127, 99)
 script = ExtResource("2_ldk6r")
 InputDir = 4
 
-[node name="FingerLeft" type="Sprite2D" parent="BubbleLeft"]
+[node name="FingerRight" type="Sprite2D" parent="BubbleRight"]
 position = Vector2(56, -6)
 texture = ExtResource("2_1tklj")
 region_enabled = true
@@ -48,7 +47,6 @@ texture = ExtResource("1_t8imw")
 region_enabled = true
 region_rect = Rect2(258, 0, 127, 99)
 script = ExtResource("2_ldk6r")
-Cost = 10
 InputDir = 2
 
 [node name="FingerDown" type="Sprite2D" parent="BubbleDown"]
@@ -58,7 +56,3 @@ region_enabled = true
 region_rect = Rect2(0, 0, 29, 29)
 script = ExtResource("4_de6qi")
 Direction = 1
-
-[node name="FreakOutComponent" type="Node" parent="BubbleDown" node_paths=PackedStringArray("Target")]
-script = ExtResource("6_k2x7e")
-Target = NodePath("..")

@@ -8,7 +8,7 @@
 [ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="5_r4oqs"]
 [ext_resource type="PackedScene" uid="uid://chwhfaladnv86" path="res://scenes/stat_adjustment_editor.tscn" id="6_pf1e0"]
 
-[node name="PartyMemberEditorComponent" type="TabContainer" unique_id=268931947 node_paths=PackedStringArray("ActorDropdown", "WeaponDropdown", "CharmDropdown", "EmotionDropdown", "LevelSlider", "LevelSliderValue", "DisableFollowups", "AttackSkill", "Skills", "RemoveButton", "FilterEquippableCheckbox", "StatAdjustmentEditor")]
+[node name="PartyMemberEditorComponent" type="TabContainer" unique_id=268931947 node_paths=PackedStringArray("ActorDropdown", "WeaponDropdown", "CharmDropdown", "EmotionDropdown", "LevelSlider", "LevelSliderValue", "FollowupSetDropdown", "AttackSkill", "SkillsContainer", "SkillSlotTemplate", "AddSkillSlotButton", "RemoveButton", "FilterEquippableCheckbox", "StatAdjustmentEditor")]
 offset_right = 297.0
 offset_bottom = 318.0
 mouse_filter = 2
@@ -24,9 +24,11 @@ CharmDropdown = NodePath("Edit/VBoxContainer/Charm/CharmDropdown")
 EmotionDropdown = NodePath("Edit/VBoxContainer/Emotion/EmotionDropdown")
 LevelSlider = NodePath("Edit/VBoxContainer/Level/LevelSlider")
 LevelSliderValue = NodePath("Edit/VBoxContainer/Level/LevelSliderValue")
-DisableFollowups = NodePath("Edit/VBoxContainer/DisableFollowups")
+FollowupSetDropdown = NodePath("Edit/VBoxContainer/FollowupSet/FollowupSetDropdown")
 AttackSkill = NodePath("Edit/VBoxContainer/AttackSkill/Skill")
-Skills = [NodePath("Edit/VBoxContainer/Skills/Skill1/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill2/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill3/Skill"), NodePath("Edit/VBoxContainer/Skills/Skill4/Skill")]
+SkillsContainer = NodePath("Edit/VBoxContainer/SkillScroll/Skills")
+SkillSlotTemplate = NodePath("Edit/VBoxContainer/SkillSlotTemplate")
+AddSkillSlotButton = NodePath("Edit/VBoxContainer/AddSkillSlot")
 RemoveButton = NodePath("Edit/VBoxContainer/Remove")
 FilterEquippableCheckbox = NodePath("Edit/VBoxContainer/Weapon/EquippableFilter")
 StatAdjustmentEditor = NodePath("Adjust Stats")
@@ -150,11 +152,25 @@ rounded = true
 layout_mode = 2
 text = "1"
 
-[node name="DisableFollowups" type="CheckBox" parent="Edit/VBoxContainer" unique_id=1995409961]
+[node name="FollowupSet" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1095825863]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Edit/VBoxContainer/FollowupSet" unique_id=305253229]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
-text = "Disable Followups"
+text = "Followups"
+
+[node name="FollowupSetDropdown" type="OptionButton" parent="Edit/VBoxContainer/FollowupSet" unique_id=2056505193]
+layout_mode = 2
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("2_pn8h2")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("3_nfq3q")
+theme_override_styles/pressed = ExtResource("5_r4oqs")
+theme_override_styles/hover = ExtResource("4_r4oqs")
+allow_reselect = true
 
 [node name="Label" type="Label" parent="Edit/VBoxContainer" unique_id=1430212832]
 layout_mode = 2
@@ -181,20 +197,38 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Skills" type="GridContainer" parent="Edit/VBoxContainer" unique_id=1418035052]
+[node name="AddSkillSlot" type="Button" parent="Edit/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("2_pn8h2")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("3_nfq3q")
+theme_override_styles/pressed = ExtResource("5_r4oqs")
+theme_override_styles/hover = ExtResource("4_r4oqs")
+text = "+ Add Skill Slot"
+
+[node name="SkillScroll" type="ScrollContainer" parent="Edit/VBoxContainer"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Skills" type="GridContainer" parent="Edit/VBoxContainer/SkillScroll" unique_id=1418035052]
 layout_mode = 2
 columns = 2
 
-[node name="Skill1" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=1120849218]
+[node name="SkillSlotTemplate" type="HBoxContainer" parent="Edit/VBoxContainer"]
+visible = false
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill1" unique_id=1198715156]
+[node name="Label" type="Label" parent="Edit/VBoxContainer/SkillSlotTemplate"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 text = "Skill 1"
 
-[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill1" unique_id=1777181344]
+[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/SkillSlotTemplate"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_pn8h2")
@@ -204,62 +238,15 @@ theme_override_styles/focus = ExtResource("4_r4oqs")
 max_length = 32
 expand_to_text_length = true
 
-[node name="Skill2" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=4588135]
+[node name="RemoveSlot" type="Button" parent="Edit/VBoxContainer/SkillSlotTemplate"]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill2" unique_id=1079742488]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_pn8h2")
-theme_override_font_sizes/font_size = 20
-text = "Skill 2"
-
-[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill2" unique_id=322083867]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
+mouse_filter = 1
 theme_override_fonts/font = ExtResource("2_pn8h2")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("3_nfq3q")
-theme_override_styles/focus = ExtResource("4_r4oqs")
-max_length = 32
-expand_to_text_length = true
-
-[node name="Skill3" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=1885213063]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill3" unique_id=785022810]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_pn8h2")
-theme_override_font_sizes/font_size = 20
-text = "Skill 3"
-
-[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill3" unique_id=1790147799]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_pn8h2")
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = ExtResource("3_nfq3q")
-theme_override_styles/focus = ExtResource("4_r4oqs")
-max_length = 32
-expand_to_text_length = true
-
-[node name="Skill4" type="HBoxContainer" parent="Edit/VBoxContainer/Skills" unique_id=1655305609]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Edit/VBoxContainer/Skills/Skill4" unique_id=226036246]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_pn8h2")
-theme_override_font_sizes/font_size = 20
-text = "Skill 4"
-
-[node name="Skill" type="LineEdit" parent="Edit/VBoxContainer/Skills/Skill4" unique_id=526587798]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("2_pn8h2")
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = ExtResource("3_nfq3q")
-theme_override_styles/focus = ExtResource("4_r4oqs")
-max_length = 32
-expand_to_text_length = true
+theme_override_styles/pressed = ExtResource("5_r4oqs")
+theme_override_styles/hover = ExtResource("4_r4oqs")
+text = "X"
 
 [node name="Remove" type="Button" parent="Edit/VBoxContainer" unique_id=1148579905]
 layout_mode = 2

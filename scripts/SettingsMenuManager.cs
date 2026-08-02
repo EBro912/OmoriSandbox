@@ -68,7 +68,6 @@ public partial class SettingsMenuManager : Control
 				if (node is KeybindButton keybind)
 				{
 					keybind.Reset();
-					config.SetValue("Keybinds", keybind.AssociatedAction, OS.GetKeycodeString(keybind.DefaultKey));
 				}
 			}
 		};
@@ -87,6 +86,7 @@ public partial class SettingsMenuManager : Control
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
 		BGMSlider.Value = (float)config.GetValue("Settings", "BGMVolume", 0.5f);
 		ShowFPSCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowFPS", true);
+		LogDebugCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "LogDebugMessages", false);
 		PreventRunCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PreventAccidentalRun", false);
 		DisableDamageLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableDamageLimit", false);
 		DisableStatLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableStatLimit", false);
@@ -120,18 +120,34 @@ public partial class SettingsMenuManager : Control
 			}
 		}
 
+		// persist settings whenever the menu is closed so a crash doesn't lose them
+		VisibilityChanged += () =>
+		{
+			if (!Visible)
+				SaveSettings();
+		};
+
 		Instance = this;
 	}
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("ToggleFullscreen"))
+		// a key being captured for a rebind must not also trigger its old/new action
+		if (Input.IsActionJustPressed("ToggleFullscreen") && !KeybindButton.IsCapturing)
 		{
 			FullscreenCheckbox.ButtonPressed = !FullscreenCheckbox.ButtonPressed;
 		}
 	}
 
 	public override void _ExitTree()
+	{
+		SaveSettings();
+	}
+
+	/// <summary>
+	/// Saves the current settings and keybinds to disk.
+	/// </summary>
+	public void SaveSettings()
 	{
 		ConfigFile config = new();
 		config.SetValue("Settings", "Fullscreen", FullscreenCheckbox.ButtonPressed);
@@ -141,6 +157,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", (int)BattlelogSpeedSlider.Value);
 		config.SetValue("Settings", "ActionDelay", (int)ActionDelaySlider.Value);
 		config.SetValue("Settings", "ShowFPS", ShowFPSCheckbox.ButtonPressed);
+		config.SetValue("Settings", "LogDebugMessages", LogDebugCheckbox.ButtonPressed);
 		config.SetValue("Settings", "PreventAccidentalRun", PreventRunCheckbox.ButtonPressed);
 		config.SetValue("Settings", "DisableDamageLimit", DisableDamageLimitCheckbox.ButtonPressed);
 		config.SetValue("Settings", "DisableStatLimit", DisableStatLimitCheckbox.ButtonPressed);
@@ -192,6 +209,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", 3);
 		config.SetValue("Settings", "ActionDelay", 3);
 		config.SetValue("Settings", "ShowFPS", true);
+		config.SetValue("Settings", "LogDebugMessages", false);
 		config.SetValue("Settings", "PreventAccidentalRun", false);
 		config.SetValue("Settings", "DisableDamageLimit", false);
 		config.SetValue("Settings", "DisableStatLimit", false);
@@ -230,6 +248,7 @@ public partial class SettingsMenuManager : Control
 
 	public static SettingsMenuManager Instance { get; private set; }
 	public bool ShowFPS => ShowFPSCheckbox.ButtonPressed;
+	public bool LogDebug => LogDebugCheckbox.ButtonPressed;
 	public bool PreventAccidentalRun => PreventRunCheckbox.ButtonPressed;
 	public bool DisableDamageLimit => DisableDamageLimitCheckbox.ButtonPressed;
 	public bool DisableStatLimit => DisableStatLimitCheckbox.ButtonPressed;
@@ -260,6 +279,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private HSlider BattlelogSpeedSlider;
 	[Export] private HSlider ActionDelaySlider;
 	[Export] private CheckBox ShowFPSCheckbox;
+	[Export] private CheckBox LogDebugCheckbox;
 	[Export] private CheckBox PreventRunCheckbox;
 	[Export] private CheckBox DisableDamageLimitCheckbox;
 	[Export] private CheckBox DisableStatLimitCheckbox;

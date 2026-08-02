@@ -1,6 +1,7 @@
 using Godot;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -14,9 +15,9 @@ internal sealed class YeOldSproutAlt : Enemy
 
     protected override string[] EquippedSkills => ["YOSBRRollOver"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()

@@ -154,18 +154,20 @@ internal partial class MainMenuManager : Node
 		Editor.Visible = true;
 	}
 
-	public void AddModListEntry(ModMetadata data, Texture2D icon = null)
+	public void AddModListEntry(ModMetadata data, Texture2D icon = null, bool hasErrors = false)
 	{
 		ModListEntry entry = ModListEntry.Instantiate<ModListEntry>();
 		entry.SetData(data);
 		if (icon != null)
 			entry.SetIcon(icon);
+		if (hasErrors)
+			entry.MarkErrors();
 		ModListParent.GetChild(1).GetChild(0).AddChild(entry);
 	}
 
 	public void UpdateModsLoaded(int count, int total)
 	{
-		ModsLoaded.Text = $"{count} mod{(count > 1 ? "s" : "")} loaded ({total} installed)";
+		ModsLoaded.Text = $"{count} mod{(count != 1 ? "s" : "")} loaded ({total} installed)";
 	}
 
 	public void ClearPresetDropdown()

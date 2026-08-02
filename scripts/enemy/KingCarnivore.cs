@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -12,9 +13,9 @@ internal sealed class KingCarnivore : Enemy
     protected override Stats Stats => new(1900, 950, 65, 29, 53, 10, 95);
     protected override string[] EquippedSkills => ["UPCAttack", "UPCDoNothing", "UPCSweetGas"];
     
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     private readonly List<EnemyComponent> Roots = [];
@@ -35,7 +36,7 @@ internal sealed class KingCarnivore : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         { 
             case "happy":
                 if (Roll() < 76)

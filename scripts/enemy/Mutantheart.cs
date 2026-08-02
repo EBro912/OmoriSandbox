@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Mutantheart : Enemy
@@ -13,9 +14,9 @@ internal sealed class Mutantheart : Enemy
     protected override Stats Stats => new(7000, 3500, 75, 1, 50, 25, 95);
 
     protected override string[] EquippedSkills => ["MHWink", "MHCry", "MHInsult", "MHInstakill"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
 
     private static readonly string[] DesireableStates = ["happy", "sad", "angry"];
@@ -31,7 +32,7 @@ internal sealed class Mutantheart : Enemy
     {
         HasObserveTarget(out PartyMember observe);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 return new BattleCommand(this, observe ?? SelectTarget(), Skills["MHWink"]);
@@ -92,7 +93,7 @@ internal sealed class Mutantheart : Enemy
         bool failed = false;
         foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
         {
-            if (StateLookup[DesiredState].All(state => member.Actor.CurrentState != state))
+            if (StateLookup[DesiredState].All(state => member.Actor.CurrentEmotion.Id != state))
             {
                 failed = true;
                 BattleManager.Instance.ForceCommand(this, member.Actor, Skills["MHInstakill"]);

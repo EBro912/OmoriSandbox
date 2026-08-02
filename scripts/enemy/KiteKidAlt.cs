@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -13,9 +14,9 @@ internal sealed class KiteKidAlt : Enemy
     protected override Stats Stats => new(8000, 4000, 84, 68, 70, 10, 95);
     protected override string[] EquippedSkills => ["KKAttack", "KKBrag"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -23,7 +24,7 @@ internal sealed class KiteKidAlt : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["KKAttack"]);
         
-        if (CurrentState == "happy" || Roll() < 76)
+        if (CurrentEmotion.Id == "happy" || Roll() < 76)
             return new BattleCommand(this, SelectTarget(), Skills["KKAttack"]);
         
         return new BattleCommand(this, this, Skills["KKBrag"]);
@@ -53,6 +54,7 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("AttackUp");
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
+                    enemy.RemoveStatModifier("SpeedUp");
                     enemy.AddTierStatModifier("AttackUp", 3);
                     enemy.AddTierStatModifier("DefenseUp", 3);
                     enemy.AddTierStatModifier("SpeedUp", 3);
@@ -67,6 +69,7 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("AttackUp");
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
+                    enemy.RemoveStatModifier("SpeedUp");
                     enemy.AddTierStatModifier("AttackUp", 2);
                     enemy.AddTierStatModifier("DefenseUp", 2);
                     enemy.AddTierStatModifier("SpeedDown", 2);
@@ -108,7 +111,7 @@ internal sealed class KiteKidAlt : Enemy
         DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
         DialogueManager.Instance.QueueMessage(this, "How could we lose?");
         await DialogueManager.Instance.WaitForDialogue();
-        if (KidsKite != null && KidsKite.Actor.CurrentState != "toast")
+        if (KidsKite != null && !KidsKite.Actor.IsToast)
             KidsKite.Actor.CurrentHP = 0;
     }
 

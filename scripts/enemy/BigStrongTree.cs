@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class BigStrongTree : Enemy
@@ -7,9 +8,9 @@ internal sealed class BigStrongTree : Enemy
     public override string Name => "BIG STRONG TREE";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/big_strong_tree.tres");
     protected override Stats Stats => new(1000, 500, 999, 999, 1, 999, 100);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "toast";
+        return emotion.Id == "neutral";
     }
 
     protected override string[] EquippedSkills => ["BSTDoNothing"];

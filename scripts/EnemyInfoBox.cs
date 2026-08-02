@@ -10,7 +10,7 @@ public partial class EnemyInfoBox : Control
 {
 	protected Enemy Enemy;
 
-	[Export] private NinePatchRect Infobox;
+	[Export] protected NinePatchRect Infobox;
 	[Export] private Label NameLabel;
 	[Export] private TextureProgressBar HPBar;
 	[Export] private FlowContainer StateIcons;
@@ -36,30 +36,6 @@ public partial class EnemyInfoBox : Control
 	
 	private void UpdateStateIcons()
 	{
-		// this may need to be optimized, not the best practice to fully replace nodes
-		foreach (Node child in StateIcons.GetChildren())
-			child.Free();
-		
-		foreach (StatModifier modifier in Enemy.StatModifiers.Values)
-		{
-			StateIcon[] icons = modifier.GetStateIcons();
-			foreach (StateIcon icon in icons)
-			{
-				string tooltip = modifier.TurnsLeft > -1 ? icon.Description + "\nTurns Left: " + modifier.TurnsLeft : icon.Description;
-				if (Database.TryGetStateIcon(icon.AssetName, out Texture2D texture))
-				{
-					TextureRect rect = new()
-					{
-						Texture = texture,
-						TooltipText = tooltip
-					};
-					StateIcons.AddChild(rect);
-				}
-				else
-				{
-					GD.PrintErr("Unknown state icon texture: " + icon.AssetName);
-				}
-			}
-		}
+		StateIconRenderer.Render(StateIcons, Enemy);
 	}
 }

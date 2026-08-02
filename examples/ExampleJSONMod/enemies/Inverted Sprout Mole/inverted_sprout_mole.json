@@ -50,15 +50,16 @@
 			"entries": [
 				{
 					"chance": 35,
-					"skill": "LSMAttack",
+					"skill": "LSMAttack"
 				},
 				{
 					"chance": 35,
-					"skill": "LSMDoNothing",
+					"skill": "LSMDoNothing"
 				},
 				{
 					"chance": 100,
 					"skill": "LSMRunAround",
+					"numTargets": 2
 				}
 			]
 		},
@@ -67,15 +68,16 @@
 			"entries": [
 				{
 					"chance": 30,
-					"skill": "LSMAttack",
+					"skill": "LSMAttack"
 				},
 				{
 					"chance": 55,
-					"skill": "LSMDoNothing",
+					"skill": "LSMDoNothing"
 				},
 				{
 					"chance": 100,
 					"skill": "LSMRunAround",
+					"numTargets": 2
 				}
 			]
 		},
@@ -84,15 +86,16 @@
 			"entries": [
 				{
 					"chance": 60,
-					"skill": "LSMAttack",
+					"skill": "LSMAttack"
 				},
 				{
 					"chance": 20,
-					"skill": "LSMDoNothing",
+					"skill": "LSMDoNothing"
 				},
 				{
 					"chance": 100,
 					"skill": "LSMRunAround",
+					"numTargets": 2
 				}
 			]
 		},
@@ -101,15 +104,16 @@
 			"entries": [
 				{
 					"chance": 55,
-					"skill": "LSMAttack",
+					"skill": "LSMAttack"
 				},
 				{
 					"chance": 35,
-					"skill": "LSMDoNothing",
+					"skill": "LSMDoNothing"
 				},
 				{
 					"chance": 100,
 					"skill": "LSMRunAround",
+					"numTargets": 2
 				}
 			]
 		}

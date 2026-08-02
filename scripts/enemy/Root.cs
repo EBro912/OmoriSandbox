@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -10,14 +11,14 @@ internal sealed class Root : Enemy
     protected override Stats Stats => new(1000, 500, 30, 35, 10, 10, 95);
     protected override string[] EquippedSkills => ["ROAttack", "RODoNothing", "ROHealPlant"];
     
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()
     {
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 return new BattleCommand(this, SelectAllEnemies(), Skills["ROHealPlant"]);

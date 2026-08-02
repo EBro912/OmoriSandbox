@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,9 +12,9 @@ internal sealed class OmoriEnemy : Enemy
     protected override Stats Stats => new(255, 0, 54, 52, 256, 10, 1000);
     protected override string[] EquippedSkills => [];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "toast";
+        return emotion.Id is "neutral";
     }
 
     public override BattleCommand ProcessAI()

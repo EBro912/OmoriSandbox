@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class GatorGuyJawsumAlt : Enemy
@@ -8,14 +9,13 @@ internal sealed class GatorGuyJawsumAlt : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/gator_guy.tres");
     protected override Stats Stats => new(2200, 85, 100, 60, 70, 10, 95);
     protected override string[] EquippedSkills => ["GGAttack", "GGDoNothing", "GGRoughUp"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "happy" || emotion.Id == "sad" || emotion.Id == "angry";
     }
     public override BattleCommand ProcessAI()
     {
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 31)

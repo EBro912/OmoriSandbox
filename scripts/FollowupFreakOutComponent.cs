@@ -5,6 +5,8 @@ namespace OmoriSandbox;
 internal partial class FollowupFreakOutComponent : Node
 {
     [Export] private FollowupDirection Target;
+    
+    internal void Init(FollowupDirection target) => Target = target;
 
     private const float FPS = 30f;
     private float FrameDuration = 1f / FPS;
@@ -20,9 +22,13 @@ internal partial class FollowupFreakOutComponent : Node
         Origin = Target.Position;
     }
 
+    private bool WasActive = false;
+
     public override void _Process(double delta)
     {
-        if (Target.Modulate.A > 0 && Target.Available)
+        // avoid processing the freakout animation when the bubble isn't even visible
+        bool active = Target.Modulate.A > 0 && Target.Available;
+        if (active)
         {
             FrameTimer += (float)delta;
 
@@ -32,11 +38,14 @@ internal partial class FollowupFreakOutComponent : Node
                 DoFreakOut();
             }
         }
-        else
+        else if (WasActive)
         {
+            // reset only after being active
             FrameTimer = 0;
             Target.Position = Origin;
+            Target.SelfModulate = Colors.White;
         }
+        WasActive = active;
     }
 
     private void DoFreakOut()

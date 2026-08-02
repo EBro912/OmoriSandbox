@@ -1,0 +1,123 @@
+{
+	"name": "Sour Sprout Mole",
+	"atlas": "sour_sprout_mole.png",
+	"width": 140,
+	"height": 218,
+	"animation": [
+		{
+			"emotion": "angry",
+			"fps": 5,
+			"frames": [16, 17, 18, 19]
+		},
+		{
+			"emotion": "happy",
+			"fps": 5,
+			"frames": [20, 21, 22, 23]
+		},
+		{
+			"emotion": "hurt",
+			"fps": 5,
+			"frames": [5, 6, 7, 8]
+		},
+		{
+			"emotion": "neutral",
+			"fps": 5,
+			"frames": [0, 1, 2, 3]
+		},
+		{
+			"emotion": "sad",
+			"fps": 5,
+			"frames": [12, 13, 14, 15]
+		},
+		{
+			"emotion": "toast",
+			"fps": 5,
+			"frames": [8, 9, 10, 11]
+		}
+	],
+	"hp": 190,
+	"juice": 75,
+	"atk": 24,
+	"def": 10,
+	"spd": 15,
+	"lck": 5,
+	"hit": 95,
+	"invalidStates": ["enraged", "furious", "depressed", "miserable", "ecstatic", "manic", "afraid", "stressed"],
+	"equippedSkills": ["LSMAttack", "LSMDoNothing", "LSMRunAround"],
+	"observeSingleSkill": "LSMAttack",
+	"observeMultiSkill": "LSMRunAround",
+	"ai": [
+		{
+			"emotion": "happy",
+			"entries": [
+				{
+					"chance": 35,
+					"skill": "LSMAttack"
+				},
+				{
+					"chance": 35,
+					"skill": "LSMDoNothing"
+				},
+				{
+					"chance": 100,
+					"skill": "LSMRunAround",
+					"numTargets": 2
+				}
+			]
+		},
+		{
+			"emotion": "sad",
+			"entries": [
+				{
+					"chance": 30,
+					"skill": "LSMAttack"
+				},
+				{
+					"chance": 55,
+					"skill": "LSMDoNothing"
+				},
+				{
+					"chance": 100,
+					"skill": "LSMRunAround",
+					"numTargets": 2
+				}
+			]
+		},
+		{
+			"emotion": "angry",
+			"entries": [
+				{
+					"chance": 60,
+					"skill": "LSMAttack"
+				},
+				{
+					"chance": 20,
+					"skill": "LSMDoNothing"
+				},
+				{
+					"chance": 100,
+					"skill": "LSMRunAround",
+					"numTargets": 2
+				}
+			]
+		},
+		{
+			"emotion": "neutral",
+			"entries": [
+				{
+					"chance": 55,
+					"skill": "LSMAttack"
+				},
+				{
+					"chance": 35,
+					"skill": "LSMDoNothing"
+				},
+				{
+					"chance": 100,
+					"skill": "LSMRunAround",
+					"numTargets": 2
+				}
+			]
+		}
+	]
+}

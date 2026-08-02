@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Creepypasta : Enemy
@@ -7,9 +8,9 @@ internal sealed class Creepypasta : Enemy
     public override string Name => "CREEPYPASTA";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/creepypasta.tres");
     protected override Stats Stats => new(300, 150, 50, 1, 90, 10, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
     protected override string[] EquippedSkills => ["CPAttack", "CPDoNothing", "CPScare"];
   
@@ -21,7 +22,7 @@ internal sealed class Creepypasta : Enemy
         if (CurrentHP < 60)
             goto scare;
 
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 66)

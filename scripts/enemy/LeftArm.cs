@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -10,10 +11,9 @@ internal sealed class LeftArm : Enemy
     protected override string[] EquippedSkills => ["LAAttack", "RAFlex", "LAPoke"];
     protected override Stats Stats => new(175, 75, 12, 5, 5, 10, 95);
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "happy" || emotion.Id == "sad" || emotion.Id == "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -21,7 +21,7 @@ internal sealed class LeftArm : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["LAAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "angry":
                 if (Roll() < 61)

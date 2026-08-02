@@ -1,0 +1,11 @@
+[
+	{ "op": "replace", "path": "/221/name", "value": "Sour Slash <layer:3>" },
+	{ "op": "replace", "path": "/221/animation1Name", "value": "Basic_Attack" },
+	{ "op": "replace", "path": "/221/frames/0", "value": [[4, 0, 0, 100, 0, 0, 255, 1]] },
+	{ "op": "replace", "path": "/221/frames/1", "value": [[3, 0, 0, 100, 0, 0, 255, 1]] },
+	{ "op": "replace", "path": "/221/frames/2", "value": [[2, 0, 0, 100, 0, 0, 255, 1]] },
+	{ "op": "replace", "path": "/221/frames/3", "value": [[1, 0, 0, 100, 0, 0, 255, 1]] },
+	{ "op": "replace", "path": "/221/frames/4", "value": [[0, 0, 0, 100, 0, 0, 255, 1]] },
+	{ "op": "replace", "path": "/221/frames/4/1", "value": [0, 0, 0, 160, 0, 0, 120, 1] },
+	{ "op": "add", "path": "/221/timings/0", "value": { "frame": 0, "se": { "name": "BA_observe", "pan": 0, "pitch": 100, "volume": 90 }, "flashColor": [255, 255, 255, 255], "flashDuration": 0, "flashScope": 0 } }
+]

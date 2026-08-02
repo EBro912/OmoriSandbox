@@ -2,6 +2,7 @@ using Godot;
 using System.Threading.Tasks;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class SpaceExBoyfriend : Enemy
@@ -10,25 +11,37 @@ internal sealed class SpaceExBoyfriend : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/space_ex_boyfriend.tres");
     protected override Stats Stats => new(1350, 750, 15, 16, 25, 10, 95);
     protected override string[] EquippedSkills => ["SEBAttack", "SEBDoNothing", "AngstySong", "AngrySong", "SpaceLaser", "BulletHell"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        if (state == "toast")
-            return true;
-
-        if (EmotionLocked)
+        if (IsEmotionLocked)
             return false;
 
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
-    private bool EmotionLocked = false;
+    // Space Ex-Boyfriend's locked emotions use slightly different stats than the generic angry line
+    protected override StatBonus[] GetEmotionStatBonuses(Emotion emotion)
+    {
+        if (IsEmotionLocked && emotion.Group?.Id == "angry")
+        {
+            return emotion.Tier switch
+            {
+                1 => [new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 0.9f)],
+                2 => [new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.5f)],
+                3 => [new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.3f)],
+                _ => base.GetEmotionStatBonuses(emotion)
+            };
+        }
+        return base.GetEmotionStatBonuses(emotion);
+    }
+
     private int Stage = 0;
     public override BattleCommand ProcessAI()
     {
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SEBAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "furious":
                 if (Roll() < 36)
@@ -109,37 +122,37 @@ internal sealed class SpaceExBoyfriend : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, "[br]My rage cannot be contained...[br]You cannot placate me!");
             await DialogueManager.Instance.WaitForDialogue();
-            ForceState("SpaceExAngry", "angry");
+            SetEmotionForced("angry");
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND became ANGRY!");
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND can no longer be HAPPY or SAD!");
             await DialogueManager.Instance.WaitForDialogue();
-            EmotionLocked = true;
+            LockEmotion("angry");
             Stage = 1;
         }
         
         if (CurrentHP < 675 && Stage <= 1)
         {
-            EmotionLocked = false;
+            UnlockEmotion();
             DialogueManager.Instance.QueueMessage(this, @"[br]Gah!\! How are you still moving!?");
             DialogueManager.Instance.QueueMessage(this, @"[br]I...\! I won't let you defeat me!");
             await DialogueManager.Instance.WaitForDialogue();
-            ForceState("SpaceExEnraged", "enraged");
+            SetEmotionForced("enraged");
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND became ENRAGED!");
             await DialogueManager.Instance.WaitForDialogue();
-            EmotionLocked = true;
+            LockEmotion("angry");
             Stage = 2;
         }
         
         if (CurrentHP < 338 && Stage <= 2)
         {
-            EmotionLocked = false;
+            UnlockEmotion();
             DialogueManager.Instance.QueueMessage(this, "[br]Out of my way, earthly scum!");
             DialogueManager.Instance.QueueMessage(this, "[br]This is your last chance!");
             await DialogueManager.Instance.WaitForDialogue();
-            ForceState("SpaceExFurious", "furious");
+            SetEmotionForced("furious");
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND became FURIOUS!");
             await DialogueManager.Instance.WaitForDialogue();
-            EmotionLocked = true;
+            LockEmotion("angry");
             Stage = 3;
         }
     }

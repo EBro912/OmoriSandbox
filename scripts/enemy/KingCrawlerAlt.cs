@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -14,9 +15,9 @@ internal sealed class KingCrawlerAlt : Enemy
     protected override Stats Stats => new(6200, 2500, 90, 60, 100, 10, 200);
     protected override string[] EquippedSkills => ["KCAttack", "KCDoNothing", "KCCrunch", "KCRam", "KCEat", "KCRecover"];
     
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "hurt" or "toast" or "sad" or "angry" or "happy";
+        return emotion.Id is "neutral" or "sad" or "angry" or "happy";
     }
 
     public override BattleCommand ProcessAI()
@@ -27,7 +28,7 @@ internal sealed class KingCrawlerAlt : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["KCAttack"]);
         
-        if (CurrentState == "angry")
+        if (CurrentEmotion.Id == "angry")
         {
             if (Roll() < 41)
                 return new BattleCommand(this, SelectTarget(), Skills["KCAttack"]);
@@ -67,7 +68,7 @@ internal sealed class KingCrawlerAlt : Enemy
             return;
         }
         
-        if (SproutMole == null || SproutMole.Actor.CurrentState == "toast")
+        if (SproutMole == null || SproutMole.Actor.IsToast)
         {
             SproutMole =
                 BattleManager.Instance.SummonEnemy("LostSproutMole (King Crawler)", CenterPoint - new Vector2(100, 0), layer: Layer + 1);

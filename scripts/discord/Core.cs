@@ -555,10 +555,15 @@ namespace Discord
             callback(result);
         }
 
+        // keep the marshaled callback delegates rooted so the GC cannot collect them
+        // while the native SDK still holds their function pointers
+        private static readonly FFIMethods.UpdateActivityCallback UpdateActivityCallbackDelegate = UpdateActivityCallbackImpl;
+        private static readonly FFIMethods.ClearActivityCallback ClearActivityCallbackDelegate = ClearActivityCallbackImpl;
+
         public void UpdateActivity(Activity activity, UpdateActivityHandler callback)
         {
             GCHandle wrapped = GCHandle.Alloc(callback);
-            Methods.UpdateActivity(MethodsPtr, ref activity, GCHandle.ToIntPtr(wrapped), UpdateActivityCallbackImpl);
+            Methods.UpdateActivity(MethodsPtr, ref activity, GCHandle.ToIntPtr(wrapped), UpdateActivityCallbackDelegate);
         }
 
         [MonoPInvokeCallback]
@@ -573,7 +578,7 @@ namespace Discord
         public void ClearActivity(ClearActivityHandler callback)
         {
             GCHandle wrapped = GCHandle.Alloc(callback);
-            Methods.ClearActivity(MethodsPtr, GCHandle.ToIntPtr(wrapped), ClearActivityCallbackImpl);
+            Methods.ClearActivity(MethodsPtr, GCHandle.ToIntPtr(wrapped), ClearActivityCallbackDelegate);
         }
     }
 }

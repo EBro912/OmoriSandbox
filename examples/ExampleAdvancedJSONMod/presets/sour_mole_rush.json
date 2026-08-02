@@ -1,0 +1,132 @@
+{
+  "Type": 1,
+  "Name": "Sour Mole Rush",
+  "StartingEnergy": 3,
+  "FollowupTier": 3,
+  "DisableDialogue": false,
+  "DisableDamageNumbers": false,
+  "Items": {
+    "Cheeseburger": 3,
+    "Life Jam": 2,
+    "Sno-Cone": 2
+  },
+  "Actors": [
+    {
+      "Name": "Evil Tony",
+      "Level": 30,
+      "Weapon": "Shiny Knife",
+      "Charm": "Cool Glasses",
+      "Emotion": "neutral",
+      "FollowupSet": "Omori",
+      "Skills": [
+        "OAttack",
+        "Observe",
+        "Trick",
+        "Mock",
+        "Guard"
+      ],
+      "Position": 0
+    },
+    {
+      "Name": "Aubrey",
+      "Level": 30,
+      "Weapon": "Stuffed Toy",
+      "Charm": "None",
+      "Emotion": "neutral",
+      "FollowupSet": "Aubrey",
+      "Skills": [
+        "AAttack",
+        "Headbutt",
+        "PowerHit",
+        "Twirl"
+      ],
+      "Position": 1
+    },
+    {
+      "Name": "Kel",
+      "Level": 30,
+      "Weapon": "Rubber Ball",
+      "Charm": "None",
+      "Emotion": "neutral",
+      "FollowupSet": "Kel",
+      "Skills": [
+        "KAttack",
+        "Annoy",
+        "Rebound",
+        "JuiceMe",
+        "Flex"
+      ],
+      "Position": 2
+    },
+    {
+      "Name": "Hero",
+      "Level": 30,
+      "Weapon": "Spatula",
+      "Charm": "None",
+      "Emotion": "neutral",
+      "FollowupSet": "Hero",
+      "Skills": [
+        "HAttack",
+        "Massage",
+        "Cook",
+        "Smile"
+      ],
+      "Position": 3
+    }
+  ],
+  "Enemies": [],
+  "Stages": [
+    {
+      "StageNumber": 1,
+      "Battleback": "battleback_sm_sour",
+      "BGM": "battle_vf",
+      "BGMPitch": 0.94,
+      "BGMLoopPoint": 0.0,
+      "HealParty": false,
+      "KeepEmotion": false,
+      "KeepStatusEffects": false,
+      "Enemies": [
+        {
+          "Name": "Sour Sprout Mole",
+          "Position": "Vector2(220, 240)"
+        },
+        {
+          "Name": "Sour Sprout Mole",
+          "Position": "Vector2(420, 240)"
+        }
+      ]
+    },
+    {
+      "StageNumber": 2,
+      "Battleback": "battleback_oo_default",
+      "BGM": "boss_dark",
+      "BGMPitch": 1.0,
+      "BGMLoopPoint": 0.0,
+      "HealParty": true,
+      "KeepEmotion": false,
+      "KeepStatusEffects": false,
+      "Enemies": [
+        {
+          "Name": "YeOldSprout (Boss Rush)",
+          "Position": "Vector2(320, 240)"
+        }
+      ]
+    },
+    {
+      "StageNumber": 3,
+      "Battleback": "battleback_sm_default",
+      "BGM": "boss_dark",
+      "BGMPitch": 1.0,
+      "BGMLoopPoint": 0.0,
+      "HealParty": false,
+      "KeepEmotion": true,
+      "KeepStatusEffects": true,
+      "Enemies": [
+        {
+          "Name": "KingCrawler (Boss Rush)",
+          "Position": "Vector2(320, 240)"
+        }
+      ]
+    }
+  ]
+}

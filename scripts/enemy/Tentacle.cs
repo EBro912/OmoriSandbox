@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -9,9 +10,9 @@ internal sealed class Tentacle : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/tentacle.tres");
     protected override Stats Stats => new(1200, 600, 72, 50, 110, 25, 95);
     protected override string[] EquippedSkills => ["TENAttack", "TENWeaken", "TENGrab", "TENGoop"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "hurt" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -19,7 +20,7 @@ internal sealed class Tentacle : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["TENAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "angry":
                 if (Roll() < 46)

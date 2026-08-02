@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -8,9 +9,9 @@ public class ShadyMole : Enemy
     public override string Name => "SHADY MOLE";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/shady_mole.tres");
     protected override Stats Stats => new(1200, 600, 45, 17, 65, 15, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
     protected override string[] EquippedSkills => ["SMAttack", "SMB.E.D.", "SMDynamite"];
 
@@ -22,7 +23,7 @@ public class ShadyMole : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SMAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 26)

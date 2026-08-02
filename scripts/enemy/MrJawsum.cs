@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
@@ -15,9 +16,9 @@ internal sealed class MrJawsum : Enemy
     protected override Stats Stats => new(500, 250, 999, 20, 1, 10, 95);
     protected override string[] EquippedSkills => ["MJSummonGator", "MJAttackOrder"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "happy" or "sad" or "angry" or "toast";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
 
     private readonly EnemyComponent[] Gators = new EnemyComponent[2];
@@ -26,11 +27,11 @@ internal sealed class MrJawsum : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (Gators.All(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+        if (Gators.All(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         if (Roll() < 21)
             return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
-        if (Gators.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.CurrentState is "toast"))
+        if (Gators.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
     }
@@ -39,7 +40,7 @@ internal sealed class MrJawsum : Enemy
     {
         for (int i = 0; i < 2; i++)
         {
-            if (!GodotObject.IsInstanceValid(Gators[i]) || Gators[i].Actor.CurrentState is "toast")
+            if (!GodotObject.IsInstanceValid(Gators[i]) || Gators[i].Actor.IsToast)
             {
                 Gators[i] = BattleManager.Instance.SummonEnemy("GatorGuyJawsum",
                     new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));
@@ -77,7 +78,7 @@ internal sealed class MrJawsum : Enemy
             AnimationManager.Instance.InitShake(new Shake(29, 100, 15));
             await AnimationManager.Instance.WaitForTintScreen(new Color(1, 0, 0, 0.5f), 0.25f);
             AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack, 0.25f);
-            SetState("angry", true);
+            SetEmotion("angry", true);
             DialogueManager.Instance.QueueMessage(this, @"What do you mean we're running low on henchmen!?\! That's impossible!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;

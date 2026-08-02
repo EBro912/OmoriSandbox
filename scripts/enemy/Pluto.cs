@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,10 +12,9 @@ internal sealed class Pluto : Enemy
     protected override string[] EquippedSkills => ["PLDoNothing", "PLBrag", "PLHeadbutt", "PLExpand"];
     protected override Stats Stats => new(300, 150, 12, 10, 4, 10, 95);
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "happy" || state == "sad"
-               || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "happy" || emotion.Id == "sad" || emotion.Id == "angry";
     }
 
     public override BattleCommand ProcessAI()
@@ -22,7 +22,7 @@ internal sealed class Pluto : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["PLHeadbutt"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "angry":
                 if (Roll() < 31)

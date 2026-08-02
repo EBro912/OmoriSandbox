@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
@@ -11,9 +12,9 @@ internal sealed class Abbi : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/abbi.tres");
     protected override Stats Stats => new(8000, 2500, 63, 76, 90, 20, 95);
     protected override string[] EquippedSkills => ["AbbiAttack", "AbbiAttackOrder", "AbbiSummon"];
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state is "neutral" or "sad" or "happy" or "angry" or "toast";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     private readonly EnemyComponent[] Tentacles = new EnemyComponent[4];
@@ -38,7 +39,7 @@ internal sealed class Abbi : Enemy
         {
             for (int i = 0; i < 4; i++)
             {
-                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.CurrentState == "toast")
+                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.IsToast)
                 {
                     Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
                         layer: Layer + 1);

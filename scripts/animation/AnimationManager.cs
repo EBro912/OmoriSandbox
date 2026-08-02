@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Modding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ public partial class AnimationManager : Node
 	[Signal]
 	public delegate void AnimationFinishedEventHandler();
 
-	[Export] private TextureRect Battleback;
+	[Export] private Node2D BattlebackRoot;
 	[Export] private AnimatedSprite2D ReleaseEnergy;
 	[Export] private AnimatedSprite2D ReleaseEnergyBasil;
 	[Export] private AnimatedSprite2D RedHands;
@@ -39,8 +40,8 @@ public partial class AnimationManager : Node
 	[Export] private ColorRect ScreenTint;
 
 	private Dictionary<int, RPGMAnimatedSprite> Animations = [];
-
-	private const float FPS = 15f;
+	
+	internal const float FPS = 15f;
 	private float FrameDuration = 1f / FPS;
 	private float FrameTimer = 0f;
 	private List<PlayingAnimation> PlayingAnimations = [];
@@ -81,7 +82,8 @@ public partial class AnimationManager : Node
 				List<Frame> frames = [];
 				foreach (float[] f in frame)
 				{
-					frames.Add(new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6]));
+					frames.Add(new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6],
+					f.Length > 7 ? (int)f[7] : 0));
 				}
 
 				animation.CreateFrame(frames);
@@ -106,95 +108,112 @@ public partial class AnimationManager : Node
 		GD.Print($"Loaded {Animations.Count} animations");
 	}
 
-	internal void LoadModded(string root)
+	internal void LoadModded(string root, string dir, ModLoadReport report)
 	{
-		string data = FileAccess.GetFileAsString("user://mods/" + root + "/animations/Animations.json");
+		string data = FileAccess.GetFileAsString($"user://mods/{root}/{dir}/Animations.json");
 		List<RPGMakerAnimation> animationData = JsonConvert.DeserializeObject<List<RPGMakerAnimation>>(data);
+		if (animationData == null)
+		{
+			report.Error("animations", "Animations.json", "Failed to parse file");
+			return;
+		}
 		RegEx layerRegex = new();
 		layerRegex.Compile("<[a-z]{5}:(\\d)>");
 		int total = 0;
 		int attempted = 0;
 		foreach (RPGMakerAnimation animation in animationData)
 		{
-			bool missingTexture = string.IsNullOrEmpty(animation.Animation1Name);
-			bool missingAltTexture = string.IsNullOrEmpty(animation.Animation2Name);
-			if (missingTexture && missingAltTexture)
-				continue;
-
-			attempted++;
-			if (Animations.ContainsKey(animation.Id))
+			try
 			{
-				GD.PushWarning(
-					$"{root}: Skipping modded animation {animation.Name} as ID {animation.Id} is already taken.");
-				continue;
-			}
+				bool missingTexture = string.IsNullOrEmpty(animation.Animation1Name);
+				bool missingAltTexture = string.IsNullOrEmpty(animation.Animation2Name);
+				if (missingTexture && missingAltTexture)
+					continue;
 
-			int layer = 0;
-			RegExMatch match = layerRegex.Search(animation.Name);
-			if (match != null)
-				int.TryParse(match.GetString(1), out layer);
-
-			Texture2D texture = null;
-			Texture2D altTexture = null;
-
-			if (!missingTexture)
-			{
-				texture = LoadModTexture(root, animation.Animation1Name);
-				if (texture == null)
+				attempted++;
+				if (Animations.ContainsKey(animation.Id))
 				{
-					GD.PrintErr(
-						$"{root}: Unable to find texture {animation.Animation1Name}.png for modded animation {animation.Id}.");
+					report.Warn("animations", animation.Name, $"Skipping modded animation, ID {animation.Id} is already taken");
+					report.CountSkipped();
 					continue;
 				}
-			}
 
-			if (!missingAltTexture)
-			{
-				altTexture = LoadModTexture(root, animation.Animation2Name);
-				if (altTexture == null)
+				int layer = 0;
+				RegExMatch match = layerRegex.Search(animation.Name);
+				if (match != null)
+					int.TryParse(match.GetString(1), out layer);
+
+				Texture2D texture = null;
+				Texture2D altTexture = null;
+
+				if (!missingTexture)
 				{
-					GD.PrintErr(
-						$"{root}: Unable to find alt texture {animation.Animation2Name}.png for modded animation {animation.Id}.");
-					continue;
+					texture = LoadModTexture(root, dir, animation.Animation1Name);
+					if (texture == null)
+					{
+						report.Error("animations", animation.Name,
+							$"Unable to find texture {animation.Animation1Name}.png for modded animation {animation.Id}");
+						report.CountSkipped();
+						continue;
+					}
 				}
-			}
 
-			RPGMAnimatedSprite anim = new(animation.Id, layer, texture, altTexture);
-			foreach (float[][] frame in animation.Frames)
-			{
-				List<Frame> frames = [];
-				frames.AddRange(frame.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6])));
-				anim.CreateFrame(frames);
-			}
-
-			foreach (Timings timing in animation.Timings)
-			{
-				if (timing.Se == null)
-					continue;
-				if (timing.Se.Name == "ft_doShake")
-					anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
-				else
+				if (!missingAltTexture)
 				{
-					if (!LoadModSFX(root, timing.Se.Name))
-						GD.PrintErr(
-							$"{root}: Unable to find SFX {timing.Se.Name}.ogg for modded animation {animation.Id}.");
-					anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
+					altTexture = LoadModTexture(root, dir, animation.Animation2Name);
+					if (altTexture == null)
+					{
+						report.Error("animations", animation.Name,
+							$"Unable to find alt texture {animation.Animation2Name}.png for modded animation {animation.Id}");
+						report.CountSkipped();
+						continue;
+					}
 				}
-			}
 
-			Animations.Add(animation.Id, anim);
-			total++;
+				RPGMAnimatedSprite anim = new(animation.Id, layer, texture, altTexture);
+				foreach (float[][] frame in animation.Frames)
+				{
+					List<Frame> frames = [];
+					frames.AddRange(frame.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6],
+					f.Length > 7 ? (int)f[7] : 0)));
+					anim.CreateFrame(frames);
+				}
+
+				foreach (Timings timing in animation.Timings)
+				{
+					if (timing.Se == null)
+						continue;
+					if (timing.Se.Name == "ft_doShake")
+						anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
+					else
+					{
+						if (!LoadModSFX(root, dir, timing.Se.Name))
+							report.Warn("animations", animation.Name,
+								$"Unable to find SFX {timing.Se.Name}.ogg for modded animation {animation.Id}");
+						anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
+					}
+				}
+
+				Animations.Add(animation.Id, anim);
+				report.CountLoaded();
+				total++;
+			}
+			catch (Exception ex)
+			{
+				report.Error("animations", animation.Name ?? animation.Id.ToString(), $"Failed to convert: {ex.Message}");
+				report.CountSkipped();
+			}
 		}
 
 		GD.Print($"{root}: Converted {total}/{attempted} RPGM animations");
 	}
 
-	internal void LoadDeltaPatch(string root)
+	internal void LoadDeltaPatch(string root, string dir, ModLoadReport report)
 	{
-		string data = FileAccess.GetFileAsString($"user://mods/{root}/animations/Animations.jsond");
+		string data = FileAccess.GetFileAsString($"user://mods/{root}/{dir}/Animations.jsond");
 		if (string.IsNullOrEmpty(data))
 		{
-			GD.PrintErr($"{root}: Failed to read animations.jsond.");
+			report.Error("animations", "Animations.jsond", "Failed to read file");
 			return;
 		}
 
@@ -223,161 +242,177 @@ public partial class AnimationManager : Node
 		int attempted = 0;
 		foreach (var (id, operations) in grouped)
 		{
-			string name = null;
-			string textureName = null;
-			string altTextureName = null;
-			SortedDictionary<int, List<float[]>> frameData = [];
-			Dictionary<int, SortedDictionary<int, float[]>> frameCellData = [];
-			List<Timings> timingData = [];
-
-			foreach (JObject op in operations)
+			try
 			{
-				string[] segments = op["path"].ToString().TrimStart('/').Split('/');
-				if (segments.Length < 2) continue;
+				string name = null;
+				string textureName = null;
+				string altTextureName = null;
+				SortedDictionary<int, List<float[]>> frameData = [];
+				Dictionary<int, SortedDictionary<int, float[]>> frameCellData = [];
+				List<Timings> timingData = [];
 
-				switch (segments[1])
+				foreach (JObject op in operations)
 				{
-					case "name":
-						name = op["value"].ToString();
-						break;
-					case "animation1Name":
-						textureName = op["value"].ToString();
-						break;
-					case "animation2Name":
-						altTextureName = op["value"].ToString();
-						break;
-					case "frames" when segments.Length == 3:
+					string[] segments = op["path"].ToString().TrimStart('/').Split('/');
+					if (segments.Length < 2) continue;
+
+					switch (segments[1])
 					{
-						int frameIdx = int.Parse(segments[2]);
-						float[][] cells = op["value"].ToObject<float[][]>();
-						frameData[frameIdx] = [..cells];
-						break;
-					}
-					case "frames" when segments.Length == 4:
-					{
-						int frameIdx = int.Parse(segments[2]);
-						int cellIdx = int.Parse(segments[3]);
-						float[] cell = op["value"].ToObject<float[]>();
-						if (!frameCellData.TryGetValue(frameIdx, out SortedDictionary<int, float[]> cellDict))
+						case "name":
+							name = op["value"].ToString();
+							break;
+						case "animation1Name":
+							textureName = op["value"].ToString();
+							break;
+						case "animation2Name":
+							altTextureName = op["value"].ToString();
+							break;
+						case "frames" when segments.Length == 3:
 						{
-							cellDict = [];
-							frameCellData[frameIdx] = cellDict;
+							int frameIdx = int.Parse(segments[2]);
+							float[][] cells = op["value"].ToObject<float[][]>();
+							frameData[frameIdx] = [..cells];
+							break;
 						}
+						case "frames" when segments.Length == 4:
+						{
+							int frameIdx = int.Parse(segments[2]);
+							int cellIdx = int.Parse(segments[3]);
+							float[] cell = op["value"].ToObject<float[]>();
+							if (!frameCellData.TryGetValue(frameIdx, out SortedDictionary<int, float[]> cellDict))
+							{
+								cellDict = [];
+								frameCellData[frameIdx] = cellDict;
+							}
 
-						cellDict[cellIdx] = cell;
-						break;
+							cellDict[cellIdx] = cell;
+							break;
+						}
+						case "timings" when segments.Length == 3:
+							timingData.Add(op["value"].ToObject<Timings>());
+							break;
 					}
-					case "timings" when segments.Length == 3:
-						timingData.Add(op["value"].ToObject<Timings>());
-						break;
 				}
-			}
 
-			// skip blank entries
-			if (frameData.Count == 0 && frameCellData.Count == 0 && timingData.Count == 0
-			    && textureName == null && altTextureName == null)
-				continue;
+				// skip blank entries
+				if (frameData.Count == 0 && frameCellData.Count == 0 && timingData.Count == 0
+				    && textureName == null && altTextureName == null)
+					continue;
 
-			attempted++;
-			if (Animations.ContainsKey(id))
-			{
-				GD.PushWarning($"{root}: Skipping delta-patched animation as ID {id} is already taken.");
-				continue;
-			}
-
-			int layer = 0;
-			if (name != null)
-			{
-				RegExMatch match = layerRegex.Search(name);
-				if (match != null)
-					int.TryParse(match.GetString(1), out layer);
-			}
-
-			Texture2D texture = null;
-			Texture2D altTexture = null;
-
-			if (textureName != null)
-			{
-				texture = LoadModTexture(root, textureName);
-				if (texture == null)
+				attempted++;
+				if (Animations.ContainsKey(id))
 				{
-					GD.PrintErr($"{root}: Unable to find texture {textureName}.png for delta-patched animation {id}.");
+					report.Warn("animations", id.ToString(), $"Skipping delta-patched animation, ID {id} is already taken");
+					report.CountSkipped();
 					continue;
 				}
-			}
 
-			if (altTextureName != null)
-			{
-				altTexture = LoadModTexture(root, altTextureName);
-				if (altTexture == null)
+				int layer = 0;
+				if (name != null)
 				{
-					GD.PrintErr(
-						$"{root}: Unable to find alt texture {altTextureName}.png for delta-patched animation {id}.");
-					continue;
+					RegExMatch match = layerRegex.Search(name);
+					if (match != null)
+						int.TryParse(match.GetString(1), out layer);
 				}
-			}
 
-			if (texture == null && altTexture == null)
-			{
-				GD.PushWarning($"{root}: Skipping delta-patched animation {id} as it has no textures.");
-				continue;
-			}
+				Texture2D texture = null;
+				Texture2D altTexture = null;
 
-			RPGMAnimatedSprite anim = new(id, layer, texture, altTexture);
-
-			int maxFrame = 0;
-			if (frameData.Count > 0)
-				maxFrame = Math.Max(maxFrame, frameData.Keys.Max() + 1);
-			if (frameCellData.Count > 0)
-				maxFrame = Math.Max(maxFrame, frameCellData.Keys.Max() + 1);
-
-			for (int i = 0; i < maxFrame; i++)
-			{
-				List<Frame> frames;
-				if (frameData.TryGetValue(i, out List<float[]> cells))
-					frames = cells.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6])).ToList();
-				else
-					frames = [];
-
-				if (frameCellData.TryGetValue(i, out SortedDictionary<int, float[]> cellPatches))
+				if (textureName != null)
 				{
-					foreach (var (cellIdx, cellData) in cellPatches)
+					texture = LoadModTexture(root, dir, textureName);
+					if (texture == null)
 					{
-						Frame newFrame = new((int)cellData[0], cellData[1], cellData[2], cellData[3], cellData[4],
-							cellData[5] == 1, cellData[6]);
-						while (frames.Count <= cellIdx)
-							frames.Add(new Frame());
-						frames[cellIdx] = newFrame;
+						report.Error("animations", id.ToString(),
+							$"Unable to find texture {textureName}.png for delta-patched animation {id}");
+						report.CountSkipped();
+						continue;
 					}
 				}
 
-				anim.CreateFrame(frames);
-			}
-
-			foreach (Timings timing in timingData)
-			{
-				if (timing.Se == null)
-					continue;
-				if (timing.Se.Name == "ft_doShake")
-					anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
-				else
+				if (altTextureName != null)
 				{
-					if (!LoadModSFX(root, timing.Se.Name))
-						GD.PrintErr($"{root}: Unable to find SFX {timing.Se.Name}.ogg for modded animation {id}.");
-					anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
+					altTexture = LoadModTexture(root, dir, altTextureName);
+					if (altTexture == null)
+					{
+						report.Error("animations", id.ToString(),
+							$"Unable to find alt texture {altTextureName}.png for delta-patched animation {id}");
+						report.CountSkipped();
+						continue;
+					}
 				}
-			}
 
-			Animations.Add(id, anim);
-			total++;
+				if (texture == null && altTexture == null)
+				{
+					report.Warn("animations", id.ToString(), $"Skipping delta-patched animation {id}, it has no textures");
+					report.CountSkipped();
+					continue;
+				}
+
+				RPGMAnimatedSprite anim = new(id, layer, texture, altTexture);
+
+				int maxFrame = 0;
+				if (frameData.Count > 0)
+					maxFrame = Math.Max(maxFrame, frameData.Keys.Max() + 1);
+				if (frameCellData.Count > 0)
+					maxFrame = Math.Max(maxFrame, frameCellData.Keys.Max() + 1);
+
+				for (int i = 0; i < maxFrame; i++)
+				{
+					List<Frame> frames;
+					if (frameData.TryGetValue(i, out List<float[]> cells))
+						frames = cells.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6],
+							f.Length > 7 ? (int)f[7] : 0)).ToList();
+					else
+						frames = [];
+
+					if (frameCellData.TryGetValue(i, out SortedDictionary<int, float[]> cellPatches))
+					{
+						foreach (var (cellIdx, cellData) in cellPatches)
+						{
+							Frame newFrame = new((int)cellData[0], cellData[1], cellData[2], cellData[3], cellData[4],
+								cellData[5] == 1, cellData[6], cellData.Length > 7 ? (int)cellData[7] : 0);
+							while (frames.Count <= cellIdx)
+								frames.Add(new Frame());
+							frames[cellIdx] = newFrame;
+						}
+					}
+
+					anim.CreateFrame(frames);
+				}
+
+				foreach (Timings timing in timingData)
+				{
+					if (timing.Se == null)
+						continue;
+					if (timing.Se.Name == "ft_doShake")
+						anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
+					else
+					{
+						if (!LoadModSFX(root, dir, timing.Se.Name))
+							report.Warn("animations", id.ToString(),
+								$"Unable to find SFX {timing.Se.Name}.ogg for modded animation {id}");
+						anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
+					}
+				}
+
+				Animations.Add(id, anim);
+				report.CountLoaded();
+				total++;
+			}
+			catch (Exception ex)
+			{
+				report.Error("animations", id.ToString(), $"Failed to apply delta patch: {ex.Message}");
+				report.CountSkipped();
+			}
 		}
 
 		GD.Print($"{root}: Loaded {total}/{attempted} delta-patched animations");
 	}
 
-	private Texture2D LoadModTexture(string root, string name)
+	private Texture2D LoadModTexture(string root, string dir, string name)
 	{
-		string path = $"user://mods/{root}/animations/{name}.png";
+		string path = $"user://mods/{root}/{dir}/{name}.png";
 		if (FileAccess.FileExists(path))
 			return ImageTexture.CreateFromImage(Image.LoadFromFile(path));
 		path = $"res://assets/animations/{name}.png";
@@ -386,9 +421,9 @@ public partial class AnimationManager : Node
 		return null;
 	}
 
-	private bool LoadModSFX(string root, string name)
+	private bool LoadModSFX(string root, string dir, string name)
 	{
-		string path = $"user://mods/{root}/animations/{name}.ogg";
+		string path = $"user://mods/{root}/{dir}/{name}.ogg";
 		if (FileAccess.FileExists(path))
 			return AudioManager.Instance.LoadCustomSFX(path);
 		return ResourceLoader.Exists($"res://audio/sfx/{name}.ogg");
@@ -416,9 +451,7 @@ public partial class AnimationManager : Node
 			UpdateShake();
 		}
 
-		float x = 0f;
-		x += (float)Math.Round(Shake) - 640f;
-		Battleback.Position = new Vector2(x, 0);
+		BattlebackRoot.Position = new Vector2((float)Math.Round(Shake), 0);
 	}
 
 	private void NextFrame()
@@ -466,6 +499,13 @@ public partial class AnimationManager : Node
 			ShakeDirection = 1;
 		ShakePwr *= 0.9f;
 		ShakeDuration--;
+
+		// check for any remaining shake and snap back to the neutral position
+		if (ShakeDuration <= 0 && Math.Abs(delta) * 10f < 0.5f)
+		{
+			Shake = 0f;
+			ShakePwr = 0f;
+		}
 	}
 
 	/// <summary>
@@ -474,7 +514,7 @@ public partial class AnimationManager : Node
 	/// </summary>
 	public void InitShake(Shake shake)
 	{
-		Battleback.Position = new Vector2(-640, 0);
+		BattlebackRoot.Position = Vector2.Zero;
 		Shake = 0f;
 		ShakePwr = shake.Power;
 		ShakeSpd = shake.Speed;
@@ -483,7 +523,7 @@ public partial class AnimationManager : Node
 
 	private void ResetShake()
 	{
-		Battleback.Position = new Vector2(-640, 0);
+		BattlebackRoot.Position = Vector2.Zero;
 		Shake = 0f;
 		ShakePwr = 0f;
 		ShakeSpd = 0f;
@@ -586,13 +626,14 @@ public partial class AnimationManager : Node
 			Position = position,
 			ZIndex = layer
 		};
-		sprite.SpriteFrames.SetAnimationLoop(animationName, false);
+		sprite.SpriteFrames.SetAnimationLoopMode(animationName, SpriteFrames.LoopMode.None);
 		AddChild(sprite);
 		sprite.Play();
 		void Finished()
 		{
 			sprite.AnimationFinished -= Finished;
 			RemoveChild(sprite);
+			sprite.QueueFree();
 		}
 		sprite.AnimationFinished += Finished;
 	}
@@ -614,11 +655,12 @@ public partial class AnimationManager : Node
 			Position = position,
 			ZIndex = layer
 		};
-		sprite.SpriteFrames.SetAnimationLoop(animationName, false);
+		sprite.SpriteFrames.SetAnimationLoopMode(animationName, SpriteFrames.LoopMode.None);
 		AddChild(sprite);
 		sprite.Play();
 		await ToSignal(sprite, AnimatedSprite2D.SignalName.AnimationFinished);
 		RemoveChild(sprite);
+		sprite.QueueFree();
 	}
 
 	/// <summary>
@@ -771,8 +813,10 @@ public partial class AnimationManager : Node
 	/// </remarks>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint. If left as 0, the tint will be instant.</param>
-	public void TintScreen(Color color, float duration = 0f)
+	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
+	public void TintScreen(Color color, float duration = 0f, int layer = -4)
 	{
+		ScreenTint.ZIndex = layer;
 		if (duration == 0f)
 			ScreenTint.Color = color;
 		else
@@ -787,9 +831,11 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint.</param>
+	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
 	/// <returns></returns>
-	public async Task WaitForTintScreen(Color color, float duration)
+	public async Task WaitForTintScreen(Color color, float duration, int layer = -4)
 	{
+		ScreenTint.ZIndex = layer;
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(ScreenTint, "color", color, duration);
 		await ToSignal(tween, Tween.SignalName.Finished);
@@ -945,6 +991,11 @@ public partial class AnimationManager : Node
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
 		}
 
+		if (animation.TryGetFrameShake(0, out Shake shake))
+		{
+			InitShake(shake);
+		}
+
 		PlayingAnimation playing = new(animation, position, index);
 		AddChild(playing);
 		PlayingAnimations.Add(playing);
@@ -959,6 +1010,11 @@ public partial class AnimationManager : Node
 		if (animation.TryGetFrameSFX(0, out List<SFX> sfx))
 		{
 			sfx.ForEach(AudioManager.Instance.PlaySFX);
+		}
+
+		if (animation.TryGetFrameShake(0, out Shake shake))
+		{
+			InitShake(shake);
 		}
 
 		PlayingAnimation playing = new(animation, new Vector2(320, 240), layer);

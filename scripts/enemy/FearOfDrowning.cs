@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
@@ -13,9 +14,9 @@ internal sealed class FearOfDrowning : Enemy
     protected override Stats Stats => new(10300, 0, 84, 84, 70, 10, 95);
     protected override string[] EquippedSkills => ["FODAttack", "FODDoNothing", "FODDragDown", "FODWhirlpool", "FODDrowning1", "FODDrowning2", "FODDrowning3"];
 
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral";
     }
 
     private int Phase = 1;

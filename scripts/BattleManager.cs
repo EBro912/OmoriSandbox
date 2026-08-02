@@ -2,6 +2,7 @@ using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Menu;
@@ -40,7 +41,14 @@ public partial class BattleManager : Node
 	private readonly Dictionary<Actor, BattleCommand> PlayerCommands = new();
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private readonly List<BattleCommand> ForcedCommands = [];
-	private BattleCommand PendingFollowup = null;
+	private PendingFollowupData PendingFollowup = null;
+
+	// vanilla only spends followup energy when the followup is actually used, so the
+	// selection records everything needed to re-validate and pay at use time
+	private sealed record PendingFollowupData(BattleCommand Command, int TargetPosition, string BaseSkillName)
+	{
+		public bool IsReleaseEnergy => BaseSkillName.StartsWith("ReleaseEnergy");
+	}
 	private readonly List<Actor> PriorityActors = [];
 	private readonly HashSet<EnemyComponent> DeferredDeathEnemies = [];
 	private BattleCommand CurrentCommand = null;
@@ -56,7 +64,7 @@ public partial class BattleManager : Node
 	public int Energy
 	{
 		get => _Energy;
-		private set
+		internal set
 		{
 			_Energy = value;
 			EnergyChanged?.Invoke(this, EventArgs.Empty);
@@ -72,8 +80,6 @@ public partial class BattleManager : Node
 	private bool FollowupSelected = false;
 	private bool ForceHideFollowup = false;
 	private int FollowupTier = 1;
-	private bool UseBasilReleaseEnergy = false;
-	private bool UseBasilFollowups = false;
 	private bool DamageNumbersDisabled = false;
 	private bool DebugDamageHeld = false;
 
@@ -107,29 +113,6 @@ public partial class BattleManager : Node
 		{ (2, InputDirection.Up), (3, 1) },
 		{ (3, InputDirection.Left), (1, 0) },
 		{ (3, InputDirection.Down), (2, 0) },
-	};
-
-	// table used for handling followup behavior
-	// has a followup target and followup skill to use
-	private Dictionary<(int Position, InputDirection Direction), (int Target, string SkillName)> FollowupTable = new()
-	{
-		// the skill names here will get their tier number added later
-		// Omori
-		{ (0, InputDirection.Up), (0, "AttackAgain") },
-		{ (0, InputDirection.Right), (0, "Trip") },
-		{ (0, InputDirection.Down), (0, "ReleaseEnergy") },
-
-		// Aubrey
-		{ (1, InputDirection.Up), (3, "LookAtHero") },
-		{ (1, InputDirection.Right), (2, "LookAtKel") },
-		{ (1, InputDirection.Down), (0, "LookAtOmori") },
-
-		// Hero
-		{ (3, InputDirection.Up), (1, "CallAubrey") },
-		{ (3, InputDirection.Left), (0, "CallOmori") },
-		{ (3, InputDirection.Down), (2, "CallKel") },
-
-		// Kel and Basil are added dynamically in Init()
 	};
 
 	public override void _EnterTree()
@@ -181,8 +164,6 @@ public partial class BattleManager : Node
 		Items = preset.Items.ToDictionary();
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
-		UseBasilFollowups = preset.BasilFollowups;
-		UseBasilReleaseEnergy = preset.BasilReleaseEnergy;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
@@ -200,20 +181,6 @@ public partial class BattleManager : Node
 		AddChild(Delay);
 		Delay.Timeout += OnDelayTimeout;
 		BattleLogManager.Instance.FinishedLogging += OnBattleLogFinished;
-
-		// update the FollowupTable depending on if Basil followups are enabled
-		if (UseBasilFollowups)
-		{
-			FollowupTable[(2, InputDirection.Down)] = (0, "Comfort");
-			FollowupTable[(2, InputDirection.Left)] = (0, "Mull");
-			FollowupTable[(2, InputDirection.Up)] = (0, "Vent");
-		}
-		else
-		{
-			FollowupTable[(2, InputDirection.Down)] = (0, "PassToOmori");
-			FollowupTable[(2, InputDirection.Left)] = (1, "PassToAubrey");
-			FollowupTable[(2, InputDirection.Up)] = (3, "PassToHero");
-		}
 
 		DamageNumber.CacheTexture(ResourceLoader.Load<Texture2D>("res://assets/system/Damage.png"));
 
@@ -236,10 +203,13 @@ public partial class BattleManager : Node
 	private async void PreBattle()
 	{
 		foreach (PartyMemberComponent p in CurrentParty)
-			await p.Actor.OnStartOfBattle();
+			await RunGuarded(() => p.Actor.OnStartOfBattle(), $"{p.Actor.Name}.OnStartOfBattle");
 		// use for loop here since collection may be modified by summoned enemies
 		for (int i = 0; i < Enemies.Count; i++)
-			await Enemies[i].Actor.OnStartOfBattle();
+		{
+			Actor enemy = Enemies[i].Actor;
+			await RunGuarded(() => enemy.OnStartOfBattle(), $"{enemy.Name}.OnStartOfBattle");
+		}
 		SetPhase(BattlePhase.FightRun);
 	}
 
@@ -293,7 +263,7 @@ public partial class BattleManager : Node
 							SetPhase(BattlePhase.FightRun);
 							return;
 						}
-					} while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast");
+					} while (CurrentParty[CurrentPartyMember].Actor.IsToast);
 
 					Actor prev = CurrentParty[CurrentPartyMember].Actor;
 					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
@@ -566,6 +536,7 @@ public partial class BattleManager : Node
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
 		PendingFollowup = null;
+		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
 		CurrentCommand = null;
@@ -604,7 +575,13 @@ public partial class BattleManager : Node
 
 	internal void OnSelectAttack()
 	{
-		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.First();
+		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault();
+		if (SelectedAction == null)
+		{
+			// the preset gave this actor no skills at all
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		MenuManager.Instance.ShowMenu(MenuState.None);
 		SetPhase(BattlePhase.TargetSelection);
@@ -635,7 +612,7 @@ public partial class BattleManager : Node
 		}
 
 		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies &&
-		    CurrentParty.All(x => x.Actor.CurrentState != "toast"))
+		    CurrentParty.All(x => !x.Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return false;
@@ -650,8 +627,11 @@ public partial class BattleManager : Node
 	internal bool OnSelectItem(Item item)
 	{
 		SelectedAction = item;
-		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies &&
-		    CurrentParty.All(x => x.Actor.CurrentState != "toast"))
+		// VANILLA BUG: OMORI only blocks single-target revival items when nobody is toast
+		// multi-target revives, such as jam packets, can still be selected and consumed
+		// regardless of toast status
+		if (SelectedAction.Target is SkillTarget.DeadAlly &&
+		    CurrentParty.All(x => !x.Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return false;
@@ -671,7 +651,8 @@ public partial class BattleManager : Node
 
 	private void SetPhase(BattlePhase phase)
 	{
-		GD.Print("Entering Phase: " + phase);
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print("Entering Phase: " + phase);
 		Phase = phase;
 
 		double delayTime = SettingsMenuManager.Instance.ActionDelay switch
@@ -727,9 +708,10 @@ public partial class BattleManager : Node
 				{
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
-						if (enemy.Actor.CurrentState == "toast")
+						if (enemy.Actor.IsToast)
 							continue;
-						await enemy.Actor.ProcessStartOfCommands();
+						await RunGuarded(() => enemy.Actor.ProcessStartOfCommands(),
+							$"{enemy.Actor.Name}.ProcessStartOfCommands");
 					}
 					ProcessedStartOfCommands = true;
 				}
@@ -741,34 +723,15 @@ public partial class BattleManager : Node
 				}
 				else
 				{
-					GD.Print("Next action: " + CurrentCommand.Action.Name + " by " + CurrentCommand.Actor.Name);
+					if (SettingsMenuManager.Instance.LogDebug)
+						GD.Print("Next action: " + CurrentCommand.Action.Name + " by " + CurrentCommand.Actor.Name);
 					SetPhase(BattlePhase.CommandExecute);
 				}
 
 				break;
 			case BattlePhase.PostCommand:
 			{
-				foreach (PartyMemberComponent member in CurrentParty)
-				{
-					member.Actor.SetHurt(false);
-					if (member.Actor.CurrentHP == 0 && member.Actor.CurrentState != "toast")
-					{
-						member.Actor.SetState("toast", true);
-						member.Actor.RemoveAllStatModifiers();
-						AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
-					}
-
-					member.UpdateStateIcons();
-
-					if (member.Actor.HasStatModifier("PlotArmor")
-					    && member.Actor.StatModifiers["PlotArmor"] is PlotArmorStatModifier pa
-					    && !pa.HasAnnounced)
-					{
-						DialogueManager.Instance.QueueMessage($"{member.Actor.Name.ToUpper()} did not succumb.");
-						await DialogueManager.Instance.WaitForDialogue();
-						pa.HasAnnounced = true;
-					}
-				}
+				await ConvertDeadPartyMembers();
 
 				if (CurrentCommand.Actor is PartyMember
 				    && CurrentCommand.Action is Skill skill
@@ -786,10 +749,11 @@ public partial class BattleManager : Node
 
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
-					if (enemy.Actor.CurrentState == "toast")
+					if (enemy.Actor.IsToast)
 						continue;
 					enemy.Actor.SetHurt(false);
-					await enemy.Actor.ProcessBattleConditions();
+					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
+						$"{enemy.Actor.Name}.ProcessBattleConditions");
 					// enemy may have been removed during ProcessBattleConditions
 					if (!Enemies.Contains(enemy))
 						continue;
@@ -809,8 +773,8 @@ public partial class BattleManager : Node
 								GameManager.Instance.SetBattlebackGrayscale(true);
 								await Wait.Milliseconds(750);
 							}
-							await enemy.Actor.OnDefeat();
-							enemy.Actor.SetState("toast", true);
+							await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
+							enemy.Actor.SetToast();
 							if (enemy.Actor.FallsOffScreen)
 								DyingEnemies.Add(enemy.GetParent<Node2D>());
 						}
@@ -828,14 +792,17 @@ public partial class BattleManager : Node
 							GameManager.Instance.SetBattlebackGrayscale(true);
 							await Wait.Milliseconds(750);
 						}
-						await enemy.Actor.OnDefeat();
-						enemy.Actor.SetState("toast", true);
+						await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
+						enemy.Actor.SetToast();
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
+						DeferredDeathEnemies.Remove(enemy);
 					}
-
-					DeferredDeathEnemies.Remove(enemy);
 				}
+
+				// enemy ProcessBattleConditions/OnDefeat hooks above may have zeroed party members
+				// convert them before they get a turn at 0 HP
+				await ConvertDeadPartyMembers();
 
 				if (DyingEnemies.Count > 0)
 					SetPhase(BattlePhase.EnemyDying);
@@ -846,6 +813,38 @@ public partial class BattleManager : Node
 		}
 	}
 	
+	private async Task ConvertDeadPartyMembers()
+	{
+		foreach (PartyMemberComponent member in CurrentParty)
+		{
+			member.Actor.SetHurt(false);
+			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast)
+			{
+				member.Actor.SetToast();
+				member.Actor.RemoveAllStatModifiers();
+				// remove charm from any enemies
+				foreach (EnemyComponent enemy in Enemies)
+				{
+					if (enemy.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charmMod)
+					    && charmMod is CharmStatModifier charm && charm.CharmedBy == member.Actor)
+						enemy.Actor.RemoveStatModifier("Charm");
+				}
+				AudioManager.Instance.PlaySFX("SYS_you died_2", 1.2f);
+			}
+
+			member.UpdateStateIcons();
+
+			if (member.Actor.HasStatModifier("PlotArmor")
+			    && member.Actor.StatModifiers["PlotArmor"] is PlotArmorStatModifier pa
+			    && !pa.HasAnnounced)
+			{
+				DialogueManager.Instance.QueueMessage($"{member.Actor.Name.ToUpper()} did not succumb.");
+				await DialogueManager.Instance.WaitForDialogue();
+				pa.HasAnnounced = true;
+			}
+		}
+	}
+
 	private BattleCommand GetNextAction()
 	{
 		// forced commands have the highest priority
@@ -856,15 +855,25 @@ public partial class BattleManager : Node
 			// skip forced commands whose actor has died since being queued
 			if (!(IsInvalidTarget(forced.Actor) || forced.Actor.Stunned))
 				return forced;
+			// the dropped command no longer suppresses followup bubbles
+			if (forced.Actor is PartyMember && forced.Action is Skill forcedSkill && forcedSkill.ShowFollowups)
+				ForceHideFollowup = false;
 		}
 
 		// followups
 		if (PendingFollowup != null)
 		{
-			BattleCommand followup = PendingFollowup;
+			PendingFollowupData followup = PendingFollowup;
 			PendingFollowup = null;
-			if (!(IsInvalidTarget(followup.Actor) || followup.Actor.Stunned))
-				return followup;
+			// vanilla re-validates at use time and only then spends the energy
+			// an invalid followup is silently skipped and costs nothing
+			if (IsFollowupValid(followup))
+			{
+				Energy = followup.IsReleaseEnergy ? 0 : Energy - 3;
+				return followup.Command;
+			}
+			if (followup.Command.Action is Skill followupSkill && followupSkill.ShowFollowups)
+				ForceHideFollowup = false;
 		}
 
 		// priority actors, post-forced command actors or mid-battle spawns who haven't had their normal turn
@@ -948,7 +957,9 @@ public partial class BattleManager : Node
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
+		// a followup discarded here never spent its energy, so there is nothing to refund
 		PendingFollowup = null;
+		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DeferredDeathEnemies.Clear();
 		CurrentCommand = null;
@@ -957,27 +968,35 @@ public partial class BattleManager : Node
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		if (!ProcessedStartOfTurn)
 		{
-			foreach (PartyMemberComponent member in CurrentParty.Where(x => x.Actor.CurrentState != "toast"))
+			foreach (PartyMemberComponent member in CurrentParty.Where(x => !x.Actor.IsToast))
 			{
 				foreach (StatModifier modifier in member.Actor.StatModifiers.Values)
 				{
-					modifier.OnStartOfTurn(member.Actor);
+					RunGuarded(() => modifier.OnStartOfTurn(member.Actor),
+						$"{modifier.GetType().Name}.OnStartOfTurn ({member.Actor.Name})");
 				}
 
-				await member.Actor.Weapon.StartOfTurn(member.Actor);
+				await RunGuarded(() => member.Actor.Weapon.StartOfTurn(member.Actor),
+					$"weapon {member.Actor.Weapon.Name}.StartOfTurn ({member.Actor.Name})");
 				if (member.Actor.Charm != null)
-					await member.Actor.Charm.StartOfTurn(member.Actor);
+					await RunGuarded(() => member.Actor.Charm.StartOfTurn(member.Actor),
+						$"charm {member.Actor.Charm.Name}.StartOfTurn ({member.Actor.Name})");
 			}
 
-			foreach (EnemyComponent e in Enemies)
+			foreach (EnemyComponent e in Enemies.ToList())
 			{
-				if (e.Actor.CurrentState == "toast")
+				if (e.Actor.IsToast)
 					continue;
-				await e.Actor.ProcessStartOfTurn();
+				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
 			ProcessedStartOfTurn = true;
 		}
+
+		// a start-of-turn hook may have ended the battle or changed phase
+		// don't show the fight menu over it
+		if (Phase != BattlePhase.FightRun)
+			return;
 
 		GameManager.Instance.DiscordManager.SetBattling(Enemies.Count);
 		switch (CurrentParty.Count)
@@ -1002,7 +1021,7 @@ public partial class BattleManager : Node
 
 	private void HandlePlayerCommand()
 	{
-		while (CurrentParty[CurrentPartyMember].Actor.CurrentState == "toast")
+		while (CurrentParty[CurrentPartyMember].Actor.IsToast)
 		{
 			CurrentPartyMember++;
 			if (CurrentPartyMember >= CurrentParty.Count)
@@ -1069,7 +1088,7 @@ public partial class BattleManager : Node
 
 		if ((SelectedAction.Target == SkillTarget.Ally ||
 		     (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
-		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState == "toast")
+		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1077,14 +1096,15 @@ public partial class BattleManager : Node
 
 		if ((SelectedAction.Target == SkillTarget.DeadAlly ||
 		     SelectedAction.Target == SkillTarget.AllDeadAllies && CurrentPartyMemberTarget > -1)
-		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.CurrentState != "toast")
+		    && !CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
 		}
 
 		if (SelectedAction.Target == SkillTarget.AllyNotSelf &&
-		    CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position)
+		    (CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position
+		     || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1169,7 +1189,8 @@ public partial class BattleManager : Node
 
 		BattleLogManager.Instance.ClearBattleLog();
 		GameManager.Instance.SetBattlebackGrayscale(false);
-		GD.Print("Processing action " + currentAction.Action.Name);
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print("Processing action " + currentAction.Action.Name);
 		List<Actor> resolvedTargets = [];
 		switch (currentAction.Action.Target)
 		{
@@ -1216,7 +1237,7 @@ public partial class BattleManager : Node
 					resolvedTargets.Add(currentAction.Targets[0]);
 				break;
 			case SkillTarget.DeadAlly:
-				if (currentAction.Targets[0].CurrentState is not "toast")
+				if (!currentAction.Targets[0].IsToast)
 				{
 					Actor newTarget = currentAction.Targets[0] is Enemy
 						? null
@@ -1237,7 +1258,7 @@ public partial class BattleManager : Node
 				break;
 			case SkillTarget.AllDeadAllies:
 				List<PartyMember> deadAllies = GetDeadPartyMembers().Select(x => x.Actor).ToList();
-				if (currentAction.Actor is Enemy || deadAllies.Count == 0)
+				if (currentAction.Actor is Enemy || (deadAllies.Count == 0 && currentAction.Action is not Item))
 				{
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
 					                                       "'s skill did nothing.");
@@ -1245,10 +1266,14 @@ public partial class BattleManager : Node
 					return;
 				}
 
-				resolvedTargets.AddRange(deadAllies);
+				if (deadAllies.Count > 0)
+					resolvedTargets.AddRange(deadAllies);
+				else
+					// if nobody is toast, pass everybody so items like jam packets can still run the "it had no effect" logic
+					resolvedTargets.AddRange(GetAllPartyMembers().Select(x => x.Actor));
 				break;
 			case SkillTarget.AllyNotSelf:
-				if (currentAction.Targets[0].CurrentState is "toast")
+				if (currentAction.Targets[0].IsToast)
 				{
 					Actor newTarget = currentAction.Targets[0] is Enemy
 						? GetRandomAliveUniqueEnemy(currentAction.Actor)
@@ -1276,8 +1301,12 @@ public partial class BattleManager : Node
 		{
 			if (!skill.MeetsRequirements(currentAction.Actor))
 			{
-				BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-				                                       " is too AFRAID to move!");
+				if (currentAction.Actor.CurrentEmotion.BlocksActions
+				    || skill.RequirementFailureMessage == null)
+					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
+					                                       " is too AFRAID to move!");
+				else
+					BattleLogManager.Instance.QueueMessage(currentAction.Actor, skill.RequirementFailureMessage);
 				SetPhase(BattlePhase.WaitForBattleLog);
 				return;
 			}
@@ -1297,7 +1326,7 @@ public partial class BattleManager : Node
 			}
 
 			if (currentAction.Actor is PartyMember && skill.ShowFollowups &&
-			    currentAction.Actor.CurrentState is not ("afraid" or "stressed"))
+			    !currentAction.Actor.CurrentEmotion.BlocksActions)
 			{
 				if (ForceHideFollowup)
 				{
@@ -1306,20 +1335,15 @@ public partial class BattleManager : Node
 				else
 				{
 					PartyMemberComponent component = CurrentParty.First(x => x.Actor == currentAction.Actor);
-					if (component.HasFollowup)
+					if (component.HasFollowup && component.FollowupSet != null)
 					{
 						HashSet<InputDirection> disabledDirections = [];
-						foreach (var entry in FollowupTable)
+						foreach (var entry in component.FollowupSet.Entries)
 						{
-							if (entry.Key.Position != component.Position) continue;
-							PartyMemberComponent target =
-								CurrentParty.FirstOrDefault(x => x.Position == entry.Value.Target);
-							bool disabled = target == null || target.Actor.CurrentState == "toast";
-							if (entry.Value.SkillName.StartsWith("ReleaseEnergy") &&
-							    CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
-								disabled = true;
-							if (disabled)
-								disabledDirections.Add(entry.Key.Direction);
+							// each bubble already grays itself on energy via its own cost
+							if (!IsFollowupEntryUsable(entry.Value.TargetPosition, entry.Value.BaseSkillName,
+								    includeEnergy: false))
+								disabledDirections.Add(FollowupSets.DirectionFor(entry.Key, component.Position));
 						}
 
 						component.FadeInFollowups(disabledDirections);
@@ -1329,7 +1353,8 @@ public partial class BattleManager : Node
 			}
 		}
 
-		await currentAction.Action.Effect(currentAction.Actor, resolvedTargets);
+		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
+			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
 
 		if (BattleLogManager.Instance.IsProcessingMessage)
 			SetPhase(BattlePhase.WaitForBattleLog);
@@ -1343,42 +1368,30 @@ public partial class BattleManager : Node
 			return false;
 
 		PartyMemberComponent current = CurrentParty.First(x => x.Actor == CurrentCommand.Actor);
-		if (!FollowupTable.TryGetValue((current.Position, direction), out var pair))
+		FollowupInput? role = FollowupSets.InputFor(direction, current.Position);
+		if (role == null || current.FollowupSet == null ||
+		    !current.FollowupSet.Entries.TryGetValue(role.Value, out FollowupEntry pair))
 			return false;
 
-		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == pair.Target);
-		if (target == null || target.Actor.CurrentState == "toast")
+		if (!IsFollowupEntryUsable(pair.TargetPosition, pair.BaseSkillName, includeEnergy: true))
 			return false;
 
-		string name = pair.SkillName;
-		bool basil = false;
-		if (name.StartsWith("ReleaseEnergy"))
-		{
-			if (Energy != 10 || CurrentParty.Any(x => x.Actor.CurrentState == "toast"))
-				return false;
-
-			if (UseBasilReleaseEnergy)
-				name += "Basil";
-			else
-				name += FollowupTier;
-		}
-		else
-		{
-			if (current.Position == 2 && UseBasilFollowups)
-				basil = true;
-
-			if (!basil)
-				name += FollowupTier;
-		}
+		string name = pair.BaseSkillName;
+		
+		// certain followups like Basil's Release Energy have no tier
+		if (name == "ReleaseEnergy")
+			name += FollowupTier.ToString();
+		else if (name != "ReleaseEnergyBasil" && current.FollowupSet.Tiered)
+			name += FollowupTier;
 
 		if (!Database.TryGetSkill(name, out Skill skill))
 			return false;
 
 		// in base game, followups go after any other forced actions
-		if (skill.Target is SkillTarget.AllEnemies)
-			PendingFollowup = new BattleCommand(current.Actor, GetAllEnemies(), skill);
-		else
-			PendingFollowup = new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
+		BattleCommand command = skill.Target is SkillTarget.AllEnemies
+			? new BattleCommand(current.Actor, GetAllEnemies(), skill)
+			: new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
+		PendingFollowup = new PendingFollowupData(command, pair.TargetPosition, pair.BaseSkillName);
 
 		// prevent followup bubbles from showing again if the followup itself is an attack
 		if (skill.ShowFollowups)
@@ -1409,8 +1422,8 @@ public partial class BattleManager : Node
 		if (self is PartyMember && skill.ShowFollowups)
 			// if the forced skill is an attack, hide the followup bubbles
 			ForceHideFollowup = true;
-		// insert at index 0 so newest forced commands execute first
-		ForcedCommands.Insert(0, new BattleCommand(self, targets, skill));
+		// forced commands execute in the order they were queued
+		ForcedCommands.Add(new BattleCommand(self, targets, skill));
 		// if this actor hasn't had their normal turn, queue them for a priority turn after forced commands
 		// mimics base game behavior
 		if (!ActedThisTurn.Contains(self) && !PriorityActors.Contains(self))
@@ -1422,10 +1435,37 @@ public partial class BattleManager : Node
 		FollowupSelected = true;
 		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
 		CurrentParty.First(x => x.Actor == CurrentCommand.Actor).FadeOutFollowupsExcept(direction);
-		if (PendingFollowup.Action.Name.Contains("Release Energy"))
-			Energy = 0;
-		else
-			Energy -= 3;
+	}
+	
+	private bool IsFollowupEntryUsable(int targetPosition, string baseSkillName, bool includeEnergy)
+	{
+		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == targetPosition);
+		if (target == null || target.Actor.IsToast)
+			return false;
+
+		if (baseSkillName.StartsWith("ReleaseEnergy"))
+		{
+			if (CurrentParty.Any(x => x.Actor.IsToast))
+				return false;
+			if (includeEnergy && Energy != 10)
+				return false;
+		}
+		else if (includeEnergy && Energy < 3)
+			return false;
+
+		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
+		if (baseSkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
+			return false;
+
+		return true;
+	}
+
+	private bool IsFollowupValid(PendingFollowupData followup)
+	{
+		if (IsInvalidTarget(followup.Command.Actor) || followup.Command.Actor.Stunned)
+			return false;
+
+		return IsFollowupEntryUsable(followup.TargetPosition, followup.BaseSkillName, includeEnergy: true);
 	}
 
 	private async void EndOfTurn()
@@ -1441,15 +1481,30 @@ public partial class BattleManager : Node
 			});
 			Enemies.ForEach(x =>
 			{
-				if (x.Actor.CurrentState != "toast")
+				if (!x.Actor.IsToast)
 					x.Actor.DecreaseStatTurnCounter();
 			});
 
 			foreach (EnemyComponent enemy in Enemies.ToList())
 			{
-				if (enemy.Actor.CurrentState == "toast")
+				if (enemy.Actor.IsToast)
 					continue;
-				await enemy.Actor.ProcessEndOfTurn();
+				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
+			}
+
+			// expire observe predictions the enemy never consumed during its turn
+			// ones set this turn (OBSERVE acts last) survive into the next turn
+			foreach (EnemyComponent enemy in Enemies)
+			{
+				if (enemy.Actor.ObserveSetThisTurn)
+				{
+					enemy.Actor.ObserveSetThisTurn = false;
+				}
+				else
+				{
+					enemy.Actor.ObserveTarget = null;
+					enemy.Actor.ObserveMultiTarget = false;
+				}
 			}
 
 			ProcessedEndOfTurn = true;
@@ -1512,7 +1567,7 @@ public partial class BattleManager : Node
 		}
 
 		PartyMemberComponent omori =
-			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.CurrentState == "toast");
+			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.IsToast);
 		// if any omori is toast, the battle is over
 		// this may change in the future
 		if (omori != null)
@@ -1522,6 +1577,7 @@ public partial class BattleManager : Node
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 			                                              "'s party was defeated...");
 			ShowEndOfBattleOptions();
+			return;
 		}
 		
 		if (DeferredDeathEnemies.Count > 0)
@@ -1531,15 +1587,12 @@ public partial class BattleManager : Node
 		{
 			SetPhase(BattlePhase.BattleOver);
 			await EndOfBattle(true);
-			Dictionary<int, string> oldEmotions = [];
 			CurrentParty.ForEach(x =>
 			{
 				x.Actor.RemoveStatModifier("PlotArmor");
-				if (x.Actor.CurrentState != "toast")
-				{
-					oldEmotions.Add(x.Position, x.Actor.CurrentState);
-					x.Actor.SetState("victory", true);
-				}
+				// the victory animation overrides plot armor
+				if (!x.Actor.IsToast)
+					x.Actor.PlayAnimation("victory", EmotionAsset.Victory);
 			});
 			if (GameType is GameModeType.BossRush)
 			{
@@ -1563,19 +1616,22 @@ public partial class BattleManager : Node
 						x.Actor.HasUsedPlotArmor = false;
 						if (Stages[CurrentStage].HealParty)
 						{
-							x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
+							if (x.Actor.IsToast)
+								x.Actor.Revive(x.Actor.CurrentStats.MaxHP);
+							else
+								x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
 							x.Actor.CurrentJuice = x.Actor.CurrentStats.MaxJuice;
 						}
 						else if (x.Actor.CurrentHP == 0)
 						{
-							x.Actor.CurrentHP = 1;
-							x.Actor.SetState("neutral", true);
+							x.Actor.Revive(1);
+							x.Actor.SetEmotion("neutral", true);
 						}
 
-						if (Stages[CurrentStage].KeepEmotion && oldEmotions.TryGetValue(x.Position, out string oldState))
-							x.Actor.SetState(oldState, true);
-						else
-							x.Actor.SetState("neutral", true);
+						// drop the victory override, the emotion kept underneath shows again
+						x.Actor.ClearAnimation();
+						if (!Stages[CurrentStage].KeepEmotion)
+							x.Actor.SetEmotion("neutral", true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.RemoveAllStatModifiers();
 						x.UpdateStateIcons();
@@ -1612,12 +1668,37 @@ public partial class BattleManager : Node
 	private async Task EndOfBattle(bool victory)
 	{
 		foreach (PartyMemberComponent p in CurrentParty)
-			await p.Actor.OnEndOfBattle(victory);
+			await RunGuarded(() => p.Actor.OnEndOfBattle(victory), $"{p.Actor.Name}.OnEndOfBattle");
 		foreach (EnemyComponent e in Enemies)
 		{
-			if (e.Actor.CurrentState is "toast")
+			if (e.Actor.IsToast)
 				continue;
-			await e.Actor.OnEndOfBattle(victory);
+			await RunGuarded(() => e.Actor.OnEndOfBattle(victory), $"{e.Actor.Name}.OnEndOfBattle");
+		}
+	}
+
+	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
+	private static async Task RunGuarded(Func<Task> hook, string context)
+	{
+		try
+		{
+			await hook();
+		}
+		catch (Exception ex)
+		{
+			GD.PushError($"Unhandled exception in {context}: {ex}");
+		}
+	}
+
+	private static void RunGuarded(Action hook, string context)
+	{
+		try
+		{
+			hook();
+		}
+		catch (Exception ex)
+		{
+			GD.PushError($"Unhandled exception in {context}: {ex}");
 		}
 	}
 
@@ -1637,16 +1718,19 @@ public partial class BattleManager : Node
 	/// <param name="guaranteeCrit">If this attack should guarantee a critical hit.</param>
 	/// <param name="neverCrit">If this attack should never be a critical hit.</param>
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
+	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
+	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
+	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
 	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied.</returns>
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
-		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false)
+		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
 		if (!neverMiss)
 		{
 			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
 			if (miss)
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
+				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
 				// Miss text spawns a little further down
 				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
@@ -1655,24 +1739,15 @@ public partial class BattleManager : Node
 		}
 
 		float damage = Math.Max(0, damageFunc());
-		string selfState = self.CurrentState;
-		string targetState = target.CurrentState;
-
-		if (self.HasLockedEmotion())
-		{
-			selfState = (self.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
-
-		if (target.HasLockedEmotion())
-		{
-			targetState = (target.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
+		// locked bosses resolve advantage as their locked emotion
+		Emotion selfEmotion = self.EffectiveEmotion;
+		Emotion targetEmotion = target.EffectiveEmotion;
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
-			damage = CalculateEmotionModifiers(selfState, targetState, damage, out effectiveness);
+			damage = CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -1684,7 +1759,7 @@ public partial class BattleManager : Node
 		if (critical)
 		{
 			damage *= 1.5f;
-			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
+			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 
@@ -1710,21 +1785,12 @@ public partial class BattleManager : Node
 
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
 
+		// sadness converts part of the damage to juice loss, using the lock-resolved emotion's bleed fraction
 		int juiceLost = 0;
-		switch (target.CurrentState)
+		if (targetEmotion.JuiceBleedFraction > 0)
 		{
-			case "miserable":
-				juiceLost = (int)Math.Min(rounded, target.CurrentJuice);
-				rounded -= juiceLost;
-				break;
-			case "depressed":
-				juiceLost = Math.Min((int)Math.Floor(rounded * 0.5f), target.CurrentJuice);
-				rounded -= juiceLost;
-				break;
-			case "sad":
-				juiceLost = Math.Min((int)Math.Floor(rounded * 0.3f), target.CurrentJuice);
-				rounded -= juiceLost;
-				break;
+			juiceLost = Math.Min((int)Math.Floor(rounded * targetEmotion.JuiceBleedFraction), target.CurrentJuice);
+			rounded -= juiceLost;
 		}
 
 		target.CurrentJuice -= juiceLost;
@@ -1751,26 +1817,27 @@ public partial class BattleManager : Node
 		// we don't need to play a hitsound if the attack is a critical or if there's no damage
 		if (!critical && roundedInt > 0)
 		{
-			GD.Print("Effectiveness: " + effectiveness);
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print("Effectiveness: " + effectiveness);
 			if (effectiveness > 0)
 			{
-				BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
+				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
 				AudioManager.Instance.PlaySFX("se_impact_double", 1f, 0.9f);
 			}
 			else if (effectiveness < 0)
 			{
-				BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
+				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
 				AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 0.9f);
 			}
 			else
 				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
 		}
 
-		BattleLogManager.Instance.QueueMessage(self, target, "[target] takes " + roundedInt + " damage!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] takes " + roundedInt + " damage!");
 
 		if (juiceLost > 0)
 		{
-			BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
 			SpawnDamageNumber(juiceLost, target.CenterPoint, DamageType.JuiceLoss);
 		}
 
@@ -1802,16 +1869,19 @@ public partial class BattleManager : Node
 	/// <param name="guaranteeCrit">If this attack should guarantee a critical hit.</param>
 	/// <param name="neverCrit">If this attack should never be a critical hit.</param>
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
+	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
+	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
+	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
 	/// <returns>The final juice damage after all critical, emotion, and stat modifications have been applied.</returns>
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
-		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false)
+		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
 		if (!neverMiss)
 		{
 			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
 			if (miss)
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
+				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 				AudioManager.Instance.PlaySFX("BA_miss");
 				// Miss text spawns a little further down
 				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
@@ -1820,22 +1890,10 @@ public partial class BattleManager : Node
 		}
 
 		float damage = damageFunc();
-		string selfState = self.CurrentState;
-		string targetState = target.CurrentState;
-
-		if (self.HasLockedEmotion())
-		{
-			selfState = (self.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
-
-		if (target.HasLockedEmotion())
-		{
-			targetState = (target.StateStatModifier as EmotionLockStatModifier).OverrideEmotion();
-		}
-
+		// locked bosses resolve advantage as their locked emotion
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
-		damage = CalculateEmotionModifiers(selfState, targetState, damage, out _);
+		damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out _, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -1845,7 +1903,7 @@ public partial class BattleManager : Node
 		if (critical)
 		{
 			damage *= 1.5f;
-			BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
+			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 
@@ -1877,7 +1935,7 @@ public partial class BattleManager : Node
 		int roundedInt = (int)rounded;
 		target.DamageJuice(roundedInt);
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
-		BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 		return roundedInt;
 	}
@@ -1894,15 +1952,17 @@ public partial class BattleManager : Node
 	/// <param name="target">The target being healed.</param>
 	/// <param name="healFunc">The function to use in the heal calculation.</param>
 	/// <param name="variance">The healing variance. Healed HP will be multiplied between (1 - variance) and (1 + variance).</param>
-	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f)
+	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
+	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f, bool silent = false)
 	{
 		float baseHealing = healFunc();
-		baseHealing = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, baseHealing, out _);
+		// vanilla's bugged healing reads the raw emotions, ignoring locks
+		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
 		int rounded = (int)Math.Round(baseHealing, MidpointRounding.AwayFromZero);
 		target.Heal(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
-		BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 	}
 
 	/// <summary>
@@ -1914,14 +1974,16 @@ public partial class BattleManager : Node
 	/// <param name="self">The healer.</param>
 	/// <param name="target">The target being healed.</param>
 	/// <param name="healFunc">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance).</param>
-	public void HealJuice(Actor self, Actor target, Func<float> healFunc)
+	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
+	public void HealJuice(Actor self, Actor target, Func<float> healFunc, bool silent = false)
 	{
 		float baseJuice = healFunc();
-		float finalJuice = CalculateEmotionModifiers(self.CurrentState, target.CurrentState, baseJuice, out _);
+		// vanilla's bugged healing reads the raw emotions, ignoring locks
+		float finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
 		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
 		target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
-		BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 	}
 
 	// RPGMaker applyVariance method
@@ -1932,80 +1994,67 @@ public partial class BattleManager : Node
 		return damage + v;
 	}
 
-	private readonly int[,] EffectivenessMatrix = new int[3, 3]
-	{
-		//			angry sad happy
-		/* angry */ { 0, -1, 1 },
-		/* sad   */ { 1, 0, -1 },
-		/* happy */ { -1, 1, 0 }
-	};
-
+	// weaknesses and resistances by tier
 	private readonly float[] weakness = [1.5f, 2f, 2.5f];
 	private readonly float[] resistance = [0.8f, 0.65f, 0.5f];
 
-	private float CalculateEmotionModifiers(string self, string target, float damage, out int effect)
+	private float CalculateEmotionModifiers(Emotion self, Emotion target, float damage, out int effect, string attackElement = null)
 	{
-		// exploit emotion type
-		if (self == "emotion" && target != "neutral")
+		Emotion neutral = Database.NeutralEmotion;
+
+		// the exploit attack element is always a "moving" hit against any emotion
+		if (attackElement == "exploit" && target != neutral)
 		{
 			effect = 1;
-			if (target is "afraid" or "stressed")
-				return damage * 1.5f;
-			return damage * weakness[GetEmotionTier(target)];
+			if (target.DefensiveRateOverrides.TryGetValue("exploit", out float exploitRate))
+				return damage * exploitRate;
+			if (target.Group == null)
+			{
+				GD.PushWarning("Emotion " + target.Id + " has no group or exploit rate, EXPLOIT will deal normal damage to it.");
+				return damage;
+			}
+
+			return damage * weakness[TierIndex(target)];
 		}
 
-		if (self != "neutral" && target == "afraid")
+		// a rate keyed by the attacker's group overrides the tier-based multiplier
+		if (self.Group != null && target.DefensiveRateOverrides.TryGetValue(self.Group.Id, out float groupRate))
 		{
-			// afraid takes 50% more damage from all emotions
-			effect = 0;
-			return damage * 1.5f;
+			effect = groupRate > 1f ? 1 : groupRate < 1f ? -1 : 0;
+			return damage * groupRate;
 		}
 
-		int selfIndex = GetEffectivenessIndex(self);
-		int targetIndex = GetEffectivenessIndex(target);
+		// emotions that are weak to all emotions like afraid check for any emotion
+		if (self != neutral && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
+		{
+			effect = 0;
+			return damage * emotionRate;
+		}
+
 		effect = 0;
-		if (selfIndex == -1 || targetIndex == -1)
+		if (self.Group == null || target.Group == null)
 		{
 			return damage;
 		}
 
-		int targetTier = GetEmotionTier(target);
-		int effectiveness = EffectivenessMatrix[targetIndex, selfIndex];
 		float multiplier = 1.0f;
-
-		if (effectiveness > 0)
+		if (self.Group.BeatsGroupId == target.Group.Id)
 		{
-			multiplier = weakness[targetTier];
+			effect = 1;
+			multiplier = weakness[TierIndex(target)];
 		}
-		else if (effectiveness < 0)
+		else if (target.Group.BeatsGroupId == self.Group.Id)
 		{
-			multiplier = resistance[targetTier];
+			effect = -1;
+			multiplier = resistance[TierIndex(target)];
 		}
 
-		effect = effectiveness;
 		return damage * multiplier;
 	}
-
-	private int GetEffectivenessIndex(string emotion)
+	
+	private int TierIndex(Emotion emotion)
 	{
-		return emotion switch
-		{
-			"angry" or "enraged" or "furious" => 0,
-			"sad" or "depressed" or "miserable" => 1,
-			"happy" or "ecstatic" or "manic" => 2,
-			_ => -1
-		};
-	}
-
-	private int GetEmotionTier(string emotion)
-	{
-		return emotion switch
-		{
-			"miserable" or "manic" or "furious" => 2,
-			"depressed" or "ecstatic" or "enraged" => 1,
-			"sad" or "happy" or "angry" => 0,
-			_ => -1,
-		};
+		return Math.Clamp(emotion.Tier - 1, 0, weakness.Length - 1);
 	}
 
 	/// <summary>
@@ -2014,59 +2063,17 @@ public partial class BattleManager : Node
 	/// <param name="who"></param>
 	public void RandomEmotion(Actor who)
 	{
-		int roll = GameManager.Instance.Random.RandiRange(0, 2);
-		string state = "";
-		switch (roll)
-		{
-			case 0:
-				state = "sad";
-				switch (who.CurrentState)
-				{
-					case "miserable":
-						return;
-					case "depressed":
-						state = "miserable";
-						break;
-					case "sad":
-						state = "depressed";
-						break;
-				}
+		IReadOnlyList<EmotionGroup> pool = Database.GetRandomEmotionGroups();
+		if (pool.Count == 0)
+			return;
 
-				break;
-			case 1:
-				state = "angry";
-				switch (who.CurrentState)
-				{
-					case "furious":
-						return;
-					case "enraged":
-						state = "furious";
-						break;
-					case "angry":
-						state = "enraged";
-						break;
-				}
+		EmotionGroup group = pool[GameManager.Instance.Random.RandiRange(0, pool.Count - 1)];
+		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
+			return; // already at the group's highest tier
 
-				break;
-			case 2:
-				state = "happy";
-				switch (who.CurrentState)
-				{
-					case "manic":
-						return;
-					case "ecstatic":
-						state = "manic";
-						break;
-					case "happy":
-						state = "ecstatic";
-						break;
-				}
-
-				break;
-		}
-
-		if (who.IsStateValid(state))
-			who.SetState(state);
+		// unlike MakeEmotion, capped and invalid targets fail silently
+		if (who.IsEmotionValid(next))
+			who.SetEmotion(next.Id);
 	}
 
 	/// <summary>
@@ -2089,7 +2096,11 @@ public partial class BattleManager : Node
 		DamageNumber dmg = new(damage, position, type, critical);
 		AddChild(dmg);
 
-		GetTree().CreateTimer(1.5f).Timeout += () => { dmg.Despawn(); };
+		GetTree().CreateTimer(1.5f).Timeout += () =>
+		{
+			if (IsInstanceValid(dmg))
+				dmg.Despawn();
+		};
 	}
 
 	/// <summary>
@@ -2174,29 +2185,51 @@ public partial class BattleManager : Node
 	}
 	
 	/// <summary>
+	/// Makes the given <see cref="Actor"/> feel an emotion of the given group, if possible.
+	/// Increases the tier if the actor already feels an emotion of the group.
+	/// </summary>
+	/// <param name="who">The <see cref="Actor"/> to change.</param>
+	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
+	public void MakeEmotion(Actor who, string groupId)
+	{
+		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group))
+		{
+			GD.PrintErr("Unknown emotion group: " + groupId);
+			return;
+		}
+
+		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
+		{
+			ShowMaxTierMessage(who, group);
+			return;
+		}
+
+		if (who.IsEmotionValid(next))
+			who.SetEmotion(next.Id);
+		else
+			ShowMaxTierMessage(who, group);
+	}
+	
+	private bool TryGetNextEmotionInGroup(Actor who, EmotionGroup group, out Emotion next)
+	{
+		Emotion current = who.CurrentEmotion;
+		int tier = current.Group == group ? current.Tier + 1 : 1;
+		return Database.TryGetEmotionByGroupTier(group.Id, tier, out next);
+	}
+
+	private void ShowMaxTierMessage(Actor who, EmotionGroup group)
+	{
+		if (group.MaxTierMessage != null)
+			BattleLogManager.Instance.QueueMessage(null, who, group.MaxTierMessage);
+	}
+
+	/// <summary>
 	/// Makes the given <see cref="Actor"/> sad, if possible. Increases the tier if the actor is already sad.
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make sad.</param>
 	public void MakeSad(Actor who)
 	{
-		string state = "sad";
-		string current = who.CurrentState;
-		switch (current)
-		{
-			case "miserable":
-				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get SADDER!");
-				return;
-			case "depressed":
-				state = "miserable";
-				break;
-			case "sad":
-				state = "depressed";
-				break;
-		}
-		if (who.IsStateValid(state))
-			who.SetState(state);
-		else
-			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get SADDER!");
+		MakeEmotion(who, "sad");
 	}
 
 	/// <summary>
@@ -2205,24 +2238,7 @@ public partial class BattleManager : Node
 	/// <param name="who">The <see cref="Actor"/> to make happy.</param>
 	public void MakeHappy(Actor who)
 	{
-		string state = "happy";
-		string current = who.CurrentState;
-		switch (current)
-		{
-			case "manic":
-				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get HAPPIER!");
-				return;
-			case "ecstatic":
-				state = "manic";
-				break;
-			case "happy":
-				state = "ecstatic";
-				break;
-		}
-		if (who.IsStateValid(state))
-			who.SetState(state);
-		else
-			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get HAPPIER!");
+		MakeEmotion(who, "happy");
 	}
 
 	/// <summary>
@@ -2231,24 +2247,7 @@ public partial class BattleManager : Node
 	/// <param name="who">The <see cref="Actor"/> to make angry.</param>
 	public void MakeAngry(Actor who)
 	{
-		string state = "angry";
-		string current = who.CurrentState;
-		switch (current)
-		{
-			case "furious":
-				BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get ANGRIER!");
-				return;
-			case "enraged":
-				state = "furious";
-				break;
-			case "angry":
-				state = "enraged";
-				break;
-		}
-		if (who.IsStateValid(state))
-			who.SetState(state);
-		else
-			BattleLogManager.Instance.QueueMessage(null, who, "[target] can't get ANGRIER!");
+		MakeEmotion(who, "angry");
 	}
 
 	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>
@@ -2299,7 +2298,7 @@ public partial class BattleManager : Node
 	/// <returns>True if the actor is considered invalid.</returns>
 	public bool IsInvalidTarget(Actor actor)
 	{
-		return actor == null || actor.CurrentState is "toast" || (actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor));
+		return actor == null || actor.IsToast || (actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor));
 	}
 
 	/// <returns>The <see cref="BattleCommand"/> that is currently being processed.</returns>
@@ -2321,7 +2320,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	public List<PartyMemberComponent> GetDeadPartyMembers()
 	{
-		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.CurrentState == "toast").ToList();
+		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.IsToast).ToList();
 	}
 
 	/// <summary>
@@ -2333,6 +2332,28 @@ public partial class BattleManager : Node
 	public List<PartyMemberComponent> GetAllPartyMembers()
 	{
 		return CurrentParty;
+	}
+
+	/// <summary>
+	/// Whether any living party member has one of the given weapons equipped.
+	/// </summary>
+	/// <remarks>
+	/// Equipment perks (such as the FRYING PAN snack boost) do not apply while their wearer is toast.
+	/// </remarks>
+	public bool PartyHasLivingWeapon(params string[] weaponNames)
+	{
+		return GetAlivePartyMembers().Any(x => weaponNames.Contains(x.Actor.Weapon?.Name));
+	}
+
+	/// <summary>
+	/// Whether any living party member has the given charm equipped.
+	/// </summary>
+	/// <remarks>
+	/// Equipment perks (such as the BREADPHONES full-heal revive) do not apply while their wearer is toast.
+	/// </remarks>
+	public bool PartyHasLivingCharm(string charmName)
+	{
+		return GetAlivePartyMembers().Any(x => x.Actor.Charm?.Name == charmName);
 	}
 
 	/// <summary>

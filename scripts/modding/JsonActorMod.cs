@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 
 namespace OmoriSandbox.Modding;
 
@@ -54,6 +55,15 @@ internal struct JsonActorMod
         {
             report.Error("actors", Name, $"Stat array length mismatch (HP={HP.Length}, Juice={Juice.Length}, ATK={ATK.Length}, DEF={DEF.Length}, SPD={SPD.Length})");
             return false;
+        }
+        // check for the presence of the four required animations
+        foreach (string required in new[] { "neutral", "hurt", "toast", "victory" })
+        {
+            if (Animation.All(a => a.Emotion != required))
+            {
+                report.Error("actors", Name, $"Missing required animation '{required}'");
+                return false;
+            }
         }
         return true;
     }

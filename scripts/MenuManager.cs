@@ -3,6 +3,7 @@ using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Menu;
 
@@ -28,6 +29,7 @@ internal partial class MenuManager : Node
 	private Menu CurrentMenu;
 	private Dictionary<MenuState, Menu> Menus;
 	private Dictionary<PartyMember, SelectionMemory> LastSelected = [];
+	private readonly HashSet<Menu> LoweredMenus = [];
 
 	public override void _EnterTree()
 	{
@@ -66,6 +68,7 @@ internal partial class MenuManager : Node
 
 	public void ShowMenu(MenuState state, bool immediate = false, bool ignoreMemory = false)
 	{
+		LoweredMenus.Clear();
 		CurrentState = state;
 		if (CurrentState == MenuState.None)
 		{
@@ -103,17 +106,23 @@ internal partial class MenuManager : Node
 
 	public void MoveDownOpenMenus(bool immediate)
 	{
+		LoweredMenus.Clear();
 		foreach (var menu in Menus) {
 			if (menu.Value.Visible)
+			{
+				// remember which menus are lowered so they can be raised later
+				LoweredMenus.Add(menu.Value);
 				menu.Value.MoveDown(menu.Key, immediate);
+			}
 		}
 		MoveEnergyBarDown(immediate);
 	}
 
 	public void MoveUpOpenMenus(bool immediate)
 	{
-		foreach (Menu open in Menus.Values.Where(x => x.Visible))
+		foreach (Menu open in Menus.Values.Where(x => x.Visible || LoweredMenus.Contains(x)))
 			open.MoveUp(immediate);
+		LoweredMenus.Clear();
 		MoveEnergyBarUp(immediate);
 	}
 
@@ -151,12 +160,20 @@ internal partial class MenuManager : Node
 		if (CurrentMenu is ItemMenu itemMenu)
 		{
 			LastSelected[member] = new(CurrentState, itemMenu.CursorIndex, itemMenu.Page);
-			GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
+		}
+		else if (CurrentMenu is SkillMenu skillMenu)
+		{
+			LastSelected[member] = new(CurrentState, skillMenu.CursorIndex, skillMenu.Page);
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {skillMenu.Page}");
 		}
 		else
 		{
 			LastSelected[member] = new(CurrentState, CurrentMenu.CursorIndex);
-			GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}");
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}");
 		}
 	}
 

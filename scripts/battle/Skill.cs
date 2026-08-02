@@ -31,7 +31,7 @@ public class Skill : BattleAction
 	/// Whether the given <param name="actor"> meets the requirements to use this skill.</param>
 	/// </summary>
 	/// <remarks>
-	/// By default, all skills have the requirement that the user is not afraid or stressed.
+	/// By default, all skills have the requirement that the user's emotion does not block actions (afraid/stressed).
 	/// Juice cost is an inherent requirement for all skills and cannot be modified.
 	/// </remarks>
 	/// <param name="actor">The actor to check.</param>
@@ -54,7 +54,24 @@ public class Skill : BattleAction
 		return cost;
 	}
 	
-	private Func<Actor, bool> Requirement = actor => actor.CurrentState is not "afraid" and not "stressed";
+	private Func<Actor, bool> Requirement = actor => !actor.CurrentEmotion.BlocksActions;
+
+	/// <summary>
+	/// The battle log message shown when this skill's requirement fails at execution time
+	/// for a reason other than the actor being afraid/stressed. When null, the default
+	/// "too AFRAID to move" message is used. Supports the [actor] tag.
+	/// </summary>
+	public string RequirementFailureMessage { get; private set; }
+
+	/// <summary>
+	/// Sets a custom battle log message for when this skill's requirement fails at execution
+	/// time. The default afraid/stressed failure keeps its own message regardless.
+	/// </summary>
+	public Skill WithRequirementFailureMessage(string message)
+	{
+		RequirementFailureMessage = message;
+		return this;
+	}
 
 	/// <summary>
 	/// Creates a new single-target skill. Must be registered via <see cref="Modding.Mod.RegisterSkill(string, Skill)"/> to appear in-game.

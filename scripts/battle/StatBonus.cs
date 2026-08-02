@@ -1,3 +1,5 @@
+using System;
+
 namespace OmoriSandbox.Battle;
 
 /// <summary>
@@ -5,6 +7,21 @@ namespace OmoriSandbox.Battle;
 /// </summary>
 public struct StatBonus
 {
+    /// <summary>
+    /// Applies a set of bonuses to the given stats, one stat at a time in order.
+    /// </summary>
+    /// <param name="stats">A reference to the <see cref="Stats"/> to apply the bonuses to.</param>
+    /// <param name="bonuses">The bonuses to apply.</param>
+    public static void ApplyAll(ref Stats stats, StatBonus[] bonuses)
+    {
+        foreach (StatBonus bonus in bonuses)
+        {
+            int stat = stats.GetStat(bonus.Type);
+            stat = (int)Math.Round(stat * bonus.Multiplier + bonus.FlatBonus);
+            stats.SetStat(bonus.Type, stat);
+        }
+    }
+
     /// <summary>
     /// The stat that this bonus modifies.
     /// </summary>

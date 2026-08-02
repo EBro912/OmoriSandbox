@@ -1,6 +1,7 @@
 using Godot;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class SourdoughAlt : Enemy
@@ -8,15 +9,15 @@ internal sealed class SourdoughAlt : Enemy
     public override string Name => "SOURDOUGH";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sourdough.tres");
     protected override Stats Stats => new(2000, 2000, 88, 65, 95, 10, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
     protected override string[] EquippedSkills => ["SDAttack", "SDDoNothing", "SDBadWord"];
   
     public override BattleCommand ProcessAI()
     {
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 36)

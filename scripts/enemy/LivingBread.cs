@@ -1,5 +1,6 @@
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class LivingBread : Enemy
@@ -7,9 +8,9 @@ internal sealed class LivingBread : Enemy
     public override string Name => "LIVING BREAD";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/living_bread.tres");
     protected override Stats Stats => new(250, 75, 45, 15, 5, 10, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
     protected override string[] EquippedSkills => ["LBAttack", "LBDoNothing", "LBBite"];
   
@@ -18,7 +19,7 @@ internal sealed class LivingBread : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["LBBite"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 36)

@@ -1,6 +1,7 @@
 using Godot;
 
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class SliceAlt : Enemy
@@ -8,9 +9,9 @@ internal sealed class SliceAlt : Enemy
     public override string Name => "SLICE";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/slice.tres");
     protected override Stats Stats => new(1500, 1500, 88, 65, 95, 10, 95);
-    public override bool IsStateValid(string state)
+    public override bool IsEmotionValid(Emotion emotion)
     {
-        return state == "neutral" || state == "sad" || state == "happy" || state == "angry" || state == "hurt" || state == "toast";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
     protected override string[] EquippedSkills => ["SLAttack", "SLDoNothing", "SLRile"];
   
@@ -19,7 +20,7 @@ internal sealed class SliceAlt : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SLAttack"]);
         
-        switch (CurrentState)
+        switch (CurrentEmotion.Id)
         {
             case "happy":
                 if (Roll() < 36)

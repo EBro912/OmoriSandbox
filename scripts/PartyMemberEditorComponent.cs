@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
 using System.Linq;
-using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Editor;
 internal partial class PartyMemberEditorComponent : Control
@@ -15,9 +15,11 @@ internal partial class PartyMemberEditorComponent : Control
 	[Export] public OptionButton EmotionDropdown { get; private set; }
 	[Export] public HSlider LevelSlider { get; private set; }
 	[Export] private Label LevelSliderValue;
-	[Export] public CheckBox DisableFollowups { get; private set; }
+	[Export] public OptionButton FollowupSetDropdown { get; private set; }
 	[Export] public LineEdit AttackSkill { get; private set; }
-	[Export] public LineEdit[] Skills;
+	[Export] private GridContainer SkillsContainer;
+	[Export] private Control SkillSlotTemplate;
+	[Export] private Button AddSkillSlotButton;
 	[Export] private Button RemoveButton;
 	[Export] private CheckBox FilterEquippableCheckbox;
 	[Export] private StatAdjustmentEditor StatAdjustmentEditor;
@@ -31,11 +33,12 @@ internal partial class PartyMemberEditorComponent : Control
 	private Equipment SelectedWeapon;
 	private Equipment SelectedCharm;
 	private Stats BaseStats;
-	private StatModifier Emotion;
+	private Emotion SelectedEmotion;
 
 	public int ActorPosition { get; private set; }
 
-	private readonly string[] States = ["neutral", "happy", "sad", "angry", "ecstatic", "depressed", "enraged", "manic", "miserable", "furious", "afraid", "stressed", "hurt", "toast", "victory"];
+	// registered emotions plus the pseudo-states party members can be spawned in
+	private static string[] States => [.. Database.GetAllEmotionIds(), "hurt", "toast", "victory"];
 	private string[] EquippableWeapons = [];
 	
 	public override void _Ready()
@@ -77,6 +80,13 @@ internal partial class PartyMemberEditorComponent : Control
 			RecalculateStats();
 		};
 
+		FollowupSetDropdown.AddItem(FollowupSets.NoneId);
+		foreach (FollowupSet set in FollowupSets.All)
+			FollowupSetDropdown.AddItem(set.Id);
+
+		AddSkillSlotButton.Pressed += AddSkillSlot;
+		SetSkillSlotCount(4);
+
 		FilterEquippableCheckbox.Toggled += (toggled) =>
 		{
 			FilterWeapons(toggled);
@@ -105,6 +115,7 @@ internal partial class PartyMemberEditorComponent : Control
 		JuiceLabel = BattleCard.GetNode<Label>("Battlecard/JuiceLabel");
 		
 		ActorPosition = position;
+		FollowupSetDropdown.Selected = FollowupSetDropdown.GetItemIndex(FollowupSets.DefaultIdForPosition(position));
 
 		RemoveButton.Pressed += () =>
 		{
@@ -119,12 +130,12 @@ internal partial class PartyMemberEditorComponent : Control
 		RecalculateStats();
 	}
 
-	public void Init(Control battleCard, BattlePresetActor actor)
+	public void Init(Control battleCard, BattlePresetActor actor, string followupSetId)
 	{
-		Init(battleCard, actor.Name, actor.Weapon, actor.Charm, actor.Level, actor.FollowupsDisabled, actor.Emotion, actor.Skills, actor.Position, actor.AdjustedStats);
+		Init(battleCard, actor.Name, actor.Weapon, actor.Charm, actor.Level, followupSetId, actor.Emotion, actor.Skills, actor.Position, actor.AdjustedStats);
 	}
-	
-	public void Init(Control battleCard, string name, string weapon, string charm, int level, bool followupsDisabled, string emotion, string[] skills, int position, Stats adjustedStats)
+
+	public void Init(Control battleCard, string name, string weapon, string charm, int level, string followupSetId, string emotion, string[] skills, int position, Stats adjustedStats)
 	{
 		BattleCard = battleCard;
 		Animator = BattleCard.GetNode<StateAnimator>("Battlecard/StateAnimatorComponent");
@@ -146,7 +157,10 @@ internal partial class PartyMemberEditorComponent : Control
 		WeaponDropdown.Selected = WeaponDropdown.GetItemIndex(weapon);
 		CharmDropdown.Selected = CharmDropdown.GetItemIndex(charm);
 		EmotionDropdown.Selected = EmotionDropdown.GetItemIndex(emotion);
-		DisableFollowups.ButtonPressed = followupsDisabled;
+		int followupIndex = FollowupSetDropdown.GetItemIndex(followupSetId);
+		FollowupSetDropdown.Selected = followupIndex != -1
+			? followupIndex
+			: FollowupSetDropdown.GetItemIndex(FollowupSets.DefaultIdForPosition(position));
 		LevelSlider.SetValueNoSignal(level);
 		LevelSliderValue.Text = level.ToString();
 		UpdateState(emotion);
@@ -154,10 +168,9 @@ internal partial class PartyMemberEditorComponent : Control
 		{
 			// first index should always be the attack skill
 			AttackSkill.Text = skills[0];
-			for (int i = 1; i < skills.Length; i++)
-			{
-				Skills[i - 1].Text = skills[i];
-			}
+			SetSkillSlotCount(Mathf.Max(4, skills.Length - 1));
+			for (int i = 0; i < SkillsContainer.GetChildCount(); i++)
+				GetSlotLineEdit(i).Text = i < skills.Length - 1 ? skills[i + 1] : "";
 		}
 
 		int index = level - 1;
@@ -175,6 +188,8 @@ internal partial class PartyMemberEditorComponent : Control
 		}
 		
 		SelectedPartyMember = Database.CreatePartyMember(who);
+		if (SelectedPartyMember == null)
+			return; // CreatePartyMember already logged the unknown name
 
 		string attackSkill;
 		if (SelectedPartyMember is SunnyAlt)
@@ -190,14 +205,14 @@ internal partial class PartyMemberEditorComponent : Control
 		SpriteFrames animation = SelectedPartyMember.Animation;
 		if (animation == null)
 		{
-			GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
+			GD.PrintErr("Failed to load Face animations for PartyMember: " + who);
 			return;
 		}
 
 		Face.SpriteFrames = animation;
 		Face.Play("neutral");
 		Animator.SetState("neutral");
-		Emotion = null;
+		SelectedEmotion = null;
 
 		LevelSlider.SetValueNoSignal(1);
 		LevelSliderValue.Text = "1";
@@ -215,14 +230,82 @@ internal partial class PartyMemberEditorComponent : Control
 	private void UpdateState(string state)
 	{
 		Face.Animation = state;
-		if (state != "hurt")
-			Animator.SetState(state);
-		Emotion = state is "neutral" ? null : Database.CreateModifier(state.Capitalize());
+		switch (state)
+		{
+			// hurt doesn't update the emotion HUD
+			case "hurt":
+				break;
+			case "toast":
+				Animator.ShowAsset(EmotionAsset.Toast);
+				break;
+			case "victory":
+				Animator.ShowAsset(EmotionAsset.Victory);
+				break;
+			default:
+				Animator.SetState(state);
+				break;
+		}
+		// pseudo-states like hurt/toast/victory aren't emotions and preview no stat bonuses
+		SelectedEmotion = Database.TryGetEmotion(state, out Emotion emotion) ? emotion : null;
 	}
 
 	public Stats GetAdjustedStats()
 	{
 		return StatAdjustmentEditor.GetStats();
+	}
+
+	private LineEdit GetSlotLineEdit(int index)
+	{
+		return SkillsContainer.GetChild(index).GetNode<LineEdit>("Skill");
+	}
+
+	private void AddSkillSlot()
+	{
+		HBoxContainer row = (HBoxContainer)SkillSlotTemplate.Duplicate();
+		row.Visible = true;
+		row.GetNode<Button>("RemoveSlot").Pressed += () =>
+		{
+			SkillsContainer.RemoveChild(row);
+			row.QueueFree();
+			RenumberSlots();
+		};
+		SkillsContainer.AddChild(row);
+		RenumberSlots();
+	}
+
+	private void SetSkillSlotCount(int count)
+	{
+		while (SkillsContainer.GetChildCount() < count)
+			AddSkillSlot();
+		while (SkillsContainer.GetChildCount() > count)
+		{
+			Node row = SkillsContainer.GetChild(SkillsContainer.GetChildCount() - 1);
+			SkillsContainer.RemoveChild(row);
+			row.QueueFree();
+		}
+		RenumberSlots();
+	}
+
+	private void RenumberSlots()
+	{
+		for (int i = 0; i < SkillsContainer.GetChildCount(); i++)
+		{
+			Node row = SkillsContainer.GetChild(i);
+			row.GetNode<Label>("Label").Text = $"Skill {i + 1}";
+			// the default 4 slots are permanent, only extras can be removed
+			row.GetNode<Button>("RemoveSlot").Visible = i >= 4;
+		}
+	}
+
+	public string[] GetSkills()
+	{
+		List<string> skills = [AttackSkill.Text];
+		for (int i = 0; i < SkillsContainer.GetChildCount(); i++)
+			skills.Add(GetSlotLineEdit(i).Text);
+		// old presets always carry 5 entries, trim unused extra slots but keep the shape
+		while (skills.Count > 5 && string.IsNullOrWhiteSpace(skills[^1]))
+			skills.RemoveAt(skills.Count - 1);
+		return [.. skills];
 	}
 
 	private void FilterWeapons(bool toggled)
@@ -245,7 +328,8 @@ internal partial class PartyMemberEditorComponent : Control
 		Stats stats = BaseStats + StatAdjustmentEditor.GetStats();
 		SelectedWeapon.Apply(ref stats);
 		SelectedCharm?.Apply(ref stats);
-		Emotion?.ApplyStats(ref stats);
+		if (SelectedEmotion != null)
+			StatBonus.ApplyAll(ref stats, SelectedEmotion.StatBonuses);
 		HealthLabel.Text = $"{stats.MaxHP}/{stats.MaxHP}";
 		JuiceLabel.Text = $"{stats.MaxJuice}/{stats.MaxJuice}";
 		StatAdjustmentEditor.UpdateStats(stats);
