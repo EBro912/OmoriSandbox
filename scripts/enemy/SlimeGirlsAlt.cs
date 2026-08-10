@@ -113,13 +113,17 @@ internal sealed class SlimeGirlsAlt : Enemy
 			BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["Swap"]);
 			Stage = 2;
 		}
-		
-        if (CurrentHP < 2000 && Stage <= 2)
-        {
-            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SlimeUltimateAttack"]);
-            Stage = 3;
-        }
-    }
+	}
+
+	public override Task ProcessEndOfTurn()
+	{
+		if (CurrentHP > 0 && CurrentHP < 2000 && Stage <= 2)
+		{
+			BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SlimeUltimateAttack"]);
+			Stage = 3;
+		}
+		return Task.CompletedTask;
+	}
 
 	public override async Task OnDefeat()
 	{

@@ -173,7 +173,7 @@ internal sealed class Sweetheart : Enemy
 		UsedDonut = false;
 	}
 
-	protected override Stats GetBaseStats()
+	public override Stats GetBaseStats()
 	{
 		if (CurrentEmotion.Id is "ecstatic" or "manic")
 			return new Stats(3300, 1650, 30, 25, 40, 30, 90);

@@ -110,14 +110,22 @@ public class StatModifier
 
     /// <summary>
     /// Sets the number of turns left on this modifier. If the value exceeds the max turns
-    /// set previously, the max is raised to match (unless the modifier is turnless).
+    /// set previously, the max is raised to match. An explicit duration on a turnless modifier
+    /// converts it into a timed one, so refreshes restore that duration instead of making it infinite.
     /// </summary>
     /// <param name="turnsLeft">The number of turns left to set this modifier to.</param>
     public void SetTurnsLeft(int turnsLeft)
     {
         TurnsLeft = turnsLeft;
-        if (MaxTurns != -1)
+        if (MaxTurns == -1)
+        {
+            if (turnsLeft > -1)
+                MaxTurns = turnsLeft;
+        }
+        else
+        {
             MaxTurns = Math.Max(MaxTurns, turnsLeft);
+        }
     }
 
     /// <summary>

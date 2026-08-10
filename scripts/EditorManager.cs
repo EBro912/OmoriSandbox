@@ -315,7 +315,8 @@ internal partial class EditorManager : Node
 			StartingEnergy = (int)StartingEnergySlider.Value,
 			FollowupTier = (int)FollowupTierSlider.Value,
 			DisableDialogue = DisableDialogue.ButtonPressed,
-			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed
+			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed,
+			CombinedBuffsDebuffs = CombinedBuffsDebuffs.ButtonPressed
 		};
 
 		if (EditorMode is GameModeType.Normal)
@@ -474,7 +475,8 @@ internal partial class EditorManager : Node
 		FollowupTierSlider.Value = Math.Clamp(preset.FollowupTier, 1, 3);
 		DisableDialogue.ButtonPressed = preset.DisableDialogue;
 		DisableDamageNumbers.ButtonPressed = preset.DisableDamageNumbers;
-		
+		CombinedBuffsDebuffs.ButtonPressed = preset.CombinedBuffsDebuffs;
+
 		foreach (KeyValuePair<string, int> entry in preset.Items)
 		{
 			HBoxContainer container = new();
@@ -719,6 +721,7 @@ internal partial class EditorManager : Node
 		FollowupTierSlider.Value = 1;
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
+		CombinedBuffsDebuffs.ButtonPressed = false;
 
 		BGMPreview.Stop();
 		BattlebackBGMEditor.Reset();
@@ -761,6 +764,7 @@ internal partial class EditorManager : Node
     [Export] private Label FollowupTierValue;
     [Export] private CheckBox DisableDialogue;
     [Export] private CheckBox DisableDamageNumbers;
+    [Export] private CheckBox CombinedBuffsDebuffs;
     [Export] private Button AddItemButton;
     [Export] private GridContainer ItemContainer;
     [Export] private LineEdit SearchInput;

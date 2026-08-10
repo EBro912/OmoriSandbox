@@ -43,6 +43,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		base.Show(show);
 		Stats stats = Enemy.CurrentStats;
 		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
+		JuiceBar.MaxValue = stats.MaxJuice;
 		JuiceBar.Value = Enemy.CurrentJuice;
 		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{stats.MaxJuice}";
 		ATKLabel.Text = $"ATK: {stats.ATK}";

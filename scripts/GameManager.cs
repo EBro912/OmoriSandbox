@@ -19,7 +19,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.1.0";
+	public const string Version = "OmoriSandbox v1.1.1";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
@@ -37,8 +37,8 @@ public partial class GameManager : Node
 	public RandomNumberGenerator Random { get; private set; } = new();
 	internal DiscordManager DiscordManager { get; private set; }
 	public static GameManager Instance { get; private set; }
-
-	private double DisplayedFPS = -1;
+	
+	private double DisplayedFPS = double.MinValue;
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -49,7 +49,7 @@ public partial class GameManager : Node
 		if (fps != DisplayedFPS)
 		{
 			DisplayedFPS = fps;
-			FPSLabel.Text = $"{(fps >= 0 ? fps : "")} {Version}";
+			FPSLabel.Text = fps >= 0 ? $"{fps} {Version}" : Version;
 		}
 
 		DiscordManager.Tick();

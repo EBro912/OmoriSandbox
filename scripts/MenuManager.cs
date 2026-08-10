@@ -18,6 +18,9 @@ internal partial class MenuManager : Node
 	[Export] private Label EnergyText;
 	private Tween EnergyBarTween;
 
+	// the energy bar node, tinted by the DialogueManager while dialogue is on screen
+	internal Sprite2D EnergyDisplay => EnergyBar;
+
 	public static MenuManager Instance { get; private set; }
 
 	private const float FightRunOffsetRW = 457f;
@@ -94,8 +97,7 @@ internal partial class MenuManager : Node
 		}
 
 		if (ignoreMemory)
-			// this technically ignores the page number, but is only really ever used with the BattleMenu anyway
-			CurrentMenu.OnOpen(new(CurrentState, CurrentMenu.CursorIndex));
+			CurrentMenu.OnOpen(new(CurrentState, CurrentMenu.CursorIndex, (CurrentMenu as PagedMenu)?.Page ?? 0));
 		else if (currentPartyMember != null && LastSelected.TryGetValue(currentPartyMember, out var result))
 			CurrentMenu.OnOpen(result);
 		else
@@ -153,21 +155,15 @@ internal partial class MenuManager : Node
 	{
 		if (LastSelected.ContainsKey(member))
 		{
-			// if we have a saved state for this actor, we don't want to overwrite the value when we select the button again
+			// if the actor selected ATTACK last turn, wipe the memory
 			if (CurrentState == MenuState.Battle && CurrentMenu.CursorIndex > 0)
 				return;
 		}
-		if (CurrentMenu is ItemMenu itemMenu)
+		if (CurrentMenu is PagedMenu pagedMenu)
 		{
-			LastSelected[member] = new(CurrentState, itemMenu.CursorIndex, itemMenu.Page);
+			LastSelected[member] = new(CurrentState, pagedMenu.CursorIndex, pagedMenu.Page);
 			if (SettingsMenuManager.Instance.LogDebug)
-				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {itemMenu.Page}");
-		}
-		else if (CurrentMenu is SkillMenu skillMenu)
-		{
-			LastSelected[member] = new(CurrentState, skillMenu.CursorIndex, skillMenu.Page);
-			if (SettingsMenuManager.Instance.LogDebug)
-				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {skillMenu.Page}");
+				GD.Print($"Saved {member.Name} selection as {CurrentState} at index {CurrentMenu.CursorIndex}, page {pagedMenu.Page}");
 		}
 		else
 		{

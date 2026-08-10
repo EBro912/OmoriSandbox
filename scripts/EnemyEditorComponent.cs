@@ -23,13 +23,16 @@ internal partial class EnemyEditorComponent : Control
 	// registered emotions plus the pseudo-states enemies can be spawned in
 	private static string[] States => [.. Database.GetAllEmotionIds(), "hurt", "toast"];
 
-	public override void _EnterTree()
+	public override void _Ready()
 	{
 		foreach (string member in Database.GetAllEnemyNames())
 			EnemyDropdown.AddItem(member);
 
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex("LostSproutMole");
 		EnemyDropdown.ItemSelected += (idx) => Populate(EnemyDropdown.GetItemText((int)idx));
+		// scroll the (long) enemy list to the current enemy when the dropdown is opened
+		PopupMenu popup = EnemyDropdown.GetPopup();
+		popup.AboutToPopup += () => popup.SetFocusedItem(EnemyDropdown.Selected);
 		EmotionDropdown.ItemSelected += (idx) => UpdateState(EmotionDropdown.GetItemText((int)idx));
 
 		VisibleCheckbox.Toggled += (pressed) => Animator.Visible = pressed;
@@ -77,7 +80,15 @@ internal partial class EnemyEditorComponent : Control
 		
 		Populate(name);
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex(name);
-		EmotionDropdown.Selected = EmotionDropdown.GetItemIndex(emotion);
+		int emotionIndex = EmotionDropdown.GetItemIndex(emotion);
+		if (emotionIndex == -1)
+		{
+			// the preset carries an emotion this enemy doesn't support
+			GD.PushWarning($"Enemy {name} cannot be spawned as \"{emotion}\", falling back to neutral.");
+			emotionIndex = 0;
+			emotion = EmotionDropdown.GetItemText(0);
+		}
+		EmotionDropdown.Selected = emotionIndex;
 		LayerBox.Value = layer;
 		XPosBox.SetValueNoSignal(position.X);
 		YPosBox.SetValueNoSignal(position.Y);
@@ -114,6 +125,8 @@ internal partial class EnemyEditorComponent : Control
 		FallsOffScreenCheckbox.ButtonPressed = enemy.FallsOffScreen;
 		GrayscaleOnDefeatCheckbox.ButtonPressed = enemy.GrayscaleOnDefeat;
 
+		// keep the selected emotion across enemy changes when the new enemy supports it
+		string previousEmotion = EmotionDropdown.Selected > -1 ? EmotionDropdown.GetItemText(EmotionDropdown.Selected) : null;
 		EmotionDropdown.Clear();
 		foreach (string state in States)
 		{
@@ -128,7 +141,9 @@ internal partial class EnemyEditorComponent : Control
 				EmotionDropdown.AddItem(state);
 			}
 		}
-		EmotionDropdown.Selected = 0;
+		int restored = previousEmotion != null ? EmotionDropdown.GetItemIndex(previousEmotion) : -1;
+		EmotionDropdown.Selected = restored > -1 ? restored : 0;
+		UpdateState(EmotionDropdown.GetItemText(EmotionDropdown.Selected));
 	}
 
 	public void UpdateState(string state)

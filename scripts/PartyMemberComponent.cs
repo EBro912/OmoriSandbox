@@ -43,6 +43,10 @@ public partial class PartyMemberComponent : Node
     /// The followup set assigned to the <see cref="Actors.PartyMember"/>, or null when followups are disabled.
     /// </summary>
     internal FollowupSet FollowupSet { get; private set; }
+    /// <summary>
+    /// The battlecard portrait node, tinted by the <see cref="DialogueManager"/> while dialogue is on screen.
+    /// </summary>
+    internal TextureRect Battlecard { get; private set; }
 
     private Timer HurtTimer = new()
     {
@@ -59,6 +63,7 @@ public partial class PartyMemberComponent : Node
 			actor.Emotion = "neutral";
 		if (!PartyMember.Init(face, actor))
 			return false;
+		Battlecard = GetNode<TextureRect>("../Battlecard");
 		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");
@@ -140,6 +145,16 @@ public partial class PartyMemberComponent : Node
 
 	public override void _Process(double delta)
 	{
+		// keep the cached maxes in sync with stat modifiers that change MaxHP/MaxJuice
+		Stats stats = PartyMember.CurrentStats;
+		if (HPBar.MaxValue != stats.MaxHP || JuiceBar.MaxValue != stats.MaxJuice)
+		{
+			HPBar.MaxValue = stats.MaxHP;
+			JuiceBar.MaxValue = stats.MaxJuice;
+			HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
+			JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
+		}
+
 		// nothing to animate once the displayed values have settled
 		// ReSharper disable twice CompareOfFloatsByEqualityOperator
 		if (DisplayedHP == PartyMember.CurrentHP && DisplayedJuice == PartyMember.CurrentJuice)

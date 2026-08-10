@@ -76,12 +76,21 @@ public partial class BattleManager : Node
 	/// </summary>
 	public event EventHandler EnergyChanged;
 
+	/// <summary>
+	/// Fired once per battle when the battle is exited for any reason
+	/// (restart, running away, or returning to the title screen), after the battle state has been fully reset.
+	/// Not fired when the end-of-battle results screen appears or between Boss Rush stages.
+	/// </summary>
+	public event EventHandler BattleExited;
+
 	private bool FollowupActive = false;
 	private bool FollowupSelected = false;
 	private bool ForceHideFollowup = false;
 	private int FollowupTier = 1;
 	private bool DamageNumbersDisabled = false;
 	private bool DebugDamageHeld = false;
+
+	internal bool CombinedBuffsDebuffs { get; private set; }
 
 	private bool RestartQueued = false;
 	private double RestartTimer;
@@ -165,6 +174,7 @@ public partial class BattleManager : Node
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
+		CombinedBuffsDebuffs = preset.CombinedBuffsDebuffs;
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
 
@@ -522,6 +532,7 @@ public partial class BattleManager : Node
 
 	internal void Reset()
 	{
+		bool wasBattling = IsBattling;
 		GameManager.Instance.DespawnAll();
 		AnimationManager.Instance.DespawnAll();
 		AnimationManager.Instance.StopAllAnimations();
@@ -560,6 +571,8 @@ public partial class BattleManager : Node
 		RestartQueued = false;
 		RestartTimer = 1;
 		IsBattling = false;
+		if (wasBattling)
+			BattleExited?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void ReloadPreset()
@@ -987,6 +1000,12 @@ public partial class BattleManager : Node
 			{
 				if (e.Actor.IsToast)
 					continue;
+				foreach (StatModifier modifier in e.Actor.StatModifiers.Values)
+				{
+					RunGuarded(() => modifier.OnStartOfTurn(e.Actor),
+						$"{modifier.GetType().Name}.OnStartOfTurn ({e.Actor.Name})");
+				}
+				
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
@@ -1509,6 +1528,13 @@ public partial class BattleManager : Node
 
 			ProcessedEndOfTurn = true;
 		}
+		
+		if (RestartQueued)
+		{
+			Reset();
+			ReloadPreset();
+			return;
+		}
 
 		// if any forced commands or priority actors were added during ProcessEndOfTurn, run those still
 		if (ForcedCommands.Count > 0 || PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a)))
@@ -1807,6 +1833,18 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
 
 		int roundedInt = (int)rounded;
+		
+		// if damage ends up being below zero due to a stat modifier, treat it as a pseudo-miss
+		// exactly 0 damage still proceeds through as normal
+		if (roundedInt < 0)
+		{
+			// undo the sad juice bleed, the hit never landed
+			target.CurrentJuice += juiceLost;
+			AudioManager.Instance.PlaySFX("BA_miss");
+			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+			BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
+			return -1;
+		}
 		target.Damage(roundedInt);
 		if (target is PartyMember)
 		{
@@ -1933,6 +1971,13 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
 
 		int roundedInt = (int)rounded;
+		// a stat modifier fully negated the hit and drove the damage negative — treat it like a miss
+		if (roundedInt < 0)
+		{
+			AudioManager.Instance.PlaySFX("BA_miss");
+			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+			return -1;
+		}
 		target.DamageJuice(roundedInt);
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
@@ -2027,7 +2072,7 @@ public partial class BattleManager : Node
 		// emotions that are weak to all emotions like afraid check for any emotion
 		if (self != neutral && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
 		{
-			effect = 0;
+			effect = emotionRate > 1f ? 1 : emotionRate < 1f ? -1 : 0;
 			return damage * emotionRate;
 		}
 

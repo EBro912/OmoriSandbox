@@ -269,7 +269,7 @@ internal sealed class SpaceExHusband : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    protected override Stats GetBaseStats()
+    public override Stats GetBaseStats()
     {
         return GetStatsForEmotion();
     }

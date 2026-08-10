@@ -22,6 +22,7 @@ internal class BattlePreset
     public bool ShouldSerializeBasilReleaseEnergy() => false;
     public bool DisableDialogue { get; set; } = false;
     public bool DisableDamageNumbers { get; set; } = false;
+    public bool CombinedBuffsDebuffs { get; set; } = false;
     public Dictionary<string, int> Items { get; set; } = [];
 
     [JsonRequired] public List<BattlePresetActor> Actors { get; set; } = [];

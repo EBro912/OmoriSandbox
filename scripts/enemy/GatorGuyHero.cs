@@ -52,7 +52,7 @@ internal sealed class GatorGuyHero : Enemy
         return new BattleCommand(this, SelectTarget(), Skills["GGRoughUp"]);
     }
 
-    protected override Stats GetBaseStats()
+    public override Stats GetBaseStats()
     {
         if (CurrentEmotion.Id is "sad" or "angry")
             return new Stats(6000, 3000, 80, 65, 80, 10, 95);

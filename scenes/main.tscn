@@ -203,7 +203,6 @@ text = "Restart Queued..."
 [node name="Battleback" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot" unique_id=38412468]
 z_index = -100
 use_parent_material = true
-layout_mode = 0
 offset_left = -640.0
 offset_right = 1280.0
 offset_bottom = 480.0
@@ -700,7 +699,7 @@ script = ExtResource("44_nvyfr")
 [node name="Cursor" parent="BattleCanvas/UI/SkillMenu" unique_id=504568155 instance=ExtResource("24_qkpxi")]
 visible = true
 
-[node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu"]
+[node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu" unique_id=397386569]
 visible = false
 position = Vector2(350, 35)
 texture = ExtResource("26_kmb1v")
@@ -708,7 +707,7 @@ flip_v = true
 region_enabled = true
 region_rect = Rect2(151, 111, 10, 5)
 
-[node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu"]
+[node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu" unique_id=2061373747]
 visible = false
 position = Vector2(350, 90)
 texture = ExtResource("26_kmb1v")
