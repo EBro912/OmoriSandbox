@@ -111,8 +111,7 @@ public class TierStatModifier : StatModifier
 		return this;
 	}
 
-	// lowers the tier (used when the counterpart partially cancels this modifier);
-	// like ApplyTier, any tier change refreshes the timer — a turnless modifier stays turnless
+	// lowers the tier by one, mainly used by combined buffs/debuffs
 	internal void ReduceTier(int tier)
 	{
 		Tier = Math.Clamp(tier, 1, MaxTier);

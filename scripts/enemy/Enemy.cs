@@ -67,7 +67,7 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public Stats AdjustedStats { get; private set; }
 
-	// the enemy's declared stat block, readable before Init for the editor's stat display
+	// the enemy's declared stats, used by the editor stat display
 	internal Stats DeclaredStats => Stats;
 
 	/// <summary>

@@ -13,7 +13,7 @@ public enum StatModifierRemovalReason
     Expired,
     /// <summary>Removed as part of clearing all of an actor's modifiers, e.g. when the actor becomes toast.</summary>
     Cleared,
-    /// <summary>Cancelled out or overpowered by its counterpart under the Combined Buffs/Debuffs setting.</summary>
+    /// <summary>Canceled out or overpowered by its counterpart under the Combined Buffs/Debuffs setting.</summary>
     Combined
 }
 
