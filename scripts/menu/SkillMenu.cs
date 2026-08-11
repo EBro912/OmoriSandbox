@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -7,7 +6,7 @@ using OmoriSandbox.Battle;
 
 namespace OmoriSandbox.Menu;
 
-internal partial class SkillMenu : Menu
+internal partial class SkillMenu : PagedMenu
 {
 	[Export] public AutofitLabel[] SkillLabels;
 	[Export] public Label CostText;
@@ -15,15 +14,14 @@ internal partial class SkillMenu : Menu
 	[Export] private Sprite2D PageDownSprite;
 	private readonly List<Skill> Skills = [];
 	private List<Skill> DisplayedSkills = [];
-	public int Page { get; private set; } = 0;
-	private List<Vector2I> Positions = [new(28, 52), new(200, 52), new(28, 76), new(200, 76)];
 
 	private PartyMember Actor;
 
 	protected override Vector2 OpenPosition => new(138, 384);
 	protected override Vector2 ClosedPosition => new(138, 490);
 
-	private int MaxPage => Math.Max(0, (Skills.Count - 3) / 2);
+	protected override int TotalCount => Skills.Count;
+	protected override int DisplayedCount => DisplayedSkills.Count;
 
 	public override void OnOpen(SelectionMemory memory)
 	{
@@ -67,7 +65,7 @@ internal partial class SkillMenu : Menu
 		Empty = Skills.Count == 0;
 	}
 
-	private void UpdatePage()
+	protected override void UpdatePage()
 	{
 		CostText.Text = "0";
 		foreach (AutofitLabel l in SkillLabels)
@@ -98,83 +96,15 @@ internal partial class SkillMenu : Menu
 		if (CursorIndex >= DisplayedSkills.Count)
 			CursorIndex = DisplayedSkills.Count - 1;
 		UpdateCursor();
-		ShowSkillInfo();
+		ShowInfo();
 	}
 
-	private void ShowSkillInfo()
+	protected override void ShowInfo()
 	{
 		if (Empty) return;
 		Skill s = DisplayedSkills[CursorIndex];
 		CostText.Text = s.Cost(Actor).ToString();
 		BattleLogManager.Instance.ClearAndShowMessage($"[font_size=28]{s.Name}\n[font_size=20]{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
-	}
-
-	protected override void MoveCursor(Vector2I direction)
-	{
-		if (Empty) return;
-		if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;
-		if (direction == Vector2.Down && Page < MaxPage && CursorIndex > 1)
-		{
-			Page++;
-			CursorIndex -= 2;
-			AudioManager.Instance.PlaySFX("SYS_move");
-			UpdatePage();
-			return;
-		}
-		if (direction == Vector2.Up && Page > 0 && CursorIndex < 2)
-		{
-			Page--;
-			CursorIndex += 2;
-			AudioManager.Instance.PlaySFX("SYS_move");
-			UpdatePage();
-			return;
-		}
-
-		int old = CursorIndex;
-		// omori menus have no wrapping
-		// pressing left or right simply increments/decrements the index
-		if (direction == Vector2.Left)
-		{
-			if (CursorIndex > 0)
-				CursorIndex--;
-			else if (Page > 0)
-			{
-				Page--;
-				CursorIndex = 3;
-				AudioManager.Instance.PlaySFX("SYS_move");
-				UpdatePage();
-				return;
-			}
-		}
-		else if (direction == Vector2.Right)
-		{
-			if (CursorIndex < DisplayedSkills.Count - 1)
-				CursorIndex++;
-			else if (Page < MaxPage)
-			{
-				Page++;
-				CursorIndex = 0;
-				AudioManager.Instance.PlaySFX("SYS_move");
-				UpdatePage();
-				return;
-			}
-		}
-		else if (direction == Vector2.Up)
-		{
-			if (CursorIndex > 1)
-				CursorIndex -= 2;
-		}
-		else if (direction == Vector2.Down)
-		{
-			if (CursorIndex < 2 && DisplayedSkills.Count > 2)
-				CursorIndex = Math.Min(CursorIndex + 2, DisplayedSkills.Count - 1);
-		}
-		if (CursorIndex != old)
-		{
-			UpdateCursor();
-			ShowSkillInfo();
-			AudioManager.Instance.PlaySFX("SYS_move");
-		}
 	}
 
 	protected override void OnSelect()

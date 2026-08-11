@@ -22,7 +22,7 @@ internal sealed class TheEarth : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["TEAttack"]);
         
-        if (CurrentHP < 85)
+        if (IsBelowHP(0.2f))
             return new BattleCommand(this, SelectAllTargets(), Skills["TEProtect"]);
 
         switch (CurrentEmotion.Id)

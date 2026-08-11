@@ -4,6 +4,7 @@ using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OmoriSandbox.Actors;
@@ -33,6 +34,15 @@ public abstract class Actor
 	/// Fired whenever the actor's animation override changes. See <see cref="PlayAnimation"/> and <see cref="ClearAnimation"/>.
 	/// </summary>
 	public event EventHandler OnAnimationChanged;
+	/// <summary>
+	/// Fired after a <see cref="StatModifier"/> is added to this actor.<br/>
+	/// Not fired for tier or duration changes to a modifier the actor already has.
+	/// </summary>
+	public event EventHandler<StatModifierEventArgs> OnStatModifierAdded;
+	/// <summary>
+	/// Fired after a <see cref="StatModifier"/> is removed from this actor for any reason.
+	/// </summary>
+	public event EventHandler<StatModifierRemovedEventArgs> OnStatModifierRemoved;
 	
 	/// <summary>
 	/// The name of the actor.
@@ -126,7 +136,7 @@ public abstract class Actor
 	/// The actor's base stats without any modifiers.
 	/// </summary>
 	/// <returns></returns>
-	protected virtual Stats GetBaseStats() { return BaseStats; }
+	public virtual Stats GetBaseStats() { return BaseStats; }
 
 	/// <summary>
 	/// Sets the base stats for this actor.
@@ -166,42 +176,36 @@ public abstract class Actor
 	/// <param name="silent">If true, success/failure messages will not be logged.</param>
 	public void AddStatModifier(string modifier, int turns = -1, bool silent = false)
 	{
-		if (StatModifiers.TryGetValue(modifier, out StatModifier m))
+		if (StatModifiers.TryGetValue(modifier, out StatModifier m) && m is not TierStatModifier)
 		{
-			if (m is TierStatModifier tier)
-			{
-				bool success = tier.ApplyTier(1);
-				if (success)
-				{
-                    GD.Print("Increased tier of " + modifier + " on " + Name + " to " + tier.CurrentTier);
-                }
-				if (!silent && tier.SuccessMessage != null)
-					ShowStatMessage(success ? tier.SuccessMessage : tier.FailureMessage);
-				return;
-			}
 			m.RefreshTurns();
 			GD.Print("Refreshed modifier " + modifier + " on " + Name);
+			return;
 		}
-		else
+
+		StatModifier mod = m ?? Database.CreateModifier(modifier);
+		if (mod == null)
 		{
-			StatModifier mod = Database.CreateModifier(modifier);
-			if (mod == null)
-			{
-				GD.PrintErr("Unknown stat modifier: " + modifier);
-				return;
-			}
-
-			if (turns > -1)
-			{
-				mod.SetTurnsLeft(turns);
-			}
-
-			StatModifiers.Add(modifier, mod);
-			mod.OnAdd(this);
-			GD.Print("Added modifier " + modifier + " to " + Name);
-			if (mod is TierStatModifier t && t.SuccessMessage != null && !silent)
-				ShowStatMessage(t.SuccessMessage);
+			GD.PrintErr("Unknown stat modifier: " + modifier);
+			return;
 		}
+
+		if (mod is TierStatModifier)
+		{
+			// tiered modifiers all use AddTierStatModifier so stacking and combining behave the same everywhere
+			AddTierStatModifier(modifier, 1, turns, silent);
+			return;
+		}
+
+		if (turns > -1)
+		{
+			mod.SetTurnsLeft(turns);
+		}
+
+		StatModifiers.Add(modifier, mod);
+		mod.OnAdd(this);
+		GD.Print("Added modifier " + modifier + " to " + Name);
+		NotifyModifierAdded(modifier, mod);
 	}
 
     /// <summary>
@@ -209,16 +213,59 @@ public abstract class Actor
     /// </summary>
     /// <param name="modifier">The name of the tier modifier to add.</param>
     /// <param name="tier">The tier that this modifier will start at.</param>
-    /// <param name="turns">The number of turns left the modifier will start at.</param>
+    /// <param name="turns">The number of turns left the modifier will start at. If unchanged (-1), the modifier's registered duration is kept.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
-    public void AddTierStatModifier(string modifier, int tier = 1, int turns = 6, bool silent = false)
+    public void AddTierStatModifier(string modifier, int tier = 1, int turns = -1, bool silent = false)
 	{
 		StatModifier mod = Database.CreateModifier(modifier);
 		if (mod is not TierStatModifier t)
 		{
+			if (mod == null)
+			{
+				GD.PrintErr("Unknown stat modifier: " + modifier);
+				return;
+			}
+
 			GD.PushWarning("Tried to add a non-tiered stat modifier with tier and turns: " + modifier);
-			AddStatModifier(modifier, silent: silent);
+			if (StatModifiers.TryGetValue(modifier, out StatModifier held))
+			{
+				held.RefreshTurns();
+				GD.Print("Refreshed modifier " + modifier + " on " + Name);
+				return;
+			}
+			if (turns > -1)
+				mod.SetTurnsLeft(turns);
+			StatModifiers.Add(modifier, mod);
+			mod.OnAdd(this);
+			GD.Print("Added modifier " + modifier + " to " + Name);
+			NotifyModifierAdded(modifier, mod);
 			return;
+		}
+
+		if (CombineEnabled && t.CounterpartId != null
+			&& StatModifiers.TryGetValue(t.CounterpartId, out StatModifier c)
+			&& c is TierStatModifier counterpart)
+		{
+			int net = counterpart.CurrentTier - Math.Clamp(tier, 1, t.MaxTier);
+			if (net > 0)
+			{
+				counterpart.ReduceTier(net);
+				GD.Print("Reduced tier of " + t.CounterpartId + " on " + Name + " to " + net + " via " + modifier);
+				if (!silent && t.SuccessMessage != null)
+					ShowStatMessage(t.SuccessMessage);
+				ClampHealthJuiceToMax();
+				return;
+			}
+			RemoveStatModifierInternal(t.CounterpartId, StatModifierRemovalReason.Combined);
+			if (net == 0)
+			{
+				GD.Print("Removed " + t.CounterpartId + " on " + Name + " via " + modifier + " (neutralized)");
+				if (!silent && t.SuccessMessage != null)
+					ShowStatMessage(t.SuccessMessage);
+				return;
+			}
+
+			tier = -net;
 		}
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m))
 		{
@@ -232,15 +279,18 @@ public abstract class Actor
 			{
 				ShowStatMessage(success ? existing.SuccessMessage : existing.FailureMessage);
 			}
+			ClampHealthJuiceToMax();
 			return;
 		}
 		t.WithTier(tier);
-		t.SetTurnsLeft(turns);
+		if (turns > -1)
+			t.SetTurnsLeft(turns);
 		StatModifiers.Add(modifier, t);
 		t.OnAdd(this);
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		if (!silent && t.SuccessMessage != null)
 			ShowStatMessage(t.SuccessMessage);
+		NotifyModifierAdded(modifier, t);
 	}
 
 	/// <summary>
@@ -249,7 +299,7 @@ public abstract class Actor
 	/// <param name="modifier">The name of the modifier to remove.</param>
 	public void RemoveStatModifier(string modifier)
 	{
-		StatModifiers.Remove(modifier);
+		RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Manual);
 	}
 
 	/// <summary>
@@ -257,7 +307,38 @@ public abstract class Actor
 	/// </summary>
 	public void RemoveAllStatModifiers()
 	{
-		StatModifiers.Clear();
+		foreach (string modifier in StatModifiers.Keys.ToList())
+			RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Cleared);
+	}
+	
+	private void RemoveStatModifierInternal(string modifier, StatModifierRemovalReason reason)
+	{
+		if (!StatModifiers.Remove(modifier, out StatModifier mod))
+			return;
+		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
+		ClampHealthJuiceToMax();
+		OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason));
+	}
+
+	private void NotifyModifierAdded(string modifier, StatModifier mod)
+	{
+		ClampHealthJuiceToMax();
+		OnStatModifierAdded?.Invoke(this, new StatModifierEventArgs(modifier, mod));
+	}
+
+	private static bool CombineEnabled => BattleManager.Instance != null && BattleManager.Instance.CombinedBuffsDebuffs;
+
+	// keeps current HP/Juice within the (possibly modified) max stats
+	private void ClampHealthJuiceToMax()
+	{
+		if (IsToast || CurrentHP <= 0)
+			return;
+		Stats current = CurrentStats;
+		// never let a max reduction kill the actor
+		if (CurrentHP > current.MaxHP)
+			CurrentHP = Math.Max(1, current.MaxHP);
+		if (CurrentJuice > current.MaxJuice)
+			CurrentJuice = Math.Max(0, current.MaxJuice);
 	}
 
 	private void ShowStatMessage(string message)
@@ -267,16 +348,13 @@ public abstract class Actor
 
 	internal void DecreaseStatTurnCounter()
 	{
-		foreach (var mod in StatModifiers)
+		foreach (var mod in StatModifiers.ToList())
 		{
 			if (mod.Value.TurnsLeft != -1)
 			{
 				mod.Value.DecreaseTurns();
 				if (mod.Value.TurnsLeft <= 0)
-				{
-					GD.Print("Removed modifier " + mod.Key + " from " + Name);
-					StatModifiers.Remove(mod.Key);
-				}
+					RemoveStatModifierInternal(mod.Key, StatModifierRemovalReason.Expired);
 			}
 		}
 	}

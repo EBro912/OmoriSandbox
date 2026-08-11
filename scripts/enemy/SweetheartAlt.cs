@@ -109,7 +109,7 @@ internal sealed class SweetheartAlt : Enemy
 		if (Stage > 3)
 			return;
 		
-		if (CurrentHP < 6080 && Stage == 0)
+		if (IsBelowHP(0.8f) && Stage == 0)
 		{
 			DialogueManager.Instance.QueueMessage(this, @"It's pointless, you fools!\! You cannot dampen my positive energy!");
 			await DialogueManager.Instance.WaitForDialogue();
@@ -121,7 +121,7 @@ internal sealed class SweetheartAlt : Enemy
 			Stage = 1;
 		}
 		
-		if (CurrentHP < 4940 && Stage <= 1)
+		if (IsBelowHP(0.65f) && Stage <= 1)
 		{
 			DialogueManager.Instance.QueueMessage(this, "You dare raise your fists at me!?");
 			DialogueManager.Instance.QueueMessage(this, @"Fools!\! You should be grovelling on your knees!");
@@ -129,7 +129,7 @@ internal sealed class SweetheartAlt : Enemy
 			Stage = 2;
 		}
 		
-		if (CurrentHP < 3800 && Stage <= 2)
+		if (IsBelowHP(0.5f) && Stage <= 2)
 		{
 			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, @"Oho!\! My beauty and grace is boundless and everlasting...");
@@ -142,7 +142,7 @@ internal sealed class SweetheartAlt : Enemy
 			Stage = 3;
 		}
 		
-		if (CurrentHP < 2280 && Stage <= 3)
+		if (IsBelowHP(0.3f) && Stage <= 3)
 		{
 			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, "Hmph! I see you are still standing.");

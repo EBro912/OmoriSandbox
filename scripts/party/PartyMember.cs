@@ -124,7 +124,7 @@ public abstract class PartyMember : Actor
 	/// The party member's base stats, plus any stats given by a <see cref="Battle.Weapon"/> and/or <see cref="Equipment"/>.
 	/// </summary>
 	/// <returns></returns>
-	protected override Stats GetBaseStats()
+	public override Stats GetBaseStats()
 	{
 		Stats stats = BaseStats;
 		Weapon.Apply(ref stats);

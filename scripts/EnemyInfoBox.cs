@@ -18,7 +18,7 @@ public partial class EnemyInfoBox : Control
 	internal virtual void SetEnemy(Enemy enemy)
 	{
 		Enemy = enemy;
-		HPBar.MaxValue = Enemy.CurrentStats.HP;
+		HPBar.MaxValue = Enemy.CurrentStats.MaxHP;
 		HPBar.Value = Enemy.CurrentHP;
 		NameLabel.Text = Enemy.Name;
 		float width = Mathf.Max(Infobox.CustomMinimumSize.X, NameLabel.GetMinimumSize().X + 15);
@@ -28,6 +28,7 @@ public partial class EnemyInfoBox : Control
 
 	internal virtual void Show(bool show)
 	{
+		HPBar.MaxValue = Enemy.CurrentStats.MaxHP;
 		HPBar.Value = Enemy.CurrentHP;
 		if (SettingsMenuManager.Instance.ShowStateIcons)
 			UpdateStateIcons();

@@ -53,7 +53,7 @@ internal sealed class Recyclepath : Enemy
     {
         if (CurrentHP <= 0) return;
         
-        if (CurrentHP < 500 && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Oh, HOLY BIN in the sky...");
             DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]Please grant me the power to recycle thy enemies!");

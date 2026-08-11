@@ -101,7 +101,7 @@ internal sealed class PlutoExpandedEarth : Enemy
         if (CurrentHP <= 0)
             return;
 
-        if (CurrentHP < 5000 && !HasThrownEarth)
+        if (IsBelowHP(0.5f) && !HasThrownEarth)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Ah...\! It seems that I have underestimated you once again.");
             await DialogueManager.Instance.WaitForDialogue();
@@ -113,7 +113,7 @@ internal sealed class PlutoExpandedEarth : Enemy
             }
         }
         
-        if (CurrentHP < 5000 && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Very few have pushed me this far...\! and none have left the same.");
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"I want nothing more than victory!\! Let me show you my resolve!");

@@ -7303,9 +7303,11 @@ public class Database
 		#region MODIFIERS
 		Modifiers.Add("AttackUp", () => CreateBuffDebuff(new StatBonus(StatType.ATK, 1.1f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.ATK, 1.5f))
 			.WithMessages("ATTACK rose!", "ATTACK cannot go\nany higher!")
+			.WithCounterpart("AttackDown")
 			.WithStateIcons(new StateIcon("bnw_+1att", "Attack Up 1: x1.1 ATK"), new StateIcon("bnw_+2att", "Attack Up 2: x1.25 ATK"), new StateIcon("bnw_+3att", "Attack Up 3: x1.5 ATK")));
 		Modifiers.Add("AttackDown", () => CreateBuffDebuff(new StatBonus(StatType.ATK, 0.9f), new StatBonus(StatType.ATK, 0.8f), new StatBonus(StatType.ATK, 0.7f))
 			.WithMessages("ATTACK fell.", "ATTACK cannot go\nany lower!")
+			.WithCounterpart("AttackUp")
 			.WithStateIcons(new StateIcon("bnw_-1att", "Attack Down 1: x0.9 ATK"), new StateIcon("bnw_-2att", "Attack Down 2: x0.8 ATK"), new StateIcon("bnw_-3att", "Attack Down 3: x0.7 ATK")));
 		Modifiers.Add("DefenseUp", () =>
 		{
@@ -7313,11 +7315,13 @@ public class Database
 			return CreateBuffDebuff(new StatBonus(StatType.DEF, values[0]), new StatBonus(StatType.DEF, values[1]),
 					new StatBonus(StatType.DEF, values[2]))
 				.WithMessages("DEFENSE rose!", "DEFENSE cannot go\nany higher!")
+				.WithCounterpart("DefenseDown")
 				.WithStateIcons(new StateIcon("bnw_+1def", $"Defense Up 1: x{values[0]} DEF"), new StateIcon("bnw_+2def", $"Defense Up 2: x{values[1]} DEF"), new StateIcon("bnw_+3def", $"Defense Up 3: x{values[2]} DEF"));
 
 		});
 		Modifiers.Add("DefenseDown", () => CreateBuffDebuff(new StatBonus(StatType.DEF, 0.75f), new StatBonus(StatType.DEF, 0.5f), new StatBonus(StatType.DEF, 0.25f))
 			.WithMessages("DEFENSE fell.", "DEFENSE cannot go\nany lower!")
+			.WithCounterpart("DefenseUp")
 			.WithStateIcons(new StateIcon("bnw_-1def", "Defense Down 1: x0.75 DEF"), new StateIcon("bnw_-2def", "Defense Down 2: x0.5 DEF"), new StateIcon("bnw_-3def", "Defense Down 3: x0.25 DEF")));
 		Modifiers.Add("SpeedUp", () =>
 		{
@@ -7325,11 +7329,13 @@ public class Database
 			return CreateBuffDebuff(new StatBonus(StatType.SPD, 1.5f), new StatBonus(StatType.SPD, 2f),
 					new StatBonus(StatType.SPD, speedUp3))
 				.WithMessages("SPEED rose!", "SPEED cannot go\nany higher!")
+				.WithCounterpart("SpeedDown")
 				.WithStateIcons(new StateIcon("bnw_+1spd", "Speed Up 1: x1.5 SPD"), new StateIcon("bnw_+2spd", "Speed Up 2: x2 SPD"), new StateIcon("bnw_+3spd", $"Speed Up 3: x{speedUp3} SPD"));
 
 		});
 		Modifiers.Add("SpeedDown", () => CreateBuffDebuff(new StatBonus(StatType.SPD, 0.8f), new StatBonus(StatType.SPD, 0.5f), new StatBonus(StatType.SPD, 0.25f))
 			.WithMessages("SPEED fell.", "SPEED cannot go\nany lower!")
+			.WithCounterpart("SpeedUp")
 			.WithStateIcons(new StateIcon("bnw_-1spd", "Speed Down 1: x0.8 SPD"), new StateIcon("bnw_-2spd", "Speed Down 2: x0.5 SPD"), new StateIcon("bnw_-3spd", "Speed Down 3: x0.25 SPD")));
 
 		Modifiers.Add("ReleaseEnergy", () => new StatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f)));

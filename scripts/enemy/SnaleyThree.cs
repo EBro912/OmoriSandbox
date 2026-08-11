@@ -45,7 +45,7 @@ public class SnaleyThree : Enemy
     private bool ReleasedEnergy = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 600 && !ReleasedEnergy)
+        if (IsBelowHP(0.3f) && !ReleasedEnergy)
         {
             DialogueManager.Instance.QueueMessage(this, "And now it's time for my [wave freq=10.0][color=#6095ff]ULTIMATE SKILL!");
             await DialogueManager.Instance.WaitForDialogue();

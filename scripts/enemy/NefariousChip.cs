@@ -71,7 +71,7 @@ internal sealed class NefariousChip : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (CurrentHP < 1728 && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "Mamma-mia...");
             DialogueManager.Instance.QueueMessage(this, @"...\! Is...\![br]Is getting hot in here, no?");

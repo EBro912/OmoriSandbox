@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
@@ -24,11 +25,11 @@ public partial class EnemyComponent : Node
 	/// </summary>
 	public Enemy Actor => Enemy;
 
-	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer)
+	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
 	{
 		Enemy = enemy;
 		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
-		Enemy.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer);
+		Enemy.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox_moreinfo.tscn")
 				.Instantiate<EnemyMoreInfoBox>();

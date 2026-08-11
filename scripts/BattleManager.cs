@@ -76,12 +76,21 @@ public partial class BattleManager : Node
 	/// </summary>
 	public event EventHandler EnergyChanged;
 
+	/// <summary>
+	/// Fired once per battle when the battle is exited for any reason
+	/// (restart, running away, or returning to the title screen), after the battle state has been fully reset.
+	/// Not fired when the end-of-battle results screen appears or between Boss Rush stages.
+	/// </summary>
+	public event EventHandler BattleExited;
+
 	private bool FollowupActive = false;
 	private bool FollowupSelected = false;
 	private bool ForceHideFollowup = false;
 	private int FollowupTier = 1;
 	private bool DamageNumbersDisabled = false;
 	private bool DebugDamageHeld = false;
+
+	internal bool CombinedBuffsDebuffs { get; private set; }
 
 	private bool RestartQueued = false;
 	private double RestartTimer;
@@ -165,6 +174,7 @@ public partial class BattleManager : Node
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
+		CombinedBuffsDebuffs = preset.CombinedBuffsDebuffs;
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
 
@@ -522,6 +532,7 @@ public partial class BattleManager : Node
 
 	internal void Reset()
 	{
+		bool wasBattling = IsBattling;
 		GameManager.Instance.DespawnAll();
 		AnimationManager.Instance.DespawnAll();
 		AnimationManager.Instance.StopAllAnimations();
@@ -560,6 +571,8 @@ public partial class BattleManager : Node
 		RestartQueued = false;
 		RestartTimer = 1;
 		IsBattling = false;
+		if (wasBattling)
+			BattleExited?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void ReloadPreset()
@@ -987,6 +1000,12 @@ public partial class BattleManager : Node
 			{
 				if (e.Actor.IsToast)
 					continue;
+				foreach (StatModifier modifier in e.Actor.StatModifiers.Values)
+				{
+					RunGuarded(() => modifier.OnStartOfTurn(e.Actor),
+						$"{modifier.GetType().Name}.OnStartOfTurn ({e.Actor.Name})");
+				}
+				
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
@@ -1039,7 +1058,7 @@ public partial class BattleManager : Node
 			Equipment charm = CurrentParty[CurrentPartyMember].Actor.Charm;
 			BattleLogManager.Instance.ClearAndShowMessage(
 				$"What will {CurrentParty[CurrentPartyMember].Actor.Name.ToUpper()} do?" +
-				$"[font_size=20]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}]" +
+				$"[font_size=18]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}, EVA: {stats.EVA}]" +
 				$"\n[Weapon: [color=#c263e1]{CurrentParty[CurrentPartyMember].Actor.Weapon.Name}[/color], Charm: [color=#c263e1]{(charm == null ? "None" : charm.Name)}[/color]]");
 		}
 		else
@@ -1509,6 +1528,13 @@ public partial class BattleManager : Node
 
 			ProcessedEndOfTurn = true;
 		}
+		
+		if (RestartQueued)
+		{
+			Reset();
+			ReloadPreset();
+			return;
+		}
 
 		// if any forced commands or priority actors were added during ProcessEndOfTurn, run those still
 		if (ForcedCommands.Count > 0 || PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a)))
@@ -1725,18 +1751,8 @@ public partial class BattleManager : Node
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
 		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
-		if (!neverMiss)
-		{
-			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
-			if (miss)
-			{
-				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
-				AudioManager.Instance.PlaySFX("BA_miss");
-				// Miss text spawns a little further down
-				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
-				return -1;
-			}
-		}
+		if (!neverMiss && RollMissOrEvade(self, target, silent))
+			return -1;
 
 		float damage = Math.Max(0, damageFunc());
 		// locked bosses resolve advantage as their locked emotion
@@ -1807,6 +1823,18 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
 
 		int roundedInt = (int)rounded;
+		
+		// if damage ends up being below zero due to a stat modifier, treat it as a pseudo-miss
+		// exactly 0 damage still proceeds through as normal
+		if (roundedInt < 0)
+		{
+			// undo the sad juice bleed, the hit never landed
+			target.CurrentJuice += juiceLost;
+			AudioManager.Instance.PlaySFX("BA_miss");
+			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+			BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
+			return -1;
+		}
 		target.Damage(roundedInt);
 		if (target is PartyMember)
 		{
@@ -1845,6 +1873,43 @@ public partial class BattleManager : Node
 
 		return roundedInt;
 	}
+	
+	private bool RollMissOrEvade(Actor self, Actor target, bool silent)
+	{
+		int hitRate = self.CurrentStats.HIT;
+		int evasion = target.CurrentStats.EVA;
+		int roll = GameManager.Instance.Random.RandiRange(0, 100);
+		bool miss, evaded;
+		if (SettingsMenuManager.Instance.CombinedAccuracy)
+		{
+			// most OMORI mods use a combined accuracy roll
+			miss = hitRate - evasion < roll;
+			evaded = miss && roll <= hitRate;
+		}
+		else
+		{
+			//  base RPGMaker uses two separate rolls in this order
+			miss = hitRate < roll;
+			evaded = !miss && GameManager.Instance.Random.RandiRange(0, 100) < evasion;
+		}
+
+		if (!miss && !evaded)
+			return false;
+
+		if (evaded)
+		{
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] evaded the attack!");
+			AudioManager.Instance.PlaySFX("GEN_Swish", volume: 0.9f);
+		}
+		else
+		{
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
+			AudioManager.Instance.PlaySFX("BA_miss");
+		}
+		// Miss text spawns a little further down
+		SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+		return true;
+	}
 
 	private void ApplyOverrides(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isCritical,
 		bool neverMiss)
@@ -1859,7 +1924,7 @@ public partial class BattleManager : Node
 	/// Calculates juice damage. Misses, critical hits, emotion effectiveness, and stat modifiers are all taken into account. Sadness damage reduction, however, is not.
 	/// </summary>
 	/// /// <remarks>
-	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.
+	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool, string, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -1876,18 +1941,8 @@ public partial class BattleManager : Node
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
 		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
-		if (!neverMiss)
-		{
-			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
-			if (miss)
-			{
-				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
-				AudioManager.Instance.PlaySFX("BA_miss");
-				// Miss text spawns a little further down
-				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
-				return -1;
-			}
-		}
+		if (!neverMiss && RollMissOrEvade(self, target, silent))
+			return -1;
 
 		float damage = damageFunc();
 		// locked bosses resolve advantage as their locked emotion
@@ -1933,6 +1988,13 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
 
 		int roundedInt = (int)rounded;
+		// a stat modifier fully negated the hit and drove the damage negative — treat it like a miss
+		if (roundedInt < 0)
+		{
+			AudioManager.Instance.PlaySFX("BA_miss");
+			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+			return -1;
+		}
 		target.DamageJuice(roundedInt);
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
@@ -2027,7 +2089,7 @@ public partial class BattleManager : Node
 		// emotions that are weak to all emotions like afraid check for any emotion
 		if (self != neutral && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
 		{
-			effect = 0;
+			effect = emotionRate > 1f ? 1 : emotionRate < 1f ? -1 : 0;
 			return damage * emotionRate;
 		}
 

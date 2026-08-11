@@ -15,6 +15,7 @@ internal partial class StatAdjustmentEditor : Control
     [Export] private SpinBox SPDBox;
     [Export] private SpinBox LCKBox;
     [Export] private SpinBox HITBox;
+    [Export] private SpinBox EVABox;
     [Export] private Label HeartLabel;
     [Export] private Label JuiceLabel;
     [Export] private Label ATKLabel;
@@ -22,7 +23,8 @@ internal partial class StatAdjustmentEditor : Control
     [Export] private Label SPDLabel;
     [Export] private Label LCKLabel;
     [Export] private Label HITLabel;
-    
+    [Export] private Label EVALabel;
+
     [Signal]
     public delegate void StatsAdjustedEventHandler();
     
@@ -37,6 +39,7 @@ internal partial class StatAdjustmentEditor : Control
         SPDBox.ValueChanged += _ => EmitSignal(SignalName.StatsAdjusted);
         LCKBox.ValueChanged += _ => EmitSignal(SignalName.StatsAdjusted);
         HITBox.ValueChanged += _ => EmitSignal(SignalName.StatsAdjusted);
+        EVABox.ValueChanged += _ => EmitSignal(SignalName.StatsAdjusted);
     }
 
     public Stats GetStats()
@@ -49,7 +52,8 @@ internal partial class StatAdjustmentEditor : Control
             DEF = (int)DEFBox.Value,
             SPD = (int)SPDBox.Value,
             LCK = (int)LCKBox.Value,
-            HIT = (int)HITBox.Value
+            HIT = (int)HITBox.Value,
+            EVA = (int)EVABox.Value
         };
     }
 
@@ -62,6 +66,7 @@ internal partial class StatAdjustmentEditor : Control
         SPDBox.SetValueNoSignal(stats.SPD);
         LCKBox.SetValueNoSignal(stats.LCK);
         HITBox.SetValueNoSignal(stats.HIT);
+        EVABox.SetValueNoSignal(stats.EVA);
     }
 
     public void UpdateStats(Stats stats)
@@ -73,6 +78,7 @@ internal partial class StatAdjustmentEditor : Control
         SPDLabel.Text = "SPD: " + stats.SPD;
         LCKLabel.Text = "LCK: " + stats.LCK;
         HITLabel.Text = "HIT: " + stats.HIT;
+        EVALabel.Text = "EVA: " + stats.EVA;
     }
 
     private void Reset()
@@ -84,6 +90,7 @@ internal partial class StatAdjustmentEditor : Control
         SPDBox.SetValueNoSignal(0);
         LCKBox.SetValueNoSignal(0);
         HITBox.SetValueNoSignal(0);
+        EVABox.SetValueNoSignal(0);
         EmitSignal(SignalName.StatsAdjusted);
     }
     

@@ -124,13 +124,13 @@ internal partial class BattlebackBGMEditorComponent : Control
     {
 	    if (PreviewingBGM)
 	    {
-		    BGMPlayButton.EmitSignal("pressed");
+		    BGMPlayButton.EmitSignal(BaseButton.SignalName.Pressed);
 	    }
     }
 
     public void Load()
     {
-	    BattlebackDropdown.EmitSignal("item_selected", BattlebackDropdown.Selected);
+	    BattlebackDropdown.EmitSignal(OptionButton.SignalName.ItemSelected, BattlebackDropdown.Selected);
 	    BattlebackPreview.SetBattleback(SelectedBattleback);
 	    string bgm = BGMDropdown.GetItemText(BGMDropdown.Selected);
 	    if (AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis s))

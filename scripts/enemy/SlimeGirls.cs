@@ -94,7 +94,7 @@ internal sealed class SlimeGirls : Enemy
 		if (Stage > 2)
 			return;
 
-		if (CurrentHP < 4275 && Stage == 0)
+		if (IsBelowHP(0.75f) && Stage == 0)
 		{
 			DialogueManager.Instance.QueueMessage("MEDUSA", CenterPoint, @"Hmph...\! You kids are more resilient than expected.");
 			DialogueManager.Instance.QueueMessage("MARINA", CenterPoint, @"You know what that means.\! It's time to get serious!");
@@ -104,7 +104,7 @@ internal sealed class SlimeGirls : Enemy
 			Stage = 1;
 		}
 		
-		if (CurrentHP < 2850 && Stage <= 1)
+		if (IsBelowHP(0.5f) && Stage <= 1)
 		{
 			DialogueManager.Instance.QueueMessage("MARINA", CenterPoint, "Hey, MEDUSA![br]Are you thinkin' what I'm thinkin'?");
 			DialogueManager.Instance.QueueMessage("MEDUSA", CenterPoint, @"Yes, sister...\! I think it's about time we switched things up.");
@@ -113,13 +113,17 @@ internal sealed class SlimeGirls : Enemy
 			BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["Swap"]);
 			Stage = 2;
 		}
-		
-        if (CurrentHP < 1425 && Stage <= 2)
-        {
-            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SlimeUltimateAttack"]);
-            Stage = 3;
-        }
-    }
+	}
+
+	public override Task ProcessEndOfTurn()
+	{
+		if (CurrentHP > 0 && IsBelowHP(0.25f) && Stage <= 2)
+		{
+			BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SlimeUltimateAttack"]);
+			Stage = 3;
+		}
+		return Task.CompletedTask;
+	}
 
 	public override async Task OnDefeat()
 	{

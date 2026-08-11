@@ -57,21 +57,21 @@ internal sealed class MrJawsumAlt : Enemy
         if (Stage > 2) 
             return;
         
-        if (CurrentHP < 2970 && Stage == 0)
+        if (IsBelowHP(0.99f) && Stage == 0)
         {
             DialogueManager.Instance.QueueMessage(this, "I WANT THESE KIDS GONE YOU UNDERSTAND!?");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 1;
         }
         
-        if (CurrentHP < 2250 && Stage <= 1)
+        if (IsBelowHP(0.75f) && Stage <= 1)
         {
             DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\! [shake rate=20]on me!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
         
-        if (CurrentHP < 1500 && Stage <= 2)
+        if (IsBelowHP(0.5f) && Stage <= 2)
         {
             AudioManager.Instance.PlaySFX("se_thunder_bolt", volume: 0.9f);
             AudioManager.Instance.PlaySFX("se_fire_whoosh", volume: 0.7f);

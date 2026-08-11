@@ -45,7 +45,7 @@ internal sealed class AngelAlt : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (!HasSpoken && CurrentHP < 75)
+        if (!HasSpoken && IsBelowHP(0.5f))
         {
             PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
             DialogueManager.Instance.QueueMessage(this, $"Heh. You surprise me, {target.Name.ToUpper()}!");

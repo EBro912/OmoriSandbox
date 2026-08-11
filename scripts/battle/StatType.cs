@@ -12,6 +12,7 @@ public enum StatType
     DEF,
     SPD,
     LCK,
-    HIT
+    HIT,
+    EVA
 #pragma warning restore CS1591
 }

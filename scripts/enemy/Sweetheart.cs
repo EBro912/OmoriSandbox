@@ -107,7 +107,7 @@ internal sealed class Sweetheart : Enemy
 		if (Stage > 3)
 			return;
 		
-		if (CurrentHP < 2640 && Stage == 0)
+		if (IsBelowHP(0.8f) && Stage == 0)
 		{
 			DialogueManager.Instance.QueueMessage(this, @"It's pointless, you fools!\! You cannot dampen my positive energy!");
 			await DialogueManager.Instance.WaitForDialogue();
@@ -119,7 +119,7 @@ internal sealed class Sweetheart : Enemy
 			Stage = 1;
 		}
 		
-		if (CurrentHP < 2145 && Stage <= 1)
+		if (IsBelowHP(0.65f) && Stage <= 1)
 		{
 			DialogueManager.Instance.QueueMessage(this, "You dare raise your fists at me!?");
 			DialogueManager.Instance.QueueMessage(this, @"Fools!\! You should be grovelling on your knees!");
@@ -127,7 +127,7 @@ internal sealed class Sweetheart : Enemy
 			Stage = 2;
 		}
 		
-		if (CurrentHP < 1650 && Stage <= 2)
+		if (IsBelowHP(0.5f) && Stage <= 2)
 		{
 			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, @"Oho!\! My beauty and grace is boundless and everlasting...");
@@ -140,7 +140,7 @@ internal sealed class Sweetheart : Enemy
 			Stage = 3;
 		}
 		
-		if (CurrentHP < 990 && Stage <= 3)
+		if (IsBelowHP(0.3f) && Stage <= 3)
 		{
 			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, "Hmph! I see you are still standing.");
@@ -173,11 +173,11 @@ internal sealed class Sweetheart : Enemy
 		UsedDonut = false;
 	}
 
-	protected override Stats GetBaseStats()
+	public override Stats GetBaseStats()
 	{
 		if (CurrentEmotion.Id is "ecstatic" or "manic")
-			return new Stats(3300, 1650, 30, 25, 40, 30, 90);
-		return new Stats(3300, 1650, 30, 25, 40, 10, 90);
+			return new Stats(3300, 1650, 30, 25, 40, 30, 90) + AdjustedStats;
+		return new Stats(3300, 1650, 30, 25, 40, 10, 90) + AdjustedStats;
 	}
 
 	public override async Task OnEndOfBattle(bool victory)

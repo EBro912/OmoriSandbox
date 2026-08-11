@@ -57,7 +57,7 @@ TitlePresetDropdown = NodePath("../Main/MainControls/PresetSelector/PresetDropdo
 StageSelectorParent = NodePath("../Main/MainControls/StageSelector")
 StageSelectorSpinBox = NodePath("../Main/MainControls/StageSelector/StageSpinBox")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -76,6 +76,7 @@ FollowupTierSlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Fol
 FollowupTierValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/Label2")
 DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDialogue")
 DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDamageNumbers")
+CombinedBuffsDebuffs = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/CombinedBuffsDebuffs")
 AddItemButton = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/AddItemButton")
 ItemContainer = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/ScrollContainer/ItemsContainer")
 SearchInput = NodePath("../Editor/SettingsTabs/Tools/Skill Search/VBoxContainer/HBoxContainer/SearchInput")
@@ -370,7 +371,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 anchors_preset = 7
 anchor_left = 0.5
@@ -394,6 +395,8 @@ TestSFXButton = NodePath("ScrollContainer/VBoxContainer/TestSFX")
 FullscreenCheckbox = NodePath("ScrollContainer/VBoxContainer/Fullscreen")
 BattlelogSpeedSlider = NodePath("ScrollContainer/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
 ActionDelaySlider = NodePath("ScrollContainer/VBoxContainer/ActionDelaySlider/DelaySlider")
+DialogueSpeedSlider = NodePath("ScrollContainer/VBoxContainer/DialogueSpeedSlider/HSlider")
+DialogueSpeedLabel = NodePath("ScrollContainer/VBoxContainer/DialogueSpeedSlider/Label")
 ShowFPSCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowFPS")
 LogDebugCheckbox = NodePath("ScrollContainer/VBoxContainer/LogDebug")
 PreventRunCheckbox = NodePath("ScrollContainer/VBoxContainer/RequireTwoRunInputs")
@@ -413,6 +416,7 @@ VertigoUsesAtkCheckbox = NodePath("ScrollContainer/VBoxContainer/VertigoUsesAtk"
 ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
 EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
+CombinedAccuracyCheckbox = NodePath("ScrollContainer/VBoxContainer/CombinedAccuracy")
 RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/HSlider")
 RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/Label")
 SpeedUpSlider = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/HSlider")
@@ -640,6 +644,40 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Short"
 
+[node name="DialogueSpeed" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1770004508]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Dialogue Speed"
+
+[node name="DialogueSpeedSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1770004509]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+alignment = 1
+
+[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/DialogueSpeedSlider" unique_id=1770004510]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "How fast dialogue text types out;
+the maximum value displays text instantly"
+min_value = 0.25
+max_value = 5.0
+step = 0.25
+value = 1.0
+scrollable = false
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/DialogueSpeedSlider" unique_id=1770004511]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "1.00x"
+
 [node name="ShowFPS" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1098298253]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -814,6 +852,16 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Vertigo Uses ATK Stat"
+
+[node name="CombinedAccuracy" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1657483920]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Accuracy uses a single roll of (user.HIT - target.EVA)
+instead of separate hit and evasion rolls"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Combined Accuracy Formula"
 
 [node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1655251340]
 layout_mode = 2
@@ -1456,6 +1504,13 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Damage Numbers"
 
+[node name="CombinedBuffsDebuffs" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1539284771]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Combined Buffs/Debuffs"
+
 [node name="Save" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1068584530]
 layout_mode = 2
 
@@ -1488,6 +1543,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
+fit_to_longest_item = false
 
 [node name="Load" type="Button" parent="Editor/SettingsTabs/Settings/VBoxContainer/Load" unique_id=1960389968]
 layout_mode = 2

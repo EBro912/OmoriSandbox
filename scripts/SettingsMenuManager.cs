@@ -51,6 +51,11 @@ public partial class SettingsMenuManager : Control
 			SpeedUpLabel.Text = $"{value:0.00}x";
 		};
 
+		DialogueSpeedSlider.ValueChanged += value =>
+		{
+			DialogueSpeedLabel.Text = value >= DialogueSpeedSlider.MaxValue ? "Instant" : $"{value:0.00}x";
+		};
+
 		SelectionChangeSpeedSlider.ValueChanged += value =>
 		{
 			SelectionChangeSpeedLabel.Text = $"{value:0.00}";
@@ -102,8 +107,10 @@ public partial class SettingsMenuManager : Control
 		ToysUseEmotionDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ToysUseEmotionDamage", false);
 		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
+		CombinedAccuracyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "CombinedAccuracy", false);
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
+		DialogueSpeedSlider.Value = (double)config.GetValue("Settings", "DialogueSpeed", 1d);
 
 		RestartHoldTimeSlider.Value = (double)config.GetValue("Keybinds", "RestartHoldTime", 1d);
 		SpeedUpSlider.Value = (double)config.GetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
@@ -156,6 +163,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SFXVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("SFX")));
 		config.SetValue("Settings", "BattlelogSpeed", (int)BattlelogSpeedSlider.Value);
 		config.SetValue("Settings", "ActionDelay", (int)ActionDelaySlider.Value);
+		config.SetValue("Settings", "DialogueSpeed", DialogueSpeedSlider.Value);
 		config.SetValue("Settings", "ShowFPS", ShowFPSCheckbox.ButtonPressed);
 		config.SetValue("Settings", "LogDebugMessages", LogDebugCheckbox.ButtonPressed);
 		config.SetValue("Settings", "PreventAccidentalRun", PreventRunCheckbox.ButtonPressed);
@@ -173,7 +181,8 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
-		
+		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
+
 		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", SpeedUpSlider.Value);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -208,6 +217,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SFXVolume", 1f);
 		config.SetValue("Settings", "BattlelogSpeed", 3);
 		config.SetValue("Settings", "ActionDelay", 3);
+		config.SetValue("Settings", "DialogueSpeed", 1d);
 		config.SetValue("Settings", "ShowFPS", true);
 		config.SetValue("Settings", "LogDebugMessages", false);
 		config.SetValue("Settings", "PreventAccidentalRun", false);
@@ -225,6 +235,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ToysUseEmotionDamage", false);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
+		config.SetValue("Settings", "CombinedAccuracy", false);
 		config.SetValue("Keybinds", "RestartHoldTime", 1d);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -261,8 +272,11 @@ public partial class SettingsMenuManager : Control
 	public bool ToysUseEmotionDamage => ToysUseEmotionDamageCheckbox.ButtonPressed;
 	public bool SpaceExHusbandReleaseEnergy => SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
+	public bool CombinedAccuracy => CombinedAccuracyCheckbox.ButtonPressed;
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
+	public double DialogueSpeed => DialogueSpeedSlider.Value;
+	public bool InstantDialogue => DialogueSpeedSlider.Value >= DialogueSpeedSlider.MaxValue;
 	public bool EnemySelectionWrapping => EnemySelectionWrappingCheckbox.ButtonPressed;
 	public double SelectionHoldTime => SelectionHoldTimeSlider.Value;
 	public double SelectionChangeSpeed => SelectionChangeSpeedSlider.Value;
@@ -278,6 +292,8 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox FullscreenCheckbox;
 	[Export] private HSlider BattlelogSpeedSlider;
 	[Export] private HSlider ActionDelaySlider;
+	[Export] private HSlider DialogueSpeedSlider;
+	[Export] private Label DialogueSpeedLabel;
 	[Export] private CheckBox ShowFPSCheckbox;
 	[Export] private CheckBox LogDebugCheckbox;
 	[Export] private CheckBox PreventRunCheckbox;
@@ -297,6 +313,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox ToysUseEmotionDamageCheckbox;
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
+	[Export] private CheckBox CombinedAccuracyCheckbox;
 	[Export] private HSlider RestartHoldTimeSlider;
 	[Export] private Label RestartHoldTimeLabel;
 	[Export] private HSlider SpeedUpSlider;

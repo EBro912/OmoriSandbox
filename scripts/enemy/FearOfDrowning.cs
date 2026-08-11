@@ -47,7 +47,7 @@ internal sealed class FearOfDrowning : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 7210 && Phase == 1)
+        if (IsBelowHP(0.7f) && Phase == 1)
         {
             Phase = 2;
             await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
@@ -55,7 +55,7 @@ internal sealed class FearOfDrowning : Enemy
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }
 
-        if (CurrentHP < 3090 && Phase == 2)
+        if (IsBelowHP(0.3f) && Phase == 2)
         {
             Phase = 3;
             await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);

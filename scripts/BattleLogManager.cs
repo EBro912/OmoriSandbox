@@ -22,6 +22,7 @@ public partial class BattleLogManager : Control
 	[Export] private RichTextLabel ImmediateLabel;
 	[Export] private Font Font;
 	[Export] private Sprite2D Icon;
+	[Export] private Control LineContainer;
 
 	private readonly Queue<string> MessageQueue = [];
 	private readonly Queue<string> LineQueue = [];
@@ -246,6 +247,9 @@ public partial class BattleLogManager : Control
 	{
 		while (LineQueue.Count > 0)
 		{
+			// when the log is full, the new line spawns one slot beneath the box and
+			// gets revealed by the clip mask as the whole stack shifts up, like vanilla
+			bool scrolling = ActiveLines.Count >= 3;
 			while (ActiveLines.Count >= 3)
 			{
 				MoveOffScreen(ActiveLines[0]);
@@ -254,9 +258,9 @@ public partial class BattleLogManager : Control
 
 			Control newLine = LogLine.Instantiate<Control>();
 			newLine.GetNode<Label>("Label").Text = LineQueue.Dequeue();
-			newLine.Position = new Vector2(11, ActiveLines.Count * HEIGHT);
+			newLine.Position = new Vector2(11, (ActiveLines.Count + (scrolling ? 1 : 0)) * HEIGHT);
 			newLine.Modulate = new Color(1f, 1f, 1f, 0f);
-			AddChild(newLine);
+			LineContainer.AddChild(newLine);
 			ActiveLines.Add(newLine);
 
 			Tween tween = GetTree().CreateTween();
@@ -315,7 +319,7 @@ public partial class BattleLogManager : Control
 			.SetTrans(Tween.TransitionType.Sine);
 		tween.TweenProperty(line, "modulate:a", 0f, 0.15f)
 			.SetTrans(Tween.TransitionType.Sine);
-		tween.TweenCallback(Callable.From(() => line.QueueFree()));
+		tween.Chain().TweenCallback(Callable.From(line.QueueFree));
 	}
 
 	private float MessageDelay => 1f - SettingsMenuManager.Instance.BattlelogSpeed * 0.15f;

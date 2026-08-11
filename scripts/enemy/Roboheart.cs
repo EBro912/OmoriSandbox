@@ -21,7 +21,7 @@ internal sealed class Roboheart : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["RHAttack"]);
         
-        if (CurrentHP < 250)
+        if (IsBelowHP(0.1f))
             return new BattleCommand(this, SelectAllTargets(), Skills["RHExplode"]);
 
         switch (CurrentEmotion.Id)
@@ -77,14 +77,14 @@ internal sealed class Roboheart : Enemy
         if (Stage > 1)
             return;
 
-        if (CurrentHP < 1875 && Stage == 0)
+        if (IsBelowHP(0.75f) && Stage == 0)
         {
             DialogueManager.Instance.QueueMessage(this, "TXkgbGlmZSBpcyBzdW\nZmZXJpbmch");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 1;
         }
         
-        if (CurrentHP < 625 && Stage <= 1)
+        if (IsBelowHP(0.25f) && Stage <= 1)
         {
             DialogueManager.Instance.QueueMessage(this, "SGVscC4uLiBtZS4uLgo=");
             await DialogueManager.Instance.WaitForDialogue();

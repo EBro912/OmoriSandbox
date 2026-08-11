@@ -18,8 +18,9 @@ public struct Stats
     public int SPD;
     public int LCK;
     public int HIT;
+    public int EVA;
 
-    public Stats(int hp = 0, int juice = 0, int atk = 0, int def = 0, int spd = 0, int lck = 0, int hit = 0)
+    public Stats(int hp = 0, int juice = 0, int atk = 0, int def = 0, int spd = 0, int lck = 0, int hit = 0, int eva = 0)
     {
         HP = hp;
         MaxHP = hp;
@@ -30,17 +31,19 @@ public struct Stats
         SPD = spd;
         LCK = lck;
         HIT = hit;
+        EVA = eva;
     }
 
     public static Stats operator +(Stats a, Stats b) {
         Stats result = new(
-            Math.Max(1, a.HP + b.HP), 
-            Math.Max(0, a.Juice + b.Juice), 
-            Math.Max(0, a.ATK + b.ATK), 
-            Math.Max(0, a.DEF + b.DEF), 
-            Math.Max(0, a.SPD + b.SPD), 
-            Math.Max(0, a.LCK + b.LCK), 
-            Math.Max(0, a.HIT + b.HIT))
+            Math.Max(1, a.HP + b.HP),
+            Math.Max(0, a.Juice + b.Juice),
+            Math.Max(0, a.ATK + b.ATK),
+            Math.Max(0, a.DEF + b.DEF),
+            Math.Max(0, a.SPD + b.SPD),
+            Math.Max(0, a.LCK + b.LCK),
+            Math.Max(0, a.HIT + b.HIT),
+            Math.Max(0, a.EVA + b.EVA))
             {
                 MaxHP = Math.Max(1, a.HP + b.HP),
                 MaxJuice = Math.Max(0, a.Juice + b.Juice)
@@ -64,6 +67,7 @@ public struct Stats
             StatType.SPD => SPD,
             StatType.LCK => LCK,
             StatType.HIT => HIT,
+            StatType.EVA => EVA,
             _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, null)
         };
     }
@@ -75,7 +79,7 @@ public struct Stats
     /// <param name="value">The value to set the stat to.</param>"
     public void SetStat(StatType stat, int value)
     {
-        if (stat is StatType.MaxJuice or StatType.MaxHP)
+        if (stat is StatType.MaxJuice or StatType.MaxHP or StatType.EVA)
             value = Math.Max(0, value);
         else
             value = SettingsMenuManager.Instance.DisableStatLimit ? Math.Max(1, value) : Math.Clamp(value, 1, 999);
@@ -88,6 +92,7 @@ public struct Stats
             case StatType.SPD: SPD = value; break;
             case StatType.LCK: LCK = value; break;
             case StatType.HIT: HIT = value; break;
+            case StatType.EVA: EVA = value; break;
             default: throw new ArgumentOutOfRangeException(nameof(stat), stat, null);
         }
     }

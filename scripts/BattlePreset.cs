@@ -22,6 +22,7 @@ internal class BattlePreset
     public bool ShouldSerializeBasilReleaseEnergy() => false;
     public bool DisableDialogue { get; set; } = false;
     public bool DisableDamageNumbers { get; set; } = false;
+    public bool CombinedBuffsDebuffs { get; set; } = false;
     public Dictionary<string, int> Items { get; set; } = [];
 
     [JsonRequired] public List<BattlePresetActor> Actors { get; set; } = [];
@@ -54,6 +55,7 @@ internal class BattlePresetEnemy
     public double Layer { get; set; } = 0;
     public bool FallsOffScreen { get; set; } = true;
     public bool GrayscaleOnDefeat { get; set; } = false;
+    public Stats AdjustedStats { get; set; } = new();
 }
 
 internal class BattlePresetBossRushStage

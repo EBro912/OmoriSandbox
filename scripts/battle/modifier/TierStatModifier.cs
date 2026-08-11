@@ -8,7 +8,10 @@ namespace OmoriSandbox.Battle.Modifier;
 public class TierStatModifier : StatModifier
 {
 	private int Tier;
-	private int MaxTier;
+	/// <summary>
+	/// The max tier of this modifier. By default, the max tier is the length of the stat bonuses. See <see cref="WithMaxTier"/>.
+	/// </summary>
+	public int MaxTier { get; private set; }
     /// <summary>
     /// The message to display on success.
     /// </summary>
@@ -89,6 +92,30 @@ public class TierStatModifier : StatModifier
 	{
 		MaxTier = tier;
 		return this;
+	}
+
+	/// <summary>
+	/// The id of the opposite-direction modifier declared via <see cref="WithCounterpart"/>, or null.
+	/// </summary>
+	public string CounterpartId { get; private set; }
+
+	/// <summary>
+	/// Declares the opposite-direction modifier of this one (e.g. "AttackDown" for "AttackUp"),
+	/// letting the pair cancel against each other when the Combined Buffs/Debuffs preset setting is enabled.
+	/// Both directions should declare each other.
+	/// </summary>
+	/// <param name="modifierId">The id of the opposite-direction modifier.</param>
+	public TierStatModifier WithCounterpart(string modifierId)
+	{
+		CounterpartId = modifierId;
+		return this;
+	}
+
+	// lowers the tier by one, mainly used by combined buffs/debuffs
+	internal void ReduceTier(int tier)
+	{
+		Tier = Math.Clamp(tier, 1, MaxTier);
+		TurnsLeft = MaxTurns;
 	}
 	
 	/// <summary>

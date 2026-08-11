@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Editor;
+using OmoriSandbox.Menu;
 
 namespace OmoriSandbox;
 
@@ -26,6 +28,10 @@ public partial class DialogueManager : Node2D
 	[Export] private NinePatchRect ChoiceBox;
 	[Export] private VBoxContainer ChoiceTextParent;
 
+	// vanilla tints battlecards, energy bar, and battle log while a dialogue box is on screen
+	[Export] private Color UIDimTint = new(0.5f, 0.5f, 0.5f);
+	[Export] private float UIDimDuration = 0.2f;
+
 	private Queue<MessageBox> MessageQueue = [];
 	private bool HasChoice = false;
 
@@ -41,6 +47,8 @@ public partial class DialogueManager : Node2D
 	private int CharsTillSound = 2;
 	private Dictionary<int, List<PauseType>> PauseIndices = [];
 	private Tween OpenCloseTween;
+	private Tween DimTween;
+	private bool UIDimmed;
 
 	private Vector2I CursorNormalPos = new(145, 35);
 	private string[] CurrentChoices;
@@ -78,11 +86,25 @@ public partial class DialogueManager : Node2D
 				return;
 			}
 
+			if (SettingsMenuManager.Instance.InstantDialogue)
+			{
+				// type the whole message at once, scripted pauses and input waits still apply
+				while (IsTyping)
+					TypeChar();
+				CharTimer = 0;
+				return;
+			}
+
+			double delay = TEXT_SPEED / SettingsMenuManager.Instance.DialogueSpeed;
 			CharTimer += delta;
-			if (CharTimer >= TEXT_SPEED)
+			if (CharTimer >= delay)
 			{
 				CharTimer = 0;
-				TypeChar();
+				// when the delay is shorter than a frame, one char per frame can't keep up
+				// type enough chars this frame to hold the configured rate
+				int chars = Math.Max(1, (int)(delta / delay));
+				for (int i = 0; i < chars && IsTyping; i++)
+					TypeChar();
 			}
 		}
 		else if (WaitingForTimer)
@@ -212,13 +234,20 @@ public partial class DialogueManager : Node2D
 		PlaySound();
 	}
 
+	private ulong LastSoundFrame = ulong.MaxValue;
+
 	private void PlaySound()
 	{
 		CharsTillSound--;
 		if (CharsTillSound == 0)
 		{
-			AudioManager.Instance.PlaySFX("SYS_text", GameManager.Instance.Random.RandfRange(0.9f, 1.1f), 0.5f);
 			CharsTillSound = 2;
+			// at high dialogue speeds multiple chars type in one frame, cap at one blip per frame
+			ulong frame = Engine.GetProcessFrames();
+			if (frame == LastSoundFrame)
+				return;
+			LastSoundFrame = frame;
+			AudioManager.Instance.PlaySFX("SYS_text", GameManager.Instance.Random.RandfRange(0.9f, 1.1f), 0.5f);
 		}
 	}
 
@@ -493,6 +522,7 @@ public partial class DialogueManager : Node2D
 
 		Visible = true;
 		WaitingForAnimation = true;
+		SetUIDimmed(true);
 		AnimateOpen();
 	}
 
@@ -567,15 +597,49 @@ public partial class DialogueManager : Node2D
 	{
 		Visible = false;
 		WaitingForAnimation = false;
+		SetUIDimmed(false);
 		EmitSignal(SignalName.FinishedDialogue);
 		if (HasChoice)
 			EmitSignal(SignalName.ChoiceSelected, CurrentChoices[ChoiceIndex]);
+	}
+	
+	private static IEnumerable<CanvasItem> GetDimTargets()
+	{
+		if (BattleManager.Instance != null)
+		{
+			foreach (PartyMemberComponent member in BattleManager.Instance.GetAllPartyMembers())
+			{
+				if (member.Battlecard != null)
+					yield return member.Battlecard;
+			}
+		}
+		if (MenuManager.Instance != null)
+			yield return MenuManager.Instance.EnergyDisplay;
+		if (BattleLogManager.Instance != null)
+			yield return BattleLogManager.Instance;
+	}
+
+	private void SetUIDimmed(bool dimmed)
+	{
+		if (UIDimmed == dimmed)
+			return;
+		UIDimmed = dimmed;
+		Color target = dimmed ? UIDimTint : Colors.White;
+		DimTween?.Kill();
+		DimTween = CreateTween().SetParallel();
+		foreach (CanvasItem item in GetDimTargets())
+			DimTween.TweenProperty(item, "modulate", target, UIDimDuration).SetTrans(Tween.TransitionType.Sine);
 	}
 
 	public void Reset()
 	{
 		MessageQueue.Clear();
 		OpenCloseTween?.Kill();
+		// restore UI tint immediately
+		DimTween?.Kill();
+		UIDimmed = false;
+		foreach (CanvasItem item in GetDimTargets())
+			item.Modulate = Colors.White;
 		PauseGeneration++;
 		HasChoice = false;
 		WaitingForAnimation = false;
