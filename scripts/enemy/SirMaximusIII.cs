@@ -89,13 +89,52 @@ internal sealed class SirMaximusIII : Enemy
         if (IsBelowHP(0.5f) && !FirstDialogue)
         {
             DialogueManager.Instance.QueueMessage(this, "No... I cannot let my father's and his father's deaths be in vain!");
-            DialogueManager.Instance.QueueMessage(this, "Now for my ultimate attack!");
             await DialogueManager.Instance.WaitForDialogue();
             FirstDialogue = true;
         }
         
         if (IsBelowHP(0.2f) && !UltimateAttack)
         {
+            
+            Sprite2D ghost = new()
+            {
+                Texture = ImageTexture.CreateFromImage(Image.LoadFromFile("res://assets/pictures/Maximus.png")),
+                Scale = new Vector2(0.75f, 0.75f),
+                Modulate = Colors.Transparent,
+                GlobalPosition = new Vector2(190, 198),
+                Centered = true,
+                ZIndex = Layer
+            };
+            
+            Sprite2D ghost2 = new()
+            {
+                Texture = ImageTexture.CreateFromImage(Image.LoadFromFile("res://assets/pictures/Maximus.png")),
+                Scale = new Vector2(0.75f, 0.75f),
+                Modulate = Colors.Transparent,
+                GlobalPosition = new Vector2(415, 198),
+                Centered = true,
+                ZIndex = Layer
+            };
+            BattleManager.Instance.AddChild(ghost);
+            BattleManager.Instance.AddChild(ghost2);
+            Tween tween = BattleManager.Instance.CreateTween();
+            Tween tween2 = BattleManager.Instance.CreateTween();
+            tween.TweenProperty(ghost, "global_position:y", 188, 1.25f);
+            tween.Parallel().TweenProperty(ghost, "modulate:a", 1, 1.25f);
+            tween2.TweenProperty(ghost2, "global_position:y", 188, 1.25f);
+            tween2.Parallel().TweenProperty(ghost2, "modulate:a", 1, 1.25f);
+            tween.TweenProperty(ghost, "global_position:y", 198, 1.25f);
+            tween2.TweenProperty(ghost2, "global_position:y", 198, 1.25f);
+            tween.TweenProperty(ghost, "global_position:y", 188, 1.25f);
+            tween.Parallel().TweenProperty(ghost, "modulate:a", 0, 1.25f);
+            tween2.TweenProperty(ghost2, "global_position:y", 188, 1.25f);
+            tween2.Parallel().TweenProperty(ghost2, "modulate:a", 0, 1.25f);
+            tween.TweenInterval(0.25f);
+            tween2.TweenInterval(0.25f);
+            await BattleManager.Instance.ToSignal(tween, Tween.SignalName.Finished);
+            ghost.QueueFree();
+            ghost2.QueueFree();
+            
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIIUltimateAttack"]);
             UltimateAttack = true;
         }

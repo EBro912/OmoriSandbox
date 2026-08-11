@@ -71,13 +71,13 @@ public abstract class Enemy : Actor
 	internal Stats DeclaredStats => Stats;
 
 	/// <summary>
-	/// Whether this enemy's current HP is strictly below the given fraction of its max HP.<br/>
+	/// Whether this enemy's current HP is equal to or below the given fraction of its max HP.<br/>
 	/// Useful for having battle conditions scale when the enemy's stats are adjusted.
 	/// </summary>
 	/// <param name="fraction">The fraction of max HP to compare against.</param>
 	public bool IsBelowHP(float fraction)
 	{
-		return CurrentHP < Mathf.RoundToInt(CurrentStats.MaxHP * fraction);
+		return CurrentHP <= Mathf.RoundToInt(CurrentStats.MaxHP * fraction);
 	}
 
 	/// <summary>

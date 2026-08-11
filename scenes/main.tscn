@@ -323,7 +323,7 @@ centered = false
 
 [node name="Party" type="Node" parent="BattleCanvas/UI" unique_id=888063636]
 
-[node name="BattleLog" type="TextureRect" parent="BattleCanvas/UI" unique_id=1410267183 node_paths=PackedStringArray("ImmediateLabel", "Icon")]
+[node name="BattleLog" type="TextureRect" parent="BattleCanvas/UI" unique_id=1410267183 node_paths=PackedStringArray("ImmediateLabel", "Icon", "LineContainer")]
 visible = false
 z_index = -1
 layout_mode = 1
@@ -340,6 +340,7 @@ LogLine = ExtResource("10_trceg")
 ImmediateLabel = NodePath("Immediate")
 Font = ExtResource("10_choun")
 Icon = NodePath("Icon")
+LineContainer = NodePath("Lines")
 metadata/_edit_use_anchors_ = true
 
 [node name="Immediate" type="RichTextLabel" parent="BattleCanvas/UI/BattleLog" unique_id=955638223]
@@ -366,6 +367,17 @@ position = Vector2(308.5, 40.882072)
 scale = Vector2(0.75, 0.75)
 region_enabled = true
 region_rect = Rect2(108, 0, 108, 108)
+
+[node name="Lines" type="Control" parent="BattleCanvas/UI/BattleLog" unique_id=1770004507]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="DialogueBox" type="Node2D" parent="BattleCanvas/UI" unique_id=456223279 node_paths=PackedStringArray("Text", "Box", "SpeakerSprite", "Cursor", "ChoiceBox", "ChoiceTextParent")]
 visible = false
@@ -1034,3 +1046,5 @@ theme_override_styles/normal = ExtResource("37_c6pm6")
 theme_override_styles/pressed = ExtResource("38_5he1u")
 theme_override_styles/hover = ExtResource("39_5poiv")
 text = "Return to Menu"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1656095367]
