@@ -96,10 +96,7 @@ internal partial class EditorManager : Node
 			container.AddChild(quantity);
 			Button remove = new();
 			remove.Text = "X";
-			remove.Pressed += () =>
-			{
-				container.QueueFree();
-			};
+			remove.Pressed += container.QueueFree;
 			container.AddChild(remove);
 			ItemContainer.AddChild(container);
 		};
@@ -379,7 +376,8 @@ internal partial class EditorManager : Node
 						Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
 						Layer = (int)editor.LayerBox.Value,
 						FallsOffScreen = editor.FallsOffScreenCheckbox.ButtonPressed,
-						GrayscaleOnDefeat = editor.GrayscaleOnDefeatCheckbox.ButtonPressed
+						GrayscaleOnDefeat = editor.GrayscaleOnDefeatCheckbox.ButtonPressed,
+						AdjustedStats = editor.GetAdjustedStats()
 					};
 					if (enemy.Emotion is "hurt" or "toast")
 						enemy.Emotion = "neutral";
@@ -415,7 +413,8 @@ internal partial class EditorManager : Node
 								Emotion = enemyEditor.EmotionDropdown.GetItemText(enemyEditor.EmotionDropdown.Selected),
 								Layer = (int)enemyEditor.LayerBox.Value,
 								FallsOffScreen = enemyEditor.FallsOffScreenCheckbox.ButtonPressed,
-								GrayscaleOnDefeat = enemyEditor.GrayscaleOnDefeatCheckbox.ButtonPressed
+								GrayscaleOnDefeat = enemyEditor.GrayscaleOnDefeatCheckbox.ButtonPressed,
+								AdjustedStats = enemyEditor.GetAdjustedStats()
 							};
 							if (enemy.Emotion is "hurt" or "toast")
 								enemy.Emotion = "neutral";

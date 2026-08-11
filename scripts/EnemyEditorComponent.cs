@@ -17,8 +17,10 @@ internal partial class EnemyEditorComponent : Control
 	[Export] public CheckBox GrayscaleOnDefeatCheckbox { get; private set; }
 	[Export] private CheckBox VisibleCheckbox;
 	[Export] private Button RemoveButton;
+	[Export] private StatAdjustmentEditor StatAdjustmentEditor;
 
 	private AnimatedSprite2D Animator;
+	private Enemy CurrentEnemy;
 
 	// registered emotions plus the pseudo-states enemies can be spawned in
 	private static string[] States => [.. Database.GetAllEmotionIds(), "hurt", "toast"];
@@ -33,6 +35,7 @@ internal partial class EnemyEditorComponent : Control
 		// scroll the (long) enemy list to the current enemy when the dropdown is opened
 		PopupMenu popup = EnemyDropdown.GetPopup();
 		popup.AboutToPopup += () => popup.SetFocusedItem(EnemyDropdown.Selected);
+		StatAdjustmentEditor.StatsAdjusted += RefreshStatDisplay;
 		EmotionDropdown.ItemSelected += (idx) => UpdateState(EmotionDropdown.GetItemText((int)idx));
 
 		VisibleCheckbox.Toggled += (pressed) => Animator.Visible = pressed;
@@ -63,10 +66,10 @@ internal partial class EnemyEditorComponent : Control
 	{
 		if (!enemy.Position.StartsWith("Vector2"))
 			enemy.Position = "Vector2" + enemy.Position;
-		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat);
+		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, enemy.AdjustedStats);
 	}
 
-	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen, bool grayscaleOnDefeat)
+	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen, bool grayscaleOnDefeat, Stats adjustedStats = default)
 	{
 		Animator = animator;
 		Animator.Centered = true;
@@ -77,7 +80,8 @@ internal partial class EnemyEditorComponent : Control
 			Animator.QueueFree();
 			QueueFree();
 		};
-		
+
+		StatAdjustmentEditor.SetStats(adjustedStats);
 		Populate(name);
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex(name);
 		int emotionIndex = EmotionDropdown.GetItemIndex(emotion);
@@ -144,6 +148,21 @@ internal partial class EnemyEditorComponent : Control
 		int restored = previousEmotion != null ? EmotionDropdown.GetItemIndex(previousEmotion) : -1;
 		EmotionDropdown.Selected = restored > -1 ? restored : 0;
 		UpdateState(EmotionDropdown.GetItemText(EmotionDropdown.Selected));
+
+		CurrentEnemy = enemy;
+		RefreshStatDisplay();
+	}
+
+	private void RefreshStatDisplay()
+	{
+		if (CurrentEnemy == null)
+			return;
+		StatAdjustmentEditor.UpdateStats(CurrentEnemy.DeclaredStats + StatAdjustmentEditor.GetStats());
+	}
+
+	public Stats GetAdjustedStats()
+	{
+		return StatAdjustmentEditor.GetStats();
 	}
 
 	public void UpdateState(string state)

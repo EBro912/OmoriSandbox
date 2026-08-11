@@ -55,6 +55,7 @@ internal class BattlePresetEnemy
     public double Layer { get; set; } = 0;
     public bool FallsOffScreen { get; set; } = true;
     public bool GrayscaleOnDefeat { get; set; } = false;
+    public Stats AdjustedStats { get; set; } = new();
 }
 
 internal class BattlePresetBossRushStage

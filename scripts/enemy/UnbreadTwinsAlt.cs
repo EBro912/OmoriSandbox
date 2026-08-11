@@ -84,7 +84,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
         if (Stage > 3)
             return;
 
-        if (CurrentHP < 8000 && Stage == 0)
+        if (IsBelowHP(0.8f) && Stage == 0)
         {
             DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"[wave freq=10][br]Fresh bread...\! fresh bread...\! Every day, it's fresh bread...");
             DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10][br]Ohooooooooo...");
@@ -97,7 +97,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
             Stage = 1;
         }
 
-        if (CurrentHP < 6500 && Stage <= 1)
+        if (IsBelowHP(0.65f) && Stage <= 1)
         {
             DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"We're doomed to bake bread for all enternity...\! aren't we, BISCUIT?");
             DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooo...");
@@ -105,7 +105,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
             Stage = 2;
         }
 
-        if (CurrentHP < 5000 && Stage <= 2)
+        if (IsBelowHP(0.5f) && Stage <= 2)
         {
             DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, "We're running out of supplies! What do we do, BISCUIT!?");
             DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooooo!");
@@ -116,7 +116,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
             Stage = 3;
         } 
         
-        if (CurrentHP < 2500 && Stage <= 3)
+        if (IsBelowHP(0.25f) && Stage <= 3)
         {
             DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"We're running low on everything!\! We have almost nothing left...");
             DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooo...");

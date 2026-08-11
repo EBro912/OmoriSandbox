@@ -371,7 +371,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 anchors_preset = 7
 anchor_left = 0.5
@@ -414,6 +414,7 @@ VertigoUsesAtkCheckbox = NodePath("ScrollContainer/VBoxContainer/VertigoUsesAtk"
 ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
 EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
+CombinedAccuracyCheckbox = NodePath("ScrollContainer/VBoxContainer/CombinedAccuracy")
 RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/HSlider")
 RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/Label")
 SpeedUpSlider = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/HSlider")
@@ -815,6 +816,16 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Vertigo Uses ATK Stat"
+
+[node name="CombinedAccuracy" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1657483920]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Accuracy uses a single roll of (user.HIT - target.EVA)
+instead of separate hit and evasion rolls"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Combined Accuracy Formula"
 
 [node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1655251340]
 layout_mode = 2
@@ -1496,6 +1507,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
+fit_to_longest_item = false
 
 [node name="Load" type="Button" parent="Editor/SettingsTabs/Settings/VBoxContainer/Load" unique_id=1960389968]
 layout_mode = 2

@@ -212,7 +212,7 @@ public partial class GameManager : Node
 		EnemyComponent component = new();
 		node.AddChild(component);
 		node.ZIndex -= (int)enemy.Layer;
-		component.SetEnemy(instance, enemy.Emotion, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, (int)enemy.Layer);
+		component.SetEnemy(instance, enemy.Emotion, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, (int)enemy.Layer, enemy.AdjustedStats);
 		return component;
 	}
 

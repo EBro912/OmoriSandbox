@@ -23,7 +23,7 @@ internal sealed class Boss : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (CurrentHP < 23)
+        if (IsBelowHP(0.153f))
             return new BattleCommand(this, this, Skills["BSSDoNothing"]);
 
         if (HasObserveTarget(out PartyMember observe))
@@ -42,21 +42,21 @@ internal sealed class Boss : Enemy
         if (Stage > 2 || CurrentHP <= 0)
             return;
 
-        if (CurrentHP < 120 && Stage == 0)
+        if (IsBelowHP(0.8f) && Stage == 0)
         {
             DialogueManager.Instance.QueueMessage(this, @"[wave freq=10]Hwehwehwe![/wave][br]\!You weaklings!\! You call that an attack!?");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 1;
         }
 
-        if (CurrentHP < 60 && Stage <= 1)
+        if (IsBelowHP(0.4f) && Stage <= 1)
         {
             DialogueManager.Instance.QueueMessage(this, @"Hey, that kinda hurt!\! Hmph!\! This isn't fun anymore.");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
                 
-        if (CurrentHP < 15 && Stage <= 2)
+        if (IsBelowHP(0.1f) && Stage <= 2)
         {
             DialogueManager.Instance.QueueMessage(this, @"Grr...\![br]Now you've made me ANGRY...");
             DialogueManager.Instance.QueueMessage(this, "It's time for my special move!");

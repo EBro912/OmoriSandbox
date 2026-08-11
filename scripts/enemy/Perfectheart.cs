@@ -54,7 +54,7 @@ internal sealed class Perfectheart : Enemy
     public override async Task ProcessBattleConditions()
     {
         // recreate omori bug where phase 2 is skipped if perfectheart is observed
-        if (!HasBeenObserved && CurrentHP < 3500 && !SecondPhase)
+        if (!HasBeenObserved && IsBelowHP(0.35f) && !SecondPhase)
         {
             DialogueManager.Instance.QueueMessage(this, @"Oh...\! You are quite strong.");
             DialogueManager.Instance.QueueMessage(this, "It seems I must try a bit harder.");
@@ -70,7 +70,7 @@ internal sealed class Perfectheart : Enemy
             SecondPhase = true;
         }
 
-        if (CurrentHP < 2500 && !HasSpoken)
+        if (IsBelowHP(0.25f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, @"Hm?\! W-what's this?\! A drop of sweat?");
             DialogueManager.Instance.QueueMessage(this, @"My, my...\! I cannot believe this.");

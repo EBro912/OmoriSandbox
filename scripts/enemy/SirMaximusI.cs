@@ -67,7 +67,7 @@ internal sealed class SirMaximusI : Enemy
     
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 120 && !UltimateAttack)
+        if (IsBelowHP(0.2f) && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage(this, "Behold! My family has spent generations perfecting this technique...");
             DialogueManager.Instance.QueueMessage(this, "[br]This is my ultimate attack!");
@@ -77,7 +77,7 @@ internal sealed class SirMaximusI : Enemy
             return;
         }
         
-        if (CurrentHP < 300 && !FirstDialogue)
+        if (IsBelowHP(0.5f) && !FirstDialogue)
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             DialogueManager.Instance.QueueMessage(this, "My son needs me!");

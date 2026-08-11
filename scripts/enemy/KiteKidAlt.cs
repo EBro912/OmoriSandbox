@@ -97,7 +97,7 @@ internal sealed class KiteKidAlt : Enemy
         if (CurrentHP <= 0)
             return;
 
-        if (CurrentHP < 2000 && !HasSpoken)
+        if (IsBelowHP(0.25f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "No... This can't be...");
             DialogueManager.Instance.QueueMessage(this, @"The wind...\![br]It's getting weaker!");

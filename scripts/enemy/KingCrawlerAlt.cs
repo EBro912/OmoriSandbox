@@ -49,7 +49,7 @@ internal sealed class KingCrawlerAlt : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 3100 && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=12]Ssssssssssssssssssss...");
             await DialogueManager.Instance.WaitForDialogue();

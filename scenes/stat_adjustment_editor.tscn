@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="3_35yh7"]
 [ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_okig5"]
 
-[node name="StatAdjustmentEditor" type="MarginContainer" unique_id=862740600 node_paths=PackedStringArray("PresetDropdown", "AddButton", "ResetButton", "HeartBox", "JuiceBox", "ATKBox", "DEFBox", "SPDBox", "LCKBox", "HITBox", "HeartLabel", "JuiceLabel", "ATKLabel", "DEFLabel", "SPDLabel", "LCKLabel", "HITLabel")]
+[node name="StatAdjustmentEditor" type="MarginContainer" unique_id=862740600 node_paths=PackedStringArray("PresetDropdown", "AddButton", "ResetButton", "HeartBox", "JuiceBox", "ATKBox", "DEFBox", "SPDBox", "LCKBox", "HITBox", "EVABox", "HeartLabel", "JuiceLabel", "ATKLabel", "DEFLabel", "SPDLabel", "LCKLabel", "HITLabel", "EVALabel")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -29,6 +29,7 @@ DEFBox = NodePath("VBoxContainer/StatAdjuster/DEF/Input")
 SPDBox = NodePath("VBoxContainer/StatAdjuster/SPD/Input")
 LCKBox = NodePath("VBoxContainer/StatAdjuster/LCK/Input")
 HITBox = NodePath("VBoxContainer/StatAdjuster/HIT/Input")
+EVABox = NodePath("VBoxContainer/StatAdjuster/EVA/Input")
 HeartLabel = NodePath("VBoxContainer/BaseStats/Heart")
 JuiceLabel = NodePath("VBoxContainer/BaseStats/Juice")
 ATKLabel = NodePath("VBoxContainer/BaseStats/ATK")
@@ -36,6 +37,7 @@ DEFLabel = NodePath("VBoxContainer/BaseStats/DEF")
 SPDLabel = NodePath("VBoxContainer/BaseStats/SPD")
 LCKLabel = NodePath("VBoxContainer/BaseStats/LCK")
 HITLabel = NodePath("VBoxContainer/BaseStats/HIT")
+EVALabel = NodePath("VBoxContainer/BaseStats/EVA")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1533613556]
 layout_mode = 2
@@ -96,6 +98,12 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("1_83ih8")
 theme_override_font_sizes/font_size = 24
 text = "HIT: 0"
+
+[node name="EVA" type="Label" parent="VBoxContainer/BaseStats" unique_id=1770004501]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "EVA: 0"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=68896515]
 layout_mode = 2
@@ -165,7 +173,7 @@ text = "Heart:"
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/Heart" unique_id=1151563704]
 layout_mode = 2
 min_value = -999.0
-max_value = 9999.0
+max_value = 999999.0
 rounded = true
 
 [node name="Juice" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=82060597]
@@ -181,7 +189,7 @@ text = "Juice:"
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/Juice" unique_id=1649137607]
 layout_mode = 2
 min_value = -999.0
-max_value = 9999.0
+max_value = 999999.0
 rounded = true
 
 [node name="ATK" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=730813296]
@@ -259,6 +267,22 @@ theme_override_font_sizes/font_size = 24
 text = "HIT:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/HIT" unique_id=1664237593]
+layout_mode = 2
+min_value = -999.0
+max_value = 9999.0
+rounded = true
+
+[node name="EVA" type="HBoxContainer" parent="VBoxContainer/StatAdjuster" unique_id=1770004502]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="VBoxContainer/StatAdjuster/EVA" unique_id=1770004503]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_83ih8")
+theme_override_font_sizes/font_size = 24
+text = "EVA:"
+
+[node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/EVA" unique_id=1770004504]
 layout_mode = 2
 min_value = -999.0
 max_value = 9999.0

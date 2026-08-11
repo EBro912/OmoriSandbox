@@ -58,7 +58,7 @@ internal sealed class Abbi : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (CurrentHP < 4000 && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "[shake rate=20]Ngh...", font: DialogueManager.FontType.Jagged);
             await DialogueManager.Instance.WaitForDialogue();

@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://csbpqs4le5y8m" path="res://assets/system/emotion_box.png" id="11_itdm3"]
 [ext_resource type="PackedScene" uid="uid://bq6cqi4jmrqwe" path="res://scenes/StateAnimatorComponent.tscn" id="13_m53md"]
 
-[node name="AboveHead" type="Control" unique_id=1300360389 node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "DEFLabel", "LCKLabel", "HITLabel", "Animator", "Infobox", "NameLabel", "HPBar", "StateIcons")]
+[node name="AboveHead" type="Control" unique_id=1300360389 node_paths=PackedStringArray("HPLabel", "JuiceBar", "JuiceLabel", "ATKLabel", "SPDLabel", "EVALabel", "DEFLabel", "LCKLabel", "HITLabel", "Animator", "Infobox", "NameLabel", "HPBar", "StateIcons")]
 z_index = 100
 z_as_relative = false
 layout_mode = 3
@@ -27,6 +27,7 @@ JuiceBar = NodePath("Infobox/Juice")
 JuiceLabel = NodePath("Infobox/Juice/JuiceLabel")
 ATKLabel = NodePath("Infobox/ATKLabel")
 SPDLabel = NodePath("Infobox/SPDLabel")
+EVALabel = NodePath("Infobox/EVALabel")
 DEFLabel = NodePath("Infobox/DEFLabel")
 LCKLabel = NodePath("Infobox/LCKLabel")
 HITLabel = NodePath("Infobox/HITLabel")
@@ -156,9 +157,9 @@ anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 4.0
-offset_top = -6.0
+offset_top = -11.0
 offset_right = 93.5
-offset_bottom = 13.0
+offset_bottom = 8.0
 grow_vertical = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
@@ -172,15 +173,31 @@ anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 4.0
-offset_top = 9.0
+offset_top = 2.0
 offset_right = 93.5
-offset_bottom = 28.0
+offset_bottom = 21.0
 grow_vertical = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_wl8cr")
 theme_override_font_sizes/font_size = 17
 text = "SPD: 0"
+
+[node name="EVALabel" type="Label" parent="Infobox" unique_id=1770004505]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = 16.0
+offset_right = 93.5
+offset_bottom = 35.0
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_wl8cr")
+theme_override_font_sizes/font_size = 17
+text = "EVA: 0"
 
 [node name="DEFLabel" type="Label" parent="Infobox" unique_id=1810615813]
 layout_mode = 1

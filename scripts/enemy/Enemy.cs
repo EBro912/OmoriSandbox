@@ -17,7 +17,7 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class Enemy : Actor
 {
-	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer)
+	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
 	{
 		SpriteFrames animation = Animation;
 		if (animation == null)
@@ -39,7 +39,8 @@ public abstract class Enemy : Actor
 			SetEmotion("neutral", true);
 		}
 		Sprite.Play();
-		SetBaseStats(Stats);
+		AdjustedStats = adjustedStats;
+		SetBaseStats(Stats + AdjustedStats);
 		CurrentHP = BaseStats.HP;
 		CurrentJuice = BaseStats.Juice;
 		if (startToast)
@@ -59,6 +60,24 @@ public abstract class Enemy : Actor
 			}
 			GD.PrintErr("Unknown skill: " + s);
 		}
+	}
+
+	/// <summary>
+	/// The stat adjustments applied to this enemy by the current preset.
+	/// </summary>
+	public Stats AdjustedStats { get; private set; }
+
+	// the enemy's declared stat block, readable before Init for the editor's stat display
+	internal Stats DeclaredStats => Stats;
+
+	/// <summary>
+	/// Whether this enemy's current HP is strictly below the given fraction of its max HP.<br/>
+	/// Useful for having battle conditions scale when the enemy's stats are adjusted.
+	/// </summary>
+	/// <param name="fraction">The fraction of max HP to compare against.</param>
+	public bool IsBelowHP(float fraction)
+	{
+		return CurrentHP < Mathf.RoundToInt(CurrentStats.MaxHP * fraction);
 	}
 
 	/// <summary>

@@ -102,6 +102,7 @@ public partial class SettingsMenuManager : Control
 		ToysUseEmotionDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ToysUseEmotionDamage", false);
 		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
+		CombinedAccuracyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "CombinedAccuracy", false);
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 
@@ -173,7 +174,8 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
-		
+		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
+
 		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", SpeedUpSlider.Value);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -225,6 +227,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ToysUseEmotionDamage", false);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
+		config.SetValue("Settings", "CombinedAccuracy", false);
 		config.SetValue("Keybinds", "RestartHoldTime", 1d);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -261,6 +264,7 @@ public partial class SettingsMenuManager : Control
 	public bool ToysUseEmotionDamage => ToysUseEmotionDamageCheckbox.ButtonPressed;
 	public bool SpaceExHusbandReleaseEnergy => SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
+	public bool CombinedAccuracy => CombinedAccuracyCheckbox.ButtonPressed;
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
 	public bool EnemySelectionWrapping => EnemySelectionWrappingCheckbox.ButtonPressed;
@@ -297,6 +301,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox ToysUseEmotionDamageCheckbox;
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
+	[Export] private CheckBox CombinedAccuracyCheckbox;
 	[Export] private HSlider RestartHoldTimeSlider;
 	[Export] private Label RestartHoldTimeLabel;
 	[Export] private HSlider SpeedUpSlider;

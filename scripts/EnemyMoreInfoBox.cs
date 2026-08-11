@@ -14,6 +14,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 	[Export] private Label DEFLabel;
 	[Export] private Label LCKLabel;
 	[Export] private Label HITLabel;
+	[Export] private Label EVALabel;
 	[Export] private StateAnimator Animator;
 
 	internal override void SetEnemy(Enemy enemy)
@@ -29,8 +30,9 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		DEFLabel.Text = $"DEF: {stats.DEF}";
 		LCKLabel.Text = $"LCK: {stats.LCK}";
 		HITLabel.Text = $"HIT: {stats.HIT}";
+		EVALabel.Text = $"EVA: {stats.EVA}";
 		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
-		
+
 		// shift the emotion sprite relative to the size of the name
 		// keeps the sprite centered on the infobox
 		Sprite2D state = Animator.EmotionSprite;
@@ -51,6 +53,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		DEFLabel.Text = $"DEF: {stats.DEF}";
 		LCKLabel.Text = $"LCK: {stats.LCK}";
 		HITLabel.Text = $"HIT: {stats.HIT}";
+		EVALabel.Text = $"EVA: {stats.EVA}";
 		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
 	}
 }

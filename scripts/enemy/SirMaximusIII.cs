@@ -86,7 +86,7 @@ internal sealed class SirMaximusIII : Enemy
     
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 550 && !FirstDialogue)
+        if (IsBelowHP(0.5f) && !FirstDialogue)
         {
             DialogueManager.Instance.QueueMessage(this, "No... I cannot let my father's and his father's deaths be in vain!");
             DialogueManager.Instance.QueueMessage(this, "Now for my ultimate attack!");
@@ -94,7 +94,7 @@ internal sealed class SirMaximusIII : Enemy
             FirstDialogue = true;
         }
         
-        if (CurrentHP < 220 && !UltimateAttack)
+        if (IsBelowHP(0.2f) && !UltimateAttack)
         {
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIIUltimateAttack"]);
             UltimateAttack = true;

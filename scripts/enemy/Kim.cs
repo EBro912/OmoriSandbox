@@ -39,7 +39,7 @@ internal sealed class Kim : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (!HasSpoken && CurrentHP < 65)
+        if (!HasSpoken && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage(this, "Your face annoys me!");
             await DialogueManager.Instance.WaitForDialogue();

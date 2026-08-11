@@ -24,7 +24,7 @@ internal sealed class PlutoExpandedAlt : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["PEAttack"]);
         
-        if (CurrentHP < 1000)
+        if (IsBelowHP(0.1f))
             return new BattleCommand(this, SelectAllTargets(), Skills["PEEarthsFinale"]);
 
         if (Roll() < 31)
@@ -33,7 +33,7 @@ internal sealed class PlutoExpandedAlt : Enemy
             return new BattleCommand(this, SelectTarget(), Skills["PESubmissionHold"]);
         if (Roll() < 31)
             return new BattleCommand(this, this, Skills["PEDoNothing"]);
-        if (CurrentHP < 4000)
+        if (IsBelowHP(0.4f))
             return new BattleCommand(this, this, Skills["PEExpandFurther"]);
         return new BattleCommand(this, SelectTarget(), Skills["PEHeadbutt"]);
     }
@@ -58,7 +58,7 @@ internal sealed class PlutoExpandedAlt : Enemy
         if (CurrentHP <= 0)
             return;
         
-        if (CurrentHP < 5000 && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"...\! Ah.\! I see.");
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "You have all gotten stronger.");

@@ -118,7 +118,7 @@ internal sealed class SpaceExBoyfriend : Enemy
         if (Stage > 2)
             return;
 
-        if (CurrentHP < 1013 && Stage == 0)
+        if (IsBelowHP(0.7504f) && Stage == 0)
         {
             DialogueManager.Instance.QueueMessage(this, "[br]My rage cannot be contained...[br]You cannot placate me!");
             await DialogueManager.Instance.WaitForDialogue();
@@ -130,7 +130,7 @@ internal sealed class SpaceExBoyfriend : Enemy
             Stage = 1;
         }
         
-        if (CurrentHP < 675 && Stage <= 1)
+        if (IsBelowHP(0.5f) && Stage <= 1)
         {
             UnlockEmotion();
             DialogueManager.Instance.QueueMessage(this, @"[br]Gah!\! How are you still moving!?");
@@ -143,7 +143,7 @@ internal sealed class SpaceExBoyfriend : Enemy
             Stage = 2;
         }
         
-        if (CurrentHP < 338 && Stage <= 2)
+        if (IsBelowHP(0.2504f) && Stage <= 2)
         {
             UnlockEmotion();
             DialogueManager.Instance.QueueMessage(this, "[br]Out of my way, earthly scum!");

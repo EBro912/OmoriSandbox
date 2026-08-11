@@ -271,6 +271,6 @@ internal sealed class SpaceExHusband : Enemy
 
     public override Stats GetBaseStats()
     {
-        return GetStatsForEmotion();
+        return GetStatsForEmotion() + AdjustedStats;
     }
 }

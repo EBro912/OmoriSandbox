@@ -26,7 +26,7 @@ internal sealed class HumphreyGrandeAlt : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP < 900)
+        if (IsBelowHP(0.1f))
         {
             DialogueManager.Instance.QueueMessage("HUMPHREY", CenterPoint, @"[wave freq=10.0]Just a warning... it's about to get smelly!\| It's time for you all to get in my belly![/wave]");
             await DialogueManager.Instance.WaitForDialogue();

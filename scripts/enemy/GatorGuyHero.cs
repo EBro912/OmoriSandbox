@@ -55,7 +55,7 @@ internal sealed class GatorGuyHero : Enemy
     public override Stats GetBaseStats()
     {
         if (CurrentEmotion.Id is "sad" or "angry")
-            return new Stats(6000, 3000, 80, 65, 80, 10, 95);
-        return new Stats(6000, 3000, 80, 65, 70, 10, 95);
+            return new Stats(6000, 3000, 80, 65, 80, 10, 95) + AdjustedStats;
+        return new Stats(6000, 3000, 80, 65, 70, 10, 95) + AdjustedStats;
     }
 }

@@ -104,6 +104,7 @@ text = "0/0"
 label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2
 vertical_alignment = 1
+text_overrun_behavior = 3
 
 [node name="JuiceLabel" type="Label" parent="Battlecard" unique_id=486899302]
 layout_mode = 0
@@ -114,6 +115,7 @@ offset_bottom = 160.35
 text = "0/0"
 label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2
+text_overrun_behavior = 3
 
 [node name="StateAnimatorComponent" parent="Battlecard" unique_id=703804128 node_paths=PackedStringArray("StateSprite", "FaceStateSprite") instance=ExtResource("5_xyj2y")]
 StateSprite = NodePath("../State")

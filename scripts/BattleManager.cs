@@ -1058,7 +1058,7 @@ public partial class BattleManager : Node
 			Equipment charm = CurrentParty[CurrentPartyMember].Actor.Charm;
 			BattleLogManager.Instance.ClearAndShowMessage(
 				$"What will {CurrentParty[CurrentPartyMember].Actor.Name.ToUpper()} do?" +
-				$"[font_size=20]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}]" +
+				$"[font_size=18]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}, EVA: {stats.EVA}]" +
 				$"\n[Weapon: [color=#c263e1]{CurrentParty[CurrentPartyMember].Actor.Weapon.Name}[/color], Charm: [color=#c263e1]{(charm == null ? "None" : charm.Name)}[/color]]");
 		}
 		else
@@ -1751,18 +1751,8 @@ public partial class BattleManager : Node
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
 		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
-		if (!neverMiss)
-		{
-			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
-			if (miss)
-			{
-				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
-				AudioManager.Instance.PlaySFX("BA_miss");
-				// Miss text spawns a little further down
-				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
-				return -1;
-			}
-		}
+		if (!neverMiss && RollMissOrEvade(self, target, silent))
+			return -1;
 
 		float damage = Math.Max(0, damageFunc());
 		// locked bosses resolve advantage as their locked emotion
@@ -1883,6 +1873,43 @@ public partial class BattleManager : Node
 
 		return roundedInt;
 	}
+	
+	private bool RollMissOrEvade(Actor self, Actor target, bool silent)
+	{
+		int hitRate = self.CurrentStats.HIT;
+		int evasion = target.CurrentStats.EVA;
+		int roll = GameManager.Instance.Random.RandiRange(0, 100);
+		bool miss, evaded;
+		if (SettingsMenuManager.Instance.CombinedAccuracy)
+		{
+			// most OMORI mods use a combined accuracy roll
+			miss = hitRate - evasion < roll;
+			evaded = miss && roll <= hitRate;
+		}
+		else
+		{
+			//  base RPGMaker uses two separate rolls in this order
+			miss = hitRate < roll;
+			evaded = !miss && GameManager.Instance.Random.RandiRange(0, 100) < evasion;
+		}
+
+		if (!miss && !evaded)
+			return false;
+
+		if (evaded)
+		{
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] evaded the attack!");
+			AudioManager.Instance.PlaySFX("GEN_Swish", volume: 0.9f);
+		}
+		else
+		{
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
+			AudioManager.Instance.PlaySFX("BA_miss");
+		}
+		// Miss text spawns a little further down
+		SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+		return true;
+	}
 
 	private void ApplyOverrides(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isCritical,
 		bool neverMiss)
@@ -1897,7 +1924,7 @@ public partial class BattleManager : Node
 	/// Calculates juice damage. Misses, critical hits, emotion effectiveness, and stat modifiers are all taken into account. Sadness damage reduction, however, is not.
 	/// </summary>
 	/// /// <remarks>
-	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.
+	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool, string, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -1914,18 +1941,8 @@ public partial class BattleManager : Node
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
 		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
-		if (!neverMiss)
-		{
-			bool miss = self.CurrentStats.HIT < GameManager.Instance.Random.RandiRange(0, 100);
-			if (miss)
-			{
-				if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
-				AudioManager.Instance.PlaySFX("BA_miss");
-				// Miss text spawns a little further down
-				SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
-				return -1;
-			}
-		}
+		if (!neverMiss && RollMissOrEvade(self, target, silent))
+			return -1;
 
 		float damage = damageFunc();
 		// locked bosses resolve advantage as their locked emotion

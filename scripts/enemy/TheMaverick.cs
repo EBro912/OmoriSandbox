@@ -39,7 +39,7 @@ internal sealed class TheMaverick : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (Stage == 0 && CurrentHP < 281)
+        if (Stage == 0 && IsBelowHP(0.75f))
         {
             DialogueManager.Instance.QueueMessage(this, @"Hmph...\! Not bad...");
             DialogueManager.Instance.QueueMessage(this, "But this fight's just getting started!");
@@ -47,7 +47,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 1;
         }
         
-        if (Stage == 1 && CurrentHP < 225)
+        if (Stage == 1 && IsBelowHP(0.6f))
         {
             PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
             DialogueManager.Instance.QueueMessage(this, "Heh, as expected of my rival!");
@@ -59,7 +59,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 2;
         }
         
-        if (Stage == 2 && CurrentHP < 187)
+        if (Stage == 2 && IsBelowHP(0.499f))
         {
             DialogueManager.Instance.QueueMessage(this, "Ha! Is that all you've got!?");
             DialogueManager.Instance.QueueMessage(this, "I've only been using 10% of my power!");
@@ -68,7 +68,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 3;
         }
         
-        if (Stage == 3 && CurrentHP < 150)
+        if (Stage == 3 && IsBelowHP(0.4f))
         {
             DialogueManager.Instance.QueueMessage(this, "I bet you're regretting your decision now!");
             DialogueManager.Instance.QueueMessage(this, "I'm just way too cool for you...");
@@ -77,7 +77,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 4;
         }
         
-        if (Stage == 4 && CurrentHP < 112)
+        if (Stage == 4 && IsBelowHP(0.299f))
         {
             DialogueManager.Instance.QueueMessage(this, @"It's only... \!Huff...\! a matter of time before you tire yourselves out!");
             DialogueManager.Instance.QueueMessage(this, "My victory is imminent!");
@@ -85,14 +85,14 @@ internal sealed class TheMaverick : Enemy
             Stage = 5;
         }
         
-        if (Stage == 5 && CurrentHP < 75)
+        if (Stage == 5 && IsBelowHP(0.2f))
         {
             DialogueManager.Instance.QueueMessage(this, @"Huff...\! I'll admit...\! I'm impressed...\! but you're still light years away from defeating me!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 6;
         }
         
-        if (Stage == 6 && CurrentHP < 37)
+        if (Stage == 6 && IsBelowHP(0.099f))
         {
             DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...");
             DialogueManager.Instance.QueueMessage(this, @"No...\![br]This is impossible!\! Improbable!");

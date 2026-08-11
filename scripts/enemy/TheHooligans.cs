@@ -39,7 +39,7 @@ internal sealed class TheHooligans : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (Stage == 0 && CurrentHP < 375)
+        if (Stage == 0 && IsBelowHP(0.75f))
         {
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "My master and I have been training for this moment...");
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, "You won't make fools out of us ever again!");
@@ -49,7 +49,7 @@ internal sealed class TheHooligans : Enemy
             Stage = 1;
         }
 
-        if (Stage == 1 && CurrentHP < 250)
+        if (Stage == 1 && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, "ANGEL, remember our training! Make weakness your strength!");
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "Yes, master![br]I won't let you down!");
@@ -57,7 +57,7 @@ internal sealed class TheHooligans : Enemy
             Stage = 2;
         }
         
-        if (Stage == 2 && CurrentHP < 125)
+        if (Stage == 2 && IsBelowHP(0.25f))
         {
             DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, "KIM... are you okay?");
             DialogueManager.Instance.QueueMessage("KIM", CenterPoint, @"Huff...\! Huff...\! Heh!\! Don't worry, VANCE... I'm not done yet!");
@@ -107,7 +107,7 @@ internal sealed class TheHooligans : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (CurrentHP <= 75)
+        if (IsBelowHP(0.152f))
             return new BattleCommand(this, SelectTargets(4), Skills["HOGroupAttack"]);
         if (Roll() < 46)
             return new BattleCommand(this, SelectTarget(), Skills["HOAngelAttack"]);

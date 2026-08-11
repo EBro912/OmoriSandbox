@@ -19,7 +19,7 @@ internal sealed class Creepypasta : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["CPAttack"]);
         
-        if (CurrentHP < 60)
+        if (IsBelowHP(0.2f))
             goto scare;
 
         switch (CurrentEmotion.Id)
