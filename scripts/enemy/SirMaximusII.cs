@@ -89,7 +89,7 @@ internal sealed class SirMaximusII : Enemy
         {
             Sprite2D ghost = new()
             {
-                Texture = ImageTexture.CreateFromImage(Image.LoadFromFile("res://assets/pictures/Maximus.png")),
+                Texture = ResourceLoader.Load<Texture2D>("res://assets/pictures/Maximus.png"),
                 Scale = new Vector2(0.75f, 0.75f),
                 Modulate = Colors.Transparent,
                 GlobalPosition = new Vector2(190, 198),

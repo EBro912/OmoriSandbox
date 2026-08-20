@@ -32,6 +32,13 @@ public partial class BattleManager : Node
 	private List<EnemyComponent> Enemies = [];
 	private List<BattlePresetBossRushStage> Stages = [];
 	private int CurrentStage = -1;
+	/// <summary>
+	/// The currently loaded preset, if any.
+	/// </summary>
+	/// <remarks>
+	/// You can check <see cref="IsBattling"/> instead to see if a battle is ongoing.
+	/// </remarks>
+	public string CurrentPresetName { get; private set; }
 
 	private GameModeType GameType = GameModeType.Normal;
 	internal BattlePhase Phase { get; private set; } = BattlePhase.PreBattle;
@@ -82,6 +89,43 @@ public partial class BattleManager : Node
 	/// Not fired when the end-of-battle results screen appears or between Boss Rush stages.
 	/// </summary>
 	public event EventHandler BattleExited;
+
+	/// <summary>
+	/// Fired when a battle starts, after every actor's <see cref="Actor.OnStartOfBattle"/> hook has run.
+	/// In Boss Rush, this is fired again at the start of every stage.
+	/// </summary>
+	public event EventHandler<BattleStartedEventArgs> BattleStarted;
+
+	/// <summary>
+	/// Fired when a battle ends in victory or defeat, after every actor's <see cref="Actor.OnEndOfBattle"/> hook has run.
+	/// In Boss Rush, this is fired again at the end of every stage.
+	/// </summary>
+	/// <remarks>
+	/// This is NOT fired when the battle is exited early, see <see cref="BattleExited"/>.
+	/// </remarks>
+	public event EventHandler<BattleEndedEventArgs> BattleEnded;
+
+	/// <summary>
+	/// Fired at the start of each turn, after every start-of-turn stat modifier, weapon, charm,
+	/// and enemy hook has run.
+	/// </summary>
+	public event EventHandler TurnStarted;
+
+	/// <summary>
+	/// Fired at the end of each turn, after every enemy's <see cref="Enemy.ProcessEndOfTurn"/> hook has run.
+	/// </summary>
+	public event EventHandler TurnEnded;
+
+	/// <summary>
+	/// Fired after an attack lands and its damage has been applied to any target.
+	/// Not fired for misses, evades, or hits a modifier turned into a miss.
+	/// </summary>
+	public event EventHandler<DamageDealtEventArgs> DamageDealt;
+
+	/// <summary>
+	/// Fired after any healing (Heart or Juice) has been applied to any target.
+	/// </summary>
+	public event EventHandler<HealedEventArgs> Healed;
 
 	private bool FollowupActive = false;
 	private bool FollowupSelected = false;
@@ -147,6 +191,7 @@ public partial class BattleManager : Node
 		List<BattlePresetBossRushStage> stages, BattlePreset preset, int startingStage)
 	{
 		GameType = preset.Type;
+		CurrentPresetName = preset.Name;
 		CurrentParty = party.OrderBy(x => x.Position).ToList();
 		Stages = stages;
 		
@@ -220,6 +265,7 @@ public partial class BattleManager : Node
 			Actor enemy = Enemies[i].Actor;
 			await RunGuarded(() => enemy.OnStartOfBattle(), $"{enemy.Name}.OnStartOfBattle");
 		}
+		RaiseGuarded(BattleStarted, new BattleStartedEventArgs(CurrentPresetName, CurrentStage), "BattleStarted");
 		SetPhase(BattlePhase.FightRun);
 	}
 
@@ -1009,6 +1055,7 @@ public partial class BattleManager : Node
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
+			RaiseGuarded(TurnStarted, "TurnStarted");
 			ProcessedStartOfTurn = true;
 		}
 
@@ -1171,7 +1218,7 @@ public partial class BattleManager : Node
 					GetAllPartyMembers().Select(x => x.Actor).ToList(), SelectedAction);
 				break;
 			case SkillTarget.AllEnemies:
-				PlayerCommands[actor] = new BattleCommand(actor, GetAllEnemies(), SelectedAction);
+				PlayerCommands[actor] = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
 				break;
 			default:
 				GD.PrintErr("Unhandled SelectTarget case: " + SelectedAction.Target);
@@ -1215,13 +1262,13 @@ public partial class BattleManager : Node
 		{
 			case SkillTarget.AllAllies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
-					? GetAllEnemies()
+					? GetAllAliveEnemies()
 					: GetAlivePartyMembers().Select(x => x.Actor));
 				break;
 			case SkillTarget.AllEnemies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
 					? GetAlivePartyMembers().Select(x => x.Actor)
-					: GetAllEnemies());
+					: GetAllAliveEnemies());
 				break;
 			case SkillTarget.XRandomEnemies:
 				foreach (Actor target in currentAction.Targets)
@@ -1408,7 +1455,7 @@ public partial class BattleManager : Node
 
 		// in base game, followups go after any other forced actions
 		BattleCommand command = skill.Target is SkillTarget.AllEnemies
-			? new BattleCommand(current.Actor, GetAllEnemies(), skill)
+			? new BattleCommand(current.Actor, GetAllAliveEnemies(), skill)
 			: new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
 		PendingFollowup = new PendingFollowupData(command, pair.TargetPosition, pair.BaseSkillName);
 
@@ -1526,6 +1573,7 @@ public partial class BattleManager : Node
 				}
 			}
 
+			RaiseGuarded(TurnEnded, "TurnEnded");
 			ProcessedEndOfTurn = true;
 		}
 		
@@ -1701,6 +1749,7 @@ public partial class BattleManager : Node
 				continue;
 			await RunGuarded(() => e.Actor.OnEndOfBattle(victory), $"{e.Actor.Name}.OnEndOfBattle");
 		}
+		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(victory), "BattleEnded");
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
@@ -1726,6 +1775,24 @@ public partial class BattleManager : Node
 		{
 			GD.PushError($"Unhandled exception in {context}: {ex}");
 		}
+	}
+
+	// mirrors RunGuarded for events. each subscriber is raised separately, so one throwing
+	// handler is logged without skipping the others or breaking the battle flow
+	private void RaiseGuarded(EventHandler handler, string context)
+	{
+		if (handler == null)
+			return;
+		foreach (EventHandler subscriber in handler.GetInvocationList().Cast<EventHandler>())
+			RunGuarded(() => subscriber(this, EventArgs.Empty), $"{context} event handler");
+	}
+
+	private void RaiseGuarded<T>(EventHandler<T> handler, T args, string context)
+	{
+		if (handler == null)
+			return;
+		foreach (EventHandler<T> subscriber in handler.GetInvocationList().Cast<EventHandler<T>>())
+			RunGuarded(() => subscriber(this, args), $"{context} event handler");
 	}
 
 	/// <summary>
@@ -1871,9 +1938,12 @@ public partial class BattleManager : Node
 
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 
+		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, roundedInt, juiceLost, critical, false),
+			"DamageDealt");
+
 		return roundedInt;
 	}
-	
+
 	private bool RollMissOrEvade(Actor self, Actor target, bool silent)
 	{
 		int hitRate = self.CurrentStats.HIT;
@@ -1999,6 +2069,8 @@ public partial class BattleManager : Node
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
+		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),
+			"DamageDealt");
 		return roundedInt;
 	}
 
@@ -2025,6 +2097,7 @@ public partial class BattleManager : Node
 		target.Heal(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
+		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
 	}
 
 	/// <summary>
@@ -2046,6 +2119,7 @@ public partial class BattleManager : Node
 		target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
 	}
 
 	// RPGMaker applyVariance method
@@ -2235,7 +2309,7 @@ public partial class BattleManager : Node
 	/// <param name="amount">The amount of energy to add.</param>
 	public void AddEnergy(int amount)
 	{
-		Energy = Math.Min(Energy + amount, 10);
+		Energy = Math.Clamp(Energy + amount, 0, 10);
 	}
 
 	/// <summary>
@@ -2312,6 +2386,16 @@ public partial class BattleManager : Node
 		MakeEmotion(who, "angry");
 	}
 
+	/// <summary>
+	/// Whether the given <see cref="Actor"/> has already acted this turn.
+	/// </summary>
+	/// <param name="who">The actor to check.</param>
+	/// <returns>True if the actor has acted this turn.</returns>
+	public bool HasActedThisTurn(Actor who)
+	{
+		return ActedThisTurn.Contains(who);
+	}
+
 	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>
 	public PartyMember GetRandomAlivePartyMember()
 	{
@@ -2348,9 +2432,15 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>All currently alive <see cref="Enemy"/>s.</returns>
-	public List<Enemy> GetAllEnemies()
+	public List<Enemy> GetAllAliveEnemies()
 	{
 		return Enemies.Select(x => x.Actor).Where(x => x.CurrentHP > 0).ToList();
+	}
+
+	/// <returns>All current <see cref="Enemy"/>s, including both alive and dead enemies. See <see cref="GetAllAliveEnemies"/> to only select alive enemies.</returns>
+	public List<Enemy> GetAllEnemies()
+	{
+		return Enemies.Select(x => x.Actor).ToList();
 	}
 
 	/// <summary>

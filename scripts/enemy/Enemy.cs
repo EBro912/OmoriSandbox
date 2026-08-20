@@ -144,7 +144,7 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Selects an enemy target. Mainly used in <see cref="ProcessAI"/> for single-target skills that target an enemy. Can be overriden for custom targeting behavior.<br/>
+	/// Selects an alive enemy target. Mainly used in <see cref="ProcessAI"/> for single-target skills that target an enemy. Can be overriden for custom targeting behavior.<br/>
 	/// <remarks>For targeting party members, use <see cref="SelectTarget"/>.</remarks>
 	/// </summary>
 	/// <returns>The <see cref="Enemy"/> that will be targeted.</returns>
@@ -154,13 +154,13 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Selects all enemy targets. Mainly used in <see cref="ProcessAI"/> for multi-target skills that target all enemies. Can be overriden for custom targeting behavior.
+	/// Selects all alive enemy targets. Mainly used in <see cref="ProcessAI"/> for multi-target skills that target all enemies. Can be overriden for custom targeting behavior.
 	/// </summary>
 	/// <remarks>For targeting all party members, use <see cref="SelectAllTargets"/>.</remarks>
 	/// <returns></returns>
 	protected virtual IReadOnlyList<Enemy> SelectAllEnemies()
 	{
-		return BattleManager.Instance.GetAllEnemies();
+		return BattleManager.Instance.GetAllAliveEnemies();
 	}
 
 	/// <summary>

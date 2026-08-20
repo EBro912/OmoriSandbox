@@ -635,7 +635,7 @@ public class Database
 				{
 					// vanilla omori technically stops after the 4th attempt
 					// maybe add a toggle for this?
-					Enemy enemy = BattleManager.Instance.GetAllEnemies()
+					Enemy enemy = BattleManager.Instance.GetAllAliveEnemies()
 						.FirstOrDefault(x => x.HasMultiTargetPartySkill);
 					if (enemy != null)
 					{
@@ -6416,7 +6416,7 @@ public class Database
 					AnimationManager.Instance.PlayAnimation(214, member);
 				}
 
-				foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
 				{
 					enemy.AddStatModifier("Tickle", 2);
 				}
@@ -8099,7 +8099,7 @@ public class Database
 			{
 				// vanilla omori technically stops after the 4th attempt
 				// maybe add a toggle for this?
-				Enemy enemy = BattleManager.Instance.GetAllEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
+				Enemy enemy = BattleManager.Instance.GetAllAliveEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
 				if (enemy != null)
 				{
 					enemy.ObserveMultiTarget = true;

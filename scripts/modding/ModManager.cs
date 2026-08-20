@@ -91,6 +91,15 @@ internal partial class ModManager : Node
 			{
 				GD.PushError($"Unhandled exception in {node.GetType().FullName}.OnUnload: {ex}");
 			}
+
+			try
+			{
+				node.UnpatchAll();
+			}
+			catch (Exception ex)
+			{
+				GD.PushError($"Failed to remove Harmony patches for mod {node.Id}: {ex}");
+			}
 		}
 	}
 
@@ -161,7 +170,7 @@ internal partial class ModManager : Node
 		ModLoadReport report = new(metadata.Name, metadata.Version);
 		CurrentModName = metadata.Name;
 
-		if (!LoadModAssemblies(dirName))
+		if (!LoadModAssemblies(dirName, metadata))
 		{
 			CurrentModName = null;
 			return false;
@@ -218,7 +227,7 @@ internal partial class ModManager : Node
 		return true;
 	}
 
-	private bool LoadModAssemblies(string dirName)
+	private bool LoadModAssemblies(string dirName, ModMetadata metadata)
 	{
 		string[] dlls = DirAccess.GetFilesAt("user://mods/" + dirName)
 			.Where(x => x.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)).ToArray();
@@ -264,6 +273,8 @@ internal partial class ModManager : Node
 					return false;
 				}
 
+				// the id must be set before OnLoad so the mod's Harmony instance can use it
+				instance.Id = metadata.Id;
 				AddChild(instance);
 				ModNodes.Add(instance);
 				instance.OnLoad();
