@@ -1931,7 +1931,7 @@ public partial class BattleManager : Node
 		{
 			damage *= 1.5f;
 			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
-			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
+			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2.5f);
 		}
 
 		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical, neverMiss);
@@ -1999,19 +1999,19 @@ public partial class BattleManager : Node
 
 		SpawnDamageNumber(roundedInt, target.CenterPoint, critical: critical);
 		// we don't need to play a hitsound if the attack is a critical or if there's no damage
-		if (!critical && roundedInt > 0)
+		if (roundedInt > 0)
 		{
 			if (SettingsMenuManager.Instance.LogDebug)
 				GD.Print("Effectiveness: " + effectiveness);
 			if (effectiveness > 0)
 			{
 				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
-				AudioManager.Instance.PlaySFX("se_impact_double", 1f, 0.9f);
+				if (!critical) AudioManager.Instance.PlaySFX("se_impact_double", 1f, 1.5f);
 			}
 			else if (effectiveness < 0)
 			{
 				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
-				AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 0.9f);
+				if (!critical) AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 1.5f);
 			}
 			else
 				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
