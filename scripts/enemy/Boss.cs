@@ -60,7 +60,7 @@ internal sealed class Boss : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, @"Grr...\![br]Now you've made me ANGRY...");
             DialogueManager.Instance.QueueMessage(this, "It's time for my special move!");
-            DialogueManager.Instance.QueueMessage("[font_size=52][wave freq=10][shake rate=20][center]BODY SLAM!!");
+            DialogueManager.Instance.QueueMessage("[center][font_size=52][wave freq=10][shake rate=20]BODY SLAM!!");
             await DialogueManager.Instance.WaitForDialogue();
             SetEmotion("angry", true);
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["BSSAttackAll"]);

@@ -8,6 +8,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class Recycultist : Enemy
 {
     public override string Name => "RECYCULTIST";
+    public override Vector2 InfoBoxOffset => new(0, -255);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/recycultist_{(FacingLeft ? "left" : "right")}.tres");
 
     // instead of making an entire other enemy for the right facing animation

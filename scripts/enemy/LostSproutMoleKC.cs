@@ -6,6 +6,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class LostSproutMoleKC : Enemy
 {
 	public override string Name => "LOST SPROUT MOLE";
+	public override Vector2 InfoBoxOffset => new(0, -180);
 
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sprout_mole.tres");
 

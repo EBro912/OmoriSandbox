@@ -11,6 +11,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class UnbreadTwins : Enemy
 {
 	public override string Name => "UNBREAD TWINS";
+	public override Vector2 InfoBoxOffset => new(-30, -175);
+	public override bool InfoBoxCursorAboveBox => true;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/unbread_twins.tres");
 	protected override Stats Stats => new(7500, 5000, 65, 1, 57, 10, 95);
 	protected override string[] EquippedSkills => ["UBTAttack", "UBTDoNothing", "UBTCheerUp", "UBTCook", "UBTBakeBread"];

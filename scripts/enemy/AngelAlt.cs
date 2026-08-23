@@ -11,6 +11,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class AngelAlt : Enemy
 {
     public override string Name => "ANGEL";
+    public override Vector2 InfoBoxOffset => new(0, -375);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/angel.tres");
     protected override Stats Stats => new(150, 75, 15, 6, 18, 30, 95);
 

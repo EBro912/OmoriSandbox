@@ -17,6 +17,9 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 	[Export] private Label EVALabel;
 	[Export] private StateAnimator Animator;
 
+	internal override float BoxBottomOffset => 40f;
+	internal override float CursorAboveAnchor => -64.5f;
+
 	internal override void SetEnemy(Enemy enemy)
 	{
 		base.SetEnemy(enemy);

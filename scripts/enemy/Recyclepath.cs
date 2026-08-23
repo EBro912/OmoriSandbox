@@ -9,6 +9,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class Recyclepath : Enemy
 {
     public override string Name => "RECYCLEPATH";
+    public override Vector2 InfoBoxOffset => new(15, -230);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/recyclepath.tres");
 
     protected override Stats Stats => new(1000, 500, 40, 20, 16, 10, 95);

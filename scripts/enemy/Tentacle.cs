@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Tentacle : Enemy
 {
     public override string Name => "TENTACLE";
+    public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/tentacle.tres");
     protected override Stats Stats => new(1200, 600, 72, 50, 110, 25, 95);
     protected override string[] EquippedSkills => ["TENAttack", "TENWeaken", "TENGrab", "TENGoop"];

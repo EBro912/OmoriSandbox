@@ -10,6 +10,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class HumphreyFaceAlt : Enemy
 {
 	public override string Name => "HUMPHREY";
+	public override Vector2 InfoBoxOffset => new(0, -115);
+	public override bool InfoBoxCursorAboveBox => true;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_face.tres");
 	protected override Stats Stats => new(10000, 3000, 110, 50, 115, 10, 95);
 	protected override string[] EquippedSkills => ["HUFChomp", "HUFDoNothing", "HUFSwallow"];

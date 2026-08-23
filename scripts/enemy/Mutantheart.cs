@@ -10,6 +10,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Mutantheart : Enemy
 {
     public override string Name => "MUTANTHEART";
+    public override Vector2 InfoBoxOffset => new(0, -375);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/mutantheart.tres");
     protected override Stats Stats => new(7000, 3500, 75, 1, 50, 25, 95);
 

@@ -9,6 +9,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class PlutoExpanded : Enemy
 {
     public override string Name => "PLUTO (EXPANDED)";
+    public override Vector2 InfoBoxOffset => new(0, -235);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation =>
         ResourceLoader.Load<SpriteFrames>("res://animations/pluto_expanded.tres");
     protected override Stats Stats => new(3000, 1500, 52, 32, 22, 10, 95);

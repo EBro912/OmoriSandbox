@@ -839,6 +839,10 @@ public partial class BattleManager : Node
 				break;
 			case BattlePhase.PostCommand:
 			{
+				// handle any stat modifiers that tick at the end of an action
+				if (!CurrentCommand.Actor.IsToast)
+					CurrentCommand.Actor.DecreaseActionStatTurnCounter();
+
 				await ConvertDeadPartyMembers();
 
 				if (CurrentCommand.Actor is PartyMember
@@ -1352,10 +1356,11 @@ public partial class BattleManager : Node
 			case SkillTarget.Ally:
 			case SkillTarget.Enemy:
 			case SkillTarget.AllyOrEnemy:
+				// in vanilla, automatic retargeting will target the first valid actor in the troop, not a random one
 				if (IsInvalidTarget(currentAction.Targets[0]))
 					resolvedTargets.Add(currentAction.Targets[0] is Enemy
-						? GetRandomAliveEnemy()
-						: GetRandomAlivePartyMember());
+						? GetAllAliveEnemies().FirstOrDefault()
+						: GetAlivePartyMembers().FirstOrDefault()?.Actor);
 				else
 					resolvedTargets.Add(currentAction.Targets[0]);
 				break;
@@ -1986,7 +1991,8 @@ public partial class BattleManager : Node
 			return -1;
 		}
 		target.Damage(roundedInt);
-		if (target is PartyMember)
+		
+		if (target is PartyMember && roundedInt > 0)
 		{
 			Energy = Math.Min(10, Energy + 1);
 		}
@@ -2031,7 +2037,8 @@ public partial class BattleManager : Node
 	{
 		int hitRate = self.CurrentStats.HIT;
 		int evasion = target.CurrentStats.EVA;
-		int roll = GameManager.Instance.Random.RandiRange(0, 100);
+
+		int roll = GameManager.Instance.Random.RandiRange(1, 100);
 		bool miss, evaded;
 		if (SettingsMenuManager.Instance.CombinedAccuracy)
 		{
@@ -2043,7 +2050,7 @@ public partial class BattleManager : Node
 		{
 			//  base RPGMaker uses two separate rolls in this order
 			miss = hitRate < roll;
-			evaded = !miss && GameManager.Instance.Random.RandiRange(0, 100) < evasion;
+			evaded = !miss && GameManager.Instance.Random.RandiRange(1, 100) <= evasion;
 		}
 
 		if (!miss && !evaded)
@@ -2374,14 +2381,16 @@ public partial class BattleManager : Node
 	
 
 	/// <summary>
-	/// Spawns a party member into the battle at the given battlecard position. If the party is already full or a position is occupied, this will do nothing.
+	/// Spawns a party member into the battle at the given battlecard position, falling back to the
+	/// next open position if it is already occupied. If the party is already full, this will do nothing.
 	/// </summary>
 	/// <remarks>
 	/// A member summoned during the command phase at a position after the currently selecting member
 	/// still chooses a command this turn, otherwise they act from the next turn onward.<br/>
 	/// </remarks>
 	/// <param name="who">Which party member to spawn.</param>
-	/// <param name="position">The battlecard position to spawn the member at, from 0 to 3.</param>
+	/// <param name="position">The battlecard position to spawn the member at, from 0 to 3. If the position
+	/// is occupied, the next open position (wrapping around) is used instead.</param>
 	/// <param name="level">The party member's level.</param>
 	/// <param name="weapon">The party member's weapon.</param>
 	/// <param name="charm">The party member's charm.</param>
@@ -2391,7 +2400,7 @@ public partial class BattleManager : Node
 	/// <param name="adjustedStats">Stat adjustments added on top of the member's base stats.</param>
 	/// <returns>The <see cref="PartyMemberComponent"/> of the summoned member, or null if the summon fails.</returns>
 	public PartyMemberComponent SummonPartyMember(string who, int position, int level = 1,
-		string weapon = "Baguette", string charm = "None", string emotion = "neutral",
+		string weapon = "Knife", string charm = "None", string emotion = "neutral",
 		string[] skills = null, string followupSet = null, Stats adjustedStats = default)
 	{
 		if (!IsBattling || Phase is BattlePhase.BattleOver)
@@ -2411,8 +2420,13 @@ public partial class BattleManager : Node
 		}
 		if (CurrentParty.Any(x => x.Position == position))
 		{
-			GD.PushWarning($"Position {position} is already occupied, cannot summon {who}");
-			return null;
+			// the party isn't full at this point, so an open slot is guaranteed to exist
+			int requested = position;
+			do
+			{
+				position = (position + 1) % 4;
+			} while (CurrentParty.Any(x => x.Position == position));
+			GD.Print($"Position {requested} is already occupied, summoning {who} at position {position} instead");
 		}
 
 		string setId = followupSet ?? FollowupSets.DefaultIdForPosition(position);

@@ -177,9 +177,12 @@ public abstract class Actor
 
 	/// <summary>
 	/// The actor's total stat multiplier from their current emotion and all stat modifiers,
-	/// like RPG Maker's <c>battler.paramRate</c>. Flat bonuses (such as Flex's HIT bonus) and
-	/// the stat limit are not included; equipment counts as base stats, not rate.
+	/// like RPGMaker's <c>battler.paramRate</c>.
 	/// </summary>
+	/// <remarks>
+	/// Flat bonuses and the stat limit are not included.
+	/// Equipment is included in the base stats.
+	/// </remarks>
 	/// <param name="stat">The <see cref="StatType"/> to get the total multiplier for.</param>
 	public float GetParamRate(StatType stat)
 	{
@@ -195,6 +198,28 @@ public abstract class Actor
 	}
 
 	/// <summary>
+	/// The actor's total flat stat bonus from their current emotion and all stat modifiers,
+	/// like RPGMaker's <c>battler.paramPlus</c>.
+	/// </summary>
+	/// <remarks>
+	/// Multipliers and the stat limit are not included. 
+	/// Equipment is included in the base stats.
+	/// </remarks>
+	/// <param name="stat">The <see cref="StatType"/> to get the total flat bonus for.</param>
+	public int GetParamPlus(StatType stat)
+	{
+		int plus = 0;
+		foreach (StatBonus bonus in GetEmotionStatBonuses(CurrentEmotion))
+		{
+			if (bonus.Type == stat)
+				plus += bonus.FlatBonus;
+		}
+		foreach (StatModifier mod in StatModifiers.Values)
+			plus += mod.GetParamPlus(stat);
+		return plus;
+	}
+
+	/// <summary>
 	/// Adds a new <see cref="StatModifier"/> to this actor.
 	/// </summary>
 	/// <param name="modifier">The name of the modifier to add.</param>
@@ -205,6 +230,7 @@ public abstract class Actor
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m) && m is not TierStatModifier)
 		{
 			m.RefreshTurns();
+			GrantFreeActionTick(m);
 			GD.Print("Refreshed modifier " + modifier + " on " + Name);
 			return;
 		}
@@ -229,6 +255,7 @@ public abstract class Actor
 		}
 
 		StatModifiers.Add(modifier, mod);
+		GrantFreeActionTick(mod);
 		mod.OnAdd(this);
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		NotifyModifierAdded(modifier, mod);
@@ -355,6 +382,14 @@ public abstract class Actor
 		OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason));
 	}
 
+	// in vanilla, an action-end state applied or refreshed by its holder's own action skips its
+	// first tick, so the state doesn't expire by its own action ending
+	private void GrantFreeActionTick(StatModifier mod)
+	{
+		if (mod.TicksOnActionEnd && BattleManager.Instance?.GetCurrentCommand()?.Actor == this)
+			mod.SkipNextActionTick = true;
+	}
+
 	private void NotifyModifierAdded(string modifier, StatModifier mod)
 	{
 		ClampHealthJuiceToMax();
@@ -385,12 +420,29 @@ public abstract class Actor
 	{
 		foreach (var mod in StatModifiers.ToList())
 		{
-			if (mod.Value.TurnsLeft != -1)
+			if (mod.Value.TurnsLeft != -1 && !mod.Value.TicksOnActionEnd)
 			{
 				mod.Value.DecreaseTurns();
 				if (mod.Value.TurnsLeft <= 0)
 					RemoveStatModifierInternal(mod.Key, StatModifierRemovalReason.Expired);
 			}
+		}
+	}
+	
+	internal void DecreaseActionStatTurnCounter()
+	{
+		foreach (var mod in StatModifiers.ToList())
+		{
+			if (mod.Value.TurnsLeft == -1 || !mod.Value.TicksOnActionEnd)
+				continue;
+			if (mod.Value.SkipNextActionTick)
+			{
+				mod.Value.SkipNextActionTick = false;
+				continue;
+			}
+			mod.Value.DecreaseTurns();
+			if (mod.Value.TurnsLeft <= 0)
+				RemoveStatModifierInternal(mod.Key, StatModifierRemovalReason.Expired);
 		}
 	}
 

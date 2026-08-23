@@ -18,6 +18,8 @@ internal struct JsonEnemyMod
     public string[] EquippedSkills { get; set; }
     public string ObserveMultiSkill { get; set; }
     public string ObserveSingleSkill { get; set; }
+    public int[] InfoBoxOffset { get; set; }
+    public bool InfoBoxCursorAboveBox { get; set; }
     public JsonEnemyAIData[] AI { get; set; }
 
     internal bool Validate(ModLoadReport report)
@@ -49,6 +51,11 @@ internal struct JsonEnemyMod
         }
         if (HIT <= 0)
             report.Warn("enemies", Name, "HIT is missing or 0, this enemy's missable attacks will always miss");
+        if (InfoBoxOffset != null && InfoBoxOffset.Length != 2)
+        {
+            report.Warn("enemies", Name, "'infoBoxOffset' must be an [x, y] pair, ignoring!");
+            InfoBoxOffset = null;
+        }
         if (AI == null)
             report.Warn("enemies", Name, "No AI data defined");
         else

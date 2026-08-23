@@ -507,7 +507,6 @@ public class Database
 		#endregion
 
 		#region SKILLS
-
 		Skills["Guard"] = new Skill(
 			name: "GUARD",
 			description: "Acts first, reducing damage taken for 1 turn.\nCost: 0",
@@ -7306,7 +7305,6 @@ public class Database
 		AddEmotion(new Emotion("stressed")
 			.WithBlocksActions()
 			.WithStatBonuses(new StatBonus(StatType.ATK, 1.2f), new StatBonus(StatType.DEF, 0.9f))
-			.WithDefensiveRate("exploit", 1.5f)
 			.WithAsset(EmotionAsset.Vanilla(2, 1, 0)));
 		#endregion
 
@@ -7367,15 +7365,15 @@ public class Database
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
-		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1));
+		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1).WithActionEndTicking());
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
-		Modifiers.Add("Charm", () => new CharmStatModifier(1));
+		Modifiers.Add("Charm", () => new CharmStatModifier(1).WithActionEndTicking());
 		Modifiers.Add("SpaceExHusbandBlock", () => new SpaceExHusbandStatModifier());
 		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(10));
-		Modifiers.Add("PlutoCharging", () => new StatModifier(3, new StatBonus(StatType.DEF, 3f)));
+		Modifiers.Add("PlutoCharging", () => new StatModifier(2, new StatBonus(StatType.DEF, 3f)));
 		Modifiers.Add("PlutoBuff", () => new StatModifier(new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.LCK, 1.5f), new StatBonus(StatType.SPD, 10f)));
-		Modifiers.Add("Encore", () => new EncoreStatModifier(3));
+		Modifiers.Add("Encore", () => new EncoreStatModifier(3).WithActionEndTicking());
 		Modifiers.Add("SalesTag", () => new SalesTagStatModifier());
 		Modifiers.Add("Immune", () => new ImmuneStatModifier());
 		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5));

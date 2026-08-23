@@ -67,6 +67,18 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public Stats AdjustedStats { get; private set; }
 
+	/// <summary>
+	/// Position of this enemy's info box center relative to the actor's "feet" (the bottom of the sprite).
+	/// Defaults to <c>Vector2.Zero</c> if not specified.
+	/// </summary>
+	public virtual Vector2 InfoBoxOffset => Vector2.Zero;
+
+	/// <summary>
+	/// Whether this enemy's info box finger renders above the box instead of below it.
+	/// Behaves the same as vanilla's StatusCursorPosition note tag.
+	/// </summary>
+	public virtual bool InfoBoxCursorAboveBox => false;
+
 	// the enemy's declared stats, used by the editor stat display
 	internal Stats DeclaredStats => Stats;
 

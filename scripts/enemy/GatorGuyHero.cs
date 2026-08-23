@@ -8,6 +8,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class GatorGuyHero : Enemy
 {
     public override string Name => "GATOR GUY";
+    public override Vector2 InfoBoxOffset => new(0, -250);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/gator_guy.tres");
     protected override Stats Stats => new(6000, 3000, 80, 65, 70, 10, 95);
     protected override string[] EquippedSkills => ["GGAttack", "GGDoNothing", "GGRoughUp"];

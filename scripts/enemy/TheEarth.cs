@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class TheEarth : Enemy
 {
     public override string Name => "THE EARTH";
+    public override Vector2 InfoBoxOffset => new(0, -400);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/earth.tres");
     protected override Stats Stats => new(425, 210, 20, 15, 15, 10, 95);
 

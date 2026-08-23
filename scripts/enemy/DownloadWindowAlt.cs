@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class DownloadWindowAlt : Enemy
 {
     public override string Name => "DOWNLOAD WINDOW";
+    public override Vector2 InfoBoxOffset => new(0, -175);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/download_window.tres");
     protected override Stats Stats => new(6000, 3000, 10, 65, 1, 10, 95);
     protected override string[] EquippedSkills => ["Crash", "DWDoNothing1", "DWDoNothing2"];

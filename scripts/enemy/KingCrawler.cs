@@ -10,6 +10,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class KingCrawler : Enemy
 {
     public override string Name => "KING CRAWLER";
+    public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation =>
         ResourceLoader.Load<SpriteFrames>("res://animations/king_crawler.tres");
     protected override Stats Stats => new(730, 250, 25, 10, 18, 10, 200);

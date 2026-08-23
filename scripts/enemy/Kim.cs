@@ -11,6 +11,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Kim : Enemy
 {
     public override string Name => "KIM";
+    public override Vector2 InfoBoxOffset => new(0, -375);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/kim.tres");
     protected override Stats Stats => new(130, 65, 20, 3, 10, 5, 95);
 

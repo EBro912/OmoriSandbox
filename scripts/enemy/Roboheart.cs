@@ -8,6 +8,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Roboheart : Enemy
 {
     public override string Name => "ROBOHEART";
+    public override Vector2 InfoBoxOffset => new(0, -375);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/roboheart.tres");
     protected override Stats Stats => new(2500, 1250, 45, 40, 60, 10, 95);
     protected override string[] EquippedSkills => ["RHAttack", "RHDoNothing", "RHLaser", "RHSnack", "RHExplode"];

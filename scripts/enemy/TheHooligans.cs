@@ -11,6 +11,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class TheHooligans : Enemy
 {
     public override string Name => "THE HOOLIGANS";
+    public override Vector2 InfoBoxOffset => new(0, -415);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/the_hooligans.tres");
     protected override Stats Stats => new(500, 250, 25, 22, 22, 25, 95);
 

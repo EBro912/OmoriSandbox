@@ -8,6 +8,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class Sweetheart : Enemy
 {
 	public override string Name => "SWEETHEART";
+	public override Vector2 InfoBoxOffset => new(0, -225);
+	public override bool InfoBoxCursorAboveBox => true;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sweetheart.tres");
 	protected override Stats Stats => new(3300, 1650, 30, 25, 40, 10, 90);
 

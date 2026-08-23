@@ -9,6 +9,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class KingCarnivore : Enemy
 {
     public override string Name => "KING CARNIVORE";
+    public override Vector2 InfoBoxOffset => new(25, -295);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/king_carnivore.tres");
     protected override Stats Stats => new(1900, 950, 65, 29, 53, 10, 95);
     protected override string[] EquippedSkills => ["UPCAttack", "UPCDoNothing", "UPCSweetGas"];

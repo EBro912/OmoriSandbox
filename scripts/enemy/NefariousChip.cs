@@ -8,6 +8,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class NefariousChip : Enemy
 {
     public override string Name => "NEFARIOUS CHIP";
+    public override Vector2 InfoBoxOffset => new(0, -230);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/nefarious_chip.tres");
     protected override Stats Stats => new(3456, 1700, 43, 47, 10, 15, 95);
     protected override string[] EquippedSkills => ["NCAttack", "NCDoNothing", "NCLaugh", "NCCookies", "NCCookiesHappy"];

@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Root : Enemy
 {
     public override string Name => "ROOT";
+    public override Vector2 InfoBoxOffset => new(15, -390);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/root.tres");
     protected override Stats Stats => new(1000, 500, 30, 35, 10, 10, 95);
     protected override string[] EquippedSkills => ["ROAttack", "RODoNothing", "ROHealPlant"];

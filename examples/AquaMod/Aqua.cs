@@ -24,6 +24,8 @@ public class Aqua : Enemy
         .AddAnimation("amused", 1, 31)
         .Build();
 
+    public override Vector2 InfoBoxOffset => new(0, -160);
+
     protected override Stats Stats => new(3060, 0, 16, 0, 20, 10, 40);
     protected override string[] EquippedSkills => ["AQKnifeFan", "AQKnifeChain", "AQKnifeCircle", "AQOmega"];
 

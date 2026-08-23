@@ -25,6 +25,12 @@ internal class ModdedEnemy : Enemy
 
     protected override string[] EquippedSkills => JsonEnemy.EquippedSkills ?? [];
 
+    public override Vector2 InfoBoxOffset => JsonEnemy.InfoBoxOffset == null
+        ? Vector2.Zero
+        : new Vector2(JsonEnemy.InfoBoxOffset[0], JsonEnemy.InfoBoxOffset[1]);
+
+    public override bool InfoBoxCursorAboveBox => JsonEnemy.InfoBoxCursorAboveBox;
+
     public override bool IsEmotionValid(Emotion emotion)
     {
         return JsonEnemy.InvalidStates == null || !JsonEnemy.InvalidStates.Contains(emotion.Id);

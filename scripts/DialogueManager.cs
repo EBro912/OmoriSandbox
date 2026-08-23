@@ -50,6 +50,8 @@ public partial class DialogueManager : Node2D
 	private Tween DimTween;
 	private bool UIDimmed;
 
+	private static readonly string[] ParagraphTags = ["[center]", "[right]", "[fill]", "[left]"];
+
 	private Vector2I CursorNormalPos = new(145, 35);
 	private string[] CurrentChoices;
 	private int ChoiceIndex = 0;
@@ -284,7 +286,21 @@ public partial class DialogueManager : Node2D
 		else
 		{
 			SpeakerSprite.Visible = false;
-			string cleaned = FindPauses(BuildHeader(current.Font) + current.Message);
+			// in Godot 4.7+, a paragraph tag after any inline tag starts a second paragraph,
+			// leaving an empty full-height first line, so alignment tags stay ahead of the header
+			// so we need to fix that here
+			string message = current.Message;
+			string alignment = "";
+			foreach (string tag in ParagraphTags)
+			{
+				if (message.StartsWith(tag))
+				{
+					alignment = tag;
+					message = message[tag.Length..];
+					break;
+				}
+			}
+			string cleaned = FindPauses(alignment + BuildHeader(current.Font) + message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = 0;
 		}

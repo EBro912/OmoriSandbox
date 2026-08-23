@@ -11,6 +11,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class BossmanHero : Enemy
 {
     public override string Name => "BOSSMAN HERO";
+    public override Vector2 InfoBoxOffset => new(0, -250);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/bossman_hero.tres");
     protected override Stats Stats => new(8000, 8000, 70, 80, 10, 45, 95);
     protected override string[] EquippedSkills 

@@ -12,6 +12,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class MrJawsumAlt : Enemy
 {
     public override string Name => "MR. JAWSUM";
+    public override Vector2 InfoBoxOffset => new(0, -225);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/mr_jawsum.tres");
     protected override Stats Stats => new(3000, 1000, 999, 60, 1, 10, 95);
     protected override string[] EquippedSkills => ["MJSummonGator", "MJAttackOrder"];

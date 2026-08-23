@@ -10,6 +10,8 @@ internal sealed class SlimeGirls : Enemy
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/slimegirls.tres");
 
 	public override string Name => "SLIME GIRLS";
+	public override Vector2 InfoBoxOffset => new(0, -235);
+	public override bool InfoBoxCursorAboveBox => true;
 
 	protected override Stats Stats => new(5700, 1750, 57, 32, 52, 10, 95);
 
