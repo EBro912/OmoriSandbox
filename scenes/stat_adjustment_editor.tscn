@@ -172,7 +172,7 @@ text = "Heart:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/Heart" unique_id=1151563704]
 layout_mode = 2
-min_value = -999.0
+min_value = -999999.0
 max_value = 999999.0
 rounded = true
 
@@ -188,7 +188,7 @@ text = "Juice:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/Juice" unique_id=1649137607]
 layout_mode = 2
-min_value = -999.0
+min_value = -999999.0
 max_value = 999999.0
 rounded = true
 
@@ -204,7 +204,7 @@ text = "ATK:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/ATK" unique_id=531471784]
 layout_mode = 2
-min_value = -999.0
+min_value = -9999.0
 max_value = 9999.0
 rounded = true
 
@@ -220,7 +220,7 @@ text = "DEF:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/DEF" unique_id=223969096]
 layout_mode = 2
-min_value = -999.0
+min_value = -9999.0
 max_value = 9999.0
 rounded = true
 
@@ -236,7 +236,7 @@ text = "SPD:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/SPD" unique_id=348286672]
 layout_mode = 2
-min_value = -999.0
+min_value = -9999.0
 max_value = 9999.0
 rounded = true
 
@@ -252,7 +252,7 @@ text = "LCK:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/LCK" unique_id=1240992656]
 layout_mode = 2
-min_value = -999.0
+min_value = -9999.0
 max_value = 9999.0
 rounded = true
 
@@ -268,7 +268,7 @@ text = "HIT:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/HIT" unique_id=1664237593]
 layout_mode = 2
-min_value = -999.0
+min_value = -9999.0
 max_value = 9999.0
 rounded = true
 
@@ -284,7 +284,7 @@ text = "EVA:"
 
 [node name="Input" type="SpinBox" parent="VBoxContainer/StatAdjuster/EVA" unique_id=1770004504]
 layout_mode = 2
-min_value = -999.0
+min_value = -9999.0
 max_value = 9999.0
 rounded = true
 

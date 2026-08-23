@@ -23,6 +23,9 @@ public partial class AudioManager : Node
 
 	// only one instance of a sound can play at once
 	private Dictionary<string, AudioStreamPlayer> PlayingSounds = [];
+	
+	// reusable tween so multiple pitch tweens don't fight over the BGM
+	private Tween PitchTween;
 
 	public override void _EnterTree()
 	{
@@ -292,6 +295,52 @@ public partial class AudioManager : Node
 		}
 	}
 
+	/// <summary>
+	/// Sets the pitch of the currently playing BGM, from 0.1 to 2.0.
+	/// </summary>
+	/// <param name="pitch">The pitch to set the BGM to, from 0.1 to 2.0.</param>
+	public void SetBGMPitch(float pitch)
+	{
+		FadeBGMPitchTo(pitch, 0f);
+	}
+
+	/// <summary>
+	/// Fades the BGM pitch to the given <paramref name="pitch"/> over the given number of <paramref name="seconds"/>.
+	/// </summary>
+	/// <param name="pitch">The pitch to fade the BGM to, from 0.1 to 2.0.</param>
+	/// <param name="seconds">How long it should take for the pitch to change, in seconds.</param>
+	public void FadeBGMPitchTo(float pitch, float seconds = 1f)
+	{
+		pitch = Math.Clamp(pitch, 0.1f, 2f);
+		if (PitchTween != null)
+		{
+			// killed tweens don't emit finished so do it ourselves
+			PitchTween.EmitSignal(Tween.SignalName.Finished);
+			PitchTween.Kill();
+			PitchTween = null;
+		}
+		if (seconds == 0f)
+			BGM.PitchScale = pitch;
+		else
+		{
+			PitchTween = CreateTween();
+			PitchTween.TweenProperty(BGM, "pitch_scale", pitch, seconds);
+		}
+	}
+
+	/// <summary>
+	/// Fades the BGM pitch to the given <paramref name="pitch"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
+	/// </summary>
+	/// <param name="pitch">The pitch to fade the BGM to, from 0.1 to 2.0.</param>
+	/// <param name="seconds">How long it should take for the pitch to change, in seconds.</param>
+	public async Task WaitForFadeBGMPitchTo(float pitch, float seconds = 1f)
+	{
+		FadeBGMPitchTo(pitch, seconds);
+		Tween tween = PitchTween;
+		if (tween != null)
+			await ToSignal(tween, Tween.SignalName.Finished);
+	}
+
 	private void OnSFXFinish(AudioStreamPlayer player)
 	{
 		player.PitchScale = 1f;
@@ -314,6 +363,8 @@ public partial class AudioManager : Node
 	internal void Reset()
 	{
 		PlayingSounds.Clear();
+		PitchTween?.Kill();
+		PitchTween = null;
 		BGM.Stop();
 		BGM.PitchScale = 1f;
 		BGM.VolumeDb = Mathf.LinearToDb(1f);

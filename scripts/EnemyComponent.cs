@@ -43,6 +43,7 @@ public partial class EnemyComponent : Node
 		Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;
 		InfoBox.Position = Enemy.CenterPoint + new Vector2(0, -30);
 		Enemy.OnDamaged += Damaged;
+		Enemy.OnRevived += Revived;
 		HurtTimer.Timeout += () => Enemy.SetHurt(false);
 		AddChild(HurtTimer);
 	}
@@ -56,5 +57,11 @@ public partial class EnemyComponent : Node
 	{
 		Enemy.SetHurt(true);
 		HurtTimer.Start(0.75d);
+	}
+
+	private void Revived(object sender, EventArgs e)
+	{
+		if (IsInstanceValid(this))
+			BattleManager.Instance.OnEnemyRevived(this);
 	}
 }

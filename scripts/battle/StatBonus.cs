@@ -15,11 +15,7 @@ public struct StatBonus
     public static void ApplyAll(ref Stats stats, StatBonus[] bonuses)
     {
         foreach (StatBonus bonus in bonuses)
-        {
-            int stat = stats.GetStat(bonus.Type);
-            stat = (int)Math.Round(stat * bonus.Multiplier + bonus.FlatBonus);
-            stats.SetStat(bonus.Type, stat);
-        }
+            stats.SetStatExact(bonus.Type, stats.GetStatExact(bonus.Type) * bonus.Multiplier + bonus.FlatBonus);
     }
 
     /// <summary>

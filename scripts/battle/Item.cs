@@ -11,6 +11,11 @@ namespace OmoriSandbox.Battle;
 public class Item : BattleAction
 {
 	/// <summary>
+	/// The database ID this item was registered under.
+	/// </summary>
+	public string Id { get; internal set; }
+
+	/// <summary>
 	/// Whether this item is a Toy.
 	/// </summary>
 	public bool IsToy { get; private set; }

@@ -120,7 +120,7 @@ public abstract partial class Mod : Node
     /// <summary>
     /// Registers a new <see cref="StatModifier"/> to the database.
     /// </summary>
-    /// <param name="id">The ID of the stat modifier. This is the ID used in functions like <see cref="Actor.AddStatModifier(string, bool)"/>.</param>
+    /// <param name="id">The ID of the stat modifier. This is the ID used in functions like <see cref="Actor.AddStatModifier(string, int, bool)"/>.</param>
     /// <param name="func">The function used to construct the stat modifier when called.<br/>
     /// This allows you to easily build new stat modifiers, such as the following:<br/>
     /// <c>() => new StatModifier(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 0.5f))</c>

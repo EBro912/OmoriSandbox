@@ -112,21 +112,9 @@ public class Equipment
     /// <param name="stats">A reference to the <see cref="Stats"/> to modify.</param>
     public void Apply(ref Stats stats)
     {
-        foreach (StatBonus bonus in Stats)
-        {
-            int stat = stats.GetStat(bonus.Type);
-            stat = (int)Math.Round(stat * bonus.Multiplier + bonus.FlatBonus);
-            stats.SetStat(bonus.Type, stat);
-        }
+        StatBonus.ApplyAll(ref stats, Stats);
 
         if (OnApply != null)
-        {
-            foreach (StatBonus bonus in OnApply())
-            {
-                int stat = stats.GetStat(bonus.Type);
-                stat = (int)Math.Round(stat * bonus.Multiplier + bonus.FlatBonus);
-                stats.SetStat(bonus.Type, stat);
-            }
-        }
+            StatBonus.ApplyAll(ref stats, OnApply());
     }
 }

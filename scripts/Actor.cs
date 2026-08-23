@@ -43,6 +43,10 @@ public abstract class Actor
 	/// Fired after a <see cref="StatModifier"/> is removed from this actor for any reason.
 	/// </summary>
 	public event EventHandler<StatModifierRemovedEventArgs> OnStatModifierRemoved;
+	/// <summary>
+	/// Fired when this actor is revived. See <see cref="Revive"/>.
+	/// </summary>
+	public event EventHandler OnRevived;
 	
 	/// <summary>
 	/// The name of the actor.
@@ -149,6 +153,7 @@ public abstract class Actor
 
 	/// <summary>
 	/// The Actor's base stats, any adjusted stats from equips or modifiers, and emotion stats.
+	/// Stats are capped at the very end of the calculation, and HIT/EVA are not capped at all.
 	/// </summary>
 	public Stats CurrentStats
 	{
@@ -163,9 +168,30 @@ public abstract class Actor
 			{
 				mod.ApplyStats(ref current);
 			}
-			
+
+			// single round + clamp at the very end, matching the base game
+			current.ApplyStatLimits();
 			return current;
 		}
+	}
+
+	/// <summary>
+	/// The actor's total stat multiplier from their current emotion and all stat modifiers,
+	/// like RPG Maker's <c>battler.paramRate</c>. Flat bonuses (such as Flex's HIT bonus) and
+	/// the stat limit are not included; equipment counts as base stats, not rate.
+	/// </summary>
+	/// <param name="stat">The <see cref="StatType"/> to get the total multiplier for.</param>
+	public float GetParamRate(StatType stat)
+	{
+		float rate = 1f;
+		foreach (StatBonus bonus in GetEmotionStatBonuses(CurrentEmotion))
+		{
+			if (bonus.Type == stat)
+				rate *= bonus.Multiplier;
+		}
+		foreach (StatModifier mod in StatModifiers.Values)
+			rate *= mod.GetParamRate(stat);
+		return rate;
 	}
 
 	/// <summary>
@@ -297,24 +323,33 @@ public abstract class Actor
 	/// Removes a <see cref="StatModifier"/> of the given name from this actor.
 	/// </summary>
 	/// <param name="modifier">The name of the modifier to remove.</param>
-	public void RemoveStatModifier(string modifier)
+	/// <param name="force">If true, removes the modifier even if it has a removal guard. See <see cref="StatModifier.WithRemovalGuard"/>.</param>
+	public void RemoveStatModifier(string modifier, bool force = false)
 	{
-		RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Manual);
+		RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Manual, force);
 	}
 
 	/// <summary>
 	/// Removes all <see cref="StatModifier"/>s from this actor.
 	/// </summary>
-	public void RemoveAllStatModifiers()
+	/// <param name="force">If true, also removes modifiers that have a removal guard. See <see cref="StatModifier.WithRemovalGuard"/>.</param>
+	public void RemoveAllStatModifiers(bool force = false)
 	{
 		foreach (string modifier in StatModifiers.Keys.ToList())
-			RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Cleared);
+			RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Cleared, force);
 	}
-	
-	private void RemoveStatModifierInternal(string modifier, StatModifierRemovalReason reason)
+
+	private void RemoveStatModifierInternal(string modifier, StatModifierRemovalReason reason, bool force = false)
 	{
-		if (!StatModifiers.Remove(modifier, out StatModifier mod))
+		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod))
 			return;
+		// removal-guarded modifiers only get removed via force or their own turn counter
+		if (!force && mod.HasRemovalGuard && reason != StatModifierRemovalReason.Expired)
+		{
+			GD.Print("Removal of modifier " + modifier + " on " + Name + " blocked by removal guard (" + reason + ")");
+			return;
+		}
+		StatModifiers.Remove(modifier);
 		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
 		ClampHealthJuiceToMax();
 		OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason));
@@ -564,6 +599,16 @@ public abstract class Actor
 	}
 
 	/// <summary>
+	/// Whether this actor's current HP is equal to or below the given fraction of its max HP.<br/>
+	/// Useful for having battle conditions scale when the actor's stats are adjusted.
+	/// </summary>
+	/// <param name="fraction">The fraction of max HP to compare against.</param>
+	public bool IsBelowHP(float fraction)
+	{
+		return CurrentHP <= Mathf.RoundToInt(CurrentStats.MaxHP * fraction);
+	}
+
+	/// <summary>
 	/// Makes this actor appear visually hurt.
 	/// </summary>
 	/// <remarks>
@@ -635,6 +680,10 @@ public abstract class Actor
 	/// <summary>
 	/// Revives a toast actor with the given HP, clearing the toast animation. Does nothing if the actor isn't toast.
 	/// </summary>
+	/// <remarks>
+	/// Revival does not restore the emotion, emotion lock, or stat modifiers that were cleared by
+	/// death. Revived enemies that fell off-screen are restored to their original position.
+	/// </remarks>
 	/// <param name="hp">The HP the actor revives with.</param>
 	public void Revive(int hp)
 	{
@@ -647,6 +696,7 @@ public abstract class Actor
 		IsToast = false;
 		ClearAnimation();
 		CurrentHP = hp;
+		OnRevived?.Invoke(this, EventArgs.Empty);
 	}
 
 	/// <summary>

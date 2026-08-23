@@ -157,7 +157,10 @@ internal partial class EnemyEditorComponent : Control
 	{
 		if (CurrentEnemy == null)
 			return;
-		StatAdjustmentEditor.UpdateStats(CurrentEnemy.DeclaredStats + StatAdjustmentEditor.GetStats());
+		Stats display = CurrentEnemy.DeclaredStats + StatAdjustmentEditor.GetStats();
+		// finalize like Actor.CurrentStats so the preview matches in-battle values
+		display.ApplyStatLimits();
+		StatAdjustmentEditor.UpdateStats(display);
 	}
 
 	public Stats GetAdjustedStats()

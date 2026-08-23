@@ -49,12 +49,28 @@ public class StatModifier
     }
 
     /// <summary>
+    /// Whether this modifier ignores removals unless forced. See <see cref="WithRemovalGuard"/>.
+    /// </summary>
+    public bool HasRemovalGuard { get; private set; }
+
+    /// <summary>
     /// Sets the list of state icons this modifier should use.
     /// </summary>
     /// <param name="icons">A list of state icons this stat modifier should use.</param>
     public StatModifier WithStateIcons(params StateIcon[] icons)
     {
         StateIcons = icons;
+        return this;
+    }
+
+    /// <summary>
+    /// Marks this modifier as ignoring removal. <see cref="Actors.Actor.RemoveStatModifier(string, bool)"/>
+    /// and <see cref="Actors.Actor.RemoveAllStatModifiers(bool)"/> will not work unless the force parameter is set.
+    /// It still expires from its own turn counter, so pair this with an infinite duration for a permanent effect.
+    /// </summary>
+    public StatModifier WithRemovalGuard()
+    {
+        HasRemovalGuard = true;
         return this;
     }
     
@@ -87,6 +103,22 @@ public class StatModifier
     {
         // base class simply applies all stat bonuses to the provided stats
         StatBonus.ApplyAll(ref stats, Bonuses);
+    }
+
+    /// <summary>
+    /// The total multiplier this modifier applies to the given stat, as the product of its
+    /// stat bonus multipliers. Flat bonuses are ignored.
+    /// </summary>
+    /// <param name="stat">The <see cref="StatType"/> to get the multiplier for.</param>
+    public virtual float GetParamRate(StatType stat)
+    {
+        float rate = 1f;
+        foreach (StatBonus bonus in Bonuses)
+        {
+            if (bonus.Type == stat)
+                rate *= bonus.Multiplier;
+        }
+        return rate;
     }
 
     /// <summary>

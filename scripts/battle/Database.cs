@@ -18,11 +18,13 @@ namespace OmoriSandbox.Battle;
 /// </summary>
 public class Database
 {
-	private static readonly SortedDictionary<string, Func<PartyMember>> PartyMembers = [];
-	private static readonly SortedDictionary<string, Func<Enemy>> Enemies = [];
+	// ordinal comparers so registration and lookups are culture-independent
+	// by default, culture-sensitive comparison can treat punctuation-differing ids as equal
+	private static readonly SortedDictionary<string, Func<PartyMember>> PartyMembers = new(StringComparer.Ordinal);
+	private static readonly SortedDictionary<string, Func<Enemy>> Enemies = new(StringComparer.Ordinal);
 	private static readonly Dictionary<string, Skill> Skills = [];
-	private static readonly SortedDictionary<string, Item> Items = [];
-	private static readonly SortedDictionary<string, Equipment> Equipment = [];
+	private static readonly SortedDictionary<string, Item> Items = new(StringComparer.Ordinal);
+	private static readonly SortedDictionary<string, Equipment> Equipment = new(StringComparer.Ordinal);
 	private static readonly Dictionary<string, Func<StatModifier>> Modifiers = [];
 	private static readonly Dictionary<string, Texture2D> StateIcons = [];
 	private static readonly Dictionary<string, EmotionGroup> EmotionGroups = [];
@@ -258,7 +260,10 @@ public class Database
 
 	internal static bool RegisterModdedItem(string id, Item item)
 	{
-		return TryRegister(Items, "Item", id, item);
+		if (!TryRegister(Items, "Item", id, item))
+			return false;
+		item.Id = id;
+		return true;
 	}
 
 	internal static bool RegisterModdedEquipment(string id, Equipment equipment)
@@ -3412,9 +3417,12 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target,
 					"MOLLY fires her stingers!\n[target] gets struck!");
 				await AnimationManager.Instance.WaitForAnimation(193, target);
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2, false, neverCrit: true);
-				AnimationManager.Instance.PlayAnimation(215, target);
-				target.AddTierStatModifier("SpeedDown", 3);
+				int damage = BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2, false, neverCrit: true);
+				if (damage > -1)
+				{
+					AnimationManager.Instance.PlayAnimation(215, target);
+					target.AddTierStatModifier("SpeedDown", 3);
+				}
 			}
 		);
 
@@ -5128,7 +5136,8 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(197, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s leg and drags them down!");
+				// unused in the base game, Drag Down displays no battle text
+				//BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s leg and drags them down!");
 				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.5f, false, 0f, neverCrit: true);
 			}
 		);
@@ -5705,8 +5714,9 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(197, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps around [target]!");
-				BattleManager.Instance.Damage(self, target, () => 100, false, 0.1f, neverCrit: true);
-				target.SetEmotion("afraid");
+				int damage = BattleManager.Instance.Damage(self, target, () => 100, false, 0.1f, neverCrit: true);
+				if (damage > -1)
+					target.SetEmotion("afraid");
 			}
 		);
 		
@@ -8118,6 +8128,11 @@ public class Database
 		});
 
 		#endregion
+
+		// have each item keep track of their own Id to make later comparisons easier
+		// instead of having to go by name, which causes issues
+		foreach (KeyValuePair<string, Item> entry in Items)
+			entry.Value.Id = entry.Key;
 	}
 
 	// Helper method for creating buffs and debuffs affected by the InfiniteBuffsDebuffs setting
