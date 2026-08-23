@@ -7345,7 +7345,7 @@ public class Database
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
-		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1).WithActionEndTicking());
+		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1));
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
 		Modifiers.Add("Charm", () => new CharmStatModifier(1).WithActionEndTicking());
