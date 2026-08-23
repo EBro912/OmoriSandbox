@@ -4948,9 +4948,9 @@ public class Database
 			}
 		);
 		
-		Skills["SMIUltimateAttackx1"] = new Skill(
-			name: "SMIUltimateAttackx1",
-			description: "SMIUltimateAttackx1",
+		Skills["SMUltimateAttack"] = new Skill(
+			name: "SMUltimateAttack",
+			description: "SMUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
 			effect: async (self, targets) =>
@@ -4958,44 +4958,24 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
 				await Wait.Milliseconds(1000);
 				AnimationManager.Instance.PlayScreenAnimation(186, false);
+				int damage = BattleManager.Instance.GetAllAliveEnemies().Count switch
+				{
+					2 => 75,
+					1 => 50,
+					_ => 100
+				};
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.Damage(self, member, () => 50, false, 0f, neverCrit: true);
+					BattleManager.Instance.Damage(self, member, () => damage, false, 0f, neverCrit: true);
 				}
-			}
-		);
-		
-		Skills["SMIUltimateAttackx2"] = new Skill(
-			name: "SMIUltimateAttackx2",
-			description: "SMIUltimateAttackx2",
-			target: SkillTarget.AllEnemies,
-			cost: 0,
-			effect: async (self, targets) =>
-			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
-				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.PlayScreenAnimation(186, false);
-				foreach (Actor member in targets)
-				{
-					BattleManager.Instance.Damage(self, member, () => 75, false, 0f, neverCrit: true);
-				}
-			}
-		);
-		
-		Skills["SMIUltimateAttackx3"] = new Skill(
-			name: "SMIUltimateAttackx3",
-			description: "SMIUltimateAttackx3",
-			target: SkillTarget.AllEnemies,
-			cost: 0,
-			effect: async (self, targets) =>
-			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
-				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.PlayScreenAnimation(186, false);
-				foreach (Actor member in targets)
-				{
-					BattleManager.Instance.Damage(self, member, () => 100, false, 0f, neverCrit: true);
-				}
+
+				await AnimationManager.Instance.ToSignal(AnimationManager.Instance,
+					AnimationManager.SignalName.AnimationFinished);
+
+				// he only dies once his own ultimate has resolved, so the next
+				// ultimate in the chain sees one fewer enemy on the field
+				self.RemoveStatModifier("Immortal");
+				self.CurrentHP = 0;
 			}
 		);
 		

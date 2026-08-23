@@ -15,7 +15,7 @@ internal sealed class SirMaximusIIAlt : Enemy
 
     protected override Stats Stats => new(3500, 2000, 70, 95, 70, 10, 95);
 
-    protected override string[] EquippedSkills => ["SMIAttack", "SMIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMIUltimateAttackx1", "SMIUltimateAttackx2", "SMIUltimateAttackx3"];
+    protected override string[] EquippedSkills => ["SMIAttack", "SMIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMUltimateAttack"];
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -79,25 +79,19 @@ internal sealed class SirMaximusIIAlt : Enemy
 
     private bool UltimateAttack = false;
 
+    public override Task OnStartOfBattle()
+    {
+        AddStatModifier("Immortal");
+        return base.OnStartOfBattle();
+    }
+
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0 && !UltimateAttack)
+        if (CurrentHP <= 1 && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();
-            switch (SelectAllEnemies().Count + 1)
-            {
-                case 2:
-                    BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx2"]);
-                    break;
-                case 1:
-                    BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx1"]);
-                    break;
-                default:
-                    BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx3"]);
-                    break;
-            }
-
+            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMUltimateAttack"]);
             UltimateAttack = true;
         }
     }

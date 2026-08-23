@@ -211,11 +211,9 @@ public partial class DialogueManager : Node2D
 		{
 			PauseType p = pauses[0];
 			pauses.RemoveAt(0);
+			// the pause sits before the character at this index, which stays hidden until typing resumes
 			if (pauses.Count == 0)
-			{
 				PauseIndices.Remove(Text.VisibleCharacters);
-				Text.VisibleCharacters++;
-			}
 			IsTyping = false;
 			switch (p)
 			{
@@ -428,8 +426,9 @@ public partial class DialogueManager : Node2D
 
 		if (target < CurrentMessageLength)
 		{
-			// skip to just past the pause marker
-			Text.VisibleCharacters = target + 1;
+			// stop at the pause marker, consuming it so typing doesn't trigger it again
+			Text.VisibleCharacters = target;
+			PauseIndices.Remove(target);
 			WaitForInput();
 		}
 		else

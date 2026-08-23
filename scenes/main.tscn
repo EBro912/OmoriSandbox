@@ -1046,5 +1046,3 @@ theme_override_styles/normal = ExtResource("37_c6pm6")
 theme_override_styles/pressed = ExtResource("38_5he1u")
 theme_override_styles/hover = ExtResource("39_5poiv")
 text = "Return to Menu"
-
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1656095367]
