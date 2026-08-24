@@ -88,8 +88,17 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 			AudioManager.Instance.PlaySFX("SYS_move");
 	}
 
+	// maps cursor indices to their public option ids
+	private static readonly BattleMenuOption[] IndexToOption =
+		[BattleMenuOption.Attack, BattleMenuOption.Skill, BattleMenuOption.Snack, BattleMenuOption.Toy];
+
 	protected override void OnSelect()
 	{
+		if (!BattleManager.Instance.IsMenuOptionEnabled(IndexToOption[CursorIndex]))
+		{
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
 		CursorSprite.StopBounce();
 		switch (Options[CursorIndex])
 		{

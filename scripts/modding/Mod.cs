@@ -1,4 +1,5 @@
 using Godot;
+using HarmonyLib;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
@@ -15,6 +16,41 @@ namespace OmoriSandbox.Modding;
 /// </summary>
 public abstract partial class Mod : Node
 {
+    /// <summary>
+    /// The mod's ID, as declared in its mod.json.
+    /// </summary>
+    public string Id { get; internal set; }
+
+    private Harmony _harmony;
+
+    /// <summary>
+    /// This mod's <see cref="HarmonyLib.Harmony"/> instance, created on first use.<br/>
+    /// Harmony patches are applied to the whole game, not just this mod's content. A patch on a
+    /// shared method like <see cref="BattleManager.Damage"/> runs for every actor in every battle.
+    /// Always guard patches so they only affect the actors or battles they are meant for,
+    /// e.g. <c>if (__instance is not MyEnemy) return;</c>
+    /// </summary>
+    protected Harmony Harmony
+    {
+        get
+        {
+            if (_harmony == null)
+            {
+                if (OS.HasFeature("editor"))
+                    GD.PushWarning($"Mod {Id} is creating a Harmony instance in an editor build. " +
+                                   "Patches can prevent the editor from reloading assemblies until it is restarted.");
+                _harmony = new Harmony($"omorisandbox.mod.{Id}");
+            }
+            return _harmony;
+        }
+    }
+
+    /// <summary>
+    /// Removes every Harmony patch this mod has applied.
+    /// Called automatically by the <see cref="ModManager"/> when the game exits.
+    /// </summary>
+    internal void UnpatchAll() => _harmony?.UnpatchAll(_harmony.Id);
+
     /// <summary>
     /// Called after the mod has been loaded and added to the scene tree.
     /// </summary>
@@ -84,7 +120,7 @@ public abstract partial class Mod : Node
     /// <summary>
     /// Registers a new <see cref="StatModifier"/> to the database.
     /// </summary>
-    /// <param name="id">The ID of the stat modifier. This is the ID used in functions like <see cref="Actor.AddStatModifier(string, bool)"/>.</param>
+    /// <param name="id">The ID of the stat modifier. This is the ID used in functions like <see cref="Actor.AddStatModifier(string, int, bool)"/>.</param>
     /// <param name="func">The function used to construct the stat modifier when called.<br/>
     /// This allows you to easily build new stat modifiers, such as the following:<br/>
     /// <c>() => new StatModifier(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 0.5f))</c>

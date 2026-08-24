@@ -23,6 +23,9 @@ public partial class AudioManager : Node
 
 	// only one instance of a sound can play at once
 	private Dictionary<string, AudioStreamPlayer> PlayingSounds = [];
+	
+	// reusable tween so multiple pitch tweens don't fight over the BGM
+	private Tween PitchTween;
 
 	public override void _EnterTree()
 	{
@@ -141,7 +144,7 @@ public partial class AudioManager : Node
 	/// Plays BGM with the given <paramref name="name"/> and desired parameters.
 	/// </summary>
 	/// <param name="name">The name of the BGM to play.</param>
-	/// <param name="volume">The volume to play the BGM at, from 0.001 to 2.0.</param>
+	/// <param name="volume">The volume to play the BGM at, from 0.001 to 3.0.</param>
 	/// <param name="pitch">The pitch to play the BGM at, from 0.1 to 2.0.</param>
 	public void PlayBGM(string name, float volume, float pitch)
 	{
@@ -152,7 +155,7 @@ public partial class AudioManager : Node
 		}
 		
 		// prevent people from blowing out their eardrums
-		volume = Math.Clamp(volume, 0.001f, 2f);
+		volume = Math.Clamp(volume, 0.001f, 3f);
 		pitch = Math.Clamp(pitch, 0.1f, 2f);
 		
 		BGM.Stream = stream;
@@ -258,11 +261,11 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/>.
 	/// </summary>
-	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 2.0.</param>
+	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 3.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public void FadeBGMTo(float volume, float seconds = 1f)
 	{
-		volume = Math.Clamp(volume, 0.001f, 2f);
+		volume = Math.Clamp(volume, 0.001f, 3f);
 		float target = Mathf.LinearToDb(volume);
 		if (seconds == 0f)
 			BGM.VolumeDb = target;
@@ -276,11 +279,11 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
 	/// </summary>
-	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 2.0.</param>
+	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 3.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public async Task WaitForFadeBGMTo(float volume, float seconds = 1f)
 	{
-		volume = Math.Clamp(volume, 0.001f, 2f);
+		volume = Math.Clamp(volume, 0.001f, 3f);
 		float target = Mathf.LinearToDb(volume);
 		if (seconds == 0f)
 			BGM.VolumeDb = target;
@@ -290,6 +293,52 @@ public partial class AudioManager : Node
 			tween.TweenProperty(BGM, "volume_db", target, seconds);
 			await ToSignal(tween, Tween.SignalName.Finished);
 		}
+	}
+
+	/// <summary>
+	/// Sets the pitch of the currently playing BGM, from 0.1 to 2.0.
+	/// </summary>
+	/// <param name="pitch">The pitch to set the BGM to, from 0.1 to 2.0.</param>
+	public void SetBGMPitch(float pitch)
+	{
+		FadeBGMPitchTo(pitch, 0f);
+	}
+
+	/// <summary>
+	/// Fades the BGM pitch to the given <paramref name="pitch"/> over the given number of <paramref name="seconds"/>.
+	/// </summary>
+	/// <param name="pitch">The pitch to fade the BGM to, from 0.1 to 2.0.</param>
+	/// <param name="seconds">How long it should take for the pitch to change, in seconds.</param>
+	public void FadeBGMPitchTo(float pitch, float seconds = 1f)
+	{
+		pitch = Math.Clamp(pitch, 0.1f, 2f);
+		if (PitchTween != null)
+		{
+			// killed tweens don't emit finished so do it ourselves
+			PitchTween.EmitSignal(Tween.SignalName.Finished);
+			PitchTween.Kill();
+			PitchTween = null;
+		}
+		if (seconds == 0f)
+			BGM.PitchScale = pitch;
+		else
+		{
+			PitchTween = CreateTween();
+			PitchTween.TweenProperty(BGM, "pitch_scale", pitch, seconds);
+		}
+	}
+
+	/// <summary>
+	/// Fades the BGM pitch to the given <paramref name="pitch"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
+	/// </summary>
+	/// <param name="pitch">The pitch to fade the BGM to, from 0.1 to 2.0.</param>
+	/// <param name="seconds">How long it should take for the pitch to change, in seconds.</param>
+	public async Task WaitForFadeBGMPitchTo(float pitch, float seconds = 1f)
+	{
+		FadeBGMPitchTo(pitch, seconds);
+		Tween tween = PitchTween;
+		if (tween != null)
+			await ToSignal(tween, Tween.SignalName.Finished);
 	}
 
 	private void OnSFXFinish(AudioStreamPlayer player)
@@ -314,6 +363,8 @@ public partial class AudioManager : Node
 	internal void Reset()
 	{
 		PlayingSounds.Clear();
+		PitchTween?.Kill();
+		PitchTween = null;
 		BGM.Stop();
 		BGM.PitchScale = 1f;
 		BGM.VolumeDb = Mathf.LinearToDb(1f);

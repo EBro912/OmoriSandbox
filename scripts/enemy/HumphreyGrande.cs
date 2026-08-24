@@ -10,6 +10,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class HumphreyGrande : Enemy
 {
     public override string Name => "HUMPHREY GRANDE";
+    public override Vector2 InfoBoxOffset => new(0, -255);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_grande.tres");
     protected override Stats Stats => new(3700, 425, 68, 30, 1, 10, 95);
     protected override string[] EquippedSkills => ["HUGAttack"];

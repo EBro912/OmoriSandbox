@@ -11,6 +11,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class TheMaverick : Enemy
 {
     public override string Name => "THE MAVERICK";
+    public override Vector2 InfoBoxOffset => new(0, -225);
+    public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/the_maverick.tres");
     protected override Stats Stats => new(375, 125, 13, 5, 18, 15, 95);
 

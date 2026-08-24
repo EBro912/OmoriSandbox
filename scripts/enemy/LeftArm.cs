@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class LeftArm : Enemy
 {
     public override string Name => "LEFT ARM";
+    public override Vector2 InfoBoxOffset => new(0, -150);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/left_arm.tres");
     protected override string[] EquippedSkills => ["LAAttack", "RAFlex", "LAPoke"];
     protected override Stats Stats => new(175, 75, 12, 5, 5, 10, 95);

@@ -9,6 +9,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Abbi : Enemy
 {
     public override string Name => "ABBI";
+    public override Vector2 InfoBoxOffset => new(0, -325);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/abbi.tres");
     protected override Stats Stats => new(8000, 2500, 63, 76, 90, 20, 95);
     protected override string[] EquippedSkills => ["AbbiAttack", "AbbiAttackOrder", "AbbiSummon"];

@@ -9,6 +9,7 @@ internal sealed class YeOldSprout : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/ye_old_sprout.tres");
 
     public override string Name => "YE OLD SPROUT";
+    public override Vector2 InfoBoxOffset => new(0, -250);
 
     protected override Stats Stats => new Stats(300, 150, 8, 8, 2, 10, 95);
 

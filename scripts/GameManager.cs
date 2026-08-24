@@ -19,7 +19,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.1.1";
+	public const string Version = "OmoriSandbox v1.1.2";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
@@ -68,6 +68,8 @@ public partial class GameManager : Node
 		ModManager.Instance.LoadMods();
 		MainMenuManager.Instance.Init();
 		EditorManager.Instance.Init();
+		// the dropdowns are populated by EditorManager.Init, restore the remembered selection after
+		MainMenuManager.Instance.RestoreLastSelectedPreset();
 	}
 
 	public override void _ExitTree()
@@ -216,7 +218,7 @@ public partial class GameManager : Node
 		return component;
 	}
 
-	private PartyMemberComponent SpawnPartyMember(FollowupSet set, BattlePresetActor actor)
+	internal PartyMemberComponent SpawnPartyMember(FollowupSet set, BattlePresetActor actor)
 	{
 		PartyMember instance = Database.CreatePartyMember(actor.Name);
 		if (instance == null)

@@ -11,6 +11,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Vance : Enemy
 {
     public override string Name => "VANCE";
+    public override Vector2 InfoBoxOffset => new(0, -375);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/vance.tres");
     protected override Stats Stats => new(145, 72, 13, 10, 7, 10, 95);
 

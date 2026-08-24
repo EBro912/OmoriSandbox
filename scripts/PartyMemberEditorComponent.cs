@@ -330,6 +330,8 @@ internal partial class PartyMemberEditorComponent : Control
 		SelectedCharm?.Apply(ref stats);
 		if (SelectedEmotion != null)
 			StatBonus.ApplyAll(ref stats, SelectedEmotion.StatBonuses);
+		// finalize like Actor.CurrentStats so the preview matches in-battle values
+		stats.ApplyStatLimits();
 		HealthLabel.Text = $"{stats.MaxHP}/{stats.MaxHP}";
 		JuiceLabel.Text = $"{stats.MaxJuice}/{stats.MaxJuice}";
 		StatAdjustmentEditor.UpdateStats(stats);

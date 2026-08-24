@@ -10,6 +10,8 @@ internal sealed class HeroBoss : Enemy
 {
 	public override string Name => "HERO";
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/hero_boss.tres");
+	public override Vector2 InfoBoxOffset => new(0, -200);
+	public override bool InfoBoxCursorAboveBox => true;
 	protected override Stats Stats => new(10000, 7000, 90, 100, 45, 10, 95);
 	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubrey", "HBossCallKel"];
 

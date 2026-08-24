@@ -1,11 +1,13 @@
 using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
+using System.Linq;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Creepypasta : Enemy
 {
     public override string Name => "CREEPYPASTA";
+    public override Vector2 InfoBoxOffset => new(0, -115);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/creepypasta.tres");
     protected override Stats Stats => new(300, 150, 50, 1, 90, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)
@@ -19,7 +21,7 @@ internal sealed class Creepypasta : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["CPAttack"]);
         
-        if (IsBelowHP(0.2f))
+        if (BattleManager.Instance.GetAlivePartyMembers().Any(x => x.Actor.IsBelowHP(0.2f)))
             goto scare;
 
         switch (CurrentEmotion.Id)

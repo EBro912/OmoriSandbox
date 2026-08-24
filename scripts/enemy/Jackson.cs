@@ -9,6 +9,8 @@ internal sealed class Jackson : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/jackson.tres");
 
     public override string Name => "JACKSON";
+    public override Vector2 InfoBoxOffset => new(6, -162);
+    public override bool InfoBoxCursorAboveBox => true;
 
     protected override Stats Stats => new(45, 75, 10, 1, 1, 10, 100);
 

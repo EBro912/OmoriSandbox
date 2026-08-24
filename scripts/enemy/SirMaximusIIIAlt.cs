@@ -11,10 +11,11 @@ internal sealed class SirMaximusIIIAlt : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sir_maximus.tres");
 
     public override string Name => "SIR MAXIMUS III";
+    public override Vector2 InfoBoxOffset => new(0, -200);
 
     protected override Stats Stats => new(4000, 2000, 75, 100, 75, 15, 95);
 
-    protected override string[] EquippedSkills => ["SMIAttack", "SMIIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMIIIFlex", "SMIUltimateAttackx1", "SMIUltimateAttackx2", "SMIUltimateAttackx3"];
+    protected override string[] EquippedSkills => ["SMIAttack", "SMIIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMIIIFlex", "SMUltimateAttack"];
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -87,25 +88,19 @@ internal sealed class SirMaximusIIIAlt : Enemy
     
     private bool UltimateAttack = false;
 
+    public override Task OnStartOfBattle()
+    {
+        AddStatModifier("Immortal");
+        return base.OnStartOfBattle();
+    }
+
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0 && !UltimateAttack)
+        if (CurrentHP <= 1 && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();
-            switch (SelectAllEnemies().Count + 1)
-            {
-                case 2:
-                    BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx2"]);
-                    break;
-                case 1:
-                    BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx1"]);
-                    break;
-                default:
-                    BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttackx3"]);
-                    break;
-            }
-
+            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMUltimateAttack"]);
             UltimateAttack = true;
         }
     }

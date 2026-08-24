@@ -41,8 +41,12 @@ public partial class EnemyComponent : Node
 		ShowInfoBox(false);
 		
 		Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;
-		InfoBox.Position = Enemy.CenterPoint + new Vector2(0, -30);
+		// in vanilla, the box + offset is drawn relative to the actor's "feet"
+		float feetY = sprite.SpriteFrames.GetFrameTexture(sprite.Animation, 0).GetHeight() * sprite.GlobalScale.Y / 2f;
+		InfoBox.Position = Enemy.CenterPoint + new Vector2(Enemy.InfoBoxOffset.X, Enemy.InfoBoxOffset.Y + feetY);
+		InfoBox.SetCursorAboveBox(Enemy.InfoBoxCursorAboveBox);
 		Enemy.OnDamaged += Damaged;
+		Enemy.OnRevived += Revived;
 		HurtTimer.Timeout += () => Enemy.SetHurt(false);
 		AddChild(HurtTimer);
 	}
@@ -56,5 +60,11 @@ public partial class EnemyComponent : Node
 	{
 		Enemy.SetHurt(true);
 		HurtTimer.Start(0.75d);
+	}
+
+	private void Revived(object sender, EventArgs e)
+	{
+		if (IsInstanceValid(this))
+			BattleManager.Instance.OnEnemyRevived(this);
 	}
 }

@@ -8,6 +8,7 @@ namespace OmoriSandbox.Actors;
 public class SnaleyThree : Enemy
 {
     public override string Name => "SNALEY";
+    public override Vector2 InfoBoxOffset => new(0, -225);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/snaley.tres");
     protected override Stats Stats => new(2000, 1000, 40, 30, 40, 15, 200);
     public override bool IsEmotionValid(Emotion emotion)

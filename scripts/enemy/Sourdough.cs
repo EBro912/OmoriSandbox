@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Sourdough : Enemy
 {
     public override string Name => "SOURDOUGH";
+    public override Vector2 InfoBoxOffset => new(0, -175);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sourdough.tres");
     protected override Stats Stats => new(363, 93, 55, 33, 49, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)

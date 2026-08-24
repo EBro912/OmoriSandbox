@@ -10,6 +10,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class FearOfDrowning : Enemy
 {
     public override string Name => "SOMETHING";
+    public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/fear_of_drowning_{Phase}.tres");
     protected override Stats Stats => new(10300, 0, 84, 84, 70, 10, 95);
     protected override string[] EquippedSkills => ["FODAttack", "FODDoNothing", "FODDragDown", "FODWhirlpool", "FODDrowning1", "FODDrowning2", "FODDrowning3"];

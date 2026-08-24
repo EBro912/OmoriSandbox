@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class KidsKite : Enemy
 {
     public override string Name => "KID'S KITE";
+    public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/kids_kite.tres");
     protected override Stats Stats => new(175, 90, 26, 10, 40, 10, 95);
     protected override string[] EquippedSkills => ["KSKAttack", "KSKDoNothing", "KSKFly"];

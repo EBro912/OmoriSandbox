@@ -67,18 +67,20 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public Stats AdjustedStats { get; private set; }
 
-	// the enemy's declared stats, used by the editor stat display
-	internal Stats DeclaredStats => Stats;
+	/// <summary>
+	/// Position of this enemy's info box center relative to the actor's "feet" (the bottom of the sprite).
+	/// Defaults to <c>Vector2.Zero</c> if not specified.
+	/// </summary>
+	public virtual Vector2 InfoBoxOffset => Vector2.Zero;
 
 	/// <summary>
-	/// Whether this enemy's current HP is equal to or below the given fraction of its max HP.<br/>
-	/// Useful for having battle conditions scale when the enemy's stats are adjusted.
+	/// Whether this enemy's info box finger renders above the box instead of below it.
+	/// Behaves the same as vanilla's StatusCursorPosition note tag.
 	/// </summary>
-	/// <param name="fraction">The fraction of max HP to compare against.</param>
-	public bool IsBelowHP(float fraction)
-	{
-		return CurrentHP <= Mathf.RoundToInt(CurrentStats.MaxHP * fraction);
-	}
+	public virtual bool InfoBoxCursorAboveBox => false;
+
+	// the enemy's declared stats, used by the editor stat display
+	internal Stats DeclaredStats => Stats;
 
 	/// <summary>
 	/// Sets the opacity of the enemy sprite. Can optionally change over a set duration.
@@ -144,7 +146,7 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Selects an enemy target. Mainly used in <see cref="ProcessAI"/> for single-target skills that target an enemy. Can be overriden for custom targeting behavior.<br/>
+	/// Selects an alive enemy target. Mainly used in <see cref="ProcessAI"/> for single-target skills that target an enemy. Can be overriden for custom targeting behavior.<br/>
 	/// <remarks>For targeting party members, use <see cref="SelectTarget"/>.</remarks>
 	/// </summary>
 	/// <returns>The <see cref="Enemy"/> that will be targeted.</returns>
@@ -154,13 +156,13 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Selects all enemy targets. Mainly used in <see cref="ProcessAI"/> for multi-target skills that target all enemies. Can be overriden for custom targeting behavior.
+	/// Selects all alive enemy targets. Mainly used in <see cref="ProcessAI"/> for multi-target skills that target all enemies. Can be overriden for custom targeting behavior.
 	/// </summary>
 	/// <remarks>For targeting all party members, use <see cref="SelectAllTargets"/>.</remarks>
 	/// <returns></returns>
 	protected virtual IReadOnlyList<Enemy> SelectAllEnemies()
 	{
-		return BattleManager.Instance.GetAllEnemies();
+		return BattleManager.Instance.GetAllAliveEnemies();
 	}
 
 	/// <summary>

@@ -15,6 +15,16 @@ public partial class EnemyInfoBox : Control
 	[Export] private TextureProgressBar HPBar;
 	[Export] private FlowContainer StateIcons;
 	
+	internal virtual float BoxBottomOffset => 28.5f;
+	internal virtual float CursorAboveAnchor => -BoxBottomOffset;
+	
+	internal void SetCursorAboveBox(bool above)
+	{
+		Sprite2D cursor = GetNode<Sprite2D>("Cursor");
+		cursor.Position = new Vector2(0, above ? CursorAboveAnchor - 10.5f : BoxBottomOffset + 10.5f);
+		cursor.FlipH = !above;
+	}
+
 	internal virtual void SetEnemy(Enemy enemy)
 	{
 		Enemy = enemy;

@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 public class ShadyMole : Enemy
 {
     public override string Name => "SHADY MOLE";
+    public override Vector2 InfoBoxOffset => new(0, -150);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/shady_mole.tres");
     protected override Stats Stats => new(1200, 600, 45, 17, 65, 15, 95);
     public override bool IsEmotionValid(Emotion emotion)

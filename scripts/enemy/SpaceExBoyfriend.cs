@@ -8,6 +8,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class SpaceExBoyfriend : Enemy
 {
     public override string Name => "SPACE EX-BOYFRIEND";
+    public override Vector2 InfoBoxOffset => new(25, -400);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/space_ex_boyfriend.tres");
     protected override Stats Stats => new(1350, 750, 15, 16, 25, 10, 95);
     protected override string[] EquippedSkills => ["SEBAttack", "SEBDoNothing", "AngstySong", "AngrySong", "SpaceLaser", "BulletHell"];

@@ -112,6 +112,8 @@ public partial class SettingsMenuManager : Control
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 		DialogueSpeedSlider.Value = (double)config.GetValue("Settings", "DialogueSpeed", 1d);
 
+		LastSelectedPreset = (string)config.GetValue("Settings", "LastSelectedPreset", "");
+
 		RestartHoldTimeSlider.Value = (double)config.GetValue("Keybinds", "RestartHoldTime", 1d);
 		SpeedUpSlider.Value = (double)config.GetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -182,6 +184,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
+		config.SetValue("Settings", "LastSelectedPreset", LastSelectedPreset ?? "");
 
 		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", SpeedUpSlider.Value);
@@ -236,6 +239,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
 		config.SetValue("Settings", "CombinedAccuracy", false);
+		config.SetValue("Settings", "LastSelectedPreset", "");
 		config.SetValue("Keybinds", "RestartHoldTime", 1d);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -258,6 +262,11 @@ public partial class SettingsMenuManager : Control
 	}
 
 	public static SettingsMenuManager Instance { get; private set; }
+
+
+	// fake "setting" that tracks the last selected preset across restarts
+	public string LastSelectedPreset { get; internal set; } = "";
+
 	public bool ShowFPS => ShowFPSCheckbox.ButtonPressed;
 	public bool LogDebug => LogDebugCheckbox.ButtonPressed;
 	public bool PreventAccidentalRun => PreventRunCheckbox.ButtonPressed;

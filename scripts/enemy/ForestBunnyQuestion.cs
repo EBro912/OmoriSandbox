@@ -6,6 +6,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class ForestBunnyQuestion : Enemy
 {
     public override string Name => "FOREST BUNNY?";
+    public override Vector2 InfoBoxOffset => new(0, -200);
 
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/forest_bunny_alt.tres");
 

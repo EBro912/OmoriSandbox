@@ -18,11 +18,13 @@ namespace OmoriSandbox.Battle;
 /// </summary>
 public class Database
 {
-	private static readonly SortedDictionary<string, Func<PartyMember>> PartyMembers = [];
-	private static readonly SortedDictionary<string, Func<Enemy>> Enemies = [];
+	// ordinal comparers so registration and lookups are culture-independent
+	// by default, culture-sensitive comparison can treat punctuation-differing ids as equal
+	private static readonly SortedDictionary<string, Func<PartyMember>> PartyMembers = new(StringComparer.Ordinal);
+	private static readonly SortedDictionary<string, Func<Enemy>> Enemies = new(StringComparer.Ordinal);
 	private static readonly Dictionary<string, Skill> Skills = [];
-	private static readonly SortedDictionary<string, Item> Items = [];
-	private static readonly SortedDictionary<string, Equipment> Equipment = [];
+	private static readonly SortedDictionary<string, Item> Items = new(StringComparer.Ordinal);
+	private static readonly SortedDictionary<string, Equipment> Equipment = new(StringComparer.Ordinal);
 	private static readonly Dictionary<string, Func<StatModifier>> Modifiers = [];
 	private static readonly Dictionary<string, Texture2D> StateIcons = [];
 	private static readonly Dictionary<string, EmotionGroup> EmotionGroups = [];
@@ -258,7 +260,10 @@ public class Database
 
 	internal static bool RegisterModdedItem(string id, Item item)
 	{
-		return TryRegister(Items, "Item", id, item);
+		if (!TryRegister(Items, "Item", id, item))
+			return false;
+		item.Id = id;
+		return true;
 	}
 
 	internal static bool RegisterModdedEquipment(string id, Equipment equipment)
@@ -502,7 +507,6 @@ public class Database
 		#endregion
 
 		#region SKILLS
-
 		Skills["Guard"] = new Skill(
 			name: "GUARD",
 			description: "Acts first, reducing damage taken for 1 turn.\nCost: 0",
@@ -635,7 +639,7 @@ public class Database
 				{
 					// vanilla omori technically stops after the 4th attempt
 					// maybe add a toggle for this?
-					Enemy enemy = BattleManager.Instance.GetAllEnemies()
+					Enemy enemy = BattleManager.Instance.GetAllAliveEnemies()
 						.FirstOrDefault(x => x.HasMultiTargetPartySkill);
 					if (enemy != null)
 					{
@@ -3412,9 +3416,12 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target,
 					"MOLLY fires her stingers!\n[target] gets struck!");
 				await AnimationManager.Instance.WaitForAnimation(193, target);
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2, false, neverCrit: true);
-				AnimationManager.Instance.PlayAnimation(215, target);
-				target.AddTierStatModifier("SpeedDown", 3);
+				int damage = BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2, false, neverCrit: true);
+				if (damage > -1)
+				{
+					AnimationManager.Instance.PlayAnimation(215, target);
+					target.AddTierStatModifier("SpeedDown", 3);
+				}
 			}
 		);
 
@@ -4941,9 +4948,9 @@ public class Database
 			}
 		);
 		
-		Skills["SMIUltimateAttackx1"] = new Skill(
-			name: "SMIUltimateAttackx1",
-			description: "SMIUltimateAttackx1",
+		Skills["SMUltimateAttack"] = new Skill(
+			name: "SMUltimateAttack",
+			description: "SMUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
 			effect: async (self, targets) =>
@@ -4951,44 +4958,24 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
 				await Wait.Milliseconds(1000);
 				AnimationManager.Instance.PlayScreenAnimation(186, false);
+				int damage = BattleManager.Instance.GetAllAliveEnemies().Count switch
+				{
+					2 => 75,
+					1 => 50,
+					_ => 100
+				};
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.Damage(self, member, () => 50, false, 0f, neverCrit: true);
+					BattleManager.Instance.Damage(self, member, () => damage, false, 0f, neverCrit: true);
 				}
-			}
-		);
-		
-		Skills["SMIUltimateAttackx2"] = new Skill(
-			name: "SMIUltimateAttackx2",
-			description: "SMIUltimateAttackx2",
-			target: SkillTarget.AllEnemies,
-			cost: 0,
-			effect: async (self, targets) =>
-			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
-				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.PlayScreenAnimation(186, false);
-				foreach (Actor member in targets)
-				{
-					BattleManager.Instance.Damage(self, member, () => 75, false, 0f, neverCrit: true);
-				}
-			}
-		);
-		
-		Skills["SMIUltimateAttackx3"] = new Skill(
-			name: "SMIUltimateAttackx3",
-			description: "SMIUltimateAttackx3",
-			target: SkillTarget.AllEnemies,
-			cost: 0,
-			effect: async (self, targets) =>
-			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
-				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.PlayScreenAnimation(186, false);
-				foreach (Actor member in targets)
-				{
-					BattleManager.Instance.Damage(self, member, () => 100, false, 0f, neverCrit: true);
-				}
+
+				await AnimationManager.Instance.ToSignal(AnimationManager.Instance,
+					AnimationManager.SignalName.AnimationFinished);
+
+				// he only dies once his own ultimate has resolved, so the next
+				// ultimate in the chain sees one fewer enemy on the field
+				self.RemoveStatModifier("Immortal");
+				self.CurrentHP = 0;
 			}
 		);
 		
@@ -5128,7 +5115,8 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(197, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s leg and drags them down!");
+				// unused in the base game, Drag Down displays no battle text
+				//BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s leg and drags them down!");
 				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.5f, false, 0f, neverCrit: true);
 			}
 		);
@@ -5705,8 +5693,9 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(197, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps around [target]!");
-				BattleManager.Instance.Damage(self, target, () => 100, false, 0.1f, neverCrit: true);
-				target.SetEmotion("afraid");
+				int damage = BattleManager.Instance.Damage(self, target, () => 100, false, 0.1f, neverCrit: true);
+				if (damage > -1)
+					target.SetEmotion("afraid");
 			}
 		);
 		
@@ -6416,7 +6405,7 @@ public class Database
 					AnimationManager.Instance.PlayAnimation(214, member);
 				}
 
-				foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
 				{
 					enemy.AddStatModifier("Tickle", 2);
 				}
@@ -7296,7 +7285,6 @@ public class Database
 		AddEmotion(new Emotion("stressed")
 			.WithBlocksActions()
 			.WithStatBonuses(new StatBonus(StatType.ATK, 1.2f), new StatBonus(StatType.DEF, 0.9f))
-			.WithDefensiveRate("exploit", 1.5f)
 			.WithAsset(EmotionAsset.Vanilla(2, 1, 0)));
 		#endregion
 
@@ -7360,12 +7348,12 @@ public class Database
 		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1));
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
-		Modifiers.Add("Charm", () => new CharmStatModifier(1));
+		Modifiers.Add("Charm", () => new CharmStatModifier(1).WithActionEndTicking());
 		Modifiers.Add("SpaceExHusbandBlock", () => new SpaceExHusbandStatModifier());
 		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(10));
-		Modifiers.Add("PlutoCharging", () => new StatModifier(3, new StatBonus(StatType.DEF, 3f)));
+		Modifiers.Add("PlutoCharging", () => new StatModifier(2, new StatBonus(StatType.DEF, 3f)));
 		Modifiers.Add("PlutoBuff", () => new StatModifier(new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.LCK, 1.5f), new StatBonus(StatType.SPD, 10f)));
-		Modifiers.Add("Encore", () => new EncoreStatModifier(3));
+		Modifiers.Add("Encore", () => new EncoreStatModifier(3).WithActionEndTicking());
 		Modifiers.Add("SalesTag", () => new SalesTagStatModifier());
 		Modifiers.Add("Immune", () => new ImmuneStatModifier());
 		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5));
@@ -8099,7 +8087,7 @@ public class Database
 			{
 				// vanilla omori technically stops after the 4th attempt
 				// maybe add a toggle for this?
-				Enemy enemy = BattleManager.Instance.GetAllEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
+				Enemy enemy = BattleManager.Instance.GetAllAliveEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
 				if (enemy != null)
 				{
 					enemy.ObserveMultiTarget = true;
@@ -8118,6 +8106,11 @@ public class Database
 		});
 
 		#endregion
+
+		// have each item keep track of their own Id to make later comparisons easier
+		// instead of having to go by name, which causes issues
+		foreach (KeyValuePair<string, Item> entry in Items)
+			entry.Value.Id = entry.Key;
 	}
 
 	// Helper method for creating buffs and debuffs affected by the InfiniteBuffsDebuffs setting

@@ -10,6 +10,7 @@ internal sealed class AubreyBoss : Enemy
 {
     public override string Name => "AUBREY";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/aubrey_boss.tres");
+    public override Vector2 InfoBoxOffset => new(0, -350);
     protected override Stats Stats => new(12000, 4000, 120, 55, 75, 15, 95);
     protected override string[] EquippedSkills => ["AAttack", "ABossBeatdown", "ABossLookAtKel", "ABossLookAtHero", "PowerHit", "WindUpThrow", "MoodWrecker", "PepTalk", "ABossTwirl"];
 

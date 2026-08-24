@@ -32,6 +32,13 @@ public partial class BattleManager : Node
 	private List<EnemyComponent> Enemies = [];
 	private List<BattlePresetBossRushStage> Stages = [];
 	private int CurrentStage = -1;
+	/// <summary>
+	/// The currently loaded preset, if any.
+	/// </summary>
+	/// <remarks>
+	/// You can check <see cref="IsBattling"/> instead to see if a battle is ongoing.
+	/// </remarks>
+	public string CurrentPresetName { get; private set; }
 
 	private GameModeType GameType = GameModeType.Normal;
 	internal BattlePhase Phase { get; private set; } = BattlePhase.PreBattle;
@@ -42,6 +49,7 @@ public partial class BattleManager : Node
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private readonly List<BattleCommand> ForcedCommands = [];
 	private PendingFollowupData PendingFollowup = null;
+	private readonly HashSet<BattleMenuOption> DisabledMenuOptions = [];
 
 	// vanilla only spends followup energy when the followup is actually used, so the
 	// selection records everything needed to re-validate and pay at use time
@@ -54,6 +62,7 @@ public partial class BattleManager : Node
 	private BattleCommand CurrentCommand = null;
 	private Timer Delay;
 	private readonly List<Node2D> DyingEnemies = [];
+	private Tween FallTween;
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
 	private int _Energy = 0;
@@ -82,6 +91,44 @@ public partial class BattleManager : Node
 	/// Not fired when the end-of-battle results screen appears or between Boss Rush stages.
 	/// </summary>
 	public event EventHandler BattleExited;
+
+	/// <summary>
+	/// Fired when a battle starts, after every actor's <see cref="Actor.OnStartOfBattle"/> hook has run.
+	/// In Boss Rush, this is fired again at the start of every stage.
+	/// </summary>
+	public event EventHandler<BattleStartedEventArgs> BattleStarted;
+
+	/// <summary>
+	/// Fired when a battle ends in victory or defeat, after every actor's <see cref="Actor.OnEndOfBattle"/> hook has run.
+	/// In Boss Rush, this is fired again at the end of every stage.
+	/// </summary>
+	/// <remarks>
+	/// This is NOT fired when the battle is exited early, see <see cref="BattleExited"/>.
+	/// </remarks>
+	public event EventHandler<BattleEndedEventArgs> BattleEnded;
+
+	/// <summary>
+	/// Fired at the start of each turn, after every start-of-turn stat modifier, weapon, charm,
+	/// and enemy hook has run.
+	/// </summary>
+	public event EventHandler TurnStarted;
+
+	/// <summary>
+	/// Fired at the end of each turn, after every enemy's <see cref="Enemy.ProcessEndOfTurn"/> hook has run.
+	/// </summary>
+	public event EventHandler TurnEnded;
+
+	/// <summary>
+	/// Fired after an attack lands and its damage has been applied to any target.
+	/// Not fired for misses, evades, or hits a modifier turned into a miss.
+	/// </summary>
+	public event EventHandler<DamageDealtEventArgs> DamageDealt;
+
+	/// <summary>
+	/// Fired after healing (Heart or Juice) is applied through <see cref="Heal"/> or <see cref="HealJuice"/>.
+	/// Healing applied directly to an <see cref="Actor"/> (as most snacks do) does not raise this event.
+	/// </summary>
+	public event EventHandler<HealedEventArgs> Healed;
 
 	private bool FollowupActive = false;
 	private bool FollowupSelected = false;
@@ -147,6 +194,7 @@ public partial class BattleManager : Node
 		List<BattlePresetBossRushStage> stages, BattlePreset preset, int startingStage)
 	{
 		GameType = preset.Type;
+		CurrentPresetName = preset.Name;
 		CurrentParty = party.OrderBy(x => x.Position).ToList();
 		Stages = stages;
 		
@@ -206,20 +254,47 @@ public partial class BattleManager : Node
 		GameManager.Instance.DespawnEnemies();
 		Enemies.Clear();
 		foreach (BattlePresetEnemy enemy in enemies)
-			SummonEnemy(enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, enemy.FallsOffScreen,
-				enemy.GrayscaleOnDefeat, (int)enemy.Layer);
+		{
+			if (!enemy.Position.StartsWith("Vector2"))
+				enemy.Position = "Vector2" + enemy.Position;
+			SummonEnemy(enemy, GD.StrToVar(enemy.Position).AsVector2());
+		}
 	}
 
 	private async void PreBattle()
 	{
-		foreach (PartyMemberComponent p in CurrentParty)
-			await RunGuarded(() => p.Actor.OnStartOfBattle(), $"{p.Actor.Name}.OnStartOfBattle");
-		// use for loop here since collection may be modified by summoned enemies
+		// since a party member's start of battle hook could spawn another party member,
+		// run while party members have not been processed instead of indexing the party directly
+		HashSet<Actor> processed = [];
+		// SummonPartyMember already quits early on a full party so a while true here is safe to use
+		while (true)
+		{
+			PartyMemberComponent next = CurrentParty.FirstOrDefault(x => !processed.Contains(x.Actor));
+			if (next == null)
+				break;
+			processed.Add(next.Actor);
+			await RunGuarded(() => next.Actor.OnStartOfBattle(), $"{next.Actor.Name}.OnStartOfBattle");
+			if (RestartQueued)
+			{
+				Reset();
+				ReloadPreset();
+				return;
+			}
+		}
+
+		// summoned enemies append directly to the end of the enemy list so a regular for loop works
 		for (int i = 0; i < Enemies.Count; i++)
 		{
 			Actor enemy = Enemies[i].Actor;
-			await RunGuarded(() => enemy.OnStartOfBattle(), $"{enemy.Name}.OnStartOfBattle");
+			await RunGuarded(enemy.OnStartOfBattle, $"{enemy.Name}.OnStartOfBattle");
+			if (RestartQueued)
+			{
+				Reset();
+				ReloadPreset();
+				return;
+			}
 		}
+		RaiseGuarded(BattleStarted, new BattleStartedEventArgs(CurrentPresetName, CurrentStage), "BattleStarted");
 		SetPhase(BattlePhase.FightRun);
 	}
 
@@ -278,9 +353,8 @@ public partial class BattleManager : Node
 					Actor prev = CurrentParty[CurrentPartyMember].Actor;
 					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
 					{
-						string name = CapitalizeItemName(item);
-						if (!Items.TryAdd(name, 1))
-							Items[name]++;
+						if (!Items.TryAdd(item.Id, 1))
+							Items[item.Id]++;
 					}
 
 					PlayerCommands.Remove(prev);
@@ -293,9 +367,8 @@ public partial class BattleManager : Node
 					if (SelectedAction is Item i)
 					{
 						targetMenu = i.IsToy ? MenuState.Toy : MenuState.Snack;
-						string name = CapitalizeItemName(i);
-						if (!Items.TryAdd(name, 1))
-							Items[name]++;
+						if (!Items.TryAdd(i.Id, 1))
+							Items[i.Id]++;
 					}
 					else
 						targetMenu = SelectedAction.Name == CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault()?.Name
@@ -407,18 +480,15 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionPressed("Restart"))
 		{
-			// don't allow restarts during the setup phase
-			// prevents stuff from breaking
-			if (Phase is BattlePhase.PreBattle)
-				return;
-
 			if (!RestartQueued)
 			{
 				RestartTimer -= (float)delta;
 				if (RestartTimer <= 0)
 				{
-					// if the restart is requested during a turn, queue it to prevent anything breaking
-					if (Phase is BattlePhase.PreCommand or
+					// if the restart is requested during a turn or during the start-of-battle
+					// hooks (intro dialogue), queue it to prevent anything breaking
+					if (Phase is BattlePhase.PreBattle or
+					    BattlePhase.PreCommand or
 					    BattlePhase.CommandExecute or
 					    BattlePhase.WaitForBattleLog or
 					    BattlePhase.PostCommand or
@@ -536,6 +606,7 @@ public partial class BattleManager : Node
 		GameManager.Instance.DespawnAll();
 		AnimationManager.Instance.DespawnAll();
 		AnimationManager.Instance.StopAllAnimations();
+		AnimationManager.Instance.StopAllVideos();
 		DamageNumber.DespawnAll();
 		CurrentParty.Clear();
 		Enemies.Clear();
@@ -549,7 +620,12 @@ public partial class BattleManager : Node
 		PendingFollowup = null;
 		ForceHideFollowup = false;
 		PriorityActors.Clear();
+		DisabledMenuOptions.Clear();
 		DeferredDeathEnemies.Clear();
+		DyingEnemies.Clear();
+		if (FallTween != null && FallTween.IsValid())
+			FallTween.Kill();
+		FallTween = null;
 		CurrentCommand = null;
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
@@ -588,6 +664,11 @@ public partial class BattleManager : Node
 
 	internal void OnSelectAttack()
 	{
+		if (!IsMenuOptionEnabled(BattleMenuOption.Attack))
+		{
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
 		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault();
 		if (SelectedAction == null)
 		{
@@ -603,6 +684,17 @@ public partial class BattleManager : Node
 	// idfk
 	internal void OnSelectNotAttack(MenuState what)
 	{
+		BattleMenuOption option = what switch
+		{
+			MenuState.Snack => BattleMenuOption.Snack,
+			MenuState.Toy => BattleMenuOption.Toy,
+			_ => BattleMenuOption.Skill
+		};
+		if (!IsMenuOptionEnabled(option))
+		{
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		MenuManager.Instance.ShowMenu(what);
 		SetPhase(BattlePhase.SkillSelection);
@@ -650,11 +742,14 @@ public partial class BattleManager : Node
 			return false;
 		}
 
-		Item i = SelectedAction as Item;
-		string name = CapitalizeItemName(i);
-		Items[name]--;
-		if (Items[name] == 0)
-			Items.Remove(name);
+		if (!Items.TryGetValue(item.Id, out int value))
+		{
+			GD.PrintErr("Selected item is not in the inventory: " + item.Id);
+			return false;
+		}
+		Items[item.Id] = --value;
+		if (value == 0)
+			Items.Remove(item.Id);
 
 		AudioManager.Instance.PlaySFX("SYS_select");
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
@@ -744,6 +839,10 @@ public partial class BattleManager : Node
 				break;
 			case BattlePhase.PostCommand:
 			{
+				// handle any stat modifiers that tick at the end of an action
+				if (!CurrentCommand.Actor.IsToast)
+					CurrentCommand.Actor.DecreaseActionStatTurnCounter();
+
 				await ConvertDeadPartyMembers();
 
 				if (CurrentCommand.Actor is PartyMember
@@ -910,9 +1009,8 @@ public partial class BattleManager : Node
 				if (PlayerCommands.TryGetValue(member.Actor, out BattleCommand refundCmd)
 				    && refundCmd.Action is Item item)
 				{
-					string name = CapitalizeItemName(item);
-					if (!Items.TryAdd(name, 1))
-						Items[name]++;
+					if (!Items.TryAdd(item.Id, 1))
+						Items[item.Id]++;
 				}
 				ActedThisTurn.Add(member.Actor);
 			}
@@ -964,6 +1062,15 @@ public partial class BattleManager : Node
 
 	private async void HandleFightRun()
 	{
+		// consume a restart that was queued in the frame between PreBattle's last
+		// hook check and the phase change, so it doesn't linger until end of turn
+		if (RestartQueued)
+		{
+			Reset();
+			ReloadPreset();
+			return;
+		}
+
 		CurrentPartyMember = -1;
 		CurrentEnemyTarget = -1;
 		CurrentPartyMemberTarget = -1;
@@ -1009,6 +1116,7 @@ public partial class BattleManager : Node
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
+			RaiseGuarded(TurnStarted, "TurnStarted");
 			ProcessedStartOfTurn = true;
 		}
 
@@ -1171,7 +1279,7 @@ public partial class BattleManager : Node
 					GetAllPartyMembers().Select(x => x.Actor).ToList(), SelectedAction);
 				break;
 			case SkillTarget.AllEnemies:
-				PlayerCommands[actor] = new BattleCommand(actor, GetAllEnemies(), SelectedAction);
+				PlayerCommands[actor] = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
 				break;
 			default:
 				GD.PrintErr("Unhandled SelectTarget case: " + SelectedAction.Target);
@@ -1215,13 +1323,13 @@ public partial class BattleManager : Node
 		{
 			case SkillTarget.AllAllies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
-					? GetAllEnemies()
+					? GetAllAliveEnemies()
 					: GetAlivePartyMembers().Select(x => x.Actor));
 				break;
 			case SkillTarget.AllEnemies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
 					? GetAlivePartyMembers().Select(x => x.Actor)
-					: GetAllEnemies());
+					: GetAllAliveEnemies());
 				break;
 			case SkillTarget.XRandomEnemies:
 				foreach (Actor target in currentAction.Targets)
@@ -1248,10 +1356,11 @@ public partial class BattleManager : Node
 			case SkillTarget.Ally:
 			case SkillTarget.Enemy:
 			case SkillTarget.AllyOrEnemy:
+				// in vanilla, automatic retargeting will target the first valid actor in the troop, not a random one
 				if (IsInvalidTarget(currentAction.Targets[0]))
 					resolvedTargets.Add(currentAction.Targets[0] is Enemy
-						? GetRandomAliveEnemy()
-						: GetRandomAlivePartyMember());
+						? GetAllAliveEnemies().FirstOrDefault()
+						: GetAlivePartyMembers().FirstOrDefault()?.Actor);
 				else
 					resolvedTargets.Add(currentAction.Targets[0]);
 				break;
@@ -1408,7 +1517,7 @@ public partial class BattleManager : Node
 
 		// in base game, followups go after any other forced actions
 		BattleCommand command = skill.Target is SkillTarget.AllEnemies
-			? new BattleCommand(current.Actor, GetAllEnemies(), skill)
+			? new BattleCommand(current.Actor, GetAllAliveEnemies(), skill)
 			: new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
 		PendingFollowup = new PendingFollowupData(command, pair.TargetPosition, pair.BaseSkillName);
 
@@ -1526,6 +1635,7 @@ public partial class BattleManager : Node
 				}
 			}
 
+			RaiseGuarded(TurnEnded, "TurnEnded");
 			ProcessedEndOfTurn = true;
 		}
 		
@@ -1568,13 +1678,31 @@ public partial class BattleManager : Node
 		}
 
 		tween.TweenCallback(Callable.From(EnemiesDoneDying));
+		FallTween = tween;
 	}
 
 	private void EnemiesDoneDying()
 	{
 		DyingEnemies.ForEach(x => x.Visible = false);
 		DyingEnemies.Clear();
+		FallTween = null;
 		SetPhase(BattlePhase.PreCommand);
+	}
+
+	// restores an enemy's on-screen state when it is revived after falling (or while falling)
+	internal void OnEnemyRevived(EnemyComponent enemy)
+	{
+		Node2D parent = enemy.GetParent<Node2D>();
+		bool wasFalling = DyingEnemies.Remove(parent);
+		if (wasFalling && Phase == BattlePhase.EnemyDying && FallTween != null && FallTween.IsValid())
+		{
+			// if an enemy was revived mid-fall, the best we can do is just skip ahead
+			// this is a rare case but still worth handling
+			FallTween.Kill();
+			EnemiesDoneDying();
+		}
+		parent.Visible = true;
+		parent.GlobalPosition = enemy.Actor.CenterPoint;
 	}
 
 	/// <summary>
@@ -1670,6 +1798,9 @@ public partial class BattleManager : Node
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
 					await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
 					ProcessedStartOfTurn = false;
+					// leave BattleOver so a restart during the next stage's intro dialogue
+					// queues (like the first stage's) instead of resetting mid-hook
+					SetPhase(BattlePhase.PreBattle);
 					CallDeferred(MethodName.PreBattle);
 					return;
 				}
@@ -1693,14 +1824,20 @@ public partial class BattleManager : Node
 
 	private async Task EndOfBattle(bool victory)
 	{
-		foreach (PartyMemberComponent p in CurrentParty)
-			await RunGuarded(() => p.Actor.OnEndOfBattle(victory), $"{p.Actor.Name}.OnEndOfBattle");
-		foreach (EnemyComponent e in Enemies)
+		// use index loops since the collections may be modified by summons in hooks
+		for (int i = 0; i < CurrentParty.Count; i++)
 		{
-			if (e.Actor.IsToast)
-				continue;
-			await RunGuarded(() => e.Actor.OnEndOfBattle(victory), $"{e.Actor.Name}.OnEndOfBattle");
+			PartyMember member = CurrentParty[i].Actor;
+			await RunGuarded(() => member.OnEndOfBattle(victory), $"{member.Name}.OnEndOfBattle");
 		}
+		for (int i = 0; i < Enemies.Count; i++)
+		{
+			Enemy enemy = Enemies[i].Actor;
+			if (enemy.IsToast)
+				continue;
+			await RunGuarded(() => enemy.OnEndOfBattle(victory), $"{enemy.Name}.OnEndOfBattle");
+		}
+		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(victory), "BattleEnded");
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
@@ -1726,6 +1863,24 @@ public partial class BattleManager : Node
 		{
 			GD.PushError($"Unhandled exception in {context}: {ex}");
 		}
+	}
+
+	// mirrors RunGuarded for events. each subscriber is raised separately, so one throwing
+	// handler is logged without skipping the others or breaking the battle flow
+	private void RaiseGuarded(EventHandler handler, string context)
+	{
+		if (handler == null)
+			return;
+		foreach (EventHandler subscriber in handler.GetInvocationList().Cast<EventHandler>())
+			RunGuarded(() => subscriber(this, EventArgs.Empty), $"{context} event handler");
+	}
+
+	private void RaiseGuarded<T>(EventHandler<T> handler, T args, string context)
+	{
+		if (handler == null)
+			return;
+		foreach (EventHandler<T> subscriber in handler.GetInvocationList().Cast<EventHandler<T>>())
+			RunGuarded(() => subscriber(this, args), $"{context} event handler");
 	}
 
 	/// <summary>
@@ -1776,7 +1931,7 @@ public partial class BattleManager : Node
 		{
 			damage *= 1.5f;
 			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
-			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
+			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2.5f);
 		}
 
 		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical, neverMiss);
@@ -1836,26 +1991,27 @@ public partial class BattleManager : Node
 			return -1;
 		}
 		target.Damage(roundedInt);
-		if (target is PartyMember)
+		
+		if (target is PartyMember && roundedInt > 0)
 		{
 			Energy = Math.Min(10, Energy + 1);
 		}
 
 		SpawnDamageNumber(roundedInt, target.CenterPoint, critical: critical);
 		// we don't need to play a hitsound if the attack is a critical or if there's no damage
-		if (!critical && roundedInt > 0)
+		if (roundedInt > 0)
 		{
 			if (SettingsMenuManager.Instance.LogDebug)
 				GD.Print("Effectiveness: " + effectiveness);
 			if (effectiveness > 0)
 			{
 				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
-				AudioManager.Instance.PlaySFX("se_impact_double", 1f, 0.9f);
+				if (!critical) AudioManager.Instance.PlaySFX("se_impact_double", 1f, 1.5f);
 			}
 			else if (effectiveness < 0)
 			{
 				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
-				AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 0.9f);
+				if (!critical) AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 1.5f);
 			}
 			else
 				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
@@ -1871,14 +2027,18 @@ public partial class BattleManager : Node
 
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 
+		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, roundedInt, juiceLost, critical, false),
+			"DamageDealt");
+
 		return roundedInt;
 	}
-	
+
 	private bool RollMissOrEvade(Actor self, Actor target, bool silent)
 	{
 		int hitRate = self.CurrentStats.HIT;
 		int evasion = target.CurrentStats.EVA;
-		int roll = GameManager.Instance.Random.RandiRange(0, 100);
+
+		int roll = GameManager.Instance.Random.RandiRange(1, 100);
 		bool miss, evaded;
 		if (SettingsMenuManager.Instance.CombinedAccuracy)
 		{
@@ -1890,7 +2050,7 @@ public partial class BattleManager : Node
 		{
 			//  base RPGMaker uses two separate rolls in this order
 			miss = hitRate < roll;
-			evaded = !miss && GameManager.Instance.Random.RandiRange(0, 100) < evasion;
+			evaded = !miss && GameManager.Instance.Random.RandiRange(1, 100) <= evasion;
 		}
 
 		if (!miss && !evaded)
@@ -1999,6 +2159,8 @@ public partial class BattleManager : Node
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
+		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),
+			"DamageDealt");
 		return roundedInt;
 	}
 
@@ -2025,6 +2187,7 @@ public partial class BattleManager : Node
 		target.Heal(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
+		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
 	}
 
 	/// <summary>
@@ -2046,6 +2209,7 @@ public partial class BattleManager : Node
 		target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
+		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
 	}
 
 	// RPGMaker applyVariance method
@@ -2122,8 +2286,9 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Gives the provided <see cref="Actor"/> a random emotion.<br/>If the actor already has that emotion, it will be upgraded.
 	/// </summary>
-	/// <param name="who"></param>
-	public void RandomEmotion(Actor who)
+	/// <param name="who">The <see cref="Actor"/> to change.</param>
+	/// <param name="silent">If true, no battle log messages will be shown.</param>
+	public void RandomEmotion(Actor who, bool silent = false)
 	{
 		IReadOnlyList<EmotionGroup> pool = Database.GetRandomEmotionGroups();
 		if (pool.Count == 0)
@@ -2135,7 +2300,7 @@ public partial class BattleManager : Node
 
 		// unlike MakeEmotion, capped and invalid targets fail silently
 		if (who.IsEmotionValid(next))
-			who.SetEmotion(next.Id);
+			who.SetEmotion(next.Id, silent);
 	}
 
 	/// <summary>
@@ -2174,9 +2339,24 @@ public partial class BattleManager : Node
 	/// <param name="fallsOffScreen">Whether this enemy should fall off-screen when defeated.</param>
 	/// <param name="grayscaleOnDefeat">Whether this enemy should trigger a grayscale effect when defeated.</param>
 	/// <param name="layer">The layer to spawn this enemy on.</param>
+	/// <param name="adjustedStats">Stat adjustments added on top of the enemy's declared stats.</param>
 	/// <returns>The <see cref="EnemyComponent"/> of the spawned enemy.</returns>
 	public EnemyComponent SummonEnemy(string who, Vector2 position, string startingEmotion = "neutral",
-		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0)
+		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0, Stats adjustedStats = default)
+	{
+		BattlePresetEnemy en = new()
+		{
+			Name = who,
+			Emotion = startingEmotion,
+			FallsOffScreen = fallsOffScreen,
+			GrayscaleOnDefeat = grayscaleOnDefeat,
+			Layer = layer,
+			AdjustedStats = adjustedStats
+		};
+		return SummonEnemy(en, position);
+	}
+	
+	internal EnemyComponent SummonEnemy(BattlePresetEnemy en, Vector2 position)
 	{
 		while (Enemies.Any(x => x.Actor.CenterPoint == position))
 		{
@@ -2185,14 +2365,6 @@ public partial class BattleManager : Node
 			position.X += 0.1f;
 		}
 
-		BattlePresetEnemy en = new()
-		{
-			Name = who,
-			Emotion = startingEmotion,
-			FallsOffScreen = fallsOffScreen,
-			GrayscaleOnDefeat = grayscaleOnDefeat,
-			Layer = layer
-		};
 		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, position);
 		Enemies.Add(enemy);
 
@@ -2207,6 +2379,95 @@ public partial class BattleManager : Node
 		return enemy;
 	}
 	
+
+	/// <summary>
+	/// Spawns a party member into the battle at the given battlecard position, falling back to the
+	/// next open position if it is already occupied. If the party is already full, this will do nothing.
+	/// </summary>
+	/// <remarks>
+	/// A member summoned during the command phase at a position after the currently selecting member
+	/// still chooses a command this turn, otherwise they act from the next turn onward.<br/>
+	/// </remarks>
+	/// <param name="who">Which party member to spawn.</param>
+	/// <param name="position">The battlecard position to spawn the member at, from 0 to 3. If the position
+	/// is occupied, the next open position (wrapping around) is used instead.</param>
+	/// <param name="level">The party member's level.</param>
+	/// <param name="weapon">The party member's weapon.</param>
+	/// <param name="charm">The party member's charm.</param>
+	/// <param name="emotion">The party member's starting emotion.</param>
+	/// <param name="skills">The skills to equip, or null for the preset default (attack only).</param>
+	/// <param name="followupSet">The followup set id to use. Null uses the position's default set, "None" disables followups.</param>
+	/// <param name="adjustedStats">Stat adjustments added on top of the member's base stats.</param>
+	/// <returns>The <see cref="PartyMemberComponent"/> of the summoned member, or null if the summon fails.</returns>
+	public PartyMemberComponent SummonPartyMember(string who, int position, int level = 1,
+		string weapon = "Knife", string charm = "None", string emotion = "neutral",
+		string[] skills = null, string followupSet = null, Stats adjustedStats = default)
+	{
+		if (!IsBattling || Phase is BattlePhase.BattleOver)
+		{
+			GD.PushWarning("Cannot summon a party member outside of an active battle: " + who);
+			return null;
+		}
+		if (position is < 0 or > 3)
+		{
+			GD.PushWarning($"Invalid position {position} for party member {who}");
+			return null;
+		}
+		if (CurrentParty.Count >= 4)
+		{
+			GD.PushWarning("Party is full, cannot summon " + who);
+			return null;
+		}
+		if (CurrentParty.Any(x => x.Position == position))
+		{
+			// the party isn't full at this point, so an open slot is guaranteed to exist
+			int requested = position;
+			do
+			{
+				position = (position + 1) % 4;
+			} while (CurrentParty.Any(x => x.Position == position));
+			GD.Print($"Position {requested} is already occupied, summoning {who} at position {position} instead");
+		}
+
+		string setId = followupSet ?? FollowupSets.DefaultIdForPosition(position);
+		FollowupSet set = FollowupSets.Get(setId);
+		BattlePresetActor entry = new()
+		{
+			Name = who,
+			Level = level,
+			Weapon = weapon,
+			Charm = charm,
+			Emotion = emotion,
+			FollowupSet = setId,
+			Skills = skills ?? ["OAttack", "", "", "", ""],
+			Position = position,
+			AdjustedStats = adjustedStats
+		};
+		PartyMemberComponent component = GameManager.Instance.SpawnPartyMember(set, entry);
+		if (component == null)
+		{
+			GD.PushWarning("Failed to spawn party member: " + who);
+			return null;
+		}
+
+		// insert keeping CurrentParty ordered by Position, without moving a live command cursor
+		// off the member that is currently selecting
+		Actor selecting = Phase is BattlePhase.PlayerCommand or BattlePhase.SkillSelection or BattlePhase.TargetSelection
+			&& CurrentPartyMember > -1 && CurrentPartyMember < CurrentParty.Count
+				? CurrentParty[CurrentPartyMember].Actor
+				: null;
+		int insertAt = CurrentParty.FindIndex(x => x.Position > position);
+		if (insertAt < 0)
+			CurrentParty.Add(component);
+		else
+			CurrentParty.Insert(insertAt, component);
+		if (selecting != null)
+			CurrentPartyMember = CurrentParty.FindIndex(x => x.Actor == selecting);
+
+		// a summoned member with followups may need to reveal the energy bar
+		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
+		return component;
+	}
 
 	/// <summary>
 	/// Transforms an enemy into another enemy, despawning the original and spawning the replacement
@@ -2235,7 +2496,7 @@ public partial class BattleManager : Node
 	/// <param name="amount">The amount of energy to add.</param>
 	public void AddEnergy(int amount)
 	{
-		Energy = Math.Min(Energy + amount, 10);
+		Energy = Math.Clamp(Energy + amount, 0, 10);
 	}
 
 	/// <summary>
@@ -2247,12 +2508,41 @@ public partial class BattleManager : Node
 	}
 	
 	/// <summary>
+	/// Enables or disables one of the battle menu's options. Selecting a disabled option plays a
+	/// buzzer and does nothing. Persists across turns (and Boss Rush stages) until re-enabled,
+	/// and is cleared when the battle is exited or restarted.
+	/// </summary>
+	/// <remarks>
+	/// RUN cannot be disabled, so the party can always leave the battle.
+	/// Disabling an option does not cancel commands that were already queued through it.
+	/// </remarks>
+	/// <param name="option">The battle menu option to change.</param>
+	/// <param name="enabled">Whether the option can be selected.</param>
+	public void SetMenuOptionEnabled(BattleMenuOption option, bool enabled)
+	{
+		if (enabled)
+			DisabledMenuOptions.Remove(option);
+		else
+			DisabledMenuOptions.Add(option);
+	}
+
+	/// <summary>
+	/// Whether the given battle menu option is currently enabled. See <see cref="SetMenuOptionEnabled"/>.
+	/// </summary>
+	/// <param name="option">The battle menu option to check.</param>
+	public bool IsMenuOptionEnabled(BattleMenuOption option)
+	{
+		return !DisabledMenuOptions.Contains(option);
+	}
+
+	/// <summary>
 	/// Makes the given <see cref="Actor"/> feel an emotion of the given group, if possible.
 	/// Increases the tier if the actor already feels an emotion of the group.
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
-	public void MakeEmotion(Actor who, string groupId)
+	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
+	public void MakeEmotion(Actor who, string groupId, bool silent = false)
 	{
 		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group))
 		{
@@ -2262,13 +2552,14 @@ public partial class BattleManager : Node
 
 		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
 		{
-			ShowMaxTierMessage(who, group);
+			if (!silent)
+				ShowMaxTierMessage(who, group);
 			return;
 		}
 
 		if (who.IsEmotionValid(next))
-			who.SetEmotion(next.Id);
-		else
+			who.SetEmotion(next.Id, silent);
+		else if (!silent)
 			ShowMaxTierMessage(who, group);
 	}
 	
@@ -2289,27 +2580,40 @@ public partial class BattleManager : Node
 	/// Makes the given <see cref="Actor"/> sad, if possible. Increases the tier if the actor is already sad.
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make sad.</param>
-	public void MakeSad(Actor who)
+	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
+	public void MakeSad(Actor who, bool silent = false)
 	{
-		MakeEmotion(who, "sad");
+		MakeEmotion(who, "sad", silent);
 	}
 
 	/// <summary>
 	/// Makes the given <see cref="Actor"/> happy, if possible. Increases the tier if the actor is already happy.
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make happy.</param>
-	public void MakeHappy(Actor who)
+	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
+	public void MakeHappy(Actor who, bool silent = false)
 	{
-		MakeEmotion(who, "happy");
+		MakeEmotion(who, "happy", silent);
 	}
 
 	/// <summary>
 	/// Makes the given <see cref="Actor"/> angry, if possible. Increases the tier if the actor is already angry.
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make angry.</param>
-	public void MakeAngry(Actor who)
+	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
+	public void MakeAngry(Actor who, bool silent = false)
 	{
-		MakeEmotion(who, "angry");
+		MakeEmotion(who, "angry", silent);
+	}
+
+	/// <summary>
+	/// Whether the given <see cref="Actor"/> has already acted this turn.
+	/// </summary>
+	/// <param name="who">The actor to check.</param>
+	/// <returns>True if the actor has acted this turn.</returns>
+	public bool HasActedThisTurn(Actor who)
+	{
+		return ActedThisTurn.Contains(who);
 	}
 
 	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>
@@ -2348,9 +2652,15 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>All currently alive <see cref="Enemy"/>s.</returns>
-	public List<Enemy> GetAllEnemies()
+	public List<Enemy> GetAllAliveEnemies()
 	{
 		return Enemies.Select(x => x.Actor).Where(x => x.CurrentHP > 0).ToList();
+	}
+
+	/// <returns>All current <see cref="Enemy"/>s, including both alive and dead enemies. See <see cref="GetAllAliveEnemies"/> to only select alive enemies.</returns>
+	public List<Enemy> GetAllEnemies()
+	{
+		return Enemies.Select(x => x.Actor).ToList();
 	}
 
 	/// <summary>
@@ -2507,13 +2817,6 @@ public partial class BattleManager : Node
 		return result;
 	}
 
-	// converts item name to CamelCase for dictionary lookup
-	private string CapitalizeItemName(Item item)
-	{
-		// Godot's Captialize treats '-' as a regular character and puts a space after it
-		// manually fix that for sno-cone
-		return item.Name == "SNO-CONE" ? "Sno-Cone" : item.Name.Capitalize();
-	}
 }
 
 internal enum BattlePhase

@@ -7,6 +7,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class Slice : Enemy
 {
     public override string Name => "SLICE";
+    public override Vector2 InfoBoxOffset => new(0, -175);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/slice.tres");
     protected override Stats Stats => new(344, 151, 35, 54, 40, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)

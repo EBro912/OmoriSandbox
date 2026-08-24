@@ -50,6 +50,8 @@ public partial class DialogueManager : Node2D
 	private Tween DimTween;
 	private bool UIDimmed;
 
+	private static readonly string[] ParagraphTags = ["[center]", "[right]", "[fill]", "[left]"];
+
 	private Vector2I CursorNormalPos = new(145, 35);
 	private string[] CurrentChoices;
 	private int ChoiceIndex = 0;
@@ -67,10 +69,17 @@ public partial class DialogueManager : Node2D
 	public bool DialogueDisabled = false;
 
 	public static DialogueManager Instance { get; private set; }
+	
+	private Vector2 DefaultPosition;
+	private const float NoEnergyBarOffset = 45f;
+
+	// whether the current message closes/advances itself when it finishes typing via the \^ marker
+	private bool AutoClose;
 
 	public override void _EnterTree()
 	{
 		Instance = this;
+		DefaultPosition = Position;
 	}
 
 	public override void _Process(double delta)
@@ -194,10 +203,7 @@ public partial class DialogueManager : Node2D
 		if (Text.VisibleCharacters >= CurrentMessageLength)
 		{
 			IsTyping = false;
-			if (HasChoice)
-				WaitForChoice();
-			else
-				WaitForInput();
+			EndOfMessage();
 			return;
 		}
 
@@ -205,11 +211,9 @@ public partial class DialogueManager : Node2D
 		{
 			PauseType p = pauses[0];
 			pauses.RemoveAt(0);
+			// the pause sits before the character at this index, which stays hidden until typing resumes
 			if (pauses.Count == 0)
-			{
 				PauseIndices.Remove(Text.VisibleCharacters);
-				Text.VisibleCharacters++;
-			}
 			IsTyping = false;
 			switch (p)
 			{
@@ -262,6 +266,7 @@ public partial class DialogueManager : Node2D
 		Cursor.Position = CursorNormalPos;
 		MessageBox current = MessageQueue.Dequeue();
 		PauseIndices.Clear();
+		AutoClose = false;
 		if (current.Speaker != null)
 		{
 			if (current.SpeakerPos != default)
@@ -279,7 +284,21 @@ public partial class DialogueManager : Node2D
 		else
 		{
 			SpeakerSprite.Visible = false;
-			string cleaned = FindPauses(BuildHeader(current.Font) + current.Message);
+			// in Godot 4.7+, a paragraph tag after any inline tag starts a second paragraph,
+			// leaving an empty full-height first line, so alignment tags stay ahead of the header
+			// so we need to fix that here
+			string message = current.Message;
+			string alignment = "";
+			foreach (string tag in ParagraphTags)
+			{
+				if (message.StartsWith(tag))
+				{
+					alignment = tag;
+					message = message[tag.Length..];
+					break;
+				}
+			}
+			string cleaned = FindPauses(alignment + BuildHeader(current.Font) + message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = 0;
 		}
@@ -356,6 +375,9 @@ public partial class DialogueManager : Node2D
 						case '!':
 							AddPause(visibleIndex, PauseType.Input);
 							break;
+						case '^':
+							AutoClose = true;
+							break;
 						default:
 							GD.PushWarning("Invalid pause tag in dialogue: \\" + c);
 							break;
@@ -404,17 +426,54 @@ public partial class DialogueManager : Node2D
 
 		if (target < CurrentMessageLength)
 		{
-			// skip to just past the pause marker
-			Text.VisibleCharacters = target + 1;
+			// stop at the pause marker, consuming it so typing doesn't trigger it again
+			Text.VisibleCharacters = target;
+			PauseIndices.Remove(target);
 			WaitForInput();
 		}
 		else
 		{
 			Text.VisibleCharacters = CurrentMessageLength;
+			EndOfMessage();
+		}
+	}
+
+	private void EndOfMessage()
+	{
+		if (AutoClose)
+		{
+			AdvanceAutoClose();
+			return;
+		}
+		if (HasChoice)
+			WaitForChoice();
+		else
+			WaitForInput();
+	}
+
+	// closes or advances a \^ message without waiting for input
+	// if the message has a choice, the first option is chosen
+	private void AdvanceAutoClose()
+	{
+		if (MessageQueue.Count == 0)
+		{
+			Cursor.Visible = false;
+			SpeakerSprite.Visible = false;
+			Text.Visible = false;
+			WaitingForAnimation = true;
+			// FinishMessage emits FinishedDialogue, plus ChoiceSelected with the first option when there is a choice
+			AnimateClose();
+		}
+		else
+		{
 			if (HasChoice)
-				WaitForChoice();
-			else
-				WaitForInput();
+			{
+				// the choice box is never shown, emit the first option and move on
+				string choice = CurrentChoices[0];
+				HasChoice = false;
+				EmitSignal(SignalName.ChoiceSelected, choice);
+			}
+			BeginMessage();
 		}
 	}
 
@@ -479,7 +538,8 @@ public partial class DialogueManager : Node2D
 	/// <summary>
 	/// Queues a message to be displayed in the dialogue box.
 	/// </summary>
-	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
+	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(string message, string[] choices = null, FontType font = FontType.Normal)
@@ -492,7 +552,8 @@ public partial class DialogueManager : Node2D
 	/// The speaker arrow will point to the <see cref="Enemy"/>'s position on screen.
 	/// </summary>
 	/// <param name="speaker">The <see cref="Enemy"/> to show as the speaker.</param>
-	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
+	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(Enemy speaker, string message, string[] choices = null, FontType font = FontType.Normal)
@@ -505,7 +566,8 @@ public partial class DialogueManager : Node2D
 	/// </summary>
 	/// <param name="speaker">The name of the speaker.</param>
 	/// <param name="speakerPos">The position on screen to use as the speaker target.</param>
-	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
+	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null,
@@ -519,6 +581,9 @@ public partial class DialogueManager : Node2D
 
 		if (WaitingForAnimation || IsTyping || WaitingForInput || WaitingForTimer || WaitingForChoice)
 			return;
+		
+		bool barVisible = MenuManager.Instance != null && MenuManager.Instance.EnergyDisplay.Visible;
+		Position = barVisible ? DefaultPosition : DefaultPosition + new Vector2(0, NoEnergyBarOffset);
 
 		Visible = true;
 		WaitingForAnimation = true;
@@ -530,7 +595,8 @@ public partial class DialogueManager : Node2D
 	/// Queues a message to be displayed in the dialogue box, with a custom speaker name.
 	/// </summary>
 	/// <param name="speaker">The name of the speaker.</param>
-	/// <param name="message">The message to display. The @ symbol can be used to pause mid-message.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
+	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(string speaker, string message, string[] choices = null, FontType font = FontType.Normal)
@@ -642,6 +708,8 @@ public partial class DialogueManager : Node2D
 			item.Modulate = Colors.White;
 		PauseGeneration++;
 		HasChoice = false;
+		AutoClose = false;
+		Position = DefaultPosition;
 		WaitingForAnimation = false;
 		WaitingForInput = false;
 		WaitingForChoice = false;

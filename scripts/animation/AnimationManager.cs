@@ -45,6 +45,7 @@ public partial class AnimationManager : Node
 	private float FrameDuration = 1f / FPS;
 	private float FrameTimer = 0f;
 	private List<PlayingAnimation> PlayingAnimations = [];
+	private readonly List<VideoStreamPlayer> PlayingVideos = [];
 
 	private float Shake = 0f;
 	private float ShakePwr = 0f;
@@ -661,6 +662,98 @@ public partial class AnimationManager : Node
 		await ToSignal(sprite, AnimatedSprite2D.SignalName.AnimationFinished);
 		RemoveChild(sprite);
 		sprite.QueueFree();
+	}
+
+	/// <summary>
+	/// Plays an .ogv video.
+	/// </summary>
+	/// <param name="path">The path to the .ogv file, relative to user://mods.</param>
+	/// <param name="layer">The layer to show the video on.</param>
+	/// <param name="volume">The volume to play the video's audio at, from 0 to 2.</param>
+	public void PlayVideo(string path, int layer = 0, float volume = 1f)
+	{
+		VideoStreamPlayer player = SpawnVideo(path, layer, volume);
+		if (player == null)
+			return;
+		void Finished()
+		{
+			player.Finished -= Finished;
+			PlayingVideos.Remove(player);
+			player.QueueFree();
+		}
+		player.Finished += Finished;
+	}
+
+	/// <summary>
+	/// Plays an .ogv video and waits for it to finish.
+	/// </summary>
+	/// <param name="path">The path to the .ogv file, relative to user://mods.</param>
+	/// <param name="layer">The layer to show the video on.</param>
+	/// <param name="volume">The volume to play the video's audio at, from 0 to 2.</param>
+	public async Task WaitForVideo(string path, int layer = 0, float volume = 1f)
+	{
+		VideoStreamPlayer player = SpawnVideo(path, layer, volume);
+		if (player == null)
+			return;
+		await ToSignal(player, VideoStreamPlayer.SignalName.Finished);
+		if (IsInstanceValid(player))
+		{
+			PlayingVideos.Remove(player);
+			player.QueueFree();
+		}
+	}
+
+	/// <summary>
+	/// Stops and removes all currently playing videos.
+	/// </summary>
+	public void StopAllVideos()
+	{
+		foreach (VideoStreamPlayer player in PlayingVideos.ToList())
+		{
+			player.Stop();
+			// stop doesn't emit finished so call it ourselves
+			player.EmitSignal(VideoStreamPlayer.SignalName.Finished);
+			if (IsInstanceValid(player))
+				player.QueueFree();
+		}
+		PlayingVideos.Clear();
+	}
+
+	private VideoStreamPlayer SpawnVideo(string path, int layer, float volume)
+	{
+		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || System.IO.Path.IsPathRooted(path))
+		{
+			GD.PushError($"Invalid video path '{path}' (path traversal not allowed)");
+			return null;
+		}
+		if (!FileAccess.FileExists("user://mods/" + path))
+		{
+			GD.PrintErr("Unknown video: " + path);
+			return null;
+		}
+		if (!path.EndsWith(".ogv", StringComparison.OrdinalIgnoreCase))
+			GD.PushWarning("Videos should be .ogv files, " + path + " may not play correctly!");
+
+		VideoStreamPlayer player = new()
+		{
+			Stream = new VideoStreamTheora { File = "user://mods/" + path },
+			Size = new Vector2(640, 480),
+			Expand = true,
+			Volume = Math.Clamp(volume, 0f, 2f),
+			Bus = "SFX",
+			ZIndex = layer
+		};
+		AddChild(player);
+		PlayingVideos.Add(player);
+		player.Play();
+		if (!player.IsPlaying())
+		{
+			GD.PrintErr("Failed to play video: " + path);
+			PlayingVideos.Remove(player);
+			player.QueueFree();
+			return null;
+		}
+		return player;
 	}
 
 	/// <summary>

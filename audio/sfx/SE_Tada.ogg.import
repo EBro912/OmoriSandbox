@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/SE_Tada.ogg-6193dee2b6a319390e1a0e905a6448c5.
 [params]
 
 loop=false
-loop_offset=0
-bpm=0
+loop_offset=0.0
+bpm=0.0
 beat_count=0
 bar_beats=4

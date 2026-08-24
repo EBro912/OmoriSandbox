@@ -10,6 +10,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class HumphreySwarmAlt : Enemy
 {
     public override string Name => "HUMPHREY";
+    public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_swarm.tres");
     protected override Stats Stats => new(9999, 5000, 10, 150, 65, 10, 95);
     protected override string[] EquippedSkills => ["HUSAttack", "HUSAttack2", "HUSAttack3"];

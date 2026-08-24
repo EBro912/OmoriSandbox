@@ -10,10 +10,11 @@ namespace OmoriSandbox.Actors;
 
 internal sealed class Charlene : Enemy
 {
-    public override string Name => "CHARLENE";
+    // base game calls her CHARLIE
+    public override string Name => "CHARLIE";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/charlene.tres");
     protected override Stats Stats => new(300, 100, 10, 40, 10, 10, 95);
-
+    public override Vector2 InfoBoxOffset => new(0, -375);
     protected override string[] EquippedSkills => ["CHAttack", "CHDoNothing"];
 
     public override bool IsEmotionValid(Emotion emotion)

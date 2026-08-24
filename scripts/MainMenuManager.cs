@@ -144,7 +144,26 @@ internal partial class MainMenuManager : Node
 			if (index == -1)
 				return;
 			UpdateStageSelectorVisiblity((int)index);
+			// remember the selection across game restarts
+			SettingsMenuManager.Instance.LastSelectedPreset = TitlePresetDropdown.GetItemText((int)index);
+			SettingsMenuManager.Instance.SaveSettings();
 		};
+	}
+
+	// re-selects the preset remembered in the settings
+	// if the preset no longer exists, the first option is chosen
+	public void RestoreLastSelectedPreset()
+	{
+		string saved = SettingsMenuManager.Instance.LastSelectedPreset;
+		if (string.IsNullOrEmpty(saved))
+			return;
+
+		int index = TitlePresetDropdown.GetItemIndex(saved);
+		if (index == -1)
+			return;
+
+		TitlePresetDropdown.Selected = index;
+		UpdateStageSelectorVisiblity(index);
 	}
 
 	private void EnterEditor()
@@ -187,6 +206,8 @@ internal partial class MainMenuManager : Node
 		{
 			TitlePresetDropdown.Selected = index;
 			UpdateStageSelectorVisiblity(index);
+			SettingsMenuManager.Instance.LastSelectedPreset = LastLoadedPreset;
+			SettingsMenuManager.Instance.SaveSettings();
 		}
 
 		AnimationManager.Instance.StopAllAnimations();

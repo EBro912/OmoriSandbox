@@ -49,12 +49,48 @@ public class StatModifier
     }
 
     /// <summary>
+    /// Whether this modifier ignores removals unless forced. See <see cref="WithRemovalGuard"/>.
+    /// </summary>
+    public bool HasRemovalGuard { get; private set; }
+
+    /// <summary>
+    /// Whether this modifier's turn counter ticks each time its holder finishes performing an
+    /// action, instead of at the end of the turn. Mirrors RPGMaker's action-end state removal
+    /// timing (YEP autoRemovalTiming 1).
+    /// </summary>
+    public bool TicksOnActionEnd { get; private set; }
+
+    // handles the "free state turn" so action states don't get removed at the end of the action that applied them
+    internal bool SkipNextActionTick { get; set; }
+
+    /// <summary>
+    /// Marks this modifier as ticking at the end of the holder's actions instead of at the end
+    /// of the turn. See <see cref="TicksOnActionEnd"/>.
+    /// </summary>
+    public StatModifier WithActionEndTicking()
+    {
+        TicksOnActionEnd = true;
+        return this;
+    }
+
+    /// <summary>
     /// Sets the list of state icons this modifier should use.
     /// </summary>
     /// <param name="icons">A list of state icons this stat modifier should use.</param>
     public StatModifier WithStateIcons(params StateIcon[] icons)
     {
         StateIcons = icons;
+        return this;
+    }
+
+    /// <summary>
+    /// Marks this modifier as ignoring removal. <see cref="Actors.Actor.RemoveStatModifier(string, bool)"/>
+    /// and <see cref="Actors.Actor.RemoveAllStatModifiers(bool)"/> will not work unless the force parameter is set.
+    /// It still expires from its own turn counter, so pair this with an infinite duration for a permanent effect.
+    /// </summary>
+    public StatModifier WithRemovalGuard()
+    {
+        HasRemovalGuard = true;
         return this;
     }
     
@@ -77,6 +113,7 @@ public class StatModifier
     /// Use <see cref="OnAdd"/> instead.
     /// </remarks>
     /// <param name="actor">The <see cref="Actor"/> this modifier is attached to.</param>
+    // TODO: OMORI ticks damage/regen-over-time effects inside end-of-turn, we currently do it at the start of the turn
     public virtual void OnStartOfTurn(Actor actor) {}
 
     /// <summary>
@@ -87,6 +124,38 @@ public class StatModifier
     {
         // base class simply applies all stat bonuses to the provided stats
         StatBonus.ApplyAll(ref stats, Bonuses);
+    }
+
+    /// <summary>
+    /// The total multiplier this modifier applies to the given stat, as the product of its
+    /// stat bonus multipliers. Flat bonuses are ignored.
+    /// </summary>
+    /// <param name="stat">The <see cref="StatType"/> to get the multiplier for.</param>
+    public virtual float GetParamRate(StatType stat)
+    {
+        float rate = 1f;
+        foreach (StatBonus bonus in Bonuses)
+        {
+            if (bonus.Type == stat)
+                rate *= bonus.Multiplier;
+        }
+        return rate;
+    }
+
+    /// <summary>
+    /// The total flat bonus this modifier applies to the given stat, as the sum of its
+    /// stat bonus flat values. Multipliers are ignored.
+    /// </summary>
+    /// <param name="stat">The <see cref="StatType"/> to get the flat bonus for.</param>
+    public virtual int GetParamPlus(StatType stat)
+    {
+        int plus = 0;
+        foreach (StatBonus bonus in Bonuses)
+        {
+            if (bonus.Type == stat)
+                plus += bonus.FlatBonus;
+        }
+        return plus;
     }
 
     /// <summary>

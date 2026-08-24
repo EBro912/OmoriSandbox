@@ -394,8 +394,8 @@ ChoiceTextParent = NodePath("ChoiceBox/MarginContainer/Text")
 [node name="Text" type="RichTextLabel" parent="BattleCanvas/UI/DialogueBox" unique_id=1194128622]
 offset_left = -166.0
 offset_top = -45.0
-offset_right = 162.0
-offset_bottom = 45.0
+offset_right = 168.0
+offset_bottom = 49.0
 theme_override_constants/outline_size = 4
 bbcode_enabled = true
 scroll_active = false
@@ -1046,5 +1046,3 @@ theme_override_styles/normal = ExtResource("37_c6pm6")
 theme_override_styles/pressed = ExtResource("38_5he1u")
 theme_override_styles/hover = ExtResource("39_5poiv")
 text = "Return to Menu"
-
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1656095367]

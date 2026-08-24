@@ -158,8 +158,24 @@ public class TierStatModifier : StatModifier
 		if (Bonuses.Length == 0)
 			return;
 		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
-		int val = stats.GetStat(bonus.Type);
-		val = (int)Math.Round(val * bonus.Multiplier + bonus.FlatBonus);
-		stats.SetStat(bonus.Type, val);
+		stats.SetStatExact(bonus.Type, stats.GetStatExact(bonus.Type) * bonus.Multiplier + bonus.FlatBonus);
+	}
+
+	/// <inheritdoc/>
+	public override float GetParamRate(StatType stat)
+	{
+		if (Bonuses.Length == 0)
+			return 1f;
+		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
+		return bonus.Type == stat ? bonus.Multiplier : 1f;
+	}
+
+	/// <inheritdoc/>
+	public override int GetParamPlus(StatType stat)
+	{
+		if (Bonuses.Length == 0)
+			return 0;
+		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
+		return bonus.Type == stat ? bonus.FlatBonus : 0;
 	}
 }
