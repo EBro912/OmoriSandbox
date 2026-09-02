@@ -19,6 +19,9 @@ public sealed class MinionBarrierModifier : StatModifier
         
         if (isAttacking)
             return;
+        
+        if (damage <= 0)
+            return;
 
         List<Enemy> allEnemies = BattleManager.Instance.GetAllAliveEnemies();
         // if there's only one enemy alive, there's no one to share the damage with

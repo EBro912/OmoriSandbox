@@ -45,7 +45,7 @@ internal sealed class TheHooligans : Enemy
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "My master and I have been training for this moment...");
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, "You won't make fools out of us ever again!");
             DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, "KIM... Are you ready to rumble?");
-            DialogueManager.Instance.QueueMessage("KIM", CenterPoint, @"You know it, VANCE!\! These nerds have got it coming to 'em!");
+            DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, "[br]Why are you here?");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 1;
         }
@@ -53,7 +53,7 @@ internal sealed class TheHooligans : Enemy
         if (Stage == 1 && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, "ANGEL, remember our training! Make weakness your strength!");
-            DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "Yes, master![br]I won't let you down!");
+            DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "Yes, Master![br]I won't let you down!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
@@ -82,11 +82,10 @@ internal sealed class TheHooligans : Enemy
             return;
         }
 
-        DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\! Is this real life?");
+        DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\![br]Is...\! Is this real life?");
         DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"How...\! How is this possible!?");
         DialogueManager.Instance.QueueMessage("KIM", CenterPoint, "I can't believe we lost...");
         DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, @"KIM... I'm hungry. \![br]Can we go now?");
-        DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, "... ... ...");
         await DialogueManager.Instance.WaitForDialogue();
     }
 
@@ -94,11 +93,11 @@ internal sealed class TheHooligans : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\![br]Is...\!Is this real life?");
+            DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\![br]Is...\! Is this real life?");
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "We won, master! We won!");
             DialogueManager.Instance.QueueMessage("KIM", CenterPoint, "Serves you right, nerds.");
             DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, @"KIM... I'm hungry... Let's go get some food.");
-            DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, "Heh.");
+            DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, @"...\! Heh.");
             PartyMember targetOne = BattleManager.Instance.GetPartyMemberAtPosition(0) ?? BattleManager.Instance.GetPartyMember(0);
             PartyMember targetTwo = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
             DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, $@"{targetTwo.Name.ToUpper()}...\! {targetOne.Name.ToUpper()}...\![br]Get the heck out of here.");
@@ -108,14 +107,14 @@ internal sealed class TheHooligans : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (IsBelowHP(0.152f))
+        if (IsBelowHP(0.15f))
             return new BattleCommand(this, SelectTargets(4), Skills["HOGroupAttack"]);
         if (Roll() < 46)
             return new BattleCommand(this, SelectTarget(), Skills["HOAngelAttack"]);
         if (Roll() < 26)
             return new BattleCommand(this, SelectTarget(), Skills["HOMaverickCharm"]);
         if (Roll() < 46)
-            return new BattleCommand(this, SelectTarget(), Skills["HOKimHeadbutt"]);
-        return new BattleCommand(this, SelectAllTargets(), Skills["HOVanceCandy"]);
+            return new BattleCommand(this, SelectAllTargets(), Skills["HOVanceCandy"]);
+        return new BattleCommand(this, SelectTarget(), Skills["HOKimHeadbutt"]);
     }
 }

@@ -49,7 +49,7 @@ internal sealed class Abbi : Enemy
             }
         }
 
-        if (Roll() < 36)
+        if (Roll() < 36 && SelectAllEnemies().Count > 1)
             return new BattleCommand(this, SelectAllEnemies(), Skills["AbbiAttackOrder"]);
         return new BattleCommand(this, SelectTarget(), Skills["AbbiAttack"]);
     }

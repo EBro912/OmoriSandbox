@@ -25,11 +25,11 @@ internal sealed class TheEarthAlt : Enemy
         
         switch (CurrentEmotion.Id)
         {
-            case "sad":
+            case "happy":
                 if (Roll() < 51)
                     goto cruel;
                 goto protect;
-            case "happy":
+            case "sad":
                 if (Roll() < 61)
                     goto cruel;
                 goto protect;

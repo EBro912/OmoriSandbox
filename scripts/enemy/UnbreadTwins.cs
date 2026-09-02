@@ -21,6 +21,8 @@ internal sealed class UnbreadTwins : Enemy
 	private int Stage = 0;
 
 	private readonly EnemyComponent[] Breads = new EnemyComponent[2];
+	// Unbread Twins only ever bake bread twice
+	private int Bakes = 0;
 	private readonly int[] Offsets = [-270, 200];
 
 	public override bool IsEmotionValid(Emotion emotion)
@@ -40,11 +42,11 @@ internal sealed class UnbreadTwins : Enemy
 		string state = CurrentEmotion.Id == "sad" && IsEmotionLocked ? "depressed" : CurrentEmotion.Id;
 		switch (state) {
 			case "miserable":
-				if (Roll() < 51)
+				if (Roll() < 41)
 					goto attack;
 				if (Roll() < 36)
 					goto cook;
-				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+				if (Bakes < 2 && Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
 					goto bake;
 				goto nothing;
 			case "depressed":
@@ -52,7 +54,7 @@ internal sealed class UnbreadTwins : Enemy
 					goto attack;
 				if (Roll() < 36)
 					goto cook;
-				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+				if (Bakes < 2 && Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
 					goto bake;
 				goto nothing;
 			case "sad":
@@ -62,7 +64,7 @@ internal sealed class UnbreadTwins : Enemy
 			default:
 				if (Roll() < 51)
 					goto attack;
-				if (Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+				if (Bakes < 2 && Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
 					goto bake;
 				goto nothing;
 		}
@@ -88,7 +90,7 @@ internal sealed class UnbreadTwins : Enemy
 
 		if (IsBelowHP(0.8f) && Stage == 0)
 		{
-			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"[wave freq=10][br]Fresh bread...\! fresh bread...\! Every day, it's fresh bread...");
+			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"[wave freq=10][br]Fresh bread...\! Fresh bread...\! Every day, it's fresh bread...");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10][br]Ohooooooooo...");
 			await DialogueManager.Instance.WaitForDialogue();
 			SetEmotionForced("sad");
@@ -101,7 +103,7 @@ internal sealed class UnbreadTwins : Enemy
 
 		if (IsBelowHP(0.65f) && Stage <= 1)
 		{
-			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"We're doomed to bake bread for all enternity...\! aren't we, BISCUIT?");
+			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"We're doomed to bake bread for all eternity...\! aren't we, BISCUIT?");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooo...");
 			await DialogueManager.Instance.WaitForDialogue();
 			Stage = 2;
@@ -141,7 +143,7 @@ internal sealed class UnbreadTwins : Enemy
 	{
 		if (!victory)
 		{
-			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"BISCUIT!\! It's a miracle!\![br]We've been saved by the gods!");
+			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"BISCUIT! It's a miracle!\![br]We've been saved by the gods!");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo!");
 			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"Now I guess it's back to making... [wave freq=10]fresh bread...\! fresh bread...\! fresh bread...");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohoo...");
@@ -156,6 +158,7 @@ internal sealed class UnbreadTwins : Enemy
 			if (!GodotObject.IsInstanceValid(Breads[i]) || Breads[i].Actor.IsToast)
 			{
 				Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
+				Bakes++;
 				return;
 			}
 		}

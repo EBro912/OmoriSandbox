@@ -69,7 +69,7 @@ internal sealed class HumphreySwarm : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (IsBelowHP(0.0999f) && !HasTransformed)
+        if (IsBelowHP(0.1f) && !HasTransformed)
         {
             HasTransformed = true;
             await ChangePhase();

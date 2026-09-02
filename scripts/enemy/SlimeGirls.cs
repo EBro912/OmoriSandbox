@@ -57,11 +57,11 @@ internal sealed class SlimeGirls : Enemy
 			case "angry":
 				if (Roll() < 21)
 					goto combo;
-				if (Roll() < 16)
+				if (Roll() < 11)
 					goto gas;
 				if (Roll() < 21)
 					goto dynamite;
-				if (Roll() < 16)
+				if (Roll() < 11)
 					goto stingray;
 				goto chainsaw;
 			default:

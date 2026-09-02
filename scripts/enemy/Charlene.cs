@@ -54,7 +54,13 @@ internal sealed class Charlene : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (Roll() < 16)
+        int chance = CurrentEmotion.Id switch
+        {
+            "sad" => 6,
+            "angry" => 36,
+            _ => 16,
+        };
+        if (Roll() < chance)
             return new BattleCommand(this, SelectTarget(), Skills["CHAttack"]);
         return new BattleCommand(this, this, Skills["CHDoNothing"]);
     }

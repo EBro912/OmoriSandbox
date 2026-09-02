@@ -45,7 +45,7 @@ internal sealed class SirMaximusIII : Enemy
                     goto attack;
                 if (Roll() < 31)
                     goto twice;
-                if (Roll() < 36)
+                if (Roll() < 31)
                     goto spin;
                 goto flex;
             case "angry":

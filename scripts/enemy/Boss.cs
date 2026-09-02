@@ -19,11 +19,13 @@ internal sealed class Boss : Enemy
         return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
     }
 
+    public override Vector2 InfoBoxOffset => new(0, -320);
+
     private int Stage = 0;
 
     public override BattleCommand ProcessAI()
     {
-        if (IsBelowHP(0.153f))
+        if (IsBelowHP(0.15f))
             return new BattleCommand(this, this, Skills["BSSDoNothing"]);
 
         if (HasObserveTarget(out PartyMember observe))
@@ -39,6 +41,16 @@ internal sealed class Boss : Enemy
 
     public override async Task ProcessBattleConditions()
     {
+        if (Stage == 3)
+        {
+            Stage = 4;
+            if (CurrentHP <= 0)
+                return;
+            DialogueManager.Instance.QueueMessage(this, @"HUH!?\! HOW ARE YOU STILL MOVING!?");
+            await DialogueManager.Instance.WaitForDialogue();
+            return;
+        }
+
         if (Stage > 2 || CurrentHP <= 0)
             return;
 

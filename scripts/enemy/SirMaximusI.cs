@@ -68,22 +68,18 @@ internal sealed class SirMaximusI : Enemy
     
     public override async Task ProcessBattleConditions()
     {
-        if (IsBelowHP(0.2f) && !UltimateAttack)
-        {
-            DialogueManager.Instance.QueueMessage(this, "Behold! My family has spent generations perfecting this technique...");
-            DialogueManager.Instance.QueueMessage(this, "[br]This is my ultimate attack!");
-            await DialogueManager.Instance.WaitForDialogue();
-            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttack"]);
-            UltimateAttack = true;
-            return;
-        }
-        
         if (IsBelowHP(0.5f) && !FirstDialogue)
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             DialogueManager.Instance.QueueMessage(this, "My son needs me!");
             await DialogueManager.Instance.WaitForDialogue();
             FirstDialogue = true;
+        }
+
+        if (IsBelowHP(0.2f) && !UltimateAttack)
+        {
+            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIUltimateAttack"]);
+            UltimateAttack = true;
         }
     }
 

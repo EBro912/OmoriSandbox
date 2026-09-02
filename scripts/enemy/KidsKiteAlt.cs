@@ -9,7 +9,7 @@ internal sealed class KidsKiteAlt : Enemy
     public override string Name => "KID'S KITE";
     public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/kids_kite.tres");
-    protected override Stats Stats => new(3000, 1500, 100, 35, 40, 10, 95);
+    protected override Stats Stats => new(3000, 1500, 100, 35, 100, 10, 95);
     protected override string[] EquippedSkills => ["KSKAttack", "KSKDoNothing", "KSKFly"];
 
     public override bool IsEmotionValid(Emotion emotion)

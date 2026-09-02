@@ -29,18 +29,20 @@ internal sealed class SnaleyTwo : Enemy
             return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
         if (Turn is 2)
         {
-            BattleManager.Instance.ForceCommand(this, SelectTarget(), Skills["SNFollowup"]);
-            return new BattleCommand(this, SelectTarget(), Skills["SNAttackFollowup"]);
+            PartyMember target = SelectTarget();
+            BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+            return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["SNAttack"]);
         if (Roll() < 36)
         {
-            BattleManager.Instance.ForceCommand(this, SelectTarget(), Skills["SNFollowup"]);
-            return new BattleCommand(this, SelectTarget(), Skills["SNAttackFollowup"]);
+            PartyMember target = SelectTarget();
+            BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+            return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
-        if (Roll() < 25) 
+        if (Roll() < 26)
             return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
         return new BattleCommand(this, this, Skills["SNDoNothing"]);
     }
@@ -71,6 +73,9 @@ internal sealed class SnaleyTwo : Enemy
             if (CurrentEmotion.Id != "ecstatic" && CurrentEmotion.Id != "manic")
                 SetEmotion("happy", true);
             DialogueManager.Instance.QueueMessage(this, @"How was that!?\! One of these days, I'll be as strong as you!");
+            await DialogueManager.Instance.WaitForDialogue();
+            AudioManager.Instance.PlaySFX("GEN_shine", 1f, 0.9f);
+            DialogueManager.Instance.QueueMessage("SNALEY is HAPPY!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

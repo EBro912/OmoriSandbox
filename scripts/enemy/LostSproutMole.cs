@@ -36,17 +36,17 @@ internal sealed class LostSproutMole : Enemy
 			case "sad":
 				if (Roll() < 31)
 					goto attack;
-				if (Roll() < 56)
+				if (Roll() < 66)
 					goto nothing;
 				goto run;
 			case "angry":
-				if (Roll() < 61)
+				if (Roll() < 51)
 					goto attack;
 				if (Roll() < 21)
 					goto nothing;
 				goto run;
 			default:
-				if (Roll() < 56)
+				if (Roll() < 66)
 					goto attack;
 				if (Roll() < 36)
 					goto nothing;

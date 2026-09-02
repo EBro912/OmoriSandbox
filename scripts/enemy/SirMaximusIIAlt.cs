@@ -89,7 +89,7 @@ internal sealed class SirMaximusIIAlt : Enemy
     {
         if (CurrentHP <= 1 && !UltimateAttack)
         {
-            DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
+            DialogueManager.Instance.QueueMessage("SIR MAXIMUS", CenterPoint, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMUltimateAttack"]);
             UltimateAttack = true;

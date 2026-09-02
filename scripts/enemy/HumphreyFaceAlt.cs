@@ -13,8 +13,8 @@ internal sealed class HumphreyFaceAlt : Enemy
 	public override Vector2 InfoBoxOffset => new(0, -115);
 	public override bool InfoBoxCursorAboveBox => true;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_face.tres");
-	protected override Stats Stats => new(10000, 3000, 110, 50, 115, 10, 95);
-	protected override string[] EquippedSkills => ["HUFChomp", "HUFDoNothing", "HUFSwallow"];
+	protected override Stats Stats => new(10000, 3000, 110, 50, 115, 10, 100);
+	protected override string[] EquippedSkills => ["HUFChomp", "HUFDoNothing", "HUFSwallowAlt"];
 	
 	public override bool IsEmotionValid(Emotion emotion)
 	{
@@ -33,7 +33,7 @@ internal sealed class HumphreyFaceAlt : Enemy
 					goto chomp;
 				goto nothing;
 			case "sad":
-				if (Roll() < 41)
+				if (Roll() < 46)
 					goto chomp;
 				goto nothing;
 			case "happy":
@@ -71,15 +71,9 @@ internal sealed class HumphreyFaceAlt : Enemy
 		MessageIndex++;
 		if (MessageIndex >= 5)
 			MessageIndex = 0;
-		BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["HUFSwallow"]);
+		BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["HUFSwallowAlt"]);
 	}
 
-	public override async Task OnDefeat()
-	{
-		DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]Feel free to struggle, 'cuz no matter what...\| You'll never be able to escape my gut!");
-		await DialogueManager.Instance.WaitForDialogue();
-	}
-	
 	private string GetMessage(int index)
 	{
 		return index switch

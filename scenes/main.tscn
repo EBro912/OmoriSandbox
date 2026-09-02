@@ -104,9 +104,10 @@ ToyMenu = NodePath("../UI/ToyMenu")
 EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 
-[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
+[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint", "EnemyAnimations")]
 script = ExtResource("12_5q0nq")
 BattlebackRoot = NodePath("../UI/BattlebackRoot")
+EnemyAnimations = NodePath("../UI/BattlebackRoot/EnemyAnimations")
 ReleaseEnergy = NodePath("../UI/BattlebackRoot/FullScreenEffects/ReleaseEnergy")
 ReleaseEnergyBasil = NodePath("../UI/BattlebackRoot/FullScreenEffects/ReleaseEnergyBasil")
 RedHands = NodePath("../UI/BattlebackRoot/FullScreenEffects/RedHands")
@@ -211,6 +212,8 @@ texture = ExtResource("14_og1vs")
 stretch_mode = 1
 script = ExtResource("19_vc5cj")
 Tiles = 3
+
+[node name="EnemyAnimations" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot" unique_id=1881277317]
 
 [node name="FullScreenEffects" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot" unique_id=143668311]
 z_as_relative = false

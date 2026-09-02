@@ -35,5 +35,9 @@ public sealed class SpaceExHusbandStatModifier : StatModifier
                 skill.Name != "Vent")
                 damage = 0f;
         }
+        else if (command.Action is Item item && item.Name is "DYNAMITE" or "PEPPER SPRAY")
+        {
+            damage = 0f;
+        }
     }
 }

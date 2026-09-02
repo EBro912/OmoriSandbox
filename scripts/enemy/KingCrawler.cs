@@ -50,9 +50,9 @@ internal sealed class KingCrawler : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (IsBelowHP(0.5f) && !HasSpoken)
+        if (CurrentHP > 0 && IsBelowHP(0.5f) && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=12]Ssssssssssssssssssss...");
+            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=20]Ssssssssssssssssssss...");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }

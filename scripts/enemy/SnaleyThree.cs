@@ -15,7 +15,7 @@ public class SnaleyThree : Enemy
     {
         return emotion.Id != "afraid" && emotion.Id != "stressed";
     }
-    protected override string[] EquippedSkills => ["RabbitAttack", "SNDoNothing", "SNAttackFollowup", "SNFollowup", "SNReleaseEnergy", "SNMegaphone"];
+    protected override string[] EquippedSkills => ["RabbitAttack", "SNAttack", "SNBeatdown", "SNAttackFollowup", "SNFollowup", "SNReleaseEnergy", "SNMegaphone"];
 
     private int Turn = 0;
     
@@ -28,13 +28,14 @@ public class SnaleyThree : Enemy
         if (Turn is 1)
             return new BattleCommand(this, SelectAllTargets(), Skills["SNMegaphone"]);
         if (Roll() < 36)
-            return new BattleCommand(this, SelectTarget(), Skills["RabbitAttack"]);
+            return new BattleCommand(this, SelectTarget(), Skills["SNAttack"]);
         if (Roll() < 36)
         {
-            BattleManager.Instance.ForceCommand(this, SelectTarget(), Skills["SNFollowup"]);
-            return new BattleCommand(this, SelectTarget(), Skills["SNAttackFollowup"]);
+            PartyMember target = SelectTarget();
+            BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+            return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
-        return new BattleCommand(this, this, Skills["SNDoNothing"]);
+        return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
     }
 
     public override async Task OnStartOfBattle()

@@ -30,7 +30,7 @@ internal sealed class Recyclepath : Enemy
         if (Roll() < 51)
             return new BattleCommand(this, SelectTarget(), Skills["RPathAttack"]);
         // fling trash can only be used with at least 1 Stockpile stack
-        if (HasStatModifier("Stockpile") && Roll() < 61)
+        if (HasStatModifier("Stockpile") && Roll() < 31)
             return new BattleCommand(this, SelectTarget(), Skills["RPathFlingTrash"]);
         // we need to check these separately due to the sprite flipping behavior
         if (LeftRecycultist == null || LeftRecycultist.Actor.IsToast)
@@ -53,7 +53,6 @@ internal sealed class Recyclepath : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
         
         if (IsBelowHP(0.5f) && !HasSpoken)
         {

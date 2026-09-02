@@ -56,9 +56,9 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
                     enemy.RemoveStatModifier("SpeedUp");
-                    enemy.AddTierStatModifier("AttackUp", 3);
-                    enemy.AddTierStatModifier("DefenseUp", 3);
-                    enemy.AddTierStatModifier("SpeedUp", 3);
+                    enemy.AddTierStatModifier("AttackUp", 3, silent: true);
+                    enemy.AddTierStatModifier("DefenseUp", 3, silent: true);
+                    enemy.AddTierStatModifier("SpeedUp", 3, silent: true);
                     AnimationManager.Instance.PlayAnimation(218, enemy);
                 }
                 break;
@@ -71,10 +71,10 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
                     enemy.RemoveStatModifier("SpeedUp");
-                    enemy.AddTierStatModifier("AttackUp", 2);
-                    enemy.AddTierStatModifier("DefenseUp", 2);
-                    enemy.AddTierStatModifier("SpeedDown", 2);
-                    AnimationManager.Instance.PlayAnimation(218, enemy);
+                    enemy.AddTierStatModifier("AttackUp", 2, silent: true);
+                    enemy.AddTierStatModifier("DefenseUp", 2, silent: true);
+                    enemy.AddTierStatModifier("SpeedDown", 2, silent: true);
+                    AnimationManager.Instance.PlayAnimation(214, enemy);
                 }
                 break;
             case 2:
@@ -92,21 +92,6 @@ internal sealed class KiteKidAlt : Enemy
         }
     }
 
-    private bool HasSpoken = false;
-    public override async Task ProcessBattleConditions()
-    {
-        if (CurrentHP <= 0)
-            return;
-
-        if (IsBelowHP(0.25f) && !HasSpoken)
-        {
-            DialogueManager.Instance.QueueMessage(this, "No... This can't be...");
-            DialogueManager.Instance.QueueMessage(this, @"The wind...\![br]It's getting weaker!");
-            await DialogueManager.Instance.WaitForDialogue();
-            HasSpoken = true;
-        }
-    }
-
     public override async Task OnDefeat()
     {
         DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
@@ -116,12 +101,4 @@ internal sealed class KiteKidAlt : Enemy
             KidsKite.Actor.CurrentHP = 0;
     }
 
-    public override async Task OnEndOfBattle(bool victory)
-    {
-        if (!victory)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"Haha! As the wind predicted!\! Me and my kite are unbeatable.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
-    }
 }

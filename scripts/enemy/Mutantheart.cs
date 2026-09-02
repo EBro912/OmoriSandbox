@@ -21,6 +21,8 @@ internal sealed class Mutantheart : Enemy
     }
 
     private static readonly string[] DesireableStates = ["happy", "sad", "angry"];
+    // TODO (vanilla quirk): Mutantheart only recognises MANIC/MISERABLE/FURIOUS on Actor 1 (OMORI),
+    // a tier-3 AUBREY/KEL/HERO/other actor can technically be INSTAKILLed in vanilla
     private static readonly Dictionary<string, string[]> StateLookup = new()
     {
         { "happy", ["happy", "ecstatic", "manic"] },
@@ -60,7 +62,7 @@ internal sealed class Mutantheart : Enemy
 
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bluh?");
+            DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bluh...?");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }

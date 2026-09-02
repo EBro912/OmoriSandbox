@@ -651,13 +651,15 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Whether this actor's current HP is equal to or below the given fraction of its max HP.<br/>
+	/// Whether this actor's current HP is at or below the given fraction of its max HP.<br/>
+	/// Mirrors RPG Maker's troop page check (<c>hpRate() * 100 &lt;= X</c>).
 	/// Useful for having battle conditions scale when the actor's stats are adjusted.
 	/// </summary>
-	/// <param name="fraction">The fraction of max HP to compare against.</param>
+	/// <param name="fraction">The fraction of max HP to compare against (0.25f = 25%).</param>
 	public bool IsBelowHP(float fraction)
 	{
-		return CurrentHP <= Mathf.RoundToInt(CurrentStats.MaxHP * fraction);
+		double percent = Math.Round(fraction * 100.0, 2);
+		return (double)CurrentHP / CurrentStats.MaxHP * 100.0 <= percent;
 	}
 
 	/// <summary>

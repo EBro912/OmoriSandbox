@@ -175,7 +175,7 @@ internal sealed class SpaceExHusband : Enemy
             case "happy":
                 if (CurrentEmotion.Group?.Id == "happy")
                 {
-                    DialogueManager.Instance.QueueMessage(this, "I still do think fondly of those times...");
+                    DialogueManager.Instance.QueueMessage(this, @"Ah...\! I still do think fondly of those times...");
                     return true;
                 }
                 break;

@@ -2177,7 +2177,7 @@ public partial class BattleManager : Node
 	/// <param name="healFunc">The function to use in the heal calculation.</param>
 	/// <param name="variance">The healing variance. Healed HP will be multiplied between (1 - variance) and (1 + variance).</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
-	public void Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f, bool silent = false)
+	public int Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f, bool silent = false)
 	{
 		float baseHealing = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
@@ -2188,6 +2188,7 @@ public partial class BattleManager : Node
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
+		return rounded;
 	}
 
 	/// <summary>

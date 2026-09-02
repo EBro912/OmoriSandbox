@@ -50,7 +50,7 @@ internal sealed class Angel : Enemy
         {
             PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
             DialogueManager.Instance.QueueMessage(this, $"Heh. You surprise me, {target.Name.ToUpper()}!");
-            DialogueManager.Instance.QueueMessage(this, "You would be a worthy rival for my master!");
+            DialogueManager.Instance.QueueMessage(this, "You would make a worthy rival for my master!");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }

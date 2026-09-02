@@ -27,7 +27,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         {
             return emotion.Tier switch
             {
-                1 => [new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 0.9f)],
+                1 => [new StatBonus(StatType.ATK, 1.2f), new StatBonus(StatType.DEF, 0.9f)],
                 2 => [new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 0.5f)],
                 3 => [new StatBonus(StatType.ATK, 2f), new StatBonus(StatType.DEF, 0.3f)],
                 _ => base.GetEmotionStatBonuses(emotion)
@@ -45,10 +45,18 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         switch (CurrentEmotion.Id)
         {
             case "furious":
+            case "enraged":
                 if (Roll() < 36)
                     goto attack;
-                goto bullet;
-            case "enraged":
+                if (IsBelowHP(0.25f))
+                    goto bullet;
+                if (Roll() < 31)
+                    goto nothing;
+                if (Roll() < 31)
+                    goto angsty;
+                if (Roll() < 31)
+                    goto angry;
+                goto laser;
             case "angry":
                 if (Roll() < 46)
                     goto attack;
@@ -107,14 +115,13 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
 
     public override async Task OnDefeat()
     {
-        DialogueManager.Instance.QueueMessage(this, @"[br]Ugh...\! my heart...");
+        DialogueManager.Instance.QueueMessage(this, @"[br]Ugh...\! My heart...");
         DialogueManager.Instance.QueueMessage(this, @"[br]It...\! hurts...");
         await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
 
         if (Stage > 2)
             return;
@@ -125,7 +132,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             SetEmotionForced("angry");
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND became ANGRY!");
-            DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND can no longer be HAPPY or SAD!");
+            DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND can no longer become HAPPY or SAD!");
             await DialogueManager.Instance.WaitForDialogue();
             LockEmotion("angry");
             Stage = 1;
@@ -144,7 +151,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
             Stage = 2;
         }
         
-        if (IsBelowHP(0.25f) && Stage <= 2)
+        if (CurrentHP > 0 && IsBelowHP(0.25f) && Stage <= 2)
         {
             UnlockEmotion();
             DialogueManager.Instance.QueueMessage(this, "[br]Out of my way, earthly scum!");
@@ -162,7 +169,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "[br]You should have thought twice before challenging me.");
+            DialogueManager.Instance.QueueMessage(this, "[br]You should've thought twice before challenging me.");
             DialogueManager.Instance.QueueMessage(this, "[br]You are nothing but earthly scum!");
             await DialogueManager.Instance.WaitForDialogue();
         }

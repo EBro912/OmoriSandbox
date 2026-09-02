@@ -53,7 +53,7 @@ internal sealed class KiteKid : Enemy
         if (CurrentHP <= 0)
             return;
 
-        if (IsBelowHP(0.251f) && !HasSpoken)
+        if (IsBelowHP(0.25f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "No... This can't be...");
             DialogueManager.Instance.QueueMessage(this, @"The wind...\![br]It's getting weaker!");

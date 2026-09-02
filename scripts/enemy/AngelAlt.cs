@@ -35,37 +35,6 @@ internal sealed class AngelAlt : Enemy
         return taunting.MaxBy(x => x.Actor.CurrentStats.SPD).Actor;
     }
     
-    public override async Task OnDefeat()
-    {
-        DialogueManager.Instance.QueueMessage(this, @"Sniff..\! You...\![br]You'll pay for this...");
-        await DialogueManager.Instance.WaitForDialogue();
-    }
-
-    private bool HasSpoken = false;
-    public override async Task ProcessBattleConditions()
-    {
-        if (CurrentHP <= 0) return;
-
-        if (!HasSpoken && IsBelowHP(0.5f))
-        {
-            PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
-            DialogueManager.Instance.QueueMessage(this, $"Heh. You surprise me, {target.Name.ToUpper()}!");
-            DialogueManager.Instance.QueueMessage(this, "You would be a worthy rival for my master!");
-            await DialogueManager.Instance.WaitForDialogue();
-            HasSpoken = true;
-        }
-    }
-
-    public override async Task OnEndOfBattle(bool victory)
-    {
-        if (!victory)
-        {
-            DialogueManager.Instance.QueueMessage(@"[wave freq=20.0][font_size=40]FWEFWE[font_size=52]FWEFWE!!!");
-            DialogueManager.Instance.QueueMessage(this, "My master has taught me well!");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
-    }
-
     public override BattleCommand ProcessAI()
     {
         if (Roll() < 76)

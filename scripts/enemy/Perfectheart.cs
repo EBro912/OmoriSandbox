@@ -23,24 +23,25 @@ internal sealed class Perfectheart : Enemy
 
     private bool SecondPhase = false;
     private bool HasSpoken = false;
-    private bool HasBeenObserved = false;
+
+    private int Variable1001 = 0;
     private Sprite2D OverlaySprite = null;
 
     public override BattleCommand ProcessAI()
     {
         if (HasMultiTargetObserve())
         {
-            HasBeenObserved = true;
+            Variable1001 = 1;
             return new BattleCommand(this, SelectAllTargets(), Skills["PHWrath"]);
         }
 
         if (HasObserveTarget(out PartyMember observe))
         {
-            HasBeenObserved = true;
+            Variable1001 = 2;
             return new BattleCommand(this, observe, Skills["PHStealHeart"]);
         }
 
-        if (HasBeenObserved || SecondPhase)
+        if (Variable1001 == 1)
             return new BattleCommand(this, SelectAllTargets(), Skills["PHWrath"]);
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["PHStealHeart"]);
@@ -56,7 +57,7 @@ internal sealed class Perfectheart : Enemy
     public override async Task ProcessBattleConditions()
     {
         // recreate omori bug where phase 2 is skipped if perfectheart is observed
-        if (!HasBeenObserved && IsBelowHP(0.35f) && !SecondPhase)
+        if (Variable1001 == 0 && IsBelowHP(0.35f) && !SecondPhase)
         {
             DialogueManager.Instance.QueueMessage(this, @"Oh...\! You are quite strong.");
             DialogueManager.Instance.QueueMessage(this, "It seems I must try a bit harder.");
@@ -70,11 +71,12 @@ internal sealed class Perfectheart : Enemy
             RemoveAllStatModifiers();
             await Wait.Milliseconds(1000);
             SecondPhase = true;
+            Variable1001 = 1;
         }
-
-        if (IsBelowHP(0.25f) && !HasSpoken)
+        
+        if (CurrentHP > 0 && IsBelowHP(0.25f) && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, @"Hm?\! W-what's this?\! A drop of sweat?");
+            DialogueManager.Instance.QueueMessage(this, @"Hm?\! W-What's this?\! A drop of sweat?");
             DialogueManager.Instance.QueueMessage(this, @"My, my...\! I cannot believe this.");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;

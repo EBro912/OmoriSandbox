@@ -33,6 +33,15 @@ internal sealed class SweetheartAlt : Enemy
 		if (HasObserveTarget(out PartyMember observe))
 			return new BattleCommand(this, observe, Skills["SHAttack"]);
 		
+		if (Stage >= 1)
+		{
+			if (Roll() < 46)
+				goto attack;
+			if (Roll() < 41)
+				goto insult;
+			goto mace;
+		}
+
 		switch (CurrentEmotion.Id)
 		{
 			case "manic":
@@ -86,12 +95,12 @@ internal sealed class SweetheartAlt : Enemy
 		return new BattleCommand(this, this, Skills["Brag"]);
 	}
 
-
-	private bool UsedCharm = false;
-	private bool UsedDonut = false;
+	
+	private bool CharmPending, CharmDone, DonutPending, DonutDone;
+	private PartyMember CharmingHero;
 	public override async Task OnDefeat()
 	{
-		DialogueManager.Instance.QueueMessage(this, @"No...\! Is this...\![br]What they call defeat?");
+		DialogueManager.Instance.QueueMessage(this, @"No...\! Is this...\![br]what they call defeat?");
 		DialogueManager.Instance.QueueMessage(this, @"[br]I cannot accept this...\![br]I will not accept this!");
 		DialogueManager.Instance.QueueMessage(this, "[br]You're all nothing but a bunch of lowly peasants!");
 		await DialogueManager.Instance.WaitForDialogue();
@@ -102,11 +111,14 @@ internal sealed class SweetheartAlt : Enemy
 		if (CurrentHP <= 0) return;
 		
 		BattleCommand current = BattleManager.Instance.GetCurrentCommand();
-		if (!UsedCharm)
-			UsedCharm = current.Actor is Hero &&
-			            current.Action.Name is "CHARM" or "CAPTIVATE" or "MESMERIZE" or "SMILE";
-		if (!UsedDonut)
-			UsedDonut = current.Action.Name is "Donut";
+		if (!CharmDone && current.Actor is Hero hero &&
+		    current.Action.Name is "CHARM" or "CAPTIVATE" or "MESMERIZE" or "SMILE")
+		{
+			CharmPending = true;
+			CharmingHero = hero;
+		}
+		if (!DonutDone && current.Action.Name is "Donut")
+			DonutPending = true;
 
 		if (Stage > 3)
 			return;
@@ -161,20 +173,26 @@ internal sealed class SweetheartAlt : Enemy
 	
 	public override async Task ProcessEndOfTurn()
 	{
-		if (UsedCharm)
+		if (CharmPending)
 		{
 			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OH HERO![font_size=52]MY HERO!!");
 			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]YOUR SMILE CHARMS MY HEART!");
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]I WILL MAKE IT MINE!");
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]I WILL MAKE IT MINE!!");
 			await DialogueManager.Instance.WaitForDialogue();
+			if (!CharmingHero.IsToast)
+				CharmingHero.Heal(100);
+			CharmPending = false;
+			CharmDone = true;
+			// original event returns here, so a pending donut dialogue has to wait another turn
+			return;
 		}
-		UsedCharm = false;
-		if (UsedDonut)
+		if (DonutPending)
 		{
 			DialogueManager.Instance.QueueMessage("How dare you eat a [color=#5bd863]DONUT[/color] in my presence!");
 			await DialogueManager.Instance.WaitForDialogue();
+			DonutPending = false;
+			DonutDone = true;
 		}
-		UsedDonut = false;
 	}
 
 	public override async Task OnEndOfBattle(bool victory)

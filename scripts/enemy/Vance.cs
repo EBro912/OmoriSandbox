@@ -40,7 +40,7 @@ internal sealed class Vance : Enemy
     {
         if (CurrentHP <= 0) return;
 
-        if (!HasSpoken && IsBelowHP(0.497f))
+        if (!HasSpoken && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage(this, @"Ouch...\! That hurts.");
             await DialogueManager.Instance.WaitForDialogue();
