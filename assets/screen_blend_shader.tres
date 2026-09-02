@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://assets/screen_blend_shader.gdshader" id="1_scrbl"]
+
+[resource]
+shader = ExtResource("1_scrbl")
