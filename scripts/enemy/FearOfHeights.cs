@@ -8,7 +8,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class FearOfHeights : Enemy
 {
     public override string Name => "SOMETHING";
-    public override Vector2 InfoBoxOffset => new(0, -100);
+    public override Vector2 InfoBoxOffset => new(0, -225);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/fear_of_heights.tres");
     protected override Stats Stats => new(6000, 4000, 120, 100, 80, 10, 95);

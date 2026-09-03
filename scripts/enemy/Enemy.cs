@@ -234,8 +234,10 @@ public abstract class Enemy : Actor
 	/// <see cref="ProcessAI"/> must not change state, consume predictions or queue actions while this is set.
 	/// </summary>
 	/// <remarks>
-	/// In vanilla OMORI, enemy AI is rolled twice, once at the start of the turn, and once before it is time to take their action.
-	/// This flag can help avoid running unrelated code during the first roll.
+	/// In vanilla OMORI, enemy AI is rolled at the start of the turn, again whenever the enemy's emotion group changes
+	/// before it has acted (due to the enemy "transforming" into a different enemy), and once more
+	/// before it is time to take their action. Only the final roll is used as the earlier rolls only decide turn order.
+	/// This flag can help avoid running unrelated code during those ordering rolls.
 	/// </remarks>
 	protected bool PreRolling { get; private set; }
 

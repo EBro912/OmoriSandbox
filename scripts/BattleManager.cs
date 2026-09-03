@@ -824,7 +824,8 @@ public partial class BattleManager : Node
 							$"{enemy.Actor.Name}.ProcessStartOfCommands");
 					}
 					// vanilla rolls every enemy's action at input time and sorts the turn by that action's speed,
-					// then the action is rolled *again* when the enemy actually acts
+					// re-rolls again whenever the enemy changes emotion group before acting,
+					// then rolls it *again* when the enemy actually acts
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
 						if (enemy.Actor.IsToast || enemy.Actor.Stunned)
@@ -1068,6 +1069,21 @@ public partial class BattleManager : Node
 		if (actor is Enemy enemy)
 			return enemy.ProcessAI();
 		return null;
+	}
+
+	// handles the quirk of enemy AI rerolling whenever their emotion group changes if they have not acted yet
+	// this only matters for priority skills with high speed as they will reroll again whenever it is time to take their action
+	internal void OnEnemyEmotionChanged(Enemy enemy, Emotion previous, Emotion current)
+	{
+		if (previous.GroupId == current.GroupId)
+			return;
+		
+		// skip if the enemy cannot act
+		if (!ProcessedStartOfCommands || ActedThisTurn.Contains(enemy) || enemy.IsToast || enemy.Stunned)
+			return;
+		RunGuarded(enemy.PreRollTurnPriority, $"{enemy.Name}.PreRollTurnPriority");
+		if (SettingsMenuManager.Instance.LogDebug)
+			GD.Print($"{enemy.Name} changed emotion group to {current.Id} before acting, re-rolled turn priority: {enemy.TurnPriority}");
 	}
 
 	private async void HandleFightRun()

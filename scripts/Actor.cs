@@ -670,6 +670,17 @@ public abstract class Actor
 	}
 
 	/// <summary>
+	/// Whether this actor's current Juice is at or below the given fraction of its max Juice.<br/>
+	/// See <see cref="IsBelowHP"/> for the HP version.
+	/// </summary>
+	/// <param name="fraction">The fraction of max Juice to compare against (0.25f = 25%).</param>
+	public bool IsBelowJuice(float fraction)
+	{
+		double percent = Math.Round(fraction * 100.0, 2);
+		return (double)CurrentJuice / CurrentStats.MaxJuice >= percent;
+	}
+
+	/// <summary>
 	/// Makes this actor appear visually hurt.
 	/// </summary>
 	/// <remarks>
@@ -785,6 +796,7 @@ public abstract class Actor
 
 		if (!IsEmotionLocked && IsEmotionValid(emotion))
 		{
+			Emotion previous = CurrentEmotion;
 			CurrentEmotion = emotion;
 			if (!silent)
 			{
@@ -796,6 +808,7 @@ public abstract class Actor
 			if (CurrentAnimation == null) {
 				Sprite.Animation = emotion.AnimationName;
 			}
+			NotifyEmotionTransform(previous, emotion);
 			return true;
 		}
 
@@ -821,13 +834,22 @@ public abstract class Actor
 			return;
 		}
 
+		Emotion previous = CurrentEmotion;
 		CurrentEmotion = emotion;
 		OnEmotionChanged?.Invoke(this, EventArgs.Empty);
 		if (CurrentAnimation == null)
 		{
 			Sprite.Animation = emotion.AnimationName;
 		}
+		NotifyEmotionTransform(previous, emotion);
 	}
+	
+	private void NotifyEmotionTransform(Emotion previous, Emotion current)
+	{
+		if (this is Enemy enemy)
+			BattleManager.Instance.OnEnemyEmotionChanged(enemy, previous, current);
+	}
+	
 	/// <summary>
 	/// Called at the very start of the battle.
 	/// </summary>
