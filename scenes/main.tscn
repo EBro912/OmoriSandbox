@@ -51,11 +51,11 @@
 [ext_resource type="Script" uid="uid://beu57fpcp01nm" path="res://scripts/menu/AutofitLabel.cs" id="44_nvyfr"]
 [ext_resource type="Material" path="res://assets/screen_blend_shader.tres" id="45_scrbl"]
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_5q0nq"]
-blend_mode = 1
-
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
 viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_5q0nq"]
+blend_mode = 1
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
@@ -104,7 +104,7 @@ ToyMenu = NodePath("../UI/ToyMenu")
 EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 
-[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint", "EnemyAnimations")]
+[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
 script = ExtResource("12_5q0nq")
 BattlebackRoot = NodePath("../UI/BattlebackRoot")
 EnemyAnimations = NodePath("../UI/BattlebackRoot/EnemyAnimations")
@@ -319,7 +319,7 @@ render_target_update_mode = 4
 
 [node name="PerfectheartOverlayParent" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport" unique_id=2133650331]
 
-[node name="PerfectheartOverlayDarken" type="Sprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects"]
+[node name="PerfectheartOverlayDarken" type="Sprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=306681131]
 z_index = -4
 material = ExtResource("45_scrbl")
 texture = SubResource("ViewportTexture_dgi5k")

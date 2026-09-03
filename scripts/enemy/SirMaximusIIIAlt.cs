@@ -16,7 +16,7 @@ internal sealed class SirMaximusIIIAlt : Enemy
     protected override Stats Stats => new(4000, 2000, 75, 100, 75, 15, 95);
 
     protected override string[] EquippedSkills => ["SMIAttack", "SMIIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMIIIFlex", "SMUltimateAttack"];
-    internal override bool ObserveHasMulti => true;
+    protected internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {

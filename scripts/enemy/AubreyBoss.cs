@@ -13,7 +13,7 @@ internal sealed class AubreyBoss : Enemy
     public override Vector2 InfoBoxOffset => new(0, -350);
     protected override Stats Stats => new(12000, 4000, 120, 55, 75, 15, 95);
     protected override string[] EquippedSkills => ["AAttack", "ABossBeatdown", "ABossLookAtKel", "ABossLookAtHero", "PowerHit", "WindUpThrow", "MoodWrecker", "PepTalk", "ABossTwirl"];
-
+    protected internal override bool ObserveHasMulti => false;
     public override bool IsEmotionValid(Emotion emotion)
     {
         return emotion.Id is "neutral" or "happy" or "sad" or "angry";

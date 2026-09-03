@@ -108,6 +108,7 @@ public partial class SettingsMenuManager : Control
 		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
 		CombinedAccuracyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "CombinedAccuracy", false);
+		AllowStateReapplyOnExpiryCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "AllowStateReapplyOnExpiry", false);
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 		DialogueSpeedSlider.Value = (double)config.GetValue("Settings", "DialogueSpeed", 1d);
@@ -184,6 +185,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
+		config.SetValue("Settings", "AllowStateReapplyOnExpiry", AllowStateReapplyOnExpiryCheckbox.ButtonPressed);
 		config.SetValue("Settings", "LastSelectedPreset", LastSelectedPreset ?? "");
 
 		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
@@ -239,6 +241,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
 		config.SetValue("Settings", "CombinedAccuracy", false);
+		config.SetValue("Settings", "AllowStateReapplyOnExpiry", false);
 		config.SetValue("Settings", "LastSelectedPreset", "");
 		config.SetValue("Keybinds", "RestartHoldTime", 1d);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
@@ -282,6 +285,7 @@ public partial class SettingsMenuManager : Control
 	public bool SpaceExHusbandReleaseEnergy => SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public bool CombinedAccuracy => CombinedAccuracyCheckbox.ButtonPressed;
+	public bool AllowStateReapplyOnExpiry => AllowStateReapplyOnExpiryCheckbox.ButtonPressed;
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
 	public double DialogueSpeed => DialogueSpeedSlider.Value;
@@ -323,6 +327,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
 	[Export] private CheckBox CombinedAccuracyCheckbox;
+	[Export] private CheckBox AllowStateReapplyOnExpiryCheckbox;
 	[Export] private HSlider RestartHoldTimeSlider;
 	[Export] private Label RestartHoldTimeLabel;
 	[Export] private HSlider SpeedUpSlider;

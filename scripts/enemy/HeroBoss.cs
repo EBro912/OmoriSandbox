@@ -14,8 +14,7 @@ internal sealed class HeroBoss : Enemy
 	public override bool InfoBoxCursorAboveBox => true;
 	protected override Stats Stats => new(10000, 7000, 90, 100, 45, 10, 95);
 	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubrey", "HBossCallKel"];
-	// not in the decomp: keep the pre-184 heuristic
-	internal override bool ObserveHasMulti => HasMultiTargetPartySkill;
+	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{

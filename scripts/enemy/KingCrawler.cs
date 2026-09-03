@@ -17,7 +17,7 @@ internal sealed class KingCrawler : Enemy
         ResourceLoader.Load<SpriteFrames>("res://animations/king_crawler.tres");
     protected override Stats Stats => new(730, 250, 25, 10, 18, 10, 200);
     protected override string[] EquippedSkills => ["KCAttack", "KCDoNothing", "KCCrunch", "KCRam", "KCEat", "KCRecover"];
-    internal override bool ObserveHasMulti => true;
+    protected internal override bool ObserveHasMulti => true;
     
     public override bool IsEmotionValid(Emotion emotion)
     {

@@ -12,7 +12,7 @@ internal sealed class LostSproutMoleKC : Enemy
 
     protected override Stats Stats => new(500, 200, 50, 50, 50, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
-	internal override bool ObserveHasMulti => true;
+	protected internal override bool ObserveHasMulti => true;
 
 	// vanilla bug: the ANGRY King Crawler LSM has different stats
 	private Stats GetStatsForEmotion()

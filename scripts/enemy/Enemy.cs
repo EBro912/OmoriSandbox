@@ -227,7 +227,7 @@ public abstract class Enemy : Actor
 	/// Vanilla's <c>Passive State: 184</c> "Observe: Has Multi". Only these enemies can be the one OBSERVE
 	/// reports as having "eyes on everyone". The party-wide prediction it creates is read by every enemy's AI.
 	/// </summary>
-	internal virtual bool ObserveHasMulti => false;
+	protected internal virtual bool ObserveHasMulti => false;
 
 	/// <summary>
 	/// True while <see cref="BattleManager"/> evaluates <see cref="ProcessAI"/> for turn ordering only.

@@ -12,7 +12,7 @@ internal sealed class LostSproutMole : Enemy
 
     protected override Stats Stats => new(170, 75, 22, 10, 13, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
-	internal override bool ObserveHasMulti => true;
+	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{

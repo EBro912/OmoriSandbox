@@ -298,7 +298,7 @@ public partial class AnimationManager : Node
 
 				// skip blank entries
 				if (frameData.Count == 0 && frameCellData.Count == 0 && timingData.Count == 0
-				    && textureName == null && altTextureName == null)
+					&& textureName == null && altTextureName == null)
 					continue;
 
 				attempted++;
@@ -538,7 +538,7 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
-	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
+	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
 	public void PlayAnimation(int id, Actor target)
 	{
 		StartAnimation(id, target.CenterPoint, target is Enemy);
@@ -574,7 +574,7 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
-	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
+	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForAnimation(int id, Actor target)
 	{

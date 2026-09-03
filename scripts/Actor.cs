@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Actors;
 
@@ -229,6 +230,8 @@ public abstract class Actor
 	{
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m) && m is not TierStatModifier)
 		{
+			if (IsReapplyBlocked(modifier))
+				return;
 			m.RefreshTurns();
 			GrantFreeActionTick(m);
 			GD.Print("Refreshed modifier " + modifier + " on " + Name);
@@ -248,6 +251,9 @@ public abstract class Actor
 			AddTierStatModifier(modifier, 1, turns, silent);
 			return;
 		}
+
+		if (IsReapplyBlocked(modifier))
+			return;
 
 		if (turns > -1)
 		{
@@ -280,6 +286,8 @@ public abstract class Actor
 			}
 
 			GD.PushWarning("Tried to add a non-tiered stat modifier with tier and turns: " + modifier);
+			if (IsReapplyBlocked(modifier))
+				return;
 			if (StatModifiers.TryGetValue(modifier, out StatModifier held))
 			{
 				held.RefreshTurns();
@@ -323,6 +331,12 @@ public abstract class Actor
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m))
 		{
 			TierStatModifier existing = m as TierStatModifier;
+			// vanilla adds the state of the tier this lands on, so that's the tier the re-apply rule checks
+			int landing = Math.Min(tier, existing.MaxTier);
+			if (landing <= existing.CurrentTier)
+				landing = existing.CurrentTier == existing.MaxTier ? existing.MaxTier : existing.CurrentTier + 1;
+			if (IsReapplyBlocked(modifier, landing))
+				return;
 			bool success = existing.ApplyTier(tier);
 			if (success)
 			{
@@ -335,6 +349,8 @@ public abstract class Actor
 			ClampHealthJuiceToMax();
 			return;
 		}
+		if (IsReapplyBlocked(modifier, Math.Min(Math.Max(tier, 1), t.MaxTier)))
+			return;
 		t.WithTier(tier);
 		if (turns > -1)
 			t.SetTurnsLeft(turns);
@@ -377,10 +393,40 @@ public abstract class Actor
 			return;
 		}
 		StatModifiers.Remove(modifier);
+		RemovedSinceResultClear.Add(ResultKey(modifier, (mod as TierStatModifier)?.CurrentTier ?? 0));
 		mod.OnRemove(this);
 		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
 		ClampHealthJuiceToMax();
 		OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason));
+	}
+
+	// RPGMaker keeps track of removed states whenever they expire
+	// if any state is in this list before the actor is cleared and tries to be reapplied, it will be refused
+	private readonly HashSet<string> RemovedSinceResultClear = [];
+
+	/// <summary>
+	/// Clears which modifiers were removed from this actor, mirroring RPG Maker's <c>clearResult</c>.<br/>
+	/// Until this runs, a removed modifier can't be added back unless "Allow State Reapply on Expiry" is enabled.
+	/// The battle calls this when an action applies to or from this actor, after its action ends and at the end of the turn.
+	/// </summary>
+	public void ClearResult()
+	{
+		RemovedSinceResultClear.Clear();
+	}
+
+	private static string ResultKey(string modifier, int tier)
+	{
+		return tier > 0 ? modifier + "#" + tier : modifier;
+	}
+	
+	private bool IsReapplyBlocked(string modifier, int tier = 0)
+	{
+		if (BattleManager.Instance == null || SettingsMenuManager.Instance.AllowStateReapplyOnExpiry)
+			return false;
+		if (!RemovedSinceResultClear.Contains(ResultKey(modifier, tier)))
+			return false;
+		GD.Print("Blocked re-add of modifier " + ResultKey(modifier, tier) + " on " + Name + " (removed since the last result clear)");
+		return true;
 	}
 
 	// in vanilla, an action-end state applied or refreshed by its holder's own action skips its
@@ -593,13 +639,16 @@ public abstract class Actor
 	/// Damages this actor by the given amount.
 	/// </summary>
 	/// <remarks>
-	/// Negative values should not be used. See <see cref="Heal(int)"/> for healing actors.
+	/// Negative values should not be used. See <see cref="Heal(int, bool)"/> for healing actors.
 	/// </remarks>
 	/// <param name="damage">The amount of damage to deal to this actor.</param>
-	public void Damage(int damage)
+	/// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
+	/// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+	public int Damage(int damage, bool applyDebugScale = true)
 	{
+		damage = DebugScaled(damage, applyDebugScale);
 		if (damage <= 0)
-			return;
+			return 0;
 
 		CurrentHP -= damage;
 		if (CurrentHP < 0)
@@ -611,50 +660,68 @@ public abstract class Actor
 			member.HasUsedPlotArmor = true;
 			member.PlayAnimation("plotarmor", EmotionAsset.PlotArmor);
 			AddStatModifier("PlotArmor");
-			return;
+			return damage;
 		}
 
 		OnDamaged?.Invoke(this, EventArgs.Empty);
+		return damage;
 	}
 
     /// <summary>
     /// Damages this actor's juice by the given amount.
     /// </summary>
 	/// <remarks>
-	/// Negative values should not be used. See <see cref="HealJuice(int)"/> for healing juice.<br/>
+	/// Negative values should not be used. See <see cref="HealJuice(int, bool)"/> for healing juice.<br/>
 	/// This will also not cause the actor to show the hurt animation.
 	/// </remarks>
     /// <param name="damage">The amount of juice damage to deal to this actor.</param>
-    public void DamageJuice(int damage)
+    /// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
+    /// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+    public int DamageJuice(int damage, bool applyDebugScale = true)
 	{
+		damage = DebugScaled(damage, applyDebugScale);
 		if (damage <= 0)
-			return;
+			return 0;
 
 		CurrentJuice -= damage;
 		if (CurrentJuice < 0)
 			CurrentJuice = 0;
+		return damage;
     }
 
     /// <summary>
     /// Heals this actor by the given amount.
     /// </summary>
     /// <param name="health">The amount of health to heal.</param>
-    public void Heal(int health)
+    /// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
+    /// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+    public int Heal(int health, bool applyDebugScale = true)
 	{
+		health = DebugScaled(health, applyDebugScale);
 		CurrentHP += health;
 		if (CurrentHP > CurrentStats.MaxHP)
 			CurrentHP = CurrentStats.MaxHP;
+		return health;
 	}
 
 	/// <summary>
 	/// Heals this actor's juice by the given amount.
 	/// </summary>
 	/// <param name="juice">The amount of juice to heal.</param>
-	public void HealJuice(int juice)
+	/// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
+	/// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+	public int HealJuice(int juice, bool applyDebugScale = true)
 	{
+		juice = DebugScaled(juice, applyDebugScale);
 		CurrentJuice += juice;
 		if (CurrentJuice > CurrentStats.MaxJuice)
 			CurrentJuice = CurrentStats.MaxJuice;
+		return juice;
+	}
+	
+	private static int DebugScaled(int amount, bool apply)
+	{
+		return apply && BattleManager.Instance != null ? BattleManager.Instance.DebugScale(amount) : amount;
 	}
 
 	/// <summary>
@@ -677,7 +744,7 @@ public abstract class Actor
 	public bool IsBelowJuice(float fraction)
 	{
 		double percent = Math.Round(fraction * 100.0, 2);
-		return (double)CurrentJuice / CurrentStats.MaxJuice >= percent;
+		return (double)CurrentJuice / CurrentStats.MaxJuice * 100.0 <= percent;
 	}
 
 	/// <summary>

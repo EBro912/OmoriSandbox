@@ -30,6 +30,13 @@ internal sealed class HumphreyUvula : Enemy
 	];
 	private int Taunt = 0;
 	private bool TransformTurn = true;
+	private Tween BreatheTween;
+
+	public override Task OnStartOfBattle()
+	{
+		Breathe();
+		return base.OnStartOfBattle();
+	}
 
 	public override async Task ProcessEndOfTurn()
 	{
@@ -44,5 +51,28 @@ internal sealed class HumphreyUvula : Enemy
 		DialogueManager.Instance.QueueMessage(this, Taunts[Taunt]);
 		await DialogueManager.Instance.WaitForDialogue();
 		Taunt = (Taunt + 1) % Taunts.Length;
+	}
+
+	public override Task OnDefeat()
+	{
+		BreatheTween.Stop();
+		return base.OnDefeat();
+	}
+
+	private void Breathe()
+	{
+		// Godot scales from the center of the sprite, not the bottom
+		// offset the sprite and the parent so it visually appears in the same position as where it spawned
+		// but scales from the bottom
+		float yOffset = -Sprite.SpriteFrames.GetFrameTexture("neutral", 0).GetHeight() / 2f;
+		Sprite.Offset = new Vector2(Sprite.Offset.X, yOffset);
+		Vector2 parentPos = Sprite.GetParent<Node2D>().GlobalPosition;
+		Sprite.GetParent<Node2D>().GlobalPosition = new Vector2(parentPos.X, parentPos.Y - yOffset);
+        
+		BreatheTween = Sprite.CreateTween();
+		BreatheTween.TweenProperty(Sprite, "scale:y", 1.04f, 1.75f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+		BreatheTween.TweenInterval(0.25f);
+		BreatheTween.TweenProperty(Sprite, "scale:y", 1f, 1.75f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+		BreatheTween.SetLoops();
 	}
 }

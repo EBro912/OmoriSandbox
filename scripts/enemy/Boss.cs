@@ -14,7 +14,7 @@ internal sealed class Boss : Enemy
     protected override Stats Stats => new Stats(150, 25, 6, 2, 1, 10, 95);
 
     protected override string[] EquippedSkills => ["BSSAttack", "BSSAttackTwice", "BSSDoNothing", "BSSAttackAll"];
-    internal override bool ObserveHasMulti => true;
+    protected internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {

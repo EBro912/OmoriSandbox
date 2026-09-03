@@ -14,7 +14,7 @@ internal sealed class HumphreySwarmAlt : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_swarm.tres");
     protected override Stats Stats => new(9999, 5000, 10, 150, 65, 20, 95);
     protected override string[] EquippedSkills => ["HUSAttack", "HUSAttack2", "HUSAttack3"];
-    internal override bool ObserveHasMulti => true;
+    protected internal override bool ObserveHasMulti => true;
     
     public override bool IsEmotionValid(Emotion emotion)
     {

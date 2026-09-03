@@ -25,7 +25,7 @@ internal class ModdedEnemy : Enemy
 
     protected override string[] EquippedSkills => JsonEnemy.EquippedSkills ?? [];
 
-    internal override bool ObserveHasMulti => HasMultiTargetPartySkill;
+    protected internal override bool ObserveHasMulti => HasMultiTargetPartySkill;
 
     public override Vector2 InfoBoxOffset => JsonEnemy.InfoBoxOffset == null
         ? Vector2.Zero

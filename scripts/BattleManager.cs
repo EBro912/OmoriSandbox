@@ -63,6 +63,10 @@ public partial class BattleManager : Node
 	private Timer Delay;
 	private readonly List<Node2D> DyingEnemies = [];
 	private Tween FallTween;
+	/// <summary>
+	/// The most of one item the inventory can hold, matching RPGMaker's item cap.
+	/// </summary>
+	public const int MaxItemCount = 99;
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
 	private int _Energy = 0;
@@ -219,7 +223,7 @@ public partial class BattleManager : Node
 			AudioManager.Instance.SetBGMLoopOffset(preset.Stages[CurrentStage].BGMLoopPoint);
 		}
 
-		Items = preset.Items.ToDictionary();
+		Items = preset.Items.ToDictionary(x => x.Key, x => Math.Min(x.Value, MaxItemCount));
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
@@ -349,7 +353,7 @@ public partial class BattleManager : Node
 							SetPhase(BattlePhase.FightRun);
 							return;
 						}
-					} while (CurrentParty[CurrentPartyMember].Actor.IsToast);
+					} while (CurrentParty[CurrentPartyMember].Actor.IsToast || CurrentParty[CurrentPartyMember].Actor.Stunned);
 
 					Actor prev = CurrentParty[CurrentPartyMember].Actor;
 					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
@@ -852,7 +856,11 @@ public partial class BattleManager : Node
 			{
 				// handle any stat modifiers that tick at the end of an action
 				if (!CurrentCommand.Actor.IsToast)
+				{
+					// vanilla clears the actor's result before action-end states tick
+					CurrentCommand.Actor.ClearResult();
 					CurrentCommand.Actor.DecreaseActionStatTurnCounter();
+				}
 
 				await ConvertDeadPartyMembers();
 
@@ -900,12 +908,20 @@ public partial class BattleManager : Node
 							enemy.Actor.SetToast();
 							if (enemy.Actor.FallsOffScreen)
 								DyingEnemies.Add(enemy.GetParent<Node2D>());
+							// its forced commands are gone, so don't let the deferred pass below process it a second time
+							DeferredDeathEnemies.Remove(enemy);
 						}
 					}
 				}
 				// resolve deferred deaths whose forced commands have all been consumed
 				foreach (EnemyComponent enemy in DeferredDeathEnemies.ToList())
 				{
+					// revived while waiting on its forced commands, no longer dying
+					if (enemy.Actor.IsToast || enemy.Actor.CurrentHP > 0)
+					{
+						DeferredDeathEnemies.Remove(enemy);
+						continue;
+					}
 					if (ForcedCommands.All(f => f.Actor != enemy.Actor) && enemy.Actor.CurrentHP == 0)
 					{
 						if (enemy.Actor.GrayscaleOnDefeat)
@@ -1015,7 +1031,7 @@ public partial class BattleManager : Node
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
 			if (!ActedThisTurn.Contains(member.Actor)
-			    && (IsInvalidTarget(member.Actor) || !PlayerCommands.ContainsKey(member.Actor)))
+			    && (IsInvalidTarget(member.Actor) || member.Actor.Stunned || !PlayerCommands.ContainsKey(member.Actor)))
 			{
 				if (PlayerCommands.TryGetValue(member.Actor, out BattleCommand refundCmd)
 				    && refundCmd.Action is Item item)
@@ -1174,7 +1190,9 @@ public partial class BattleManager : Node
 
 	private void HandlePlayerCommand()
 	{
-		while (CurrentParty[CurrentPartyMember].Actor.IsToast)
+		// treat stunned and toast actors the same
+		// no point in letting a stunned party member choose a command if they can't do anything
+		while (CurrentParty[CurrentPartyMember].Actor.IsToast || CurrentParty[CurrentPartyMember].Actor.Stunned)
 		{
 			CurrentPartyMember++;
 			if (CurrentPartyMember >= CurrentParty.Count)
@@ -1507,6 +1525,17 @@ public partial class BattleManager : Node
 			}
 		}
 
+		if (currentAction.Action.Setup != null)
+			await RunGuarded(() => currentAction.Action.Setup(currentAction.Actor, resolvedTargets),
+				$"setup of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
+
+		// RPGMaker clears the user's and each target's action result when the action applies,
+		// so modifiers removed before this point stop blocking re-adds. a setup phase runs before this on purpose
+		// to recreate the "bug" of attempting to apply a state before results are cleared
+		currentAction.Actor.ClearResult();
+		foreach (Actor resolved in resolvedTargets)
+			resolved.ClearResult();
+
 		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
 			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
 
@@ -1628,15 +1657,20 @@ public partial class BattleManager : Node
 		{
 			// tick down stat turn timers
 			// vanilla omori bug: stats decrease before of end of turn enemy skills
+			// vanilla clears each result before turn-end states expire, so those expiries stay recorded
 			CurrentParty.ForEach(x =>
 			{
+				x.Actor.ClearResult();
 				x.Actor.DecreaseStatTurnCounter();
 				x.UpdateStateIcons();
 			});
 			Enemies.ForEach(x =>
 			{
 				if (!x.Actor.IsToast)
+				{
+					x.Actor.ClearResult();
 					x.Actor.DecreaseStatTurnCounter();
+				}
 			});
 
 			// in vanilla, a reinforcement added by a TURN END page is not in the action order until next turn,
@@ -1979,6 +2013,9 @@ public partial class BattleManager : Node
 
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 
+		// scale before the sad bleed so the juice loss follows the multiplied damage
+		if (ShouldDoDebugDamage())
+			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
@@ -1998,8 +2035,6 @@ public partial class BattleManager : Node
 
 		target.CurrentJuice -= juiceLost;
 
-		if (ShouldDoDebugDamage())
-			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
@@ -2022,7 +2057,8 @@ public partial class BattleManager : Node
 			BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
 			return -1;
 		}
-		target.Damage(roundedInt);
+		// scaled above already, before the sad bleed split it
+		target.Damage(roundedInt, applyDebugScale: false);
 		
 		if (target is PartyMember && roundedInt > 0)
 		{
@@ -2187,7 +2223,7 @@ public partial class BattleManager : Node
 			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
 			return -1;
 		}
-		target.DamageJuice(roundedInt);
+		target.DamageJuice(roundedInt, applyDebugScale: false);
 		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
@@ -2216,7 +2252,7 @@ public partial class BattleManager : Node
 		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
 		int rounded = (int)Math.Round(baseHealing, MidpointRounding.AwayFromZero);
-		target.Heal(rounded);
+		rounded = target.Heal(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
@@ -2239,7 +2275,7 @@ public partial class BattleManager : Node
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		float finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
 		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
-		target.HealJuice(rounded);
+		rounded = target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
@@ -2540,6 +2576,11 @@ public partial class BattleManager : Node
 		return DebugDamageHeld && SettingsMenuManager.Instance.EnableDebugDamage;
 	}
 	
+	internal int DebugScale(int amount)
+	{
+		return ShouldDoDebugDamage() ? amount * 10 : amount;
+	}
+	
 	/// <summary>
 	/// Enables or disables one of the battle menu's options. Selecting a disabled option plays a
 	/// buzzer and does nothing. Persists across turns (and Boss Rush stages) until re-enabled,
@@ -2810,8 +2851,8 @@ public partial class BattleManager : Node
 			GD.PrintErr("Unknown item: " + name);
 			return;
 		}
-		if (!Items.TryAdd(name, quantity))
-			Items[name] += quantity;
+		if (!Items.TryAdd(name, Math.Min(quantity, MaxItemCount)))
+			Items[name] = Math.Min(Items[name] + quantity, MaxItemCount);
 	}
 
 	/// <summary>

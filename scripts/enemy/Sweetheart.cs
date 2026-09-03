@@ -14,7 +14,7 @@ internal sealed class Sweetheart : Enemy
 	protected override Stats Stats => new(3300, 1650, 30, 25, 40, 10, 90);
 
 	protected override string[] EquippedSkills => ["SHAttack", "SharpInsult", "SwingMace", "Brag"];
-	internal override bool ObserveHasMulti => true;
+	protected internal override bool ObserveHasMulti => true;
 
 	private int Stage = 0;
 

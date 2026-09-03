@@ -15,7 +15,7 @@ internal sealed class Perfectheart : Enemy
     protected override Stats Stats => new(10000, 5000, 140, 140, 140, 15, 1000);
 
     protected override string[] EquippedSkills => ["PHStealHeart", "PHStealBreath", "PHWrath", "PHExploitEmotion", "PHSpare", "PHAngelicVoice"];
-    internal override bool ObserveHasMulti => true;
+    protected internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {

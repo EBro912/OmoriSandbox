@@ -13,7 +13,7 @@ internal sealed class KelBoss : Enemy
     public override Vector2 InfoBoxOffset => new(-15, -360);
     protected override Stats Stats => new(9000, 9000, 100, 70, 230, 20, 100);
     protected override string[] EquippedSkills => ["KBossPassToAubrey", "KBossPassToHero", "KBossFlex", "KBossRainCloud", "KAttack", "RunNGun", "Annoy", "Tickle", "Rebound", "Curveball", "Ricochet"];
-
+    protected internal override bool ObserveHasMulti => false;
     public override bool IsEmotionValid(Emotion emotion)
     {
         return emotion.Id is "neutral" or "happy" or "sad" or "angry";
