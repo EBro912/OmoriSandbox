@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
@@ -13,6 +14,7 @@ internal sealed class Boss : Enemy
     protected override Stats Stats => new Stats(150, 25, 6, 2, 1, 10, 95);
 
     protected override string[] EquippedSkills => ["BSSAttack", "BSSAttackTwice", "BSSDoNothing", "BSSAttackAll"];
+    internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -39,19 +41,25 @@ internal sealed class Boss : Enemy
         return new BattleCommand(this, this, Skills["BSSDoNothing"]);
     }
 
+    public override async Task OnStartOfBattle()
+    {
+        AddStatModifier("Immortal", silent: true);
+        await Task.CompletedTask;
+    }
+
     public override async Task ProcessBattleConditions()
     {
         if (Stage == 3)
         {
             Stage = 4;
-            if (CurrentHP <= 0)
-                return;
+            CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 2);
+            RemoveStatModifier("Immortal");
             DialogueManager.Instance.QueueMessage(this, @"HUH!?\! HOW ARE YOU STILL MOVING!?");
             await DialogueManager.Instance.WaitForDialogue();
             return;
         }
 
-        if (Stage > 2 || CurrentHP <= 0)
+        if (Stage > 2)
             return;
 
         if (IsBelowHP(0.8f) && Stage == 0)

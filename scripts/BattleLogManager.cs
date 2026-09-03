@@ -28,7 +28,8 @@ public partial class BattleLogManager : Control
 	private readonly Queue<string> LineQueue = [];
 	private readonly List<Control> ActiveLines = [];
 	private const int HEIGHT = 26;
-	private const int MAX_WIDTH = 35;
+	private const int FONT_SIZE = 24;
+	private const float MAX_LINE_WIDTH = 335f;
 	private readonly Vector2I NO_ICON = new(335, 78);
 	private readonly Vector2I WITH_ICON = new(255, 78);
 	private const int ICON_SIZE = 108;
@@ -218,20 +219,12 @@ public partial class BattleLogManager : Control
 		while (MessageQueue.Count > 0)
 		{
 			string next = MessageQueue.Dequeue();
-			List<string> wrapped = WordWrap(next);
 
-			// if the message was auto-wrapped, ignore \n
-			if (wrapped.Count > 1)
-			{
-				foreach (string wrap in wrapped)
-					LineQueue.Enqueue(wrap.Replace('\n', ' '));
-			}
-			else
-			{
-				// otherwise, respect \n
-				foreach (string line in next.Split('\n'))
-					LineQueue.Enqueue(line);
-			}
+			// treat \n as a deliberate line break
+			// only autowrap lines that are actually longer than the box
+			foreach (string line in next.Split('\n'))
+				foreach (string wrap in WordWrap(line))
+					LineQueue.Enqueue(wrap);
 
 			await ProcessLines(gen);
 			// avoid firing the finished event if the message is no longer valid
@@ -286,8 +279,9 @@ public partial class BattleLogManager : Control
 	{
 		List<string> result = [];
 
-		if (string.IsNullOrWhiteSpace(text))
+		if (string.IsNullOrWhiteSpace(text) || Fits(text))
 		{
+			result.Add(text);
 			return result;
 		}
 
@@ -297,7 +291,7 @@ public partial class BattleLogManager : Control
 		for (int i = 1; i < words.Length; i++)
 		{
 			string word = words[i];
-			if ((line.Length + 1 + word.Length) <= MAX_WIDTH)
+			if (Fits(line + " " + word))
 			{
 				line.Append(' ').Append(word);
 			}
@@ -310,6 +304,11 @@ public partial class BattleLogManager : Control
 		}
 		result.Add(line.ToString());
 		return result;
+	}
+
+	private bool Fits(string text)
+	{
+		return Font.GetStringSize(text, HorizontalAlignment.Left, -1, FONT_SIZE).X <= MAX_LINE_WIDTH;
 	}
 
 	private void MoveOffScreen(Control line)

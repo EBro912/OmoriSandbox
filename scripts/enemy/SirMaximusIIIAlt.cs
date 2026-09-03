@@ -16,6 +16,7 @@ internal sealed class SirMaximusIIIAlt : Enemy
     protected override Stats Stats => new(4000, 2000, 75, 100, 75, 15, 95);
 
     protected override string[] EquippedSkills => ["SMIAttack", "SMIIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMIIIFlex", "SMUltimateAttack"];
+    internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -96,7 +97,7 @@ internal sealed class SirMaximusIIIAlt : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 1 && !UltimateAttack)
+        if (ImmortalTriggered && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage("SIR MAXIMUS", CenterPoint, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();

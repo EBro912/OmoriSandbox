@@ -75,7 +75,7 @@ internal sealed class SirMaximusIAlt : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 1 && !UltimateAttack)
+        if (ImmortalTriggered && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();

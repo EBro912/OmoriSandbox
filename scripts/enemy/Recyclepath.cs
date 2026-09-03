@@ -35,15 +35,17 @@ internal sealed class Recyclepath : Enemy
         // we need to check these separately due to the sprite flipping behavior
         if (LeftRecycultist == null || LeftRecycultist.Actor.IsToast)
         {
-            LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
-                fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
+            if (!PreRolling)
+                LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
+                    fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
             return new BattleCommand(this, this, Skills["RPathSummon"]);
         }
 
         if (RightRecycultist == null || RightRecycultist.Actor.IsToast)
         {
-            RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
-                fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
+            if (!PreRolling)
+                RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
+                    fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
             return new BattleCommand(this, this, Skills["RPathSummon"]);
         }
 

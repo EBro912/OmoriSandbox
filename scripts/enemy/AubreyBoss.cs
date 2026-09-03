@@ -22,7 +22,8 @@ internal sealed class AubreyBoss : Enemy
     private int TurnCount = 0;
     public override BattleCommand ProcessAI()
     {
-        TurnCount++;
+        if (!PreRolling)
+            TurnCount++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["ABossBeatdown"]);
 
@@ -53,7 +54,8 @@ internal sealed class AubreyBoss : Enemy
         {
             Enemy kel = aliveEnemies.FirstOrDefault(x => x is KelBoss);
             // check if kel is alive, if not just choose a random other enemy
-            BattleManager.Instance.ForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtKel"]);
+            if (!PreRolling)
+                BattleManager.Instance.ForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtKel"]);
             return new BattleCommand(this, SelectTarget(), Skills["AAttack"]);
         }
         
@@ -61,7 +63,8 @@ internal sealed class AubreyBoss : Enemy
         {
             Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
             // check if hero is alive, if not just choose a random other enemy
-            BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtHero"]);
+            if (!PreRolling)
+                BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtHero"]);
             return new BattleCommand(this, SelectTarget(), Skills["AAttack"]);
         }
 

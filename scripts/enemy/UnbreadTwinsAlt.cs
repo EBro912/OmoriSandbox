@@ -100,6 +100,12 @@ internal sealed class UnbreadTwinsAlt : Enemy
             LockEmotion("sad");
             Stage = 1;
         }
+    }
+
+    public override async Task ProcessEndOfTurn()
+    {
+        if (CurrentHP <= 0 || Stage > 3)
+            return;
 
         if (IsBelowHP(0.65f) && Stage <= 1)
         {
@@ -134,6 +140,9 @@ internal sealed class UnbreadTwinsAlt : Enemy
 
     public override async Task OnDefeat()
     {
+        foreach (EnemyComponent bread in Breads)
+            if (GodotObject.IsInstanceValid(bread) && !bread.Actor.IsToast)
+                bread.Actor.CurrentHP = 0;
         DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"Our resources have been depleted...\! What will we do without ingredients?");
         DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo...");
         await DialogueManager.Instance.WaitForDialogue();
@@ -151,16 +160,23 @@ internal sealed class UnbreadTwinsAlt : Enemy
         }
     }
 
+    private EnemyComponent FirstBread;
+
     public void SpawnBread()
     {
         for (int i = 0; i < 2; i++)
         {
-            if (!GodotObject.IsInstanceValid(Breads[i]) || Breads[i].Actor.IsToast)
-            {
-                Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
-                Bakes++;
-                return;
-            }
+            if (GodotObject.IsInstanceValid(Breads[i]) && !Breads[i].Actor.IsToast)
+                continue;
+            Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
+            // the common event stuns the new bread (troop index 1 on bake 1, index 2 on bake 2) unless the first bread is
+            // already dead at bake 2, in which case the slot-2 branch re-adds and the stun lands on the corpse
+            if (Bakes == 0 || (GodotObject.IsInstanceValid(FirstBread) && !FirstBread.Actor.IsToast))
+                Breads[i].Actor.AddStatModifier("CallForFriendDelay", silent: true);
+            if (Bakes == 0)
+                FirstBread = Breads[i];
+            Bakes++;
+            return;
         }
         GD.PushWarning("Tried to summon more than 2 breads!");
     }

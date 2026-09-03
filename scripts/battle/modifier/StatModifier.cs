@@ -106,6 +106,12 @@ public class StatModifier
     public virtual void OnAdd(Actor actor) { }
 
     /// <summary>
+    /// Called when the modifier is removed from an actor for any reason (manual, expiry, cleared, combined).
+    /// </summary>
+    /// <param name="actor">The <see cref="Actor"/> this modifier was attached to.</param>
+    public virtual void OnRemove(Actor actor) { }
+
+    /// <summary>
     /// Called at the start of every turn.
     /// </summary>
     /// <remarks>

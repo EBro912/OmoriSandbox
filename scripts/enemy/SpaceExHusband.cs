@@ -28,15 +28,7 @@ internal sealed class SpaceExHusband : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        if (emotion.Id == "neutral")
-            return true;
-
-        // the photograph effect is played from OnEmotionChanged
-        if (emotion.Id == DesiredEmotion)
-            return true;
-
-        // outside a desire, only the next tier of his current group can be applied
-        return emotion.Group != null && emotion.Group == CurrentEmotion.Group && emotion.Tier == CurrentEmotion.Tier + 1;
+        return emotion.Id == "neutral" || (emotion.Group != null && emotion.Group.Id == Memory);
     }
 
     public override void SetHurt(bool hurt)
@@ -112,90 +104,89 @@ internal sealed class SpaceExHusband : Enemy
     bullet:
         return new BattleCommand(this, SelectTargets(4), Skills["SEHBulletHell"]);
     }
+    
+    private int Turn = 0;
+    private string Memory = "neutral";
+    private bool Achieved = false;
+    private int IceCounter = 0;
+    private int FailWindow = 0;
+    private string LastGroup = null;
 
-    private int TurnCounter = 0;
-    private bool TurnTwoLine = false;
-    private bool DesiringEmotion = false;
-    private string DesiredEmotion = "neutral";
-    public override async Task ProcessStartOfTurn()
+    public override async Task ProcessEndOfTurn()
     {
-        TurnCounter++;
-        if (DesiringEmotion)
+        Turn++;
+        if (Turn == 2)
         {
-            if (!CheckDesiredEmotion())
-            {
-                DialogueManager.Instance.QueueMessage(this, @"Sigh...\! No one truly understands the depths of my pain.");
-                DialogueManager.Instance.QueueMessage(this, @"If I do not feel...\! then the pain can no longer reach me.");
-            }
+            DialogueManager.Instance.QueueMessage(this, "All I have left are my memories...");
+            DialogueManager.Instance.QueueMessage(this, "But even they cannot make me feel anymore.");
             await DialogueManager.Instance.WaitForDialogue();
-            DesiredEmotion = "neutral";
-            DesiringEmotion = false;
-            return;
         }
-        if (TurnCounter == 3)
+
+        if (Turn >= 2)
         {
-            if (!TurnTwoLine)
+            if (!Achieved)
             {
-                DialogueManager.Instance.QueueMessage(this, "All I have left are my memories...");
-                DialogueManager.Instance.QueueMessage(this, "But even they cannot make me feel anymore.");
-                await DialogueManager.Instance.WaitForDialogue();
-                TurnTwoLine = true;
+                FailWindow++;
+                if (FailWindow == 3)
+                {
+                    // back to RESIST ALL, his current emotion is not touched
+                    Memory = "neutral";
+                    FailWindow = 0;
+                }
             }
-
-            TurnCounter = 0;
-
-            if (CurrentEmotion.Id != "neutral")
-            {
-                AnimationManager.Instance.PlayPhotograph();
-                SetEmotion("neutral", true);
-                await Wait.Milliseconds(1200);
-                DialogueManager.Instance.QueueMessage(this, @"Nay! I must guard my HEART.\! I must become one... with the ice...");
-                await DialogueManager.Instance.WaitForDialogue();
-            }
-            else
+            if (Memory == "neutral")
             {
                 DialogueManager.Instance.QueueMessage(this, "Alas! I see a memory before me!");
                 await DialogueManager.Instance.WaitForDialogue();
-                await ChooseDesiredEmotion();
+                await ChooseMemory();
+            }
+            if (!Achieved)
+            {
+                // vanilla tests the base states 6/10/14 only, so a tier-2 emotion never counts
+                string line = CurrentEmotion.Id switch
+                {
+                    "happy" => @"Ah...\! I still do think fondly of those times...",
+                    "sad" => @"Oh...\! I can't believe she's really gone...",
+                    "angry" => @"GAH!\! HOW DARE SHE TREAT ME THAT WAY!",
+                    _ => null,
+                };
+                if (line != null)
+                {
+                    DialogueManager.Instance.QueueMessage(this, line);
+                    await DialogueManager.Instance.WaitForDialogue();
+                    Achieved = true;
+                }
             }
         }
-    }
 
-    private bool CheckDesiredEmotion()
-    {
-        switch (DesiredEmotion)
+        if (Turn >= 3 && Turn % 2 == 1 && Memory != "neutral" && CurrentEmotion.Id != Memory)
         {
-            case "sad":
-                if (CurrentEmotion.Group?.Id == "sad")
-                {
-                    DialogueManager.Instance.QueueMessage(this, @"Oh...\! I can't believe she's really gone...");
-                    return true;
-                }
-                break;
-            case "happy":
-                if (CurrentEmotion.Group?.Id == "happy")
-                {
-                    DialogueManager.Instance.QueueMessage(this, @"Ah...\! I still do think fondly of those times...");
-                    return true;
-                }
-                break;
-            case "angry":
-                if (CurrentEmotion.Group?.Id == "angry")
-                {
-                    DialogueManager.Instance.QueueMessage(this, @"GAH!\! HOW DARE SHE TREAT ME THAT WAY!");
-                    return true;
-                }
-                break;
+            DialogueManager.Instance.QueueMessage(this, @"Sigh...\! No one truly understands the depths of my pain.");
+            DialogueManager.Instance.QueueMessage(this, @"If I do not feel...\! then the pain can no longer reach me.");
+            await DialogueManager.Instance.WaitForDialogue();
         }
-        return false;
+
+        if (Achieved)
+            IceCounter++;
+        if (IceCounter == 3)
+        {
+            SetEmotion("neutral", true);   // the transform back to the base variant flashes via OnEmotionChanged
+            await Wait.Milliseconds(1200);
+            Memory = "neutral";
+            DialogueManager.Instance.QueueMessage(this, @"Nay! I must guard my HEART.\! I must become one... with the ice...");
+            await DialogueManager.Instance.WaitForDialogue();
+            IceCounter = 0;
+            Achieved = false;
+            FailWindow = 0;
+        }
     }
 
-    private async Task ChooseDesiredEmotion()
+    private async Task ChooseMemory()
     {
         switch (GameManager.Instance.Random.RandiRange(0, 2))
         {
             case 0:
-                DesiredEmotion = "sad";
+                Memory = "sad";
                 switch (GameManager.Instance.Random.RandiRange(0, 2))
                 {
                     case 0:
@@ -210,7 +201,7 @@ internal sealed class SpaceExHusband : Enemy
                 }
                 break;
             case 1:
-                DesiredEmotion = "happy";
+                Memory = "happy";
                 switch (GameManager.Instance.Random.RandiRange(0, 2))
                 {
                     case 0:
@@ -225,7 +216,7 @@ internal sealed class SpaceExHusband : Enemy
                 }
                 break;
             case 2:
-                DesiredEmotion = "angry";
+                Memory = "angry";
                 switch (GameManager.Instance.Random.RandiRange(0, 2))
                 {
                     case 0:
@@ -240,12 +231,17 @@ internal sealed class SpaceExHusband : Enemy
                 }
                 break;
         }
-        DesiringEmotion = true;
         await DialogueManager.Instance.WaitForDialogue();
     }
 
     public override async Task OnDefeat()
     {
+        // dying while transformed flashes the screen and waits 60 frames first
+        if (CurrentEmotion.Group != null)
+        {
+            AnimationManager.Instance.PlayPhotograph();
+            await Wait.Milliseconds(1000);
+        }
         DialogueManager.Instance.QueueMessage(this, @"[br]The pain...\! I can feel it...");
         await DialogueManager.Instance.WaitForDialogue();
     }
@@ -264,8 +260,10 @@ internal sealed class SpaceExHusband : Enemy
         AddStatModifier("SpaceExHusbandBlock", silent: true);
         OnEmotionChanged += (_, _) =>
         {
-            if (DesiringEmotion && CurrentEmotion.Id == DesiredEmotion)
+            string group = CurrentEmotion.Group?.Id;
+            if (group != LastGroup)
                 AnimationManager.Instance.PlayPhotograph();
+            LastGroup = group;
         };
         DialogueManager.Instance.QueueMessage(this, @"[br]I feel nothing...\![br]I am cold...\! like ice...");
         await DialogueManager.Instance.WaitForDialogue();

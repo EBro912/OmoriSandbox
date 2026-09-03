@@ -12,8 +12,9 @@ internal sealed class LostSproutMoleKC : Enemy
 
     protected override Stats Stats => new(500, 200, 50, 50, 50, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
+	internal override bool ObserveHasMulti => true;
 
-	// VANILLA BUG: the ANGRY King Crawler LSM has different stats
+	// vanilla bug: the ANGRY King Crawler LSM has different stats
 	private Stats GetStatsForEmotion()
 	{
 		return CurrentEmotion.Group?.Id == "angry"
@@ -28,8 +29,8 @@ internal sealed class LostSproutMoleKC : Enemy
 
 	public LostSproutMoleKC()
 	{
-		// Game_Enemy.transform -> refresh() clamps HEART to the variant's max; Heal(0) only clamps down
-		OnEmotionChanged += (_, _) => Heal(0);
+		// refresh on emotion change to properly display the hp difference
+		OnEmotionChanged += (_, _) => CurrentHP = CurrentStats.MaxHP;
 	}
 
 	public override bool IsEmotionValid(Emotion emotion)

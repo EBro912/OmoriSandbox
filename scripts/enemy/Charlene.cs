@@ -37,7 +37,7 @@ internal sealed class Charlene : Enemy
 
     public override Task OnStartOfBattle()
     {
-        AddStatModifier("Immune");
+        AddStatModifier("ResistPhysical");
         return Task.CompletedTask;
     }
 

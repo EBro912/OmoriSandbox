@@ -21,7 +21,8 @@ internal sealed class SnaleyTwo : Enemy
     
     public override BattleCommand ProcessAI()
     {
-        Turn++;
+        if (!PreRolling)
+            Turn++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SNBeatdown"]);
         
@@ -30,7 +31,8 @@ internal sealed class SnaleyTwo : Enemy
         if (Turn is 2)
         {
             PartyMember target = SelectTarget();
-            BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+            if (!PreRolling)
+                BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
             return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         
@@ -39,7 +41,8 @@ internal sealed class SnaleyTwo : Enemy
         if (Roll() < 36)
         {
             PartyMember target = SelectTarget();
-            BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+            if (!PreRolling)
+                BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
             return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         if (Roll() < 26)

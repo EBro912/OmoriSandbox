@@ -21,23 +21,16 @@ public sealed class SpaceExHusbandStatModifier : StatModifier
         if (defender.CurrentEmotion.Id is not "neutral") 
             return;
         
-        BattleCommand command = BattleManager.Instance.GetCurrentCommand();
-        // recreate the Omori bug where items and certain skills can deal damage to him in neutral
-        if (command.Action is Skill skill)
-        {
-            if (SettingsMenuManager.Instance.SpaceExHusbandReleaseEnergy &&
-                skill.Name.StartsWith("Release Energy"))
-                return;
+        BattleAction action = BattleManager.Instance.GetCurrentCommand()?.Action;
 
-            if (skill.Name != "TRICK" &&
-                !skill.Name.StartsWith("Pass To Aubrey") &&
-                skill.Name != "FLOWER CROWN" &&
-                skill.Name != "Vent")
-                damage = 0f;
-        }
-        else if (command.Action is Item item && item.Name is "DYNAMITE" or "PEPPER SPRAY")
+        if (action is Skill skill && skill.Name.StartsWith("Release Energy"))
         {
-            damage = 0f;
+            if (!SettingsMenuManager.Instance.SpaceExHusbandReleaseEnergy)
+                damage = 0f;
+            return;
         }
+        // certain hit skills can still make it through
+        if (!neverMiss)
+            damage = 0f;
     }
 }

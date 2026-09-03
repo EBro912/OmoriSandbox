@@ -15,6 +15,7 @@ internal sealed class Perfectheart : Enemy
     protected override Stats Stats => new(10000, 5000, 140, 140, 140, 15, 1000);
 
     protected override string[] EquippedSkills => ["PHStealHeart", "PHStealBreath", "PHWrath", "PHExploitEmotion", "PHSpare", "PHAngelicVoice"];
+    internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -31,13 +32,15 @@ internal sealed class Perfectheart : Enemy
     {
         if (HasMultiTargetObserve())
         {
-            Variable1001 = 1;
+            if (!PreRolling)
+                Variable1001 = 1;
             return new BattleCommand(this, SelectAllTargets(), Skills["PHWrath"]);
         }
 
         if (HasObserveTarget(out PartyMember observe))
         {
-            Variable1001 = 2;
+            if (!PreRolling)
+                Variable1001 = 2;
             return new BattleCommand(this, observe, Skills["PHStealHeart"]);
         }
 

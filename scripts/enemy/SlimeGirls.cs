@@ -16,6 +16,7 @@ internal sealed class SlimeGirls : Enemy
 	protected override Stats Stats => new(5700, 1750, 57, 32, 52, 10, 95);
 
 	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "Chainsaw", "SlimeUltimateAttack", "SGSelfAngry"];
+	internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{

@@ -28,7 +28,7 @@ public class TierStatModifier : StatModifier
     /// <remarks>
     /// Only requires the last portion of the sentence. As shown in the following example:
     /// <code>
-    /// "ATTACK cannot go any higher!"
+    /// "ATTACK can't go any higher!"
     /// </code>
     /// </remarks>
     public string FailureMessage { get; private set; }
@@ -72,7 +72,7 @@ public class TierStatModifier : StatModifier
 	/// <remarks>
 	/// Only requires the last portion of the sentence. As shown in the following example:
 	/// <code>
-	/// WithMessages("ATTACK rose!", "ATTACK cannot go any higher!");
+	/// WithMessages("ATTACK rose!", "ATTACK can't go any higher!");
 	/// </code>
 	/// </remarks>
 	/// <param name="success">The message to display on success.</param>

@@ -22,8 +22,10 @@ internal sealed class DownloadWindowAlt : Enemy
         if (HasMultiTargetObserve())
             return new BattleCommand(this, SelectAllTargets(), Skills["Crash"]);
         
-        TurnCounter++;
-        return TurnCounter switch
+        if (!PreRolling)
+            TurnCounter++;
+        // the pre-roll must pick the same schedule entry as the real roll without advancing the counter
+        return (PreRolling ? TurnCounter + 1 : TurnCounter) switch
         {
             1 or 4 => new BattleCommand(this, this, Skills["DWDoNothing1"]),
             2 or 5 => new BattleCommand(this, this, Skills["DWDoNothing2"]),

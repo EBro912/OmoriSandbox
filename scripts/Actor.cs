@@ -377,6 +377,7 @@ public abstract class Actor
 			return;
 		}
 		StatModifiers.Remove(modifier);
+		mod.OnRemove(this);
 		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
 		ClampHealthJuiceToMax();
 		OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason));
@@ -455,6 +456,12 @@ public abstract class Actor
 	{
 		return StatModifiers.ContainsKey(modifier);
 	}
+
+	/// <summary>
+	/// Whether this actor's IMMORTAL modifier has already absorbed a lethal hit. See <see cref="ImmortalStatModifier.Triggered"/>.
+	/// </summary>
+	internal bool ImmortalTriggered =>
+		StatModifiers.TryGetValue("Immortal", out StatModifier m) && m is ImmortalStatModifier { Triggered: true };
 
 	/// <summary>
 	/// Returns the current tier of a stat modifier.
@@ -794,7 +801,10 @@ public abstract class Actor
 
 		if (!silent)
 		{
-			BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot be " + emotion.DisplayName + "!");
+			if (emotion.Group?.MaxTierMessage != null)
+				BattleLogManager.Instance.QueueMessage(null, this, emotion.Group.MaxTierMessage);
+			else
+				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " cannot be " + emotion.DisplayName + "!");
 		}
 		return false;
 	}

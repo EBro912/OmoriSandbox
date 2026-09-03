@@ -75,9 +75,19 @@ internal sealed class HumphreyFace : Enemy
 		BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["HUFSwallow"]);
 	}
 
-	public override async Task OnDefeat()
+	private bool Transformed = false;
+
+	public override async Task ProcessBattleConditions()
 	{
+		if (CurrentHP > 0 || Transformed)
+			return;
+		Transformed = true;
 		DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]Feel free to struggle, 'cuz no matter what...\| You'll never be able to escape my gut!");
+		await DialogueManager.Instance.WaitForDialogue();
+		EnemyComponent uvula = BattleManager.Instance.TransformEnemy(this, "HumphreyUvula");
+		// vanilla starts a fresh battle here, no action from humphrey in the remainder of this turn
+		uvula.Actor.AddStatModifier("CallForFriendDelay", silent: true);
+		DialogueManager.Instance.QueueMessage(uvula.Actor, "[br]Heh! You'll never defeat me, loser!");
 		await DialogueManager.Instance.WaitForDialogue();
 	}
 

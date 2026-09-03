@@ -21,7 +21,8 @@ internal sealed class SnaleyOne : Enemy
     
     public override BattleCommand ProcessAI()
     {
-        Turn++;
+        if (!PreRolling)
+            Turn++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SNAttack"]);
         

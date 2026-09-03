@@ -14,6 +14,7 @@ internal sealed class Sweetheart : Enemy
 	protected override Stats Stats => new(3300, 1650, 30, 25, 40, 10, 90);
 
 	protected override string[] EquippedSkills => ["SHAttack", "SharpInsult", "SwingMace", "Brag"];
+	internal override bool ObserveHasMulti => true;
 
 	private int Stage = 0;
 
@@ -173,7 +174,7 @@ internal sealed class Sweetheart : Enemy
 	{
 		if (CharmPending)
 		{
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OH HERO![font_size=52]MY HERO!!");
+			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OH HERO! [font_size=52]MY HERO!!");
 			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]YOUR SMILE CHARMS MY HEART!");
 			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]I WILL MAKE IT MINE!!");
 			await DialogueManager.Instance.WaitForDialogue();

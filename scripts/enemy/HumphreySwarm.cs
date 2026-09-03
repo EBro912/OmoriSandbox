@@ -14,6 +14,7 @@ internal sealed class HumphreySwarm : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_swarm.tres");
     protected override Stats Stats => new(9999, 5000, 10, 60, 60, 20, 95);
     protected override string[] EquippedSkills => ["HUSAttack", "HUSAttack2", "HUSAttack3"];
+    internal override bool ObserveHasMulti => true;
     
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -26,7 +27,8 @@ internal sealed class HumphreySwarm : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        Turn++;
+        if (!PreRolling)
+            Turn++;
         
         if (HasMultiTargetObserve())
             return new BattleCommand(this, SelectTargets(3), Skills["HUSAttack3"]);

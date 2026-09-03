@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -21,7 +22,8 @@ public class SnaleyThree : Enemy
     
     public override BattleCommand ProcessAI()
     {
-        Turn++;
+        if (!PreRolling)
+            Turn++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["RabbitAttack"]);
         
@@ -32,7 +34,8 @@ public class SnaleyThree : Enemy
         if (Roll() < 36)
         {
             PartyMember target = SelectTarget();
-            BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+            if (!PreRolling)
+                BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
             return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
@@ -40,25 +43,30 @@ public class SnaleyThree : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        AddStatModifier("Immortal", silent: true);
         DialogueManager.Instance.QueueMessage(this, @"I'd bet I'm almost as strong as you now!\! You'd better take this seriously!");
         await DialogueManager.Instance.WaitForDialogue();
     }
 
+    private int TurnsEnded = 0;
     private bool ReleasedEnergy = false;
+    private bool PendingRelease = false;
+
     public override async Task ProcessBattleConditions()
     {
-        if (IsBelowHP(0.3f) && !ReleasedEnergy)
+        if (PendingRelease)
         {
-            DialogueManager.Instance.QueueMessage(this, "And now it's time for my [wave freq=10.0][color=#6095ff]ULTIMATE SKILL!");
-            await DialogueManager.Instance.WaitForDialogue();
-            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SNReleaseEnergy"]);
-            ReleasedEnergy = true;
+            PendingRelease = false;
+            CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 1);
+            RemoveStatModifier("Immortal");
         }
+        await Task.CompletedTask;
     }
 
     public override async Task ProcessEndOfTurn()
     {
-        if (Turn == 1)
+        TurnsEnded++;
+        if (TurnsEnded == 1)
         {
             DialogueManager.Instance.QueueMessage(this, "Heh! You aren't the only ones who can use EMOTIONS!");
             await DialogueManager.Instance.WaitForDialogue();
@@ -66,6 +74,15 @@ public class SnaleyThree : Enemy
                 SetEmotion("happy", true);
             DialogueManager.Instance.QueueMessage("SNALEY is HAPPY!");
             await DialogueManager.Instance.WaitForDialogue();
+        }
+        
+        if (TurnsEnded >= 2 && !ReleasedEnergy && IsBelowHP(0.3f))
+        {
+            DialogueManager.Instance.QueueMessage(this, "And now it's time for my [wave freq=10.0][color=#6095ff]ULTIMATE SKILL!");
+            await DialogueManager.Instance.WaitForDialogue();
+            BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SNReleaseEnergy"]);
+            ReleasedEnergy = true;
+            PendingRelease = true;
         }
     }
 }

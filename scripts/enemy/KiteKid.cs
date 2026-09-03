@@ -34,6 +34,7 @@ internal sealed class KiteKid : Enemy
     public override async Task OnStartOfBattle()
     {
         KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
+        KidsKite.Actor.AddStatModifier("CallForFriendDelay", silent: true);
     }
 
     public override async Task ProcessEndOfTurn()

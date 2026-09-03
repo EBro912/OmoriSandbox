@@ -15,6 +15,7 @@ internal sealed class SesameAlt : Enemy
         return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
     protected override string[] EquippedSkills => ["SESAttack", "SESDoNothing", "SESBreadRoll"];
+    internal override bool ObserveHasMulti => true;
   
     public override BattleCommand ProcessAI()
     {

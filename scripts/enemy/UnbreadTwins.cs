@@ -100,6 +100,12 @@ internal sealed class UnbreadTwins : Enemy
 			LockEmotion("sad");
 			Stage = 1;
 		}
+	}
+
+	public override async Task ProcessEndOfTurn()
+	{
+		if (CurrentHP <= 0 || Stage > 3)
+			return;
 
 		if (IsBelowHP(0.65f) && Stage <= 1)
 		{
@@ -134,6 +140,9 @@ internal sealed class UnbreadTwins : Enemy
 
 	public override async Task OnDefeat()
 	{
+		foreach (EnemyComponent bread in Breads)
+			if (GodotObject.IsInstanceValid(bread) && !bread.Actor.IsToast)
+				bread.Actor.CurrentHP = 0;
 		DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"Our resources have been depleted...\! What will we do without ingredients?");
 		DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo...");
 		await DialogueManager.Instance.WaitForDialogue();
@@ -151,16 +160,23 @@ internal sealed class UnbreadTwins : Enemy
 		}
 	}
 
+	private EnemyComponent FirstBread;
+
 	public void SpawnBread()
 	{
 		for (int i = 0; i < 2; i++)
 		{
-			if (!GodotObject.IsInstanceValid(Breads[i]) || Breads[i].Actor.IsToast)
-			{
-				Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
-				Bakes++;
-				return;
-			}
+			if (GodotObject.IsInstanceValid(Breads[i]) && !Breads[i].Actor.IsToast)
+				continue;
+			Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
+			// the common event stuns troop index 0 (the Twins themselves) on the first bake and index 1 (the first enemy summoned)
+			// on the second, so bake 2 costs the first bread the rest of this turn if it is still alive
+			if (Bakes == 0)
+				FirstBread = Breads[i];
+			else if (GodotObject.IsInstanceValid(FirstBread) && !FirstBread.Actor.IsToast)
+				FirstBread.Actor.AddStatModifier("CallForFriendDelay", silent: true);
+			Bakes++;
+			return;
 		}
 		GD.PushWarning("Tried to summon more than 2 breads!");
 	}

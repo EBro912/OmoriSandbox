@@ -99,6 +99,8 @@ internal sealed class MrJawsum : Enemy
         AddStatModifier("MinionBarrier");
         SpawnGatorGuy();
         SpawnGatorGuy();
+        foreach (EnemyComponent gator in Gators)
+            gator.Actor.AddStatModifier("CallForFriendDelay", silent: true);
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");
         await DialogueManager.Instance.WaitForDialogue();
     }

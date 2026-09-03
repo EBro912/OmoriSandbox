@@ -154,6 +154,7 @@ public partial class BattleManager : Node
 	private bool ProcessedStartOfTurn = false;
 	private bool ProcessedStartOfCommands = false;
 	private bool ProcessedEndOfTurn = false;
+	private bool InEndOfTurnHooks = false;
 
 	public static BattleManager Instance { get; private set; }
 
@@ -643,6 +644,7 @@ public partial class BattleManager : Node
 		ProcessedStartOfTurn = false;
 		ProcessedStartOfCommands = false;
 		ProcessedEndOfTurn = false;
+		InEndOfTurnHooks = false;
 		RestartLabel.Visible = false;
 		RestartQueued = false;
 		RestartTimer = 1;
@@ -820,6 +822,14 @@ public partial class BattleManager : Node
 							continue;
 						await RunGuarded(() => enemy.Actor.ProcessStartOfCommands(),
 							$"{enemy.Actor.Name}.ProcessStartOfCommands");
+					}
+					// vanilla rolls every enemy's action at input time and sorts the turn by that action's speed,
+					// then the action is rolled *again* when the enemy actually acts
+					foreach (EnemyComponent enemy in Enemies.ToList())
+					{
+						if (enemy.Actor.IsToast || enemy.Actor.Stunned)
+							continue;
+						RunGuarded(() => enemy.Actor.PreRollTurnPriority(), $"{enemy.Actor.Name}.PreRollTurnPriority");
 					}
 					ProcessedStartOfCommands = true;
 				}
@@ -1037,7 +1047,7 @@ public partial class BattleManager : Node
 			{
 				if (a is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
 					return cmd.Action.Priority;
-				return SkillPriority.Normal;
+				return a is Enemy enemy ? enemy.TurnPriority : SkillPriority.Normal;
 			})
 			.ThenByDescending(a => a.CurrentStats.SPD)
 			.ThenBy(a =>
@@ -1613,12 +1623,16 @@ public partial class BattleManager : Node
 					x.Actor.DecreaseStatTurnCounter();
 			});
 
+			// in vanilla, a reinforcement added by a TURN END page is not in the action order until next turn,
+			// so mid-turn reinforcements are picked up by getNextSubject and act at once (unless stunned)
+			InEndOfTurnHooks = true;
 			foreach (EnemyComponent enemy in Enemies.ToList())
 			{
 				if (enemy.Actor.IsToast)
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
+			InEndOfTurnHooks = false;
 
 			// expire observe predictions the enemy never consumed during its turn
 			// ones set this turn (OBSERVE acts last) survive into the next turn
@@ -1956,11 +1970,13 @@ public partial class BattleManager : Node
 
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
 
-		// sadness converts part of the damage to juice loss, using the lock-resolved emotion's bleed fraction
+		// sadness converts part of the damage to juice loss. emotion-locked states keep tier-1
+		// element rates but bleed 0.5/1.0, so the bleed follows the displayed emotion, not the lock's advantage emotion
 		int juiceLost = 0;
-		if (targetEmotion.JuiceBleedFraction > 0)
+		float bleed = target.CurrentEmotion.JuiceBleedFraction;
+		if (bleed > 0)
 		{
-			juiceLost = Math.Min((int)Math.Floor(rounded * targetEmotion.JuiceBleedFraction), target.CurrentJuice);
+			juiceLost = Math.Min((int)Math.Floor(rounded * bleed), target.CurrentJuice);
 			rounded -= juiceLost;
 		}
 
@@ -2369,8 +2385,8 @@ public partial class BattleManager : Node
 		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, position);
 		Enemies.Add(enemy);
 
-		// mid-battle spawns automatically get an immediate turn via PriorityActors
-		if (Phase is BattlePhase.PreCommand or BattlePhase.CommandExecute
+		// mid-battle spawns automatically get an immediate turn via PriorityActors, while end-of-turn spawns wait for next turn
+		if (!InEndOfTurnHooks && Phase is BattlePhase.PreCommand or BattlePhase.CommandExecute
 		    or BattlePhase.WaitForBattleLog or BattlePhase.PostCommand or BattlePhase.EnemyDying)
 		{
 			if (!PriorityActors.Contains(enemy.Actor))
