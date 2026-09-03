@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using OmoriSandbox.Animation;
 using FileAccess = Godot.FileAccess;
@@ -33,6 +34,7 @@ internal partial class ModManager : Node
 		Instance = this;
 		
 		AppDomain.CurrentDomain.AssemblyResolve += ResolveFromGameContext;
+		ExposeUnwindSymbols();
 
 		if (!DirAccess.DirExistsAbsolute("user://mods"))
 		{
@@ -117,6 +119,32 @@ internal partial class ModManager : Node
 		string name = new AssemblyName(args.Name).Name;
 		return AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())?
 			.Assemblies.FirstOrDefault(a => a.GetName().Name == name);
+	}
+
+	// libgcc is statically linked on Godot Linux builds, so we need to expose it globally so MonoMod can see it
+	// Windows has no native helper and the macOS one links libSystem directly, so only Linux needs this fix
+	[DllImport("libdl.so.2", EntryPoint = "dlopen")]
+	private static extern IntPtr DlOpen(string fileName, int flags);
+	private const int RTLD_NOW = 0x2;
+	private const int RTLD_GLOBAL = 0x100;
+
+	private static void ExposeUnwindSymbols()
+	{
+		if (!OperatingSystem.IsLinux())
+			return;
+
+		string error = null;
+		try
+		{
+			if (DlOpen("libgcc_s.so.1", RTLD_NOW | RTLD_GLOBAL) == IntPtr.Zero)
+				error = "library not found";
+		}
+		catch (Exception ex)
+		{
+			error = ex.Message;
+		}
+		if (error != null)
+			GD.PushWarning($"Failed to load libgcc_s.so.1 ({error}), Harmony patches will fail to apply on this system!");
 	}
 
 	public void LoadMods()
