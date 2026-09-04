@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
@@ -13,17 +14,20 @@ internal sealed class Boss : Enemy
     protected override Stats Stats => new Stats(150, 25, 6, 2, 1, 10, 95);
 
     protected override string[] EquippedSkills => ["BSSAttack", "BSSAttackTwice", "BSSDoNothing", "BSSAttackAll"];
+    protected internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
+
+    public override Vector2 InfoBoxOffset => new(0, -320);
 
     private int Stage = 0;
 
     public override BattleCommand ProcessAI()
     {
-        if (IsBelowHP(0.153f))
+        if (IsBelowHP(0.15f))
             return new BattleCommand(this, this, Skills["BSSDoNothing"]);
 
         if (HasObserveTarget(out PartyMember observe))
@@ -37,9 +41,25 @@ internal sealed class Boss : Enemy
         return new BattleCommand(this, this, Skills["BSSDoNothing"]);
     }
 
+    public override async Task OnStartOfBattle()
+    {
+        AddStatModifier("Immortal", silent: true);
+        await Task.CompletedTask;
+    }
+
     public override async Task ProcessBattleConditions()
     {
-        if (Stage > 2 || CurrentHP <= 0)
+        if (Stage == 3)
+        {
+            Stage = 4;
+            CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 2);
+            RemoveStatModifier("Immortal");
+            DialogueManager.Instance.QueueMessage(this, @"HUH!?\! HOW ARE YOU STILL MOVING!?");
+            await DialogueManager.Instance.WaitForDialogue();
+            return;
+        }
+
+        if (Stage > 2)
             return;
 
         if (IsBelowHP(0.8f) && Stage == 0)

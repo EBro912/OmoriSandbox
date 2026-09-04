@@ -16,6 +16,7 @@ internal sealed class SlimeGirlsAlt : Enemy
 	protected override Stats Stats => new(8000, 4000, 100, 70, 90, 10, 95);
 
 	protected override string[] EquippedSkills => ["ComboAttack", "StrangeGas", "Dynamite", "StingRay", "Swap", "ChainsawAlt", "SlimeUltimateAttack", "SGSelfAngry"];
+	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
@@ -57,11 +58,11 @@ internal sealed class SlimeGirlsAlt : Enemy
 			case "angry":
 				if (Roll() < 21)
 					goto combo;
-				if (Roll() < 16)
+				if (Roll() < 11)
 					goto gas;
 				if (Roll() < 21)
 					goto dynamite;
-				if (Roll() < 16)
+				if (Roll() < 11)
 					goto stingray;
 				goto chainsaw;
 			default:

@@ -57,9 +57,6 @@ internal sealed class PlutoExpandedAlt : Enemy
             WhoFlexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"))?.Name;
         }
         
-        if (CurrentHP <= 0)
-            return;
-        
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"...\! Ah.\! I see.");

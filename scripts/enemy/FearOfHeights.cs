@@ -8,7 +8,7 @@ namespace OmoriSandbox.Actors;
 internal sealed class FearOfHeights : Enemy
 {
     public override string Name => "SOMETHING";
-    public override Vector2 InfoBoxOffset => new(0, -100);
+    public override Vector2 InfoBoxOffset => new(0, -225);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/fear_of_heights.tres");
     protected override Stats Stats => new(6000, 4000, 120, 100, 80, 10, 95);
@@ -21,7 +21,7 @@ internal sealed class FearOfHeights : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (Roll() < 31)
+        if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["FOHAttack"]);
         if (Roll() < 16)
             return new BattleCommand(this, SelectTarget(), Skills["FOHDoNothing"]);
@@ -39,20 +39,23 @@ internal sealed class FearOfHeights : Enemy
         TurnsLeft--;
         if (TurnsLeft == 0)
         {
-            AnimationManager.Instance.InitShake(new Shake(9, 3, 60));
+            DialogueManager.Instance.QueueMessage("0 turns left...");
+            await DialogueManager.Instance.WaitForDialogue();
+            AnimationManager.Instance.InitShake(new Shake(9, 5, 60));
+            await Wait.Frames(60);
             foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
             {
                 // fear of heights bypasses plot armor
                 member.Actor.CurrentHP = 0;
                 member.Actor.SetToast();
             }
-            await Wait.Milliseconds(1500);
+            await Wait.Frames(100);
             DialogueManager.Instance.QueueMessage("You hit the ground.");
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.CheckBattleOver();
             return;
         }
-        DialogueManager.Instance.QueueMessage(TurnsLeft + $" turn{(TurnsLeft == 1 ? "" : 's')} left.");
+        DialogueManager.Instance.QueueMessage($"{TurnsLeft} turns left...");
         await DialogueManager.Instance.WaitForDialogue();
     }
 

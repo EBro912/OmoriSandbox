@@ -23,6 +23,7 @@ public partial class AnimationManager : Node
 	public delegate void AnimationFinishedEventHandler();
 
 	[Export] private Node2D BattlebackRoot;
+	[Export] private Node2D EnemyAnimations;
 	[Export] private AnimatedSprite2D ReleaseEnergy;
 	[Export] private AnimatedSprite2D ReleaseEnergyBasil;
 	[Export] private AnimatedSprite2D RedHands;
@@ -51,7 +52,7 @@ public partial class AnimationManager : Node
 	private float ShakePwr = 0f;
 	private float ShakeSpd = 0f;
 	private int ShakeDuration = 0;
-	private float ShakeDirection = -1f;
+	private float ShakeDirection = 1f;
 
 	public static AnimationManager Instance { get; private set; }
 
@@ -297,7 +298,7 @@ public partial class AnimationManager : Node
 
 				// skip blank entries
 				if (frameData.Count == 0 && frameCellData.Count == 0 && timingData.Count == 0
-				    && textureName == null && altTextureName == null)
+					&& textureName == null && altTextureName == null)
 					continue;
 
 				attempted++;
@@ -451,7 +452,7 @@ public partial class AnimationManager : Node
 		{
 			UpdateShake();
 		}
-
+		
 		BattlebackRoot.Position = new Vector2((float)Math.Round(Shake), 0);
 	}
 
@@ -511,12 +512,11 @@ public partial class AnimationManager : Node
 
 	/// <summary>
 	/// Initializes a new screenshake that will begin on the next valid frame.
-	/// Calling this method while a shake is already happening will stop the currently playing one.
+	/// Calling this method while a shake is already happening replaces its power, speed and duration,
+	/// however the current offset carries over.
 	/// </summary>
 	public void InitShake(Shake shake)
 	{
-		BattlebackRoot.Position = Vector2.Zero;
-		Shake = 0f;
 		ShakePwr = shake.Power;
 		ShakeSpd = shake.Speed;
 		ShakeDuration = shake.Duration;
@@ -529,6 +529,7 @@ public partial class AnimationManager : Node
 		ShakePwr = 0f;
 		ShakeSpd = 0f;
 		ShakeDuration = 0;
+		ShakeDirection = 1f;
 	}
 
 	/// <summary>
@@ -537,7 +538,7 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
-	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
+	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
 	public void PlayAnimation(int id, Actor target)
 	{
 		StartAnimation(id, target.CenterPoint, target is Enemy);
@@ -573,7 +574,7 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
-	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
+	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForAnimation(int id, Actor target)
 	{
@@ -1090,7 +1091,10 @@ public partial class AnimationManager : Node
 		}
 
 		PlayingAnimation playing = new(animation, position, index);
-		AddChild(playing);
+		if (targetsEnemy)
+			EnemyAnimations.AddChild(playing);
+		else
+			AddChild(playing);
 		PlayingAnimations.Add(playing);
 		return playing;
 	}

@@ -16,8 +16,8 @@ public sealed class ReleaseEnergyBasilStatModifier : StatModifier
     {
         int heal = (int)Math.Round(actor.CurrentStats.MaxHP * 0.1f, MidpointRounding.AwayFromZero);
 		int juice = (int)Math.Round(actor.CurrentStats.MaxJuice * 0.05f, MidpointRounding.AwayFromZero);
-		actor.Heal(heal);
-		actor.HealJuice(juice);
+		heal = actor.Heal(heal);
+		juice = actor.HealJuice(juice);
 		BattleManager.Instance.SpawnDamageNumber(heal, actor.CenterPoint, DamageType.Heal);
 		BattleManager.Instance.SpawnDamageNumber(juice, actor.CenterPoint, DamageType.JuiceGain);
     }

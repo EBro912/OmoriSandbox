@@ -13,7 +13,7 @@ internal sealed class HumphreyFace : Enemy
 	public override Vector2 InfoBoxOffset => new(0, -115);
 	public override bool InfoBoxCursorAboveBox => true;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_face.tres");
-	protected override Stats Stats => new(6000, 3000, 63, 5, 35, 10, 95);
+	protected override Stats Stats => new(6000, 3000, 63, 5, 35, 10, 100);
 	protected override string[] EquippedSkills => ["HUFChomp", "HUFDoNothing", "HUFSwallow"];
 	
 	public override bool IsEmotionValid(Emotion emotion)
@@ -75,8 +75,10 @@ internal sealed class HumphreyFace : Enemy
 		BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["HUFSwallow"]);
 	}
 
-	public override async Task OnDefeat()
+	public override async Task ProcessBattleConditions()
 	{
+		if (CurrentHP > 0)
+			return;
 		DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]Feel free to struggle, 'cuz no matter what...\| You'll never be able to escape my gut!");
 		await DialogueManager.Instance.WaitForDialogue();
 	}

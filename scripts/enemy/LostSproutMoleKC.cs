@@ -12,10 +12,24 @@ internal sealed class LostSproutMoleKC : Enemy
 
     protected override Stats Stats => new(500, 200, 50, 50, 50, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
+	protected internal override bool ObserveHasMulti => true;
+
+	// vanilla bug: the ANGRY King Crawler LSM has different stats
+	private Stats GetStatsForEmotion()
+	{
+		return CurrentEmotion.Group?.Id == "angry"
+			? new Stats(42, 0, 11, 8, 5, 5, 95)
+			: new Stats(500, 200, 50, 50, 50, 5, 95);
+	}
+
+	public override Stats GetBaseStats()
+	{
+		return GetStatsForEmotion() + AdjustedStats;
+	}
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
-		return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+		return emotion.Id is "neutral" or "sad" or "happy" or "angry";
 	}
     public override BattleCommand ProcessAI()
 	{
@@ -46,7 +60,7 @@ internal sealed class LostSproutMoleKC : Enemy
 					goto nothing;
 				goto run;
 			default:
-				if (Roll() < 51)
+				if (Roll() < 41)
 					goto attack;
 				if (Roll() < 36)
 					goto nothing;

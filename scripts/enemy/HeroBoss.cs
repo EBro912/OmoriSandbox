@@ -14,6 +14,7 @@ internal sealed class HeroBoss : Enemy
 	public override bool InfoBoxCursorAboveBox => true;
 	protected override Stats Stats => new(10000, 7000, 90, 100, 45, 10, 95);
 	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubrey", "HBossCallKel"];
+	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
@@ -23,7 +24,8 @@ internal sealed class HeroBoss : Enemy
 	private int TurnCount = 0;
 	public override BattleCommand ProcessAI()
 	{
-		TurnCount++;
+		if (!PreRolling)
+		    TurnCount++;
 		
 		if (HasMultiTargetObserve())
 			return new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]);
@@ -54,7 +56,8 @@ internal sealed class HeroBoss : Enemy
 		{
 			Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
 			// check if aubrey is alive, if not just choose a random other enemy
-			BattleManager.Instance.ForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["HBossCallAubrey"]);
+			if (!PreRolling)
+			    BattleManager.Instance.ForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["HBossCallAubrey"]);
 			return new BattleCommand(this, SelectTarget(), Skills["HAttack"]);
 		}
 		
@@ -62,7 +65,8 @@ internal sealed class HeroBoss : Enemy
 		{
 			Enemy kel = aliveEnemies.FirstOrDefault(x => x is KelBoss);
 			// check if kel is alive, if not just choose a random other enemy
-			BattleManager.Instance.ForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["HBossCallKel"]);
+			if (!PreRolling)
+			    BattleManager.Instance.ForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["HBossCallKel"]);
 			return new BattleCommand(this, SelectTarget(), Skills["HAttack"]);
 		}
 

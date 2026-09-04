@@ -3,11 +3,11 @@ using OmoriSandbox.Actors;
 namespace OmoriSandbox.Battle.Modifier;
 
 /// <summary>
-/// The modifier used to make an actor immune to all incoming damage. See <see cref="ResistPhysicalModifier"/> to allow Certain Hit attacks to get through.
+/// The modifier used to make an actor immune to physical attacks. Certain Hit (neverMiss = true) attacks still make it through.
 /// </summary>
-public sealed class ImmuneStatModifier : StatModifier
+public class ResistPhysicalModifier : StatModifier
 {
-    public ImmuneStatModifier(params StatBonus[] bonuses) : base(bonuses) { }
+    public ResistPhysicalModifier(params StatBonus[] bonuses) : base(bonuses) { }
 
     /// <inheritdoc/>
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking,
@@ -19,6 +19,8 @@ public sealed class ImmuneStatModifier : StatModifier
         if (isAttacking)
             return;
         
-        damage = 0f;
+        // only block damage if it can miss (physical attack)
+        if (!neverMiss)
+            damage = 0f;
     }
 }

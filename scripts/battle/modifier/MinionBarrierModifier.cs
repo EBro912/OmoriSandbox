@@ -19,6 +19,9 @@ public sealed class MinionBarrierModifier : StatModifier
         
         if (isAttacking)
             return;
+        
+        if (damage <= 0)
+            return;
 
         List<Enemy> allEnemies = BattleManager.Instance.GetAllAliveEnemies();
         // if there's only one enemy alive, there's no one to share the damage with
@@ -30,7 +33,9 @@ public sealed class MinionBarrierModifier : StatModifier
         {
             if (enemy == defender)
                 continue;
-            enemy.Damage(shared);
+
+            // debug damage was already applied earlier on
+            enemy.Damage(shared, applyDebugScale: false);
             BattleManager.Instance.SpawnDamageNumber(shared, enemy.CenterPoint);
             AnimationManager.Instance.PlayAnimation(123, enemy);
             BattleLogManager.Instance.QueueMessage(attacker, enemy, "[target] takes " + shared + " damage!");

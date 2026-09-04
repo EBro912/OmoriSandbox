@@ -7,7 +7,6 @@ namespace OmoriSandbox.Animation;
 internal class RPGMAnimatedSprite
 {
 	public static readonly int SIZE = 192;
-	private const float DIVIDEND = 0.03529411764705882f;
 
 	public int Id { get; private set; }
 	public int Layer { get; private set; }
@@ -53,7 +52,7 @@ internal class RPGMAnimatedSprite
 
 	public void SetFrameShake(int frame, int power, int speed, int duration)
 	{
-		FrameShake[frame] = new Shake(power * DIVIDEND, speed * DIVIDEND, duration);
+		FrameShake[frame] = Shake.FromFlash(power, speed, duration);
 	}
 
 	// avoid creating a fresh AtlasTexture per cell per redraw
@@ -146,13 +145,29 @@ internal struct SFX(string name, float pitch = 100f, float volume = 100f)
 }
 
 /// <summary>
-/// Creates a new screen shake.
+/// Creates a new screen shake, using the same scale as OMORI's "Shake Screen" event command.<br/>
+/// Use <see cref="FromFlash"/> when porting an animation's ft_doShake flash values instead.
 /// </summary>
-/// <param name="power">The power of the shake. Normal values are 0-255.</param>
-/// <param name="speed">The speed of the shake. Normal values are 0-255.</param>
+/// <param name="power">The power of the shake. Normal values are 0-9.</param>
+/// <param name="speed">The speed of the shake. Normal values are 0-9.</param>
 /// <param name="duration">The duration (in frames) of the shake.</param>
 public struct Shake(float power, float speed, int duration)
 {
+	// 9 / 255
+	private const float FLASH_TO_POWER = 0.03529411764705882f;
+
+	/// <summary>
+	/// Creates a screen shake from an animation's ft_doShake flash values.
+	/// Red 255 is power 9 and Green 255 is speed 9.
+	/// </summary>
+	/// <param name="red">The red flash value (0-255), controlling power.</param>
+	/// <param name="green">The green flash value (0-255), controlling speed.</param>
+	/// <param name="duration">The flash duration (in frames), controlling the shake duration.</param>
+	public static Shake FromFlash(int red, int green, int duration)
+	{
+		return new Shake(red * FLASH_TO_POWER, green * FLASH_TO_POWER, duration);
+	}
+
 	/// <summary>
 	/// The power of the shake.
 	/// </summary>

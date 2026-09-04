@@ -4,6 +4,7 @@ using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
+using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Actors;
 
@@ -52,13 +53,10 @@ internal sealed class KiteKidAlt : Enemy
                 await DialogueManager.Instance.WaitForDialogue();
                 foreach (Enemy enemy in enemies)
                 {
-                    enemy.RemoveStatModifier("AttackUp");
-                    enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
-                    enemy.RemoveStatModifier("SpeedUp");
-                    enemy.AddTierStatModifier("AttackUp", 3);
-                    enemy.AddTierStatModifier("DefenseUp", 3);
-                    enemy.AddTierStatModifier("SpeedUp", 3);
+                    SetWindBuff(enemy, "AttackUp", 3);
+                    SetWindBuff(enemy, "DefenseUp", 3);
+                    SetWindBuff(enemy, "SpeedUp", 3);
                     AnimationManager.Instance.PlayAnimation(218, enemy);
                 }
                 break;
@@ -67,14 +65,11 @@ internal sealed class KiteKidAlt : Enemy
                 await DialogueManager.Instance.WaitForDialogue();
                 foreach (Enemy enemy in enemies)
                 {
-                    enemy.RemoveStatModifier("AttackUp");
-                    enemy.RemoveStatModifier("DefenseUp");
-                    enemy.RemoveStatModifier("SpeedDown");
                     enemy.RemoveStatModifier("SpeedUp");
-                    enemy.AddTierStatModifier("AttackUp", 2);
-                    enemy.AddTierStatModifier("DefenseUp", 2);
-                    enemy.AddTierStatModifier("SpeedDown", 2);
-                    AnimationManager.Instance.PlayAnimation(218, enemy);
+                    SetWindBuff(enemy, "AttackUp", 2);
+                    SetWindBuff(enemy, "DefenseUp", 2);
+                    SetWindBuff(enemy, "SpeedDown", 2);
+                    AnimationManager.Instance.PlayAnimation(214, enemy);
                 }
                 break;
             case 2:
@@ -92,19 +87,16 @@ internal sealed class KiteKidAlt : Enemy
         }
     }
 
-    private bool HasSpoken = false;
-    public override async Task ProcessBattleConditions()
+    // manually remove and readd each modifier so the same-turn expiry rule does not take effect
+    private static void SetWindBuff(Enemy enemy, string modifier, int tier)
     {
-        if (CurrentHP <= 0)
-            return;
-
-        if (IsBelowHP(0.25f) && !HasSpoken)
+        if (enemy.StatModifiers.TryGetValue(modifier, out StatModifier held) && held is TierStatModifier t && t.CurrentTier == tier)
         {
-            DialogueManager.Instance.QueueMessage(this, "No... This can't be...");
-            DialogueManager.Instance.QueueMessage(this, @"The wind...\![br]It's getting weaker!");
-            await DialogueManager.Instance.WaitForDialogue();
-            HasSpoken = true;
+            held.RefreshTurns();
+            return;
         }
+        enemy.RemoveStatModifier(modifier);
+        enemy.AddTierStatModifier(modifier, tier, silent: true);
     }
 
     public override async Task OnDefeat()
@@ -116,12 +108,4 @@ internal sealed class KiteKidAlt : Enemy
             KidsKite.Actor.CurrentHP = 0;
     }
 
-    public override async Task OnEndOfBattle(bool victory)
-    {
-        if (!victory)
-        {
-            DialogueManager.Instance.QueueMessage(this, @"Haha! As the wind predicted!\! Me and my kite are unbeatable.");
-            await DialogueManager.Instance.WaitForDialogue();
-        }
-    }
 }

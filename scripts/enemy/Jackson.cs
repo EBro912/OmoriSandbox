@@ -12,9 +12,9 @@ internal sealed class Jackson : Enemy
     public override Vector2 InfoBoxOffset => new(6, -162);
     public override bool InfoBoxCursorAboveBox => true;
 
-    protected override Stats Stats => new(45, 75, 10, 1, 1, 10, 100);
+    protected override Stats Stats => new(45, 75, 10, 1, 10, 10, 100);
 
-    protected override string[] EquippedSkills => ["JKWalkSlowly", "JKAutoKill"];
+    protected override string[] EquippedSkills => ["JKWalkSlowly", "JKAutoKill", "Idle"];
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -25,9 +25,12 @@ internal sealed class Jackson : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        Turn++;
-        if (Turn % 5 == 0)
+        if (!PreRolling)
+            Turn++;
+        if (Turn == 5)
             return new BattleCommand(this, SelectAllTargets(), Skills["JKAutoKill"]);
+        if (Turn > 5)
+            return new BattleCommand(this, this, Skills["Idle"]);
         return new BattleCommand(this, this, Skills["JKWalkSlowly"]);
 
     }

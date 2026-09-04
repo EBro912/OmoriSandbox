@@ -12,7 +12,15 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8gice")
 }],
-"loop": true,
+"loop": 1,
+"name": &"hurt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8gice")
+}],
+"loop": 1,
 "name": &"neutral",
 "speed": 5.0
 }, {
@@ -20,7 +28,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_8gice")
 }],
-"loop": true,
+"loop": 1,
 "name": &"toast",
 "speed": 5.0
 }]

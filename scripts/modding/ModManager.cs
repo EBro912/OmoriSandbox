@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using OmoriSandbox.Animation;
 using FileAccess = Godot.FileAccess;
@@ -31,6 +32,9 @@ internal partial class ModManager : Node
 	public override void _Ready()
 	{
 		Instance = this;
+		
+		AppDomain.CurrentDomain.AssemblyResolve += ResolveFromGameContext;
+		ExposeUnwindSymbols();
 
 		if (!DirAccess.DirExistsAbsolute("user://mods"))
 		{
@@ -101,6 +105,46 @@ internal partial class ModManager : Node
 				GD.PushError($"Failed to remove Harmony patches for mod {node.Id}: {ex}");
 			}
 		}
+
+		AppDomain.CurrentDomain.AssemblyResolve -= ResolveFromGameContext;
+	}
+
+	// Godot loads external dlls into its own isolated load context, which can break Harmony patches as
+	// Harmony's dynamically loaded shim assembly uses its own ALC. we can utilize the AssemblyResolve event to nudge the patcher
+	// in the right direction by passing it the assembly that it's looking for from Godot's isolated ALC,
+	// or null if the assembly truly doesn't exist
+	// see https://github.com/pardeike/Harmony/issues/642
+	private static Assembly ResolveFromGameContext(object sender, ResolveEventArgs args)
+	{
+		string name = new AssemblyName(args.Name).Name;
+		return AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())?
+			.Assemblies.FirstOrDefault(a => a.GetName().Name == name);
+	}
+
+	// libgcc is statically linked on Godot Linux builds, so we need to expose it globally so MonoMod can see it
+	// Windows has no native helper and the macOS one links libSystem directly, so only Linux needs this fix
+	[DllImport("libdl.so.2", EntryPoint = "dlopen")]
+	private static extern IntPtr DlOpen(string fileName, int flags);
+	private const int RTLD_NOW = 0x2;
+	private const int RTLD_GLOBAL = 0x100;
+
+	private static void ExposeUnwindSymbols()
+	{
+		if (!OperatingSystem.IsLinux())
+			return;
+
+		string error = null;
+		try
+		{
+			if (DlOpen("libgcc_s.so.1", RTLD_NOW | RTLD_GLOBAL) == IntPtr.Zero)
+				error = "library not found";
+		}
+		catch (Exception ex)
+		{
+			error = ex.Message;
+		}
+		if (error != null)
+			GD.PushWarning($"Failed to load libgcc_s.so.1 ({error}), Harmony patches will fail to apply on this system!");
 	}
 
 	public void LoadMods()

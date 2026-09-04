@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ internal sealed class PlutoExpandedEarth : Enemy
     public override SpriteFrames Animation =>
         ResourceLoader.Load<SpriteFrames>("res://animations/pluto_expanded.tres");
     protected override Stats Stats => new(10000, 5000, 85, 65, 70, 15, 95);
-    protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEEarthsFinale", "PEMeteor"];
+    protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEEarthsFinale", "PEMeteor", "Idle"];
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -31,18 +32,28 @@ internal sealed class PlutoExpandedEarth : Enemy
         if (party.Any(x => x.HasStatModifier("PlutoBuff")))
             return new BattleCommand(this, party, Skills["PEMeteor"]);
         
-        if (HasObserveTarget(out PartyMember observe))
+        // headbutt has an HP cost of 1%
+        int headbuttCost = (int)Math.Floor(CurrentStats.MaxHP * 0.01f);
+        bool canHeadbutt = CurrentHP > headbuttCost;
+        if (canHeadbutt && HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["PEHeadbutt"]);
         
+        // headbutt then orders target by sad tier, greatest to least
         List<PartyMember> sad = party.Where(x => x.CurrentEmotion.Group?.Id == "sad").ToList();
-        if (sad.Count > 0)
+        if (canHeadbutt && sad.Count > 0)
+        {
+            int top = sad.Max(x => x.CurrentEmotion.Tier);
+            sad = sad.Where(x => x.CurrentEmotion.Tier == top).ToList();
             return new BattleCommand(this, sad[GameManager.Instance.Random.RandiRange(0, sad.Count - 1)], Skills["PEHeadbutt"]);
+        }
         if (Roll() < 56)
             return new BattleCommand(this, SelectTarget(), Skills["PEAttack"]);
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["PESubmissionHold"]);
         if (Roll() < 31)
             return new BattleCommand(this, SelectTarget(), Skills["PEDoNothing"]);
+        if (!canHeadbutt)
+            return new BattleCommand(this, this, Skills["Idle"]);
         return new BattleCommand(this, SelectTarget(), Skills["PEHeadbutt"]);
     }
 
@@ -88,45 +99,31 @@ internal sealed class PlutoExpandedEarth : Enemy
         }
     }
 
-    private bool HasSpoken = false;
-    private bool HasThrownEarth = false;
+    private bool Triggered = false;
+    private bool PendingCharge = false;
     private bool Charging = false;
     private bool HasMentionedFlex = false;
-    private string WhoFlexed;
     public override async Task ProcessBattleConditions()
     {
-        if (!HasMentionedFlex && WhoFlexed is null)
+        // the first ProcessBattleConditions after the queued Finale is the one following the Finale itself
+        if (PendingCharge)
         {
-            WhoFlexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"))?.Name;
+            PendingCharge = false;
+            await StartCharge();
         }
-        
-        if (CurrentHP <= 0)
-            return;
-
-        if (IsBelowHP(0.5f) && !HasThrownEarth)
-        {
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Ah...\! It seems that I have underestimated you once again.");
-            await DialogueManager.Instance.WaitForDialogue();
-            HasThrownEarth = true;
-            if (Earth != null && !Earth.Actor.IsToast)
-            {
-                BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["PEEarthsFinale"]);
-                return;
-            }
-        }
-        
-        if (IsBelowHP(0.5f) && !HasSpoken)
-        {
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Very few have pushed me this far...\! and none have left the same.");
-            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"I want nothing more than victory!\! Let me show you my resolve!");
-            DialogueManager.Instance.QueueMessage("PLUTO begins charging his ultimate attack!");
-            await DialogueManager.Instance.WaitForDialogue();
-            AddStatModifier("PlutoCharging");
-            AnimationManager.Instance.PlayAnimation(218, this);
-            Charging = true;
-            Stunned = true;
-            HasSpoken = true;
-        }
+    }
+    
+    private async Task StartCharge()
+    {
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Very few have pushed me this far...\! and none have left the same.");
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"I want nothing more than victory!\! Let me show you my resolve!");
+        DialogueManager.Instance.QueueMessage("PLUTO begins charging his ultimate attack!");
+        await DialogueManager.Instance.WaitForDialogue();
+        // added after this turn's stat tick, so ProcessStartOfCommands sees 2 -> 1 -> expired over the next three turns
+        AddStatModifier("PlutoCharging");
+        AnimationManager.Instance.PlayAnimation(218, this);
+        Charging = true;
+        Stunned = true;
     }
     
     public override async Task OnDefeat()
@@ -139,10 +136,25 @@ internal sealed class PlutoExpandedEarth : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        if (!HasMentionedFlex && WhoFlexed != null)
+        if (!Triggered && CurrentHP > 0 && IsBelowHP(0.5f))
+        {
+            Triggered = true;
+            DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Ah...\! It seems that I have underestimated you once again.");
+            await DialogueManager.Instance.WaitForDialogue();
+            if (Earth != null && !Earth.Actor.IsToast)
+            {
+                // the forced Finale resolves before page 2 in vanilla, StartCharge runs from the next ProcessBattleConditions
+                BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["PEEarthsFinale"]);
+                PendingCharge = true;
+            }
+            else
+                await StartCharge();
+        }
+        
+        if (!HasMentionedFlex && SelectAllTargets().Any(x => x is Kel && x.HasStatModifier("Flex")))
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
-                $"Impressive progress, young {WhoFlexed.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
+                @"Impressive progress, young KEL!\! Your [color=#6095ff]FLEX[/color] has improved greatly!");
             await DialogueManager.Instance.WaitForDialogue();
             HasMentionedFlex = true;
         }

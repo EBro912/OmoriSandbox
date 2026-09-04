@@ -42,14 +42,15 @@ internal sealed class Abbi : Enemy
             {
                 if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.IsToast)
                 {
-                    Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
-                        layer: Layer + 1);
+                    if (!PreRolling)
+                        Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
+                            layer: Layer + 1);
                     return new BattleCommand(this, this, Skills["AbbiSummon"]);
                 }
             }
         }
 
-        if (Roll() < 36)
+        if (Roll() < 36 && SelectAllEnemies().Count > 1)
             return new BattleCommand(this, SelectAllEnemies(), Skills["AbbiAttackOrder"]);
         return new BattleCommand(this, SelectTarget(), Skills["AbbiAttack"]);
     }

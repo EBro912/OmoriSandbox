@@ -15,6 +15,7 @@ internal sealed class YeOldSproutAlt : Enemy
     protected override Stats Stats => new Stats(3000, 1500, 80, 80, 20, 10, 95);
 
     protected override string[] EquippedSkills => ["YOSBRRollOver"];
+    protected internal override bool ObserveHasMulti => true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {

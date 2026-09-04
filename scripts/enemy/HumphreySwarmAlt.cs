@@ -12,8 +12,9 @@ internal sealed class HumphreySwarmAlt : Enemy
     public override string Name => "HUMPHREY";
     public override Vector2 InfoBoxOffset => new(0, -350);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_swarm.tres");
-    protected override Stats Stats => new(9999, 5000, 10, 150, 65, 10, 95);
+    protected override Stats Stats => new(9999, 5000, 10, 150, 65, 20, 95);
     protected override string[] EquippedSkills => ["HUSAttack", "HUSAttack2", "HUSAttack3"];
+    protected internal override bool ObserveHasMulti => true;
     
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -26,7 +27,8 @@ internal sealed class HumphreySwarmAlt : Enemy
     
     public override BattleCommand ProcessAI()
     {
-        Turn++;
+        if (!PreRolling)
+            Turn++;
         
         if (HasMultiTargetObserve())
             return new BattleCommand(this, SelectTargets(3), Skills["HUSAttack3"]);
@@ -69,7 +71,7 @@ internal sealed class HumphreySwarmAlt : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (IsBelowHP(0.0999f) && !HasTransformed)
+        if (IsBelowHP(0.1f) && !HasTransformed)
         {
             HasTransformed = true;
             await ChangePhase();

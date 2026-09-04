@@ -84,8 +84,9 @@ public class Skill : BattleAction
 	/// <param name="hidden">Whether this skill should show up in the actor's skill list.</param>
 	/// <param name="priority">The priority of the skill during turn order calculation.</param>
 	/// <param name="showFollowups">Whether this skill causes the followup bubbles to appear.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false)
-		: base(name, description, target, priority, effect)
+	/// <param name="setup">Optional code that runs before the skill applies, like an RPG Maker <c>setup action</c>.</param>
+	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false, Func<Actor, Actor, Task> setup = null)
+		: base(name, description, target, priority, effect, setup)
 	{
 		BaseCost = cost;
 		Hidden = hidden;
@@ -103,8 +104,9 @@ public class Skill : BattleAction
 	/// <param name="hidden">Whether this skill should show up in the actor's skill list.</param>
 	/// <param name="priority">The priority of the skill during turn order calculation.</param>
 	/// /// <param name="showFollowups">Whether this skill causes the followup bubbles to appear.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false)
-		: base(name, description, target, priority, effect)
+	/// <param name="setup">Optional code that runs before the skill applies, like an RPG Maker <c>setup action</c>.</param>
+	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false, Func<Actor, IReadOnlyList<Actor>, Task> setup = null)
+		: base(name, description, target, priority, effect, setup)
 	{
 		BaseCost = cost;
 		Hidden = hidden;

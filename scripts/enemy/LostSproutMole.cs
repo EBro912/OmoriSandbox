@@ -12,6 +12,7 @@ internal sealed class LostSproutMole : Enemy
 
     protected override Stats Stats => new(170, 75, 22, 10, 13, 5, 95);
 	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
+	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
@@ -36,17 +37,17 @@ internal sealed class LostSproutMole : Enemy
 			case "sad":
 				if (Roll() < 31)
 					goto attack;
-				if (Roll() < 56)
+				if (Roll() < 66)
 					goto nothing;
 				goto run;
 			case "angry":
-				if (Roll() < 61)
+				if (Roll() < 51)
 					goto attack;
 				if (Roll() < 21)
 					goto nothing;
 				goto run;
 			default:
-				if (Roll() < 56)
+				if (Roll() < 66)
 					goto attack;
 				if (Roll() < 36)
 					goto nothing;

@@ -89,7 +89,7 @@ internal partial class EditorManager : Node
 			SpinBox quantity = new()
 			{
 				MinValue = 1,
-				MaxValue = 999,
+				MaxValue = BattleManager.MaxItemCount,
 				Value = 1,
 				Rounded = true
 			};
@@ -487,7 +487,7 @@ internal partial class EditorManager : Node
 			SpinBox quantity = new()
 			{
 				MinValue = 1,
-				MaxValue = 999,
+				MaxValue = BattleManager.MaxItemCount,
 				Value = entry.Value,
 				Rounded = true
 			};

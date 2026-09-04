@@ -490,6 +490,7 @@ public class Database
 		Enemies.Add("HumphreySwarm", () => new HumphreySwarm());
 		Enemies.Add("HumphreyGrande", () => new HumphreyGrande());
 		Enemies.Add("HumphreyFace", () => new HumphreyFace());
+		Enemies.Add("HumphreyUvula", () => new HumphreyUvula());
 		Enemies.Add("HumphreySwarm (Boss Rush)", () => new HumphreySwarmAlt());
 		Enemies.Add("HumphreyGrande (Boss Rush)", () => new HumphreyGrandeAlt());
 		Enemies.Add("HumphreyFace (Boss Rush)", () => new HumphreyFaceAlt());
@@ -637,15 +638,18 @@ public class Database
 				bool multi = GameManager.Instance.Random.RandiRange(1, 2) == 1;
 				if (multi)
 				{
-					// vanilla omori technically stops after the 4th attempt
-					// maybe add a toggle for this?
-					Enemy enemy = BattleManager.Instance.GetAllAliveEnemies()
-						.FirstOrDefault(x => x.HasMultiTargetPartySkill);
-					if (enemy != null)
+					// if the party is multi observed, any enemy that checks for state 185 in their AI is affected
+					// (vanilla technically only checks the first four troop slots)
+					List<Enemy> alive = BattleManager.Instance.GetAllAliveEnemies();
+					Enemy speaker = alive.FirstOrDefault(x => x.ObserveHasMulti);
+					if (speaker != null)
 					{
-						enemy.ObserveMultiTarget = true;
-						enemy.ObserveSetThisTurn = true;
-						BattleLogManager.Instance.QueueMessage(enemy, "[actor] has their eyes on\neveryone!");
+						foreach (Enemy enemy in alive)
+						{
+							enemy.ObserveMultiTarget = true;
+							enemy.ObserveSetThisTurn = true;
+						}
+						BattleLogManager.Instance.QueueMessage(speaker, "[actor] has their eyes on everyone!");
 						foreach (PartyMemberComponent m in members)
 							AnimationManager.Instance.PlayAnimation(4, m.Actor);
 						await Wait.Milliseconds(1000);
@@ -710,7 +714,7 @@ public class Database
 
 				await Wait.Milliseconds(1000);
 
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] whispers something\nto [target].");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] whispers something to\n[target].");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF,
 					false);
 			}
@@ -800,7 +804,11 @@ public class Database
 						break;
 				}
 
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s EMOTIONS!");
+				// vanilla only breaks the line (and adds the "!") once the text reaches 34 characters
+				string exploitText = $"{self.Name.ToUpper()} exploits {target.Name.ToUpper()}'s EMOTIONS";
+				BattleLogManager.Instance.QueueMessage(self, target, exploitText.Length >= 34
+					? "[actor] exploits [target]'s\nEMOTIONS!"
+					: "[actor] exploits [target]'s EMOTIONS");
 				if (target.CurrentEmotion.Id != "neutral")
 				{
 					BattleManager.Instance.Damage(self, target,
@@ -821,7 +829,7 @@ public class Database
 			cost: 50,
 			effect: async (self, targets) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] releases his ultimate\nattack!");
+				BattleLogManager.Instance.QueueMessage(self, "[actor] unleashes his ultimate attack!");
 				await AnimationManager.Instance.WaitForScreenAnimation(13, targets[0] is Enemy);
 				float multiplier = self.CurrentEmotion.Group == null ? 3f : self.CurrentEmotion.Tier switch
 				{
@@ -1266,6 +1274,7 @@ public class Database
 			description: "Heal your wounds and come back stronger.\nCost: 0",
 			target: SkillTarget.Self,
 			cost: 0,
+			priority: SkillPriority.First,
 			effect: async (_, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(target, "[actor] steadies their breathing.");
@@ -1325,7 +1334,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] body slams [target]!");
 				BattleManager.Instance.Damage(self, target,
 					() => self.CurrentStats.ATK * 2 + (BattleManager.Instance.Energy * self.Level) -
-					      target.CurrentStats.DEF, false);
+						  target.CurrentStats.DEF, false);
 			}
 		);
 
@@ -1417,7 +1426,7 @@ public class Database
 				{
 					BattleManager.Instance.Damage(self, enemy,
 						() => (first.CurrentStats.ATK + first.CurrentStats.DEF + first.CurrentStats.SPD +
-						       (first.CurrentStats.LCK * 5)) - enemy.CurrentStats.DEF, false);
+							   (first.CurrentStats.LCK * 5)) - enemy.CurrentStats.DEF, false);
 				}
 			}
 		);
@@ -1470,7 +1479,7 @@ public class Database
 				{
 					AnimationManager.Instance.PlayAnimation(212, member.Actor);
 					int heal = (int)Math.Round(member.Actor.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
-					member.Actor.Heal(heal);
+					heal = member.Actor.Heal(heal);
 					BattleManager.Instance.SpawnDamageNumber(heal, member.Actor.CenterPoint, DamageType.Heal);
 				}
 
@@ -1745,26 +1754,31 @@ public class Database
 			description: "A swing that doesn't miss. Deals extra damage to\nHAPPY foes. Cost: 10",
 			target: SkillTarget.Enemy,
 			cost: 10,
+			// vanilla adds ACCURACY UP in the setup action, before the hit applies, so a use right after it expired can be refused
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(46, target);
 				await Wait.Milliseconds(500);
 				if (target.IsFeeling("happy"))
 				{
-					// very nice
 					if (target.GetEmotionTier("happy") >= 2)
 						await AnimationManager.Instance.WaitForAnimation(279, target);
 					else
 						await AnimationManager.Instance.WaitForAnimation(278, target);
 					BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 					BattleManager.Instance.Damage(self, target,
-						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF);
+						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF, neverMiss: false);
 				}
 				else
 				{
 					BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 					BattleManager.Instance.Damage(self, target,
-						() => self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF);
+						() => self.CurrentStats.ATK * 2.25f - target.CurrentStats.DEF, neverMiss: false);
 				}
 			}
 		);
@@ -2282,7 +2296,7 @@ public class Database
 				{
 					AnimationManager.Instance.PlayAnimation(213, member);
 					int rounded = (int)Math.Round(member.CurrentStats.MaxJuice * 0.3f, MidpointRounding.AwayFromZero);
-					member.HealJuice(rounded);
+					rounded = member.HealJuice(rounded);
 					BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {rounded} JUICE!");
 				}
 
@@ -2342,7 +2356,7 @@ public class Database
 				if (damage > -1)
 				{
 					int rounded = (int)Math.Round(target.CurrentStats.MaxJuice * 0.4f, MidpointRounding.AwayFromZero);
-					target.HealJuice(rounded);
+					rounded = target.HealJuice(rounded);
 					BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 				}
 
@@ -2358,7 +2372,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(60, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a snowball at [target]!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a SNOWBALL at\n[target]!");
 				if (target.CurrentEmotion.Group?.Id == "sad")
 				{
 					BattleManager.Instance.Damage(self, target,
@@ -2598,7 +2612,7 @@ public class Database
 					// VANILLA BUG: uses Aubrey's attack instead of Hero's
 					BattleManager.Instance.Damage(self, enemy,
 						() => (second.CurrentStats.ATK * 1.5f) + (self.CurrentStats.ATK * 1.5f) -
-						      enemy.CurrentStats.DEF, false);
+							  enemy.CurrentStats.DEF, false);
 					AnimationManager.Instance.PlayAnimation(219, enemy);
 					enemy.AddStatModifier("AttackDown");
 				}
@@ -2648,7 +2662,7 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(90, false);
 				target.AddStatModifier("Charm");
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier charmMod) &&
-				    charmMod is CharmStatModifier charmState)
+					charmMod is CharmStatModifier charmState)
 					charmState.CharmedBy = self as PartyMember;
 				await Wait.Milliseconds(2000);
 			},
@@ -2666,7 +2680,7 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(90, false);
 				target.AddStatModifier("Charm");
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier enchantMod) &&
-				    enchantMod is CharmStatModifier enchantState)
+					enchantMod is CharmStatModifier enchantState)
 					enchantState.CharmedBy = self as PartyMember;
 				BattleManager.Instance.MakeHappy(target);
 				await Wait.Milliseconds(2000);
@@ -2780,7 +2794,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] prepares a quick meal for [target].");
 				await AnimationManager.Instance.WaitForAnimation(85, target);
 				int rounded = (int)Math.Round(target.CurrentStats.MaxHP * .4f, MidpointRounding.AwayFromZero);
-				target.Heal(rounded);
+				rounded = target.Heal(rounded);
 				BattleManager.Instance.SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 				AnimationManager.Instance.PlayAnimation(212, target);
@@ -2799,12 +2813,12 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(85, self);
 
 				int rounded = (int)Math.Round(target.CurrentStats.MaxHP * .5f, MidpointRounding.AwayFromZero);
-				target.Heal(rounded);
+				rounded = target.Heal(rounded);
 				BattleManager.Instance.SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
 				AnimationManager.Instance.PlayAnimation(212, target);
 
 				rounded = (int)Math.Round(self.CurrentStats.MaxHP * .5f, MidpointRounding.AwayFromZero);
-				self.Heal(rounded);
+				rounded = self.Heal(rounded);
 				BattleManager.Instance.SpawnDamageNumber(rounded, self.CenterPoint, DamageType.Heal);
 				AnimationManager.Instance.PlayAnimation(212, self);
 				await Wait.Milliseconds(1000);
@@ -2856,11 +2870,11 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] brings out some tea for a break.");
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] feels refreshed!");
 				int heartHeal = (int)Math.Round(target.CurrentStats.MaxHP * 0.3f, MidpointRounding.AwayFromZero);
-				target.Heal(heartHeal);
+				heartHeal = target.Heal(heartHeal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {heartHeal} HEART!");
 				BattleManager.Instance.SpawnDamageNumber(heartHeal, target.CenterPoint, DamageType.Heal);
 				int juiceHeal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.2f, MidpointRounding.AwayFromZero);
-				target.HealJuice(juiceHeal);
+				juiceHeal = target.HealJuice(juiceHeal);
 				BattleManager.Instance.SpawnDamageNumber(juiceHeal, target.CenterPoint + new Vector2(0, 50),
 					DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {juiceHeal} JUICE!");
@@ -2915,7 +2929,7 @@ public class Database
 				target.Revive(target.CurrentHP);
 				target.SetEmotion("neutral", true);
 				int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
-				target.Heal(heal);
+				heal = target.Heal(heal);
 				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
@@ -2936,7 +2950,7 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				int heal = (int)Math.Round(first.CurrentStats.MaxHP * 0.15f, MidpointRounding.AwayFromZero);
-				first.Heal(heal);
+				heal = first.Heal(heal);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
 				BattleManager.Instance.ForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
@@ -2958,8 +2972,8 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				int heal = (int)Math.Round(first.CurrentStats.MaxHP * 0.25f, MidpointRounding.AwayFromZero);
 				int juice = (int)Math.Round(first.CurrentStats.MaxJuice * 0.1f, MidpointRounding.AwayFromZero);
-				first.Heal(heal);
-				first.HealJuice(juice);
+				heal = first.Heal(heal);
+				juice = first.HealJuice(juice);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {juice} JUICE!");
@@ -2982,8 +2996,8 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				int heal = (int)Math.Round(first.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
 				int juice = (int)Math.Round(first.CurrentStats.MaxJuice * 0.2f, MidpointRounding.AwayFromZero);
-				first.Heal(heal);
-				first.HealJuice(juice);
+				heal = first.Heal(heal);
+				juice = first.HealJuice(juice);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {juice} JUICE!");
@@ -3006,7 +3020,7 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				int heal = (int)Math.Round(second.CurrentStats.MaxHP * 0.15f, MidpointRounding.AwayFromZero);
-				second.Heal(heal);
+				heal = second.Heal(heal);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] encourages [target]!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
 				BattleManager.Instance.ForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
@@ -3029,8 +3043,8 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				int heal = (int)Math.Round(second.CurrentStats.MaxHP * 0.25f, MidpointRounding.AwayFromZero);
 				int juice = (int)Math.Round(second.CurrentStats.MaxJuice * 0.1f, MidpointRounding.AwayFromZero);
-				second.Heal(heal);
-				second.HealJuice(juice);
+				heal = second.Heal(heal);
+				juice = second.HealJuice(juice);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] encourages [target]!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {juice} JUICE!");
@@ -3054,8 +3068,8 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				int heal = (int)Math.Round(second.CurrentStats.MaxHP * 0.40f, MidpointRounding.AwayFromZero);
 				int juice = (int)Math.Round(second.CurrentStats.MaxJuice * 0.2f, MidpointRounding.AwayFromZero);
-				second.Heal(heal);
-				second.HealJuice(juice);
+				heal = second.Heal(heal);
+				juice = second.HealJuice(juice);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] encourages [target]!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {juice} JUICE!");
@@ -3078,7 +3092,7 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				int heal = (int)Math.Round(fourth.CurrentStats.MaxHP * 0.15f, MidpointRounding.AwayFromZero);
-				fourth.Heal(heal);
+				heal = fourth.Heal(heal);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] psyches up [target]!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
@@ -3103,8 +3117,8 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				int heal = (int)Math.Round(fourth.CurrentStats.MaxHP * 0.25f, MidpointRounding.AwayFromZero);
 				int juice = (int)Math.Round(fourth.CurrentStats.MaxJuice * 0.1f, MidpointRounding.AwayFromZero);
-				fourth.Heal(heal);
-				fourth.HealJuice(juice);
+				heal = fourth.Heal(heal);
+				juice = fourth.HealJuice(juice);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] psyches up [target]!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
@@ -3130,8 +3144,8 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				int heal = (int)Math.Round(fourth.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
 				int juice = (int)Math.Round(fourth.CurrentStats.MaxJuice * 0.2f, MidpointRounding.AwayFromZero);
-				fourth.Heal(heal);
-				fourth.HealJuice(juice);
+				heal = fourth.Heal(heal);
+				juice = fourth.HealJuice(juice);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] psyches up [target]!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
@@ -3171,7 +3185,7 @@ public class Database
 				float heal = target.CurrentStats.MaxHP * 0.25f;
 				float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
 				int finalHeal = (int)Math.Round(heal * variance, MidpointRounding.AwayFromZero);
-				target.Heal(finalHeal);
+				finalHeal = target.Heal(finalHeal);
 				BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
 				AnimationManager.Instance.PlayAnimation(212, target);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
@@ -3264,7 +3278,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target]?");
 				await AnimationManager.Instance.WaitForAnimation(148, self);
 				await AnimationManager.Instance.WaitForAnimation(215, target);
-				target.AddStatModifier("AttackDown");
+				target.AddStatModifier("AttackDown", silent: true);
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s ATTACK fell?");
 			}
 		);
 
@@ -3275,9 +3290,11 @@ public class Database
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks sadly at [target]?");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks sadly at [target]...");
 				await AnimationManager.Instance.WaitForAnimation(149, self);
-				BattleManager.Instance.MakeSad(target);
+				Emotion before = target.CurrentEmotion;
+				BattleManager.Instance.MakeSad(target, silent: true);
+				BattleLogManager.Instance.QueueMessage(target, before == target.CurrentEmotion ? "[actor] can't get SADDER!" : "[actor] feels SAD?");
 			}
 		);
 
@@ -3338,7 +3355,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] boasts about one of her\nmany, many talents!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] boasts about\none of her many, many talents!");
 				await AnimationManager.Instance.WaitForScreenAnimation(162, false);
 				BattleManager.Instance.MakeHappy(target);
 			}
@@ -3380,7 +3397,18 @@ public class Database
 
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.RandomEmotion(member);
+					Emotion before = member.CurrentEmotion;
+					BattleManager.Instance.RandomEmotion(member, silent: true);
+					Emotion after = member.CurrentEmotion;
+					if (after != before)
+					{
+						// strange gas uses the following punctuation for the random emotion:
+						// HAPPY! / ECSTATIC!! / MANIC!!! / SAD. / DEPRESSED.. / MISERABLE... / ANGRY! / ENRAGED!! / FURIOUS!!!
+						string mark = new(after.Group?.Id == "sad" ? '.' : '!', Math.Max(1, after.Tier));
+						BattleLogManager.Instance.QueueMessage($"{member.Name.ToUpper()} feels {after.DisplayName}{mark}");
+					}
+					else if (before.Group != null)
+						BattleLogManager.Instance.QueueMessage(null, member, before.Group.MaxTierMessage);
 				}
 			}
 		);
@@ -3472,7 +3500,7 @@ public class Database
 				{
 					int hp = member.CurrentHP;
 					int juice = member.CurrentJuice;
-					member.CurrentHP = Math.Min(member.CurrentStats.MaxHP, Math.Max(1, juice));
+					member.CurrentHP = Math.Min(member.CurrentStats.MaxHP, juice + 1);
 					member.CurrentJuice = Math.Min(member.CurrentStats.MaxJuice, Math.Max(0, hp));
 				}
 			}
@@ -3536,7 +3564,6 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.4f, false, 0f, neverCrit: true);
-					BattleManager.Instance.RandomEmotion(member);
 				}
 				await Wait.Milliseconds(400);
 				AnimationManager.Instance.TintScreen(Colors.Transparent);
@@ -3550,13 +3577,9 @@ public class Database
 			description: "BSTDoNothing",
 			target: SkillTarget.Self,
 			cost: 0,
-			effect: async (_, target) =>
+			effect: async (Actor _, Actor _) =>
 			{
-				int roll = GameManager.Instance.Random.RandiRange(0, 1);
-				if (roll == 0)
-					BattleLogManager.Instance.QueueMessage("A gentle breeze blows across the leaves.");
-				else
-					BattleLogManager.Instance.QueueMessage(target, "[actor] stands firm\nbecause it is a tree.");
+				BattleLogManager.Instance.QueueMessage("A gentle breeze blows across the leaves.");
 				await Task.CompletedTask;
 			}
 		);
@@ -3580,7 +3603,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] is still at 99%.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is still at 99%...");
 				await Task.CompletedTask;
 			}
 		);
@@ -3589,6 +3612,12 @@ public class Database
 			description: "Crash",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] crashes and burns!");
@@ -3596,7 +3625,7 @@ public class Database
 				await Wait.Milliseconds(3652);
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.8f, true, 0f, false, true);
+					BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.8f, false, 0f, false, true);
 				}
 			}
 		);
@@ -3647,7 +3676,7 @@ public class Database
 			cost: 0,
 			effect: async (self, targets) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] wails wildly!");
+				BattleLogManager.Instance.QueueMessage(self, "[actor] wails loudly!");
 				await AnimationManager.Instance.WaitForScreenAnimation(153, targets[0] is Enemy);
 				foreach (Actor member in targets)
 				{
@@ -3744,7 +3773,6 @@ public class Database
 		);
 
 		// Gator Guy //
-
 		Skills["GGAttack"] = new Skill(
 			name: "GGAttack",
 			description: "GGAttack",
@@ -3753,8 +3781,8 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(123, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] karate chops [target]!");
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] karate chomps [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
 		);
 
@@ -3795,12 +3823,12 @@ public class Database
 			cost: 0,
 			effect: async (self, targets) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] gives orders to attack!");
+				BattleLogManager.Instance.QueueMessage(self, "[actor] gives orders to attack!\nEveryone feels ANGRY!");
 				AudioManager.Instance.PlaySFX("SE_dinosaur", 0.8f, 1f);
 				await Wait.Milliseconds(250);
 				foreach (Actor enemy in targets)
 				{
-					BattleManager.Instance.MakeAngry(enemy);
+					BattleManager.Instance.MakeAngry(enemy, silent: true);
 				}
 			},
 			hidden: true
@@ -3832,7 +3860,7 @@ public class Database
 		   effect: async (self, target) =>
 		   {
 			   await AnimationManager.Instance.WaitForAnimation(287, target);
-			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps up and eats [target].");
+			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] sinks its fangs into [target].");
 			   BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 		   }
 		);
@@ -3857,8 +3885,8 @@ public class Database
 		   effect: async (self, target) =>
 		   {
 			   AnimationManager.Instance.PlayScreenAnimation(176, false);
-			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] entangles [target]\nin sticky webs.");
-			   target.AddStatModifier("SpeedDown");
+			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoots webs at [target]!\n[target]'s SPEED fell.");
+			   target.AddStatModifier("SpeedDown", silent: true);
 			   await Task.CompletedTask;
 		   }
 		);
@@ -4009,7 +4037,7 @@ public class Database
 		  effect: async (self, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(123, target);
-			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes [target] feel uncomfortable.");
+			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] makes [target] feel\nuncomfortable.");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 		  }
 		);
@@ -4021,7 +4049,7 @@ public class Database
 		   cost: 0,
 		   effect: async (_, target) =>
 		   {
-			   BattleLogManager.Instance.QueueMessage(target, "[actor] does nothing...menacingly!");
+			   BattleLogManager.Instance.QueueMessage(target, "[actor] does nothing... menacingly!");
 			   AudioManager.Instance.PlaySFX("SE_evil5", volume: 0.9f);
 			   await Task.CompletedTask;
 		   }
@@ -4035,7 +4063,7 @@ public class Database
 		   effect: async (self, targets) =>
 		   {
 			   AnimationManager.Instance.PlayAnimation(195, self);
-			   BattleLogManager.Instance.QueueMessage(self, "[actor] shows everyone their worst nightmare!");
+			   BattleLogManager.Instance.QueueMessage(self, "[actor] shows everyone their worst\nnightmares!");
 			   await Wait.Milliseconds(1500);
 			   foreach (Actor member in targets)
 			   {
@@ -4054,7 +4082,7 @@ public class Database
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(123, target);
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] charges into [target].");
-			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, neverCrit: true);
 		  }
 		);
 
@@ -4078,11 +4106,15 @@ public class Database
 		   cost: 0,
 		   effect: async (self, targets) =>
 		   {
-			   BattleLogManager.Instance.QueueMessage(self, "[actor] gives a controversial speech!");
+			   int tier = Math.Min(3, targets[0].GetStatModifierTier("AttackUp") + 1);
+			   BattleLogManager.Instance.QueueMessage(self, "[actor] gives a controversial speech!\nEveryone feels ANGRY!");
 			   foreach (Actor enemy in targets)
 			   {
-				   BattleManager.Instance.MakeAngry(enemy);
-				   enemy.AddTierStatModifier("AttackUp", silent: true);
+				   BattleManager.Instance.MakeAngry(enemy, silent: true);
+				   // remove then add to avoid the readd-on-expiry rule
+				   if (enemy.GetStatModifierTier("AttackUp") != tier)
+					   enemy.RemoveStatModifier("AttackUp");
+				   enemy.AddTierStatModifier("AttackUp", tier, silent: true);
 			   }
 			   await Task.CompletedTask;
 		   },
@@ -4098,7 +4130,7 @@ public class Database
 		  effect: async (self, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(123, target);
-			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] steps on [target].");
+			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] steps on [target]'s toe!");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 		  }
 		);
@@ -4180,7 +4212,7 @@ public class Database
 		  effect: async (self, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(123, target);
-			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] bites at [target].");
+			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] swipes at [target]!");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 		  }
 		);
@@ -4192,7 +4224,7 @@ public class Database
 		   cost: 0,
 		   effect: async (self, target) =>
 		   {
-			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] slowly inches towards [target]!");
+			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] slowly inches toward\n[target]!");
 			   AudioManager.Instance.PlaySFX("BA_do_nothing_space_out", volume: 0.9f);
 			   await Task.CompletedTask;
 		   }
@@ -4341,7 +4373,7 @@ public class Database
 		  effect: async (self, target) =>
 		  {
 			  AudioManager.Instance.PlaySFX("BA_INK", volume: 0.9f);
-			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] accidentally says\nsomething mean.");
+			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] accidently says something\nmean.");
 			  BattleManager.Instance.MakeAngry(target);
 			  await Task.CompletedTask;
 		  }
@@ -4352,11 +4384,19 @@ public class Database
 		  description: "MHInstakill",
 		  target: SkillTarget.Enemy,
 		  cost: 0,
+		  // vanilla INSTAKILL is a self-target skill used by the party member, so ACCURACY UP goes on them in the setup action
+		  setup: (_, target) =>
+		  {
+			  target.AddStatModifier("AccuracyUp", silent: true);
+			  return Task.CompletedTask;
+		  },
 		  effect: async (self, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(122, target);
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] slaps [target]!");
-			  BattleManager.Instance.Damage(target, target, () => 999, true, 0f, neverCrit: true);
+			  BattleManager.Instance.Damage(target, target, () => 999, false, 0f, neverCrit: true);
+			  // vanilla's follow action then removes it
+			  target.RemoveStatModifier("AccuracyUp");
 		  }
 		);
 
@@ -4394,7 +4434,7 @@ public class Database
 		  effect: async (_, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(162, target);
-			  BattleLogManager.Instance.QueueMessage(target, "[actor] laughs like the evil villain he is!");
+			  BattleLogManager.Instance.QueueMessage(target, "[actor] laughs like the evil\nvillain he is!");
 			  BattleManager.Instance.MakeHappy(target);
 		  }
 		);
@@ -4479,13 +4519,19 @@ public class Database
 		  description: "TEProtect",
 		  target: SkillTarget.AllEnemies,
 		  cost: 0,
+		  // vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+		  setup: (self, _) =>
+		  {
+			  self.AddStatModifier("AccuracyUp", silent: true);
+			  return Task.CompletedTask;
+		  },
 		  effect: async (self, targets) =>
 		  {
 			  BattleLogManager.Instance.QueueMessage(self, "[actor] uses her ultimate attack!");
 			  AnimationManager.Instance.PlayScreenAnimation(170, targets[0] is Enemy);
 			  await Wait.Milliseconds(1000);
 			  foreach (Actor member in targets)
-				  BattleManager.Instance.Damage(self, member, () => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF);
+				  BattleManager.Instance.Damage(self, member, () => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF, false);
 		  }
 		);
 		
@@ -4499,9 +4545,10 @@ public class Database
 			{
 				AnimationManager.Instance.PlayScreenAnimation(169, targets[0] is Enemy);
 				await Wait.Milliseconds(2000);
-				BattleLogManager.Instance.QueueMessage(self, targets[0], "[actor] is cruel to everyone!");
+				BattleLogManager.Instance.QueueMessage(self, targets[0], "[actor] is cruel to everyone...");
 				foreach (Actor target in targets)
-					BattleManager.Instance.MakeSad(target);
+					BattleManager.Instance.MakeSad(target, silent: true);
+				BattleLogManager.Instance.QueueMessage("Everyone feels SAD.");
 			}
 		);
 		
@@ -4510,9 +4557,15 @@ public class Database
 			description: "TEAProtect",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] uses her ultimate attack!");
+				BattleLogManager.Instance.QueueMessage(self, "[actor] unleashes her energy!");
 				await AnimationManager.Instance.WaitForScreenAnimation(170, targets[0] is Enemy);
 				foreach (Actor member in targets)
 					BattleManager.Instance.Damage(self, member, () => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF, false);
@@ -4528,11 +4581,12 @@ public class Database
 		 effect: async (self, target) =>
 		 {
 			 await AnimationManager.Instance.WaitForAnimation(122, target);
-			 BattleLogManager.Instance.QueueMessage(self, target, "[actor] steals [target]'s HEART.");
+			 BattleLogManager.Instance.QueueMessage(self, target, "[actor] steals [target]'s\nHEART.");
 			 int damage = BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
 			 if (damage > 0)
 			 {
-				 self.Heal(damage);
+				 // damage was already scaled earlier
+				 self.Heal(damage, applyDebugScale: false);
 				 BattleManager.Instance.SpawnDamageNumber(damage, self.CenterPoint, DamageType.Heal);
 			 }
 		 }
@@ -4547,10 +4601,12 @@ public class Database
 		 {
 			 await AnimationManager.Instance.WaitForAnimation(122, target);
 			 BattleLogManager.Instance.QueueMessage(self, target, "[actor] steals [target]'s\nbreath away.");
+			 int stolen = target.CurrentJuice;
 			 target.CurrentJuice = 0;
-			 BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxJuice, target.CenterPoint, DamageType.JuiceLoss);
-			 self.HealJuice(target.CurrentStats.MaxJuice);
-			 BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxJuice, self.CenterPoint, DamageType.JuiceGain);
+			 BattleManager.Instance.SpawnDamageNumber(stolen, target.CenterPoint, DamageType.JuiceLoss);
+			 // a transfer of what the target actually had, so it isn't scaled
+			 self.HealJuice(stolen, applyDebugScale: false);
+			 BattleManager.Instance.SpawnDamageNumber(stolen, self.CenterPoint, DamageType.JuiceGain);
 		 }
 		);
 
@@ -4581,7 +4637,7 @@ public class Database
 			 effect: async (self, target) =>
 			 {
 				 await AnimationManager.Instance.WaitForAnimation(124, target);
-				 BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s\nEMOTION!");
+				 BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s\nEMOTIONS!");
 				 // vanilla implements EXPLOIT as an attack with the EMOTION element; the attacker keeps their own emotion stats
 				 BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0f, neverCrit: true, attackElement: "exploit");
 			 }
@@ -4595,11 +4651,11 @@ public class Database
 			 effect: async (self, target) =>
 			 {
 				 await AnimationManager.Instance.WaitForAnimation(122, target);
-				 BattleLogManager.Instance.QueueMessage(self, target, "[actor] decides to let [target] live.");
+				 BattleLogManager.Instance.QueueMessage(self, target, "[actor] decides to let\n[target] live.");
 				 int damage = 1;
 				 if (target.CurrentHP > 1)
 					 damage = target.CurrentHP - 1;
-				 BattleManager.Instance.Damage(self, target, () => damage, variance: 0f, neverCrit: true, ignoreEmotion: true);
+				 BattleManager.Instance.Damage(self, target, () => damage, neverMiss: false, variance: 0f, neverCrit: true, ignoreEmotion: true);
 			 }
 		);
 
@@ -4613,11 +4669,14 @@ public class Database
 				 AnimationManager.Instance.PlayAnimation(154, self);
 				 await Wait.Milliseconds(166);
 				 AnimationManager.Instance.PlayAnimation(155, self);
-				 BattleManager.Instance.MakeSad(self);
+				 BattleLogManager.Instance.QueueMessage(self, "[actor] sings a soulful song...");
+				 BattleManager.Instance.MakeSad(self, silent: true);
+				 BattleLogManager.Instance.QueueMessage(self, "[actor] feels SAD.");
+				 BattleLogManager.Instance.QueueMessage("Everyone feels HAPPY!");
 				 foreach (Actor member in targets)
 				 {
 					 BattleManager.Instance.Damage(self, member, () => 175, false, 0f, neverCrit: true);
-					 BattleManager.Instance.MakeHappy(member);
+					 BattleManager.Instance.MakeHappy(member, silent: true);
 				 }
 			 }
 		);
@@ -4670,8 +4729,7 @@ public class Database
 		  {
 			  BattleLogManager.Instance.QueueMessage(target, "[actor] opens her mouth!\nA nutritious SNACK appears!");
 			  await AnimationManager.Instance.WaitForAnimation(216, target);
-			  target.Heal(200);
-			  BattleManager.Instance.SpawnDamageNumber(200, target.CenterPoint, DamageType.Heal);
+			  BattleManager.Instance.Heal(target, target, () => 200, silent: true);
 		  }
 		);
 
@@ -4713,7 +4771,7 @@ public class Database
 		  cost: 0,
 		  effect: async (self, target) =>
 		  {
-			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] taunts [target] as they fall.");
+			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] taunts [target]\nas they fall.");
 			  await Task.CompletedTask;
 		  }
 		);
@@ -4746,7 +4804,7 @@ public class Database
 		  cost: 0,
 		  effect: async (self, target) =>
 		  {
-			  BattleLogManager.Instance.QueueMessage(self, target, "More hands appear and\nsurround [actor].");
+			  BattleLogManager.Instance.QueueMessage(self, target, "More hands appear and surround\n[actor].");
 			  AnimationManager.Instance.PlayAnimation(11, self);
 			  await Wait.Milliseconds(2000);
 			  AnimationManager.Instance.PlayAnimation(218, self);
@@ -4765,6 +4823,9 @@ public class Database
 			  await AnimationManager.Instance.WaitForAnimation(209, target);
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoves [target].");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK, neverCrit: true);
+			  // the skill removes emotion before applying afraid, so if an afraid-immune actor is targeted they still lose their emotion
+			  if (target.CurrentEmotion.Group != null)
+				  target.SetEmotion("neutral", true);
 			  target.SetEmotion("afraid");
 		  }
 		);
@@ -4775,10 +4836,16 @@ public class Database
 		  description: "SEHAttack",
 		  target: SkillTarget.Enemy,
 		  cost: 0,
+		  // vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+		  setup: (self, _) =>
+		  {
+			  self.AddStatModifier("AccuracyUp", silent: true);
+			  return Task.CompletedTask;
+		  },
 		  effect: async (self, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(124, target);
-			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] kicks [target]!");
+			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] swiftly kicks [target]!");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 		  }
 		);
@@ -4804,7 +4871,7 @@ public class Database
 		  effect: async (self, targets) =>
 		  {
 			  AnimationManager.Instance.PlayScreenAnimation(153, false);
-			  BattleLogManager.Instance.QueueMessage(self, "[actor] wails with all his might!");
+			  BattleLogManager.Instance.QueueMessage(self, "[actor] wails with all his rage!");
 			  foreach (Actor member in targets)
 			  {
 				  BattleManager.Instance.Damage(self, member, () => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF, false);
@@ -4822,7 +4889,7 @@ public class Database
 		  effect: async (self, targets) =>
 		  {
 			  AnimationManager.Instance.PlayScreenAnimation(154, false);
-			  BattleLogManager.Instance.QueueMessage(self, "[actor] sings with all the\ndarkness in his soul!");
+			  BattleLogManager.Instance.QueueMessage(self, "[actor] sings with all the darkness\nin his soul!");
 			  foreach (Actor member in targets)
 			  {
 				  BattleManager.Instance.DamageJuice(self, member, () => member.CurrentStats.MaxJuice * 0.25f, false);
@@ -4840,7 +4907,7 @@ public class Database
 		  effect: async (self, targets) =>
 		  {
 			  AnimationManager.Instance.PlayScreenAnimation(155, false);
-			  BattleLogManager.Instance.QueueMessage(self, "[actor] sings with all the\njoy in his heart!");
+			  BattleLogManager.Instance.QueueMessage(self, "[actor] sings with all the joy\nin his heart!");
 			  foreach (Actor member in targets)
 			  {
 				  BattleManager.Instance.Damage(self, member, () => self.CurrentStats.ATK * 2 + self.CurrentStats.LCK - member.CurrentStats.DEF, false);
@@ -4936,6 +5003,12 @@ public class Database
 			description: "SMIUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
@@ -4943,7 +5016,7 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(186, false);
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.Damage(self, member, () => 50, true, 0.25f, neverCrit: true);
+					BattleManager.Instance.Damage(self, member, () => 50, false, 0.25f, neverCrit: true);
 				}
 			}
 		);
@@ -4953,6 +5026,12 @@ public class Database
 			description: "SMUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
@@ -4988,7 +5067,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] remembers his father's dying words.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] remembers his\nfather's dying words.");
 				BattleManager.Instance.MakeSad(target);
 				await Task.CompletedTask;
 			}
@@ -5022,6 +5101,12 @@ public class Database
 			description: "SMIIUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his father's\nultimate attack!");
@@ -5029,7 +5114,7 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(186, targets[0] is Enemy);
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.Damage(self, member, () => 50, true, 0.25f, neverCrit: true);
+					BattleManager.Instance.Damage(self, member, () => 50, false, 0.25f, neverCrit: true);
 				}
 			}
 		);
@@ -5042,7 +5127,7 @@ public class Database
 			cost: 0,
 			effect: async (_,target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] remembers his grandfather's dying words.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] remembers his\ngrandfather's dying words.");
 				BattleManager.Instance.MakeSad(target);
 				await Task.CompletedTask;
 			}
@@ -5055,8 +5140,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] flexes and feels\nhis best!");
-				BattleLogManager.Instance.QueueMessage(target, "[actor]'s HIT RATE rose!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] flexes and feels his best!");
 				await AnimationManager.Instance.WaitForAnimation(218, target);
 				target.AddStatModifier("Flex");
 				BattleManager.Instance.MakeHappy(target);
@@ -5068,6 +5152,12 @@ public class Database
 			description: "SMIIIUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his grandfather's\nultimate attack!");
@@ -5075,7 +5165,7 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(186, false);
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.Damage(self, member, () => 50, true, 0.25f, neverCrit: true);
+					BattleManager.Instance.Damage(self, member, () => 50, false, 0.25f, neverCrit: true);
 				}
 			}
 		);
@@ -5090,7 +5180,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(140, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "Water pulls [target] in different directions.");
+				BattleLogManager.Instance.QueueMessage(self, target, "Water pulls [target] in different\ndirections.");
 				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.15f, false, 0f, neverCrit: true);
 			}
 		);
@@ -5117,7 +5207,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(197, target);
 				// unused in the base game, Drag Down displays no battle text
 				//BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s leg and drags them down!");
-				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.5f, false, 0f, neverCrit: true);
+				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.5f, false, 0f, neverCrit: true);
 			}
 		);
 		
@@ -5210,7 +5300,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(131, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws the Moon at [target]!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws the Moon at\n[target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
 		);
@@ -5238,9 +5328,9 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(124, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams his head into [target]!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams his head\ninto [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
-				self.CurrentHP = Math.Max(1, self.CurrentHP - (int)Math.Round(self.CurrentStats.MaxHP * 0.01f));
+				self.CurrentHP = Math.Max(1, self.CurrentHP - (int)Math.Floor(self.CurrentStats.MaxHP * 0.01f));
 			}
 		);
 		
@@ -5251,7 +5341,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor]'s muscles intimidated you.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s muscles\nintimidated you.");
 				await Task.CompletedTask;
 			}
 		);
@@ -5268,7 +5358,9 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(218, target);
 				target.AddTierStatModifier("AttackUp");
 				target.AddTierStatModifier("DefenseUp");
-				if (target.GetStatModifierTier("SpeedDown") < 2)
+				if (target.StatModifiers.TryGetValue("SpeedDown", out StatModifier sd) && sd is TierStatModifier speedDown && speedDown.CurrentTier == 3)
+					speedDown.ReduceTier(2);
+				else if (target.GetStatModifierTier("SpeedDown") < 2)
 					target.AddTierStatModifier("SpeedDown");
 			}
 		);
@@ -5278,6 +5370,12 @@ public class Database
 			description: "PEEarthsFinale",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] picks up THE EARTH\nand slams it into everyone!");
@@ -5287,7 +5385,7 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					BattleManager.Instance.Damage(self, member,
-						() => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF, true);
+						() => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF, false);
 				}
 				if (self is PlutoExpandedEarth pluto)
 					pluto.KillEarth();
@@ -5300,6 +5398,7 @@ public class Database
 			description: "PEMeteor",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			priority: SkillPriority.First,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] summons a\nmeteor shower!");
@@ -5344,7 +5443,7 @@ public class Database
 			effect: async (_, target) =>
 			{
 				AudioManager.Instance.PlaySFX("BA_roar", 1f, 0.9f);
-				BattleLogManager.Instance.QueueMessage(target, "[actor] lets out an ear-piercing screech!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] lets out an ear-piercing\nscreech!");
 				BattleManager.Instance.MakeAngry(target);
 				await Task.CompletedTask;
 			}
@@ -5399,12 +5498,11 @@ public class Database
 			description: "KCRecover",
 			target: SkillTarget.Self,
 			cost: 0,
-			effect: async (_, target) =>
+			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(216, target);
-				int heal = Math.Min(170, target.CurrentStats.MaxHP - target.CurrentHP);
-				target.Heal(heal);
-				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+				int healed = BattleManager.Instance.Heal(self, target, () => 170, silent: true);
+				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {healed} HEART!");
 				BattleManager.Instance.MakeHappy(target);
 			}
 		);
@@ -5431,7 +5529,7 @@ public class Database
 			effect: async (_, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(162, target);
-				BattleLogManager.Instance.QueueMessage(target, "[actor] brags about KID'S KITE!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] brags about KID's KITE!");
 				BattleManager.Instance.MakeHappy(target);
 			}
 		);
@@ -5574,7 +5672,7 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]!");
 				await AnimationManager.Instance.WaitForAnimation(164, target);
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0.4f, neverCrit: true);
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, true, 0.4f, neverCrit: true);
 				target.AddTierStatModifier("SpeedDown");
 			}
 		);
@@ -5602,8 +5700,8 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] pokes [target]!");
 				await AnimationManager.Instance.WaitForAnimation(163, target);
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0.4f, neverCrit: true);
 				BattleManager.Instance.MakeAngry(target);
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
 		);
 		
@@ -5630,12 +5728,13 @@ public class Database
 			{
 				AudioManager.Instance.PlaySFX("SE_bs_scare6");
 				BattleLogManager.Instance.QueueMessage(self, "[actor] stretches her tentacles.");
+				BattleLogManager.Instance.QueueMessage("Everyone's ATTACK rose!!");
+				BattleLogManager.Instance.QueueMessage("Everyone feels ANGRY!");
 				foreach (Actor enemy in targets)
 				{
-					BattleManager.Instance.MakeAngry(enemy);
+					BattleManager.Instance.MakeAngry(enemy, silent: true);
 					enemy.AddTierStatModifier("AttackUp", silent: true);
 				}
-				BattleLogManager.Instance.QueueMessage("Everyone's ATTACK rose!");
 				await Task.CompletedTask;
 			},
 			hidden: true
@@ -5765,7 +5864,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] gathers TRASH!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] picks up some TRASH!");
 				target.AddTierStatModifier("Stockpile");
 				await Task.CompletedTask;
 			}
@@ -5779,7 +5878,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(201, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws TRASH!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] flings all their TRASH\nat [target]!");
 				if (!self.StatModifiers.TryGetValue("Stockpile", out StatModifier stockpile))
 				{
 					GD.PrintErr("Tried to use RPathFlingTrash with no stockpile stacks!");
@@ -6611,6 +6710,7 @@ public class Database
 			description: "SNMegaphone",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			priority: SkillPriority.Last,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses an AIRHORN!");
@@ -6685,11 +6785,36 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] lobs DYNAMITE!");
 				await AnimationManager.Instance.WaitForScreenAnimation(270, targets[0] is Enemy);
+				// shady mole's dynamite hits the enemies too
+				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
+					BattleManager.Instance.Damage(self, ally, () => 25, false, 0.25f, neverCrit: true);
 				foreach (Actor target in targets)
 					BattleManager.Instance.Damage(self, target, () => 25, false, 0.25f, neverCrit: true);
 			}
 		);
 		
+		Skills["Idle"] = new Skill(
+			name: "Idle",
+			description: "Idle",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (Actor self, Actor target) => { await Task.CompletedTask; },
+			hidden: true
+		);
+
+		// Humphrey Uvula //
+		Skills["HUUDoNothing"] = new Skill(
+			name: "HUUDoNothing",
+			description: "HUUDoNothing",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] smirks at [target].");
+				await Task.CompletedTask;
+			}
+		);
+
 		// Humphrey Swarm //
 		Skills["HUSAttack"] = new Skill(
 			name: "HUSAttack",
@@ -6786,6 +6911,12 @@ public class Database
 			description: "HUFSwallow",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] swallows everyone!");
@@ -6795,8 +6926,40 @@ public class Database
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
 				await Wait.Milliseconds(500);
-				int totalDamage = targets.Sum(target => BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, true, 0.5f, neverCrit: true));
-				self.Heal((int)Math.Floor(totalDamage * 0.25d));
+				// Damage returns -1 on a miss/evade, which must not count against the steal
+				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true)));
+				self.Heal((int)Math.Floor(totalDamage * 0.25d), applyDebugScale: false);
+				await BattleLogManager.Instance.WaitForBattleLog();
+				await Wait.Milliseconds(750);
+				if (self is Enemy stillAnEnemy)
+					stillAnEnemy.SetOpacity(1f);
+				await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
+			}
+		);
+
+		Skills["HUFSwallowAlt"] = new Skill(
+			name: "HUFSwallowAlt",
+			description: "HUFSwallowAlt",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] swallows everyone!");
+				await Wait.Milliseconds(1000);
+				AnimationManager.Instance.TintScreen(Colors.Black, 1f);
+				if (self is Enemy enemy)
+					enemy.SetOpacity(0f);
+				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
+				await Wait.Milliseconds(500);
+				// Damage returns -1 on a miss/evade, which must not count against the steal
+				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.35f, false, 0.5f, neverCrit: true)));
+				self.Heal((int)Math.Floor(totalDamage * 0.5d), applyDebugScale: false);
 				await BattleLogManager.Instance.WaitForBattleLog();
 				await Wait.Milliseconds(750);
 				if (self is Enemy stillAnEnemy)
@@ -6853,7 +7016,8 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] says mean things about [target]!");
-				target.SetEmotion("sad");
+				if (target.CurrentEmotion.Group?.Id != "sad")
+					target.SetEmotion("sad", true);
 				await Task.CompletedTask;
 			}
 		);
@@ -6904,7 +7068,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] starts bragging to his adoring fans!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] starts bragging to\nhis adoring fans!");
 				await Task.CompletedTask;
 			}
 		);
@@ -6930,8 +7094,9 @@ public class Database
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!");
-				target.SetEmotion("angry");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of\n[target]!\n[target] feels ANGRY!");
+				if (target.CurrentEmotion.Group?.Id != "angry")
+					target.SetEmotion("angry", true);
 				await Task.CompletedTask;
 			}
 		);
@@ -6957,7 +7122,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor]'s phone rang... it was a wrong number.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s phone rang...\nIt was a wrong number.");
 				await Task.CompletedTask;
 			}
 		);
@@ -6969,7 +7134,7 @@ public class Database
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s shirt and punches them in the face!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] grabs [target]'s shirt and\npunches them in the face!");
 				await AnimationManager.Instance.WaitForAnimation(123, target);
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2f, false, neverCrit: true);
 			}
@@ -6982,8 +7147,9 @@ public class Database
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!");
-				target.SetEmotion("sad");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!\n[target] feels SAD.");
+				if (target.CurrentEmotion.Group?.Id != "sad")
+					target.SetEmotion("sad", true);
 				await Task.CompletedTask;
 			}
 		);
@@ -7039,8 +7205,9 @@ public class Database
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!");
-				target.SetEmotion("sad");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] said mean things about [target]!\n[target] feels SAD.");
+				if (target.CurrentEmotion.Group?.Id != "sad")
+					target.SetEmotion("sad", true);
 				await Task.CompletedTask;
 			}
 		);
@@ -7051,6 +7218,7 @@ public class Database
 			description: "HOAngelAttack",
 			target: SkillTarget.Enemy,
 			cost: 0,
+			priority: SkillPriority.First,
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "ANGEL swiftly strikes [target]!");
@@ -7130,7 +7298,7 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] walks toward you slowly.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] slowly inches forward...\nYou feel like you can't escape!");
 				await Task.CompletedTask;
 			}
 		);
@@ -7142,14 +7310,15 @@ public class Database
 			cost: 0,
 			effect: async (self, targets) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] catches you!");
-				AudioManager.Instance.PlaySFX("SE_bs_ghost_moving", volume: 0.9f);
-				AnimationManager.Instance.InitShake(new Shake(255, 100, 5));
-				await Wait.Milliseconds(100);
-				AnimationManager.Instance.InitShake(new Shake(255, 100, 5));
-				await Wait.Milliseconds(400);
-				AnimationManager.Instance.InitShake(new Shake(255, 100, 5));
-				await Wait.Milliseconds(500);
+				BattleLogManager.Instance.QueueMessage(self, "JACKSON CAUGHT YOU!!!\nYou see your life flash before your eyes!");
+				AudioManager.Instance.PlaySFX("SE_bs_ghost_moving", pitch: 0.5f, volume: 0.9f);
+				await Wait.AnimationFrames(4);
+				AnimationManager.Instance.InitShake(Shake.FromFlash(255, 100, 5));
+				await Wait.AnimationFrames(5);
+				AnimationManager.Instance.InitShake(Shake.FromFlash(255, 100, 5));
+				await Wait.AnimationFrames(5);
+				AnimationManager.Instance.InitShake(Shake.FromFlash(255, 100, 5));
+				await Wait.Frames(34);
 				foreach (Actor target in targets)
 					BattleManager.Instance.Damage(self, target, () => 999, neverMiss: false, 0f, neverCrit: true);
 			}
@@ -7164,7 +7333,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(126, target);
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps [target] with vines!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps\n[target] with vines!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
 		);
@@ -7188,10 +7357,10 @@ public class Database
 			cost: 0,
 			effect: async (self, targets) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, "[actor] releases gas!\nIt smells sweet!");
+				BattleLogManager.Instance.QueueMessage(self, "[actor] releases gas!\nIt smells sweet!\nEveryone feels HAPPY!");
 				await AnimationManager.Instance.WaitForScreenAnimation(181, targets[0] is Enemy);
 				foreach (Actor target in targets)
-					BattleManager.Instance.MakeHappy(target);
+					BattleManager.Instance.MakeHappy(target, silent: true);
 			}
 		);
 		// Root
@@ -7290,11 +7459,11 @@ public class Database
 
 		#region MODIFIERS
 		Modifiers.Add("AttackUp", () => CreateBuffDebuff(new StatBonus(StatType.ATK, 1.1f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.ATK, 1.5f))
-			.WithMessages("ATTACK rose!", "ATTACK cannot go\nany higher!")
+			.WithMessages("ATTACK rose!", "ATTACK can't go\nany higher!")
 			.WithCounterpart("AttackDown")
 			.WithStateIcons(new StateIcon("bnw_+1att", "Attack Up 1: x1.1 ATK"), new StateIcon("bnw_+2att", "Attack Up 2: x1.25 ATK"), new StateIcon("bnw_+3att", "Attack Up 3: x1.5 ATK")));
 		Modifiers.Add("AttackDown", () => CreateBuffDebuff(new StatBonus(StatType.ATK, 0.9f), new StatBonus(StatType.ATK, 0.8f), new StatBonus(StatType.ATK, 0.7f))
-			.WithMessages("ATTACK fell.", "ATTACK cannot go\nany lower!")
+			.WithMessages("ATTACK fell.", "ATTACK can't go\nany lower!")
 			.WithCounterpart("AttackUp")
 			.WithStateIcons(new StateIcon("bnw_-1att", "Attack Down 1: x0.9 ATK"), new StateIcon("bnw_-2att", "Attack Down 2: x0.8 ATK"), new StateIcon("bnw_-3att", "Attack Down 3: x0.7 ATK")));
 		Modifiers.Add("DefenseUp", () =>
@@ -7302,13 +7471,13 @@ public class Database
 			float[] values = SettingsMenuManager.Instance.UseConsoleDefense ? [1.1f, 1.2f, 1.3f] : [1.15f, 1.3f, 1.5f];
 			return CreateBuffDebuff(new StatBonus(StatType.DEF, values[0]), new StatBonus(StatType.DEF, values[1]),
 					new StatBonus(StatType.DEF, values[2]))
-				.WithMessages("DEFENSE rose!", "DEFENSE cannot go\nany higher!")
+				.WithMessages("DEFENSE rose!", "DEFENSE can't go\nany higher!")
 				.WithCounterpart("DefenseDown")
 				.WithStateIcons(new StateIcon("bnw_+1def", $"Defense Up 1: x{values[0]} DEF"), new StateIcon("bnw_+2def", $"Defense Up 2: x{values[1]} DEF"), new StateIcon("bnw_+3def", $"Defense Up 3: x{values[2]} DEF"));
 
 		});
 		Modifiers.Add("DefenseDown", () => CreateBuffDebuff(new StatBonus(StatType.DEF, 0.75f), new StatBonus(StatType.DEF, 0.5f), new StatBonus(StatType.DEF, 0.25f))
-			.WithMessages("DEFENSE fell.", "DEFENSE cannot go\nany lower!")
+			.WithMessages("DEFENSE fell.", "DEFENSE can't go\nany lower!")
 			.WithCounterpart("DefenseUp")
 			.WithStateIcons(new StateIcon("bnw_-1def", "Defense Down 1: x0.75 DEF"), new StateIcon("bnw_-2def", "Defense Down 2: x0.5 DEF"), new StateIcon("bnw_-3def", "Defense Down 3: x0.25 DEF")));
 		Modifiers.Add("SpeedUp", () =>
@@ -7316,13 +7485,13 @@ public class Database
 			float speedUp3 = SettingsMenuManager.Instance.UseConsoleSpeed ? 3f : 5f;
 			return CreateBuffDebuff(new StatBonus(StatType.SPD, 1.5f), new StatBonus(StatType.SPD, 2f),
 					new StatBonus(StatType.SPD, speedUp3))
-				.WithMessages("SPEED rose!", "SPEED cannot go\nany higher!")
+				.WithMessages("SPEED rose!", "SPEED can't go\nany higher!")
 				.WithCounterpart("SpeedDown")
 				.WithStateIcons(new StateIcon("bnw_+1spd", "Speed Up 1: x1.5 SPD"), new StateIcon("bnw_+2spd", "Speed Up 2: x2 SPD"), new StateIcon("bnw_+3spd", $"Speed Up 3: x{speedUp3} SPD"));
 
 		});
 		Modifiers.Add("SpeedDown", () => CreateBuffDebuff(new StatBonus(StatType.SPD, 0.8f), new StatBonus(StatType.SPD, 0.5f), new StatBonus(StatType.SPD, 0.25f))
-			.WithMessages("SPEED fell.", "SPEED cannot go\nany lower!")
+			.WithMessages("SPEED fell.", "SPEED can't go\nany lower!")
 			.WithCounterpart("SpeedUp")
 			.WithStateIcons(new StateIcon("bnw_-1spd", "Speed Down 1: x0.8 SPD"), new StateIcon("bnw_-2spd", "Speed Down 2: x0.5 SPD"), new StateIcon("bnw_-3spd", "Speed Down 3: x0.25 SPD")));
 
@@ -7336,12 +7505,14 @@ public class Database
 			.WithStateIcons(new StateIcon("bnw_snocone", "Sno-Cone: ATK/DEF/SPD/LCK x1.2")));
 		Modifiers.Add("Flex", () => new FlexStatModifier(new StatBonus(StatType.HIT, 1000))
 			.WithStateIcons(new StateIcon("bnw_flex", "Flex: Next Physical hit x2.5 damage, HIT x1000")));
+		Modifiers.Add("AccuracyUp", () => new StatModifier(1, new StatBonus(StatType.HIT, 1000)));
 		// see if these even need to be their own classes
 		Modifiers.Add("Guard", () => new GuardStatModifier(1)
 			.WithStateIcons(new StateIcon("bnw_guard", "Guard: x0.5 incoming damage")));
 		Modifiers.Add("SecondChance", () => new SecondChanceStatModifier(1));
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
 		Modifiers.Add("Immortal", () => new ImmortalStatModifier());
+		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
@@ -7350,12 +7521,13 @@ public class Database
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
 		Modifiers.Add("Charm", () => new CharmStatModifier(1).WithActionEndTicking());
 		Modifiers.Add("SpaceExHusbandBlock", () => new SpaceExHusbandStatModifier());
-		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(10));
+		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(3));
 		Modifiers.Add("PlutoCharging", () => new StatModifier(2, new StatBonus(StatType.DEF, 3f)));
 		Modifiers.Add("PlutoBuff", () => new StatModifier(new StatBonus(StatType.ATK, 1.5f), new StatBonus(StatType.DEF, 1.5f), new StatBonus(StatType.LCK, 1.5f), new StatBonus(StatType.SPD, 10f)));
 		Modifiers.Add("Encore", () => new EncoreStatModifier(3).WithActionEndTicking());
 		Modifiers.Add("SalesTag", () => new SalesTagStatModifier());
 		Modifiers.Add("Immune", () => new ImmuneStatModifier());
+		Modifiers.Add("ResistPhysical", () => new ResistPhysicalModifier());
 		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5));
 		#endregion
 
@@ -7476,7 +7648,7 @@ public class Database
 				int total = 30;
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 45;
-				target.HealJuice(total);
+				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				int hpLoss = (int)Math.Round(target.CurrentHP * 0.3f, MidpointRounding.AwayFromZero);
@@ -7501,7 +7673,7 @@ public class Database
 				int total = 10;
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 15;
-				target.HealJuice(total);
+				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				int hpLoss = (int)Math.Round(target.CurrentHP * 0.5f, MidpointRounding.AwayFromZero);
@@ -7528,7 +7700,7 @@ public class Database
 				int total = 10;
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 15;
-				target.HealJuice(total);
+				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				target.AddStatModifier("DefenseUp");
@@ -8053,7 +8225,7 @@ public class Database
 		Equipment["Chef's Hat"] = new Equipment("Chef's Hat", new StatBonus(StatType.DEF, 15), true).WithStartOfTurnEffect((actor) =>
 		{
 			int juice = (int)Math.Round(actor.CurrentStats.MaxJuice * 0.05f, MidpointRounding.AwayFromZero);
-			actor.HealJuice(juice);
+			juice = actor.HealJuice(juice);
 			BattleManager.Instance.SpawnDamageNumber(juice, actor.CenterPoint, DamageType.JuiceGain);
 			return Task.CompletedTask;
 		});
@@ -8067,42 +8239,10 @@ public class Database
 			new StatBonus(StatType.ATK, 40), new StatBonus(StatType.SPD, 40), new StatBonus(StatType.LCK, 40),
 			new StatBonus(StatType.HIT, 100)], true).WithStartOfBattleEffect(async actor =>
 		{
+			// vanilla force-casts OBSERVE on a random enemy for every wearer at battle start
 			Enemy target = BattleManager.Instance.GetRandomAliveEnemy();
 			await Wait.Milliseconds(1000);
-			BattleLogManager.Instance.QueueMessage(actor, target,"[actor] focuses their vision and observes\n[target]!");
-			AnimationManager.Instance.PlayAnimation(4, target);
-			await Wait.Milliseconds(1000);
-			List<PartyMemberComponent> members = BattleManager.Instance.GetAlivePartyMembers();
-			PartyMemberComponent taunting = members.FirstOrDefault(x => x.Actor.HasStatModifier("Taunt"));
-			if (taunting != null)
-			{
-				await AnimationManager.Instance.WaitForAnimation(4, taunting.Actor);
-				target.ObserveTarget = taunting.Actor;
-				BattleLogManager.Instance.QueueMessage(target, taunting.Actor,"[actor] has their eyes on\n[target]!");
-				return;
-			}
-
-			bool multi = GameManager.Instance.Random.RandiRange(1, 2) == 1;
-			if (multi)
-			{
-				// vanilla omori technically stops after the 4th attempt
-				// maybe add a toggle for this?
-				Enemy enemy = BattleManager.Instance.GetAllAliveEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
-				if (enemy != null)
-				{
-					enemy.ObserveMultiTarget = true;
-					BattleLogManager.Instance.QueueMessage(enemy, "[actor] has their eyes on\neveryone!");
-					foreach (PartyMemberComponent m in members)
-						AnimationManager.Instance.PlayAnimation(4, m.Actor);
-					await Wait.Milliseconds(1000);
-					return;
-				}
-			}
-				
-			PartyMember member = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)].Actor;
-			BattleLogManager.Instance.QueueMessage(target, member,"[actor] has their eyes on\n[target]!");
-			await AnimationManager.Instance.WaitForAnimation(4, member);
-			target.ObserveTarget = member;
+			await Skills["Observe"].Effect(actor, [target]);
 		});
 
 		#endregion
@@ -8137,7 +8277,7 @@ public class Database
 				int heal = healing;
 				if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 					heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
-				target.Heal(heal);
+				heal = target.Heal(heal);
 				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				await Task.CompletedTask;
@@ -8163,7 +8303,7 @@ public class Database
 				int total = juice;
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
-				target.HealJuice(total);
+				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				await Task.CompletedTask;
@@ -8190,7 +8330,7 @@ public class Database
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					juice *= 1.5f;
 				int finalJuice = (int)Math.Round(juice, MidpointRounding.AwayFromZero);
-				target.HealJuice(finalJuice);
+				finalJuice = target.HealJuice(finalJuice);
 				BattleManager.Instance.SpawnDamageNumber(finalJuice, target.CenterPoint, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalJuice} JUICE!");
 				await Task.CompletedTask;
@@ -8217,7 +8357,7 @@ public class Database
 				if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 					heal *= 1.5f;
 				int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
-				target.Heal(finalHeal);
+				finalHeal = target.Heal(finalHeal);
 				BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
 				await Task.CompletedTask;
@@ -8245,9 +8385,9 @@ public class Database
 			   foreach (Actor member in targets)
 			   {
 				   AnimationManager.Instance.PlayAnimation(212, member);
-				   member.Heal(heal);
-				   BattleManager.Instance.SpawnDamageNumber(heal, member.CenterPoint, DamageType.Heal);
-				   BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {heal} HEART!");
+				   int healed = member.Heal(heal);
+				   BattleManager.Instance.SpawnDamageNumber(healed, member.CenterPoint, DamageType.Heal);
+				   BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {healed} HEART!");
 			   }
 			   await Task.CompletedTask;
 		   },
@@ -8274,9 +8414,9 @@ public class Database
 			   foreach (Actor member in targets)
 			   {
 				   AnimationManager.Instance.PlayAnimation(213, member);
-				   member.HealJuice(total);
-				   BattleManager.Instance.SpawnDamageNumber(total, member.CenterPoint, DamageType.JuiceGain);
-				   BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {total} JUICE!");
+				   int restored = member.HealJuice(total);
+				   BattleManager.Instance.SpawnDamageNumber(restored, member.CenterPoint, DamageType.JuiceGain);
+				   BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {restored} JUICE!");
 			   }
 			   await Task.CompletedTask;
 		   },
@@ -8305,8 +8445,8 @@ public class Database
 				// donald compiler please come save us donald compiler please save us
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
-				target.Heal(heal);
-				target.HealJuice(total);
+				heal = target.Heal(heal);
+				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");

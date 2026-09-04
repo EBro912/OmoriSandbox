@@ -21,7 +21,8 @@ internal sealed class SnaleyOne : Enemy
     
     public override BattleCommand ProcessAI()
     {
-        Turn++;
+        if (!PreRolling)
+            Turn++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SNAttack"]);
         
@@ -54,6 +55,8 @@ internal sealed class SnaleyOne : Enemy
             if (CurrentEmotion.Id != "depressed" && CurrentEmotion.Id != "miserable")
                 SetEmotion("sad", true);
             DialogueManager.Instance.QueueMessage(this, @"Sigh...\! I don't know if I'm cut out for this...");
+            await DialogueManager.Instance.WaitForDialogue();
+            DialogueManager.Instance.QueueMessage("SNALEY is SAD...");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

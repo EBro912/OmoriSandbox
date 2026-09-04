@@ -25,6 +25,8 @@ internal class ModdedEnemy : Enemy
 
     protected override string[] EquippedSkills => JsonEnemy.EquippedSkills ?? [];
 
+    protected internal override bool ObserveHasMulti => HasMultiTargetPartySkill;
+
     public override Vector2 InfoBoxOffset => JsonEnemy.InfoBoxOffset == null
         ? Vector2.Zero
         : new Vector2(JsonEnemy.InfoBoxOffset[0], JsonEnemy.InfoBoxOffset[1]);
@@ -53,8 +55,11 @@ internal class ModdedEnemy : Enemy
         
         PartyMember observed = ObserveTarget;
         bool observedAll = ObserveMultiTarget;
-        ObserveTarget = null;
-        ObserveMultiTarget = false;
+        if (!PreRolling)
+        {
+            ObserveTarget = null;
+            ObserveMultiTarget = false;
+        }
 
         foreach (JsonEnemyAIEntry entry in data.Entries)
         {

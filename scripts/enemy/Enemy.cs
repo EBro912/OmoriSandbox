@@ -224,6 +224,41 @@ public abstract class Enemy : Actor
 	internal bool HasMultiTargetPartySkill =>
 		Skills.Values.Any(x => x.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
 	/// <summary>
+	/// Vanilla's <c>Passive State: 184</c> "Observe: Has Multi". Only these enemies can be the one OBSERVE
+	/// reports as having "eyes on everyone". The party-wide prediction it creates is read by every enemy's AI.
+	/// </summary>
+	protected internal virtual bool ObserveHasMulti => false;
+
+	/// <summary>
+	/// True while <see cref="BattleManager"/> evaluates <see cref="ProcessAI"/> for turn ordering only.
+	/// <see cref="ProcessAI"/> must not change state, consume predictions or queue actions while this is set.
+	/// </summary>
+	/// <remarks>
+	/// In vanilla OMORI, enemy AI is rolled at the start of the turn, again whenever the enemy's emotion group changes
+	/// before it has acted (due to the enemy "transforming" into a different enemy), and once more
+	/// before it is time to take their action. Only the final roll is used as the earlier rolls only decide turn order.
+	/// This flag can help avoid running unrelated code during those ordering rolls.
+	/// </remarks>
+	protected bool PreRolling { get; private set; }
+
+	/// <summary>
+	/// Turn-order priority taken from this turn's pre-rolled action.
+	/// </summary>
+	internal SkillPriority TurnPriority { get; private set; } = SkillPriority.Normal;
+
+	internal void PreRollTurnPriority()
+	{
+		PreRolling = true;
+		try
+		{
+			TurnPriority = ProcessAI()?.Action.Priority ?? SkillPriority.Normal;
+		}
+		finally
+		{
+			PreRolling = false;
+		}
+	}
+	/// <summary>
 	/// Called after each action finishes. Mainly used for boss events.
 	/// </summary>
 	public virtual async Task ProcessBattleConditions() { await Task.CompletedTask; }
@@ -258,6 +293,8 @@ public abstract class Enemy : Actor
 		target = ObserveTarget;
 		if (ObserveTarget == null) 
 			return false;
+		if (PreRolling)
+			return true;
 		ObserveTarget = null;
 		ObserveMultiTarget = false;
 		return true;
@@ -272,6 +309,8 @@ public abstract class Enemy : Actor
 	{
 		if (!ObserveMultiTarget)
 			return false;
+		if (PreRolling)
+			return true;
 		ObserveTarget = null;
 		ObserveMultiTarget = false;
 		return true;

@@ -371,7 +371,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnExpiryCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 anchors_preset = 7
 anchor_left = 0.5
@@ -417,6 +417,7 @@ ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEm
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
 EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
 CombinedAccuracyCheckbox = NodePath("ScrollContainer/VBoxContainer/CombinedAccuracy")
+AllowStateReapplyOnExpiryCheckbox = NodePath("ScrollContainer/VBoxContainer/AllowStateReapplyOnExpiry")
 RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/HSlider")
 RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/Label")
 SpeedUpSlider = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/HSlider")
@@ -863,6 +864,15 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Combined Accuracy Formula"
 
+[node name="AllowStateReapplyOnExpiry" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1493027761]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Lets a state be re-applied on the turn it expired"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Allow State Reapply on Expiry"
+
 [node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1655251340]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -884,7 +894,8 @@ text = "Space Ex-Husband Vulnerable to Release Energy"
 [node name="EnableDebugDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1791260836]
 layout_mode = 2
 size_flags_horizontal = 4
-tooltip_text = "Enables the 'Debug Damage' keybind, which multiplies all damage by 10 when held"
+tooltip_text = "Enables the 'Debug Damage' keybind, which multiplies all
+damage and healing by 10 when held"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)

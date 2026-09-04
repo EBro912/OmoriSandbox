@@ -9,7 +9,7 @@ internal sealed class TheEarth : Enemy
     public override string Name => "THE EARTH";
     public override Vector2 InfoBoxOffset => new(0, -400);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/earth.tres");
-    protected override Stats Stats => new(425, 210, 20, 15, 15, 10, 95);
+    protected override Stats Stats => new(425, 210, 20, 15, 13, 10, 95);
 
     protected override string[] EquippedSkills => ["TEAttack", "TEDoNothing", "TECruel", "TEProtect"];
 
@@ -28,13 +28,13 @@ internal sealed class TheEarth : Enemy
 
         switch (CurrentEmotion.Id)
         {
-            case "sad":
+            case "happy":
                 if (Roll() < 51)
                     goto attack;
                 if (Roll() < 31)
                     goto nothing;
                 goto cruel;
-            case "happy":
+            case "sad":
                 if (Roll() < 46)
                     goto attack;
                 if (Roll() < 61)

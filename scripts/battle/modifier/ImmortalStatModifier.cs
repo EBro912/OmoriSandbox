@@ -9,6 +9,11 @@ public sealed class ImmortalStatModifier : StatModifier
 {
     public ImmortalStatModifier(params StatBonus[] bonuses) : base(bonuses) { }
 
+    /// <summary>
+    /// Whether a lethal hit has already been absorbed.
+    /// </summary>
+    public bool Triggered { get; private set; }
+
     /// <inheritdoc/>
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
@@ -19,6 +24,9 @@ public sealed class ImmortalStatModifier : StatModifier
             return;
 
         if (defender.CurrentHP <= 0)
+        {
             defender.CurrentHP = 1;
+            Triggered = true;
+        }
     }
 }

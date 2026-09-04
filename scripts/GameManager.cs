@@ -19,7 +19,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.1.2";
+	public const string Version = "OmoriSandbox v1.1.3";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;

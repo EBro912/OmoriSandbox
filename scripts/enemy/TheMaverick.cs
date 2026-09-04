@@ -39,7 +39,6 @@ internal sealed class TheMaverick : Enemy
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
 
         if (Stage == 0 && IsBelowHP(0.75f))
         {
@@ -53,7 +52,7 @@ internal sealed class TheMaverick : Enemy
         {
             PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
             DialogueManager.Instance.QueueMessage(this, "Heh, as expected of my rival!");
-            DialogueManager.Instance.QueueMessage(this, @"But I must tell you...\! While you were fooling around playing sports...");
+            DialogueManager.Instance.QueueMessage(this, @"But I must tell you...\! While you were fooling around and playing sports...");
             DialogueManager.Instance.QueueMessage(this, "I was honing my techniques just for this moment.");
             DialogueManager.Instance.QueueMessage(this, "You'll never reach my level of skill!");
             DialogueManager.Instance.QueueMessage(this, $"[br]You're going down, {target.Name.ToUpper()}!");
@@ -61,7 +60,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 2;
         }
         
-        if (Stage == 2 && IsBelowHP(0.499f))
+        if (Stage == 2 && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage(this, "Ha! Is that all you've got!?");
             DialogueManager.Instance.QueueMessage(this, "I've only been using 10% of my power!");
@@ -79,7 +78,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 4;
         }
         
-        if (Stage == 4 && IsBelowHP(0.299f))
+        if (Stage == 4 && IsBelowHP(0.3f))
         {
             DialogueManager.Instance.QueueMessage(this, @"It's only... \!Huff...\! a matter of time before you tire yourselves out!");
             DialogueManager.Instance.QueueMessage(this, "My victory is imminent!");
@@ -94,7 +93,7 @@ internal sealed class TheMaverick : Enemy
             Stage = 6;
         }
         
-        if (Stage == 6 && IsBelowHP(0.099f))
+        if (Stage == 6 && IsBelowHP(0.1f))
         {
             DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...");
             DialogueManager.Instance.QueueMessage(this, @"No...\![br]This is impossible!\! Improbable!");
