@@ -4111,7 +4111,9 @@ public class Database
 			   foreach (Actor enemy in targets)
 			   {
 				   BattleManager.Instance.MakeAngry(enemy, silent: true);
-				   enemy.RemoveStatModifier("AttackUp");
+				   // remove then add to avoid the readd-on-expiry rule
+				   if (enemy.GetStatModifierTier("AttackUp") != tier)
+					   enemy.RemoveStatModifier("AttackUp");
 				   enemy.AddTierStatModifier("AttackUp", tier, silent: true);
 			   }
 			   await Task.CompletedTask;
@@ -5328,7 +5330,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(124, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams his head\ninto [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
-				self.CurrentHP = Math.Max(1, self.CurrentHP - (int)Math.Round(self.CurrentStats.MaxHP * 0.01f));
+				self.CurrentHP = Math.Max(1, self.CurrentHP - (int)Math.Floor(self.CurrentStats.MaxHP * 0.01f));
 			}
 		);
 		
@@ -6924,7 +6926,8 @@ public class Database
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
 				await Wait.Milliseconds(500);
-				int totalDamage = targets.Sum(target => BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true));
+				// Damage returns -1 on a miss/evade, which must not count against the steal
+				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true)));
 				self.Heal((int)Math.Floor(totalDamage * 0.25d), applyDebugScale: false);
 				await BattleLogManager.Instance.WaitForBattleLog();
 				await Wait.Milliseconds(750);
@@ -6954,7 +6957,8 @@ public class Database
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
 				await Wait.Milliseconds(500);
-				int totalDamage = targets.Sum(target => BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.35f, false, 0.5f, neverCrit: true));
+				// Damage returns -1 on a miss/evade, which must not count against the steal
+				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.35f, false, 0.5f, neverCrit: true)));
 				self.Heal((int)Math.Floor(totalDamage * 0.5d), applyDebugScale: false);
 				await BattleLogManager.Instance.WaitForBattleLog();
 				await Wait.Milliseconds(750);
@@ -8235,42 +8239,10 @@ public class Database
 			new StatBonus(StatType.ATK, 40), new StatBonus(StatType.SPD, 40), new StatBonus(StatType.LCK, 40),
 			new StatBonus(StatType.HIT, 100)], true).WithStartOfBattleEffect(async actor =>
 		{
+			// vanilla force-casts OBSERVE on a random enemy for every wearer at battle start
 			Enemy target = BattleManager.Instance.GetRandomAliveEnemy();
 			await Wait.Milliseconds(1000);
-			BattleLogManager.Instance.QueueMessage(actor, target,"[actor] focuses their vision and observes\n[target]!");
-			AnimationManager.Instance.PlayAnimation(4, target);
-			await Wait.Milliseconds(1000);
-			List<PartyMemberComponent> members = BattleManager.Instance.GetAlivePartyMembers();
-			PartyMemberComponent taunting = members.FirstOrDefault(x => x.Actor.HasStatModifier("Taunt"));
-			if (taunting != null)
-			{
-				await AnimationManager.Instance.WaitForAnimation(4, taunting.Actor);
-				target.ObserveTarget = taunting.Actor;
-				BattleLogManager.Instance.QueueMessage(target, taunting.Actor,"[actor] has their eyes on\n[target]!");
-				return;
-			}
-
-			bool multi = GameManager.Instance.Random.RandiRange(1, 2) == 1;
-			if (multi)
-			{
-				// vanilla omori technically stops after the 4th attempt
-				// maybe add a toggle for this?
-				Enemy enemy = BattleManager.Instance.GetAllAliveEnemies().FirstOrDefault(x => x.HasMultiTargetSkill);
-				if (enemy != null)
-				{
-					enemy.ObserveMultiTarget = true;
-					BattleLogManager.Instance.QueueMessage(enemy, "[actor] has their eyes on everyone!");
-					foreach (PartyMemberComponent m in members)
-						AnimationManager.Instance.PlayAnimation(4, m.Actor);
-					await Wait.Milliseconds(1000);
-					return;
-				}
-			}
-				
-			PartyMember member = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)].Actor;
-			BattleLogManager.Instance.QueueMessage(target, member,"[actor] has their eyes on\n[target]!");
-			await AnimationManager.Instance.WaitForAnimation(4, member);
-			target.ObserveTarget = member;
+			await Skills["Observe"].Effect(actor, [target]);
 		});
 
 		#endregion

@@ -4,6 +4,7 @@ using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
+using OmoriSandbox.Battle.Modifier;
 
 namespace OmoriSandbox.Actors;
 
@@ -52,13 +53,10 @@ internal sealed class KiteKidAlt : Enemy
                 await DialogueManager.Instance.WaitForDialogue();
                 foreach (Enemy enemy in enemies)
                 {
-                    enemy.RemoveStatModifier("AttackUp");
-                    enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
-                    enemy.RemoveStatModifier("SpeedUp");
-                    enemy.AddTierStatModifier("AttackUp", 3, silent: true);
-                    enemy.AddTierStatModifier("DefenseUp", 3, silent: true);
-                    enemy.AddTierStatModifier("SpeedUp", 3, silent: true);
+                    SetWindBuff(enemy, "AttackUp", 3);
+                    SetWindBuff(enemy, "DefenseUp", 3);
+                    SetWindBuff(enemy, "SpeedUp", 3);
                     AnimationManager.Instance.PlayAnimation(218, enemy);
                 }
                 break;
@@ -67,13 +65,10 @@ internal sealed class KiteKidAlt : Enemy
                 await DialogueManager.Instance.WaitForDialogue();
                 foreach (Enemy enemy in enemies)
                 {
-                    enemy.RemoveStatModifier("AttackUp");
-                    enemy.RemoveStatModifier("DefenseUp");
-                    enemy.RemoveStatModifier("SpeedDown");
                     enemy.RemoveStatModifier("SpeedUp");
-                    enemy.AddTierStatModifier("AttackUp", 2, silent: true);
-                    enemy.AddTierStatModifier("DefenseUp", 2, silent: true);
-                    enemy.AddTierStatModifier("SpeedDown", 2, silent: true);
+                    SetWindBuff(enemy, "AttackUp", 2);
+                    SetWindBuff(enemy, "DefenseUp", 2);
+                    SetWindBuff(enemy, "SpeedDown", 2);
                     AnimationManager.Instance.PlayAnimation(214, enemy);
                 }
                 break;
@@ -90,6 +85,18 @@ internal sealed class KiteKidAlt : Enemy
                 }
                 break;
         }
+    }
+
+    // manually remove and readd each modifier so the same-turn expiry rule does not take effect
+    private static void SetWindBuff(Enemy enemy, string modifier, int tier)
+    {
+        if (enemy.StatModifiers.TryGetValue(modifier, out StatModifier held) && held is TierStatModifier t && t.CurrentTier == tier)
+        {
+            held.RefreshTurns();
+            return;
+        }
+        enemy.RemoveStatModifier(modifier);
+        enemy.AddTierStatModifier(modifier, tier, silent: true);
     }
 
     public override async Task OnDefeat()

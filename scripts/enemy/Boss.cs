@@ -18,7 +18,7 @@ internal sealed class Boss : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     public override Vector2 InfoBoxOffset => new(0, -320);

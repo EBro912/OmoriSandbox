@@ -130,6 +130,7 @@ public abstract class Actor
 	/// <summary>
 	/// Whether the actor is currently stunned. Setting this value to true will cause their actions to be skipped.
 	/// </summary>
+	// TODO: think of a better solution for this, as different states can fight for this variable
 	public bool Stunned = false;
 
 	/// <summary>
@@ -865,6 +866,8 @@ public abstract class Actor
 		{
 			Emotion previous = CurrentEmotion;
 			CurrentEmotion = emotion;
+			// vanilla refreshes the battler after an emotion state is added, which clamps HP/JUICE to the new maximums
+			ClampHealthJuiceToMax();
 			if (!silent)
 			{
 				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + emotion.DisplayName + "!");
@@ -903,6 +906,7 @@ public abstract class Actor
 
 		Emotion previous = CurrentEmotion;
 		CurrentEmotion = emotion;
+		ClampHealthJuiceToMax();
 		OnEmotionChanged?.Invoke(this, EventArgs.Empty);
 		if (CurrentAnimation == null)
 		{

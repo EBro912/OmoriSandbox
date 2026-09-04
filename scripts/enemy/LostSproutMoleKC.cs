@@ -27,15 +27,9 @@ internal sealed class LostSproutMoleKC : Enemy
 		return GetStatsForEmotion() + AdjustedStats;
 	}
 
-	public LostSproutMoleKC()
-	{
-		// refresh on emotion change to properly display the hp difference
-		OnEmotionChanged += (_, _) => CurrentHP = CurrentStats.MaxHP;
-	}
-
 	public override bool IsEmotionValid(Emotion emotion)
 	{
-		return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+		return emotion.Id is "neutral" or "sad" or "happy" or "angry";
 	}
     public override BattleCommand ProcessAI()
 	{
