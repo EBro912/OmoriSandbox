@@ -5,6 +5,8 @@
 
 [Official Documentation](https://ebro912.gitbook.io/omorisandbox) 
 
+[Itch.io](https://alltoasters.itch.io/omori-sandbox) | [GameJolt](https://gamejolt.com/games/omorisandbox/1028305)
+
 A battle simulator/sandbox for _OMORI_, written in C# for the Godot engine. It aims to recreate the battle system from the game as accurately as possible, allowing users to create any kind of battle scenario they desire.
 
 ## Installation
@@ -30,6 +32,7 @@ As of update v0.8, official modding is now supported! You can read more about cr
 OmoriSandbox will auto-generate a mod called `custom` when first launched. Here, you can place your custom Battlebacks and/or BGM in their respective `battlebacks` and `bgm` folders without having to create a mod yourself. This auto-generated mod behaves exactly as any other mod and can be expanded as you see fit.
 
 **Important Note**
+
 When it comes to loading C# mods (mods that use a `.dll` file), **OmoriSandbox does not perform any kind of sandboxing or malware checking when loading mods**, meaning a malicious actor can create a mod that may harm your system. When using C#/`.dll` driven mods, ensure that you trust the author. You can use a program such as [dnSpy](https://github.com/dnSpy/dnSpy) or [VirusTotal](https://www.virustotal.com/gui/) in order to read the mod code or check the file for viruses before loading it into OmoriSandbox.
 
 ## Contributing
