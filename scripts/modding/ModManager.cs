@@ -35,6 +35,7 @@ internal partial class ModManager : Node
 		
 		AppDomain.CurrentDomain.AssemblyResolve += ResolveFromGameContext;
 		ExposeUnwindSymbols();
+		HarmonyLoadContextFix.Install();
 
 		if (!DirAccess.DirExistsAbsolute("user://mods"))
 		{
@@ -112,7 +113,9 @@ internal partial class ModManager : Node
 	// Godot loads external dlls into its own isolated load context, which can break Harmony patches as
 	// Harmony's dynamically loaded shim assembly uses its own ALC. we can utilize the AssemblyResolve event to nudge the patcher
 	// in the right direction by passing it the assembly that it's looking for from Godot's isolated ALC,
-	// or null if the assembly truly doesn't exist
+	// or null if the assembly truly doesn't exist.
+	// this only helps when normal probing fails in editor builds, exported builds list 0Harmony.dll among the trusted
+	// platform assemblies, so the default context finds it before this event fires. HarmonyLoadContextFix handles that case
 	// see https://github.com/pardeike/Harmony/issues/642
 	private static Assembly ResolveFromGameContext(object sender, ResolveEventArgs args)
 	{
