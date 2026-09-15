@@ -52,7 +52,7 @@ internal partial class MenuManager : Node
 	private void RefreshEnergy(object sender, EventArgs e)
 	{
 		EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
-		EnergyBar.RegionRect = new Rect2(0, (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 362f, 48f);
+		EnergyBar.RegionRect = new Rect2(1f, 1f + (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 360f, 45f);
 	}
 
 	public void ShowButtons(bool realWorld)
@@ -182,13 +182,13 @@ internal partial class MenuManager : Node
 	{
 		if (immediate)
 		{
-			EnergyBar.Position = new Vector2(320f, 450f);
+			EnergyBar.Position = new Vector2(139f, 424f);
 		}
 		else
 		{
 			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
-			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 450f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(139f, 424f), 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 
@@ -196,13 +196,13 @@ internal partial class MenuManager : Node
 	{
 		if (immediate)
 		{
-			EnergyBar.Position = new Vector2(320f, 360f);
+			EnergyBar.Position = new Vector2(139f, 340f);
 		}
 		else
 		{
 			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
-			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 360f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(139f, 340f), 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 }

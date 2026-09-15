@@ -10,9 +10,84 @@ namespace OmoriSandbox.Editor;
 
 internal partial class MainMenuManager : Node
 {
+	private int ActiveController = -1;
+	internal bool UsingController => ActiveController >= 0;
+
 	public override void _Ready()
 	{
 		Instance = this;
+		GetWindow().WindowInput += TrackInputDevice;
+		Input.JoyConnectionChanged += OnJoyConnectionChanged;
+	}
+
+	public override void _ExitTree()
+	{
+		GetWindow().WindowInput -= TrackInputDevice;
+		Input.JoyConnectionChanged -= OnJoyConnectionChanged;
+	}
+
+	private void TrackInputDevice(InputEvent @event)
+	{
+		switch (@event)
+		{
+			case InputEventJoypadButton { Pressed: true }:
+			case InputEventJoypadMotion motion when Mathf.Abs(motion.AxisValue) >= 0.75f:
+				ActiveController = @event.Device;
+				break;
+			case InputEventKey { Pressed: true, Echo: false }:
+			case InputEventMouseButton { Pressed: true }:
+			case InputEventMouseMotion mouse when mouse.Relative != Vector2.Zero:
+			case InputEventScreenTouch { Pressed: true }:
+			case InputEventScreenDrag:
+				ActiveController = -1;
+				break;
+		}
+	}
+
+	private void OnJoyConnectionChanged(long device, bool connected)
+	{
+		if (!connected && device == ActiveController)
+			ActiveController = -1;
+	}
+
+	public override void _Process(double delta)
+	{
+		Window window = GetWindow().GetLastExclusiveWindow() ?? GetWindow();
+		Control focus = window.GuiGetFocusOwner();
+		// check if the user has swapped to controller input and grab focus
+		if (focus != null && focus is not (LineEdit or TextEdit) &&
+		    focus.HasFocus(ignoreHiddenFocus: true) != UsingController)
+			focus.GrabFocus(hideFocus: !UsingController);
+	}
+
+	public override void _Input(InputEvent @event)
+	{
+		if (!MainMenu.Visible || KeybindButton.IsCapturing || !ControllerBinding.IsController(@event) ||
+		    !(@event is InputEventJoypadButton { Pressed: true } ||
+		      @event is InputEventJoypadMotion motion && Mathf.Abs(motion.AxisValue) >= 0.75f))
+			return;
+		if (GetViewport().GuiGetFocusOwner() is { } focus && focus.IsVisibleInTree())
+			return;
+		Control first = Settings.Visible ? Settings.GetNode<Button>("BackButton") :
+			CreditsPanel.Visible ? CreditsBackButton : PlayButton.Visible ? PlayButton : LoadExistingButton;
+		first.GrabFocus();
+		GetViewport().SetInputAsHandled();
+	}
+
+	public override void _UnhandledInput(InputEvent @event)
+	{
+		if (!MainMenu.Visible || KeybindButton.IsCapturing || !ControllerBinding.IsController(@event) ||
+		    !@event.IsActionPressed("ui_cancel"))
+			return;
+		if (Settings.Visible)
+			Settings.Close();
+		else if (CreditsPanel.Visible)
+			CreditsBackButton.EmitSignal(BaseButton.SignalName.Pressed);
+		else if (QuitButton.Text == "Back")
+			QuitButton.EmitSignal(BaseButton.SignalName.Pressed);
+		else
+			return;
+		GetViewport().SetInputAsHandled();
 	}
 
 	public void Init()
@@ -20,6 +95,12 @@ internal partial class MainMenuManager : Node
 		VersionLabel.Text = GameManager.Version;
 		
 		AudioManager.Instance.PlayBGM("ow_cattail_fields");
+		PlayButton.GrabFocus(hideFocus: !UsingController);
+		Settings.VisibilityChanged += () =>
+		{
+			if (!Settings.Visible && MainMenu.Visible && MainControls.Visible)
+				SettingsButton.GrabFocus(hideFocus: !UsingController);
+		};
 
 		PlayButton.Pressed += () =>
 		{
@@ -89,6 +170,7 @@ internal partial class MainMenuManager : Node
 			OmoriFace.Visible = true;
 			CreditsPanel.Visible = false;
 			CreditsButton.GetParent<Control>().Visible = true;
+			CreditsButton.GrabFocus(hideFocus: !UsingController);
 		};
 
 		QuitButton.Pressed += () =>
@@ -219,6 +301,7 @@ internal partial class MainMenuManager : Node
 		QuitButton.Text = "Quit";
 		MainMenu.Visible = true;
 		Editor.Visible = false;
+		PlayButton.GrabFocus(hideFocus: !UsingController);
 		GameManager.Instance.DiscordManager.SetMainMenu();
 		Engine.TimeScale = 1f;
 	}

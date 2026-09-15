@@ -407,3 +407,6 @@ FodyWeavers.xsd
 
 # csproj editor backups
 *.csproj.old*
+
+tests/
+docs/

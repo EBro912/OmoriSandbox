@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace OmoriSandbox.Editor;
@@ -20,6 +21,28 @@ public partial class SettingsMenuManager : Control
 		{
 			DisplayServer.WindowSetMode(value ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
 		};
+
+		AspectDropdown.ItemSelected += index =>
+		{
+			DisplayLayout layout = DisplayLayout.Instance;
+			if (layout == null)
+				return;
+			int width = AspectWidths[index];
+			int scale = layout.Scale;
+			layout.SetCanvasWidth(width);
+			// when windowed, the window snaps to the chosen canvas at its current scale, so nothing is letterboxed
+			if (width > 0 && IsWindowed())
+				ApplyWindowSize(CanvasWindowSize(width, scale));
+		};
+
+		PortraitsDropdown.ItemSelected += index =>
+		{
+			DisplayLayout.Instance?.SetEdgePortraits(index == 1);
+			if (index == 1)
+				ShowNote("Warning", "Some animations may look odd or broken when using edge portraits.");
+		};
+		
+		DisplayLayout.Instance.WindowResized += OnWindowSizeChanged;
 		
 		MasterSlider.ValueChanged += value =>
 		{
@@ -77,15 +100,17 @@ public partial class SettingsMenuManager : Control
 			}
 		};
 
-		BackButton.Pressed += () =>
-		{
-			MainControls.Visible = true;
-			Logo.Visible = true;
-			OmoriFace.Visible = true;
-			Visible = false;
-		};
+		BackButton.Pressed += Close;
 		
 		// calling these after subscribing to the above events
+		int canvasWidth = (int)config.GetValue("Settings", "CanvasWidth", 0);
+		AspectDropdown.Selected = Math.Max(0, Array.IndexOf(AspectWidths, canvasWidth));
+		DisplayLayout.Instance?.SetCanvasWidth(AspectWidths[AspectDropdown.Selected]);
+		WindowedSize = new((int)config.GetValue("Settings", "WindowWidth", 640), (int)config.GetValue("Settings", "WindowHeight", 480));
+		if (WindowedSize != GetWindow().Size)
+			ApplyWindowSize(WindowedSize);
+		PortraitsDropdown.Selected = (bool)config.GetValue("Settings", "EdgePortraits", false) ? 1 : 0;
+		DisplayLayout.Instance?.SetEdgePortraits(PortraitsDropdown.Selected == 1);
 		FullscreenCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "Fullscreen", false);
 		MasterSlider.Value = (float)config.GetValue("Settings", "MasterVolume", 0.75f);
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
@@ -127,6 +152,8 @@ public partial class SettingsMenuManager : Control
 					keybind.Reset();
 				else
 					keybind.SetKey(key);
+				if (config.HasSectionKey("ControllerBinds", keybind.AssociatedAction))
+					keybind.LoadControllerBinding(config.GetValue("ControllerBinds", keybind.AssociatedAction));
 			}
 		}
 
@@ -135,9 +162,20 @@ public partial class SettingsMenuManager : Control
 		{
 			if (!Visible)
 				SaveSettings();
+			else
+				FullscreenCheckbox.GrabFocus(hideFocus: !MainMenuManager.Instance.UsingController);
 		};
 
 		Instance = this;
+	}
+
+	/// <summary>Closes settings and returns to the title controls.</summary>
+	public void Close()
+	{
+		MainControls.Visible = true;
+		Logo.Visible = true;
+		OmoriFace.Visible = true;
+		Visible = false;
 	}
 
 	public override void _Process(double delta)
@@ -151,7 +189,21 @@ public partial class SettingsMenuManager : Control
 
 	public override void _ExitTree()
 	{
+		if (DisplayLayout.Instance != null)
+			DisplayLayout.Instance.WindowResized -= OnWindowSizeChanged;
 		SaveSettings();
+	}
+
+	// fullscreen and maximized sizes belong to the screen; only windowed sizes are remembered
+	private void OnWindowSizeChanged()
+	{
+		if (IsWindowed())
+			WindowedSize = GetWindow().Size;
+	}
+
+	private bool IsWindowed()
+	{
+		return GetWindow().Mode is not (Window.ModeEnum.Fullscreen or Window.ModeEnum.ExclusiveFullscreen or Window.ModeEnum.Maximized);
 	}
 
 	/// <summary>
@@ -161,6 +213,10 @@ public partial class SettingsMenuManager : Control
 	{
 		ConfigFile config = new();
 		config.SetValue("Settings", "Fullscreen", FullscreenCheckbox.ButtonPressed);
+		config.SetValue("Settings", "WindowWidth", WindowedSize.X);
+		config.SetValue("Settings", "WindowHeight", WindowedSize.Y);
+		config.SetValue("Settings", "CanvasWidth", AspectWidths[AspectDropdown.Selected]);
+		config.SetValue("Settings", "EdgePortraits", PortraitsDropdown.Selected == 1);
 		config.SetValue("Settings", "MasterVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("Master")));
 		config.SetValue("Settings", "BGMVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGM")));
 		config.SetValue("Settings", "SFXVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("SFX")));
@@ -193,7 +249,10 @@ public partial class SettingsMenuManager : Control
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
+			{
 				config.SetValue("Keybinds", keybind.AssociatedAction, OS.GetKeycodeString(keybind.CurrentKey));
+				config.SetValue("ControllerBinds", keybind.AssociatedAction, ControllerBinding.Serialize(keybind.CurrentControllerBinding));
+			}
 		}
 		
 		config.Save("user://settings.cfg");
@@ -214,9 +273,24 @@ public partial class SettingsMenuManager : Control
 		return Key.Unknown;
 	}
 
+	/// <summary>Returns the keyboard and controller labels for an action's on-screen prompt.</summary>
+	public string GetBindingDisplayForAction(string action)
+	{
+		foreach (Node node in KeybindGrid.GetChildren())
+		{
+			if (node is KeybindButton keybind && keybind.AssociatedAction == action)
+				return keybind.GetBindingDisplayName();
+		}
+		return "Unbound";
+	}
+
 	private void GenerateDefaultConfig(ref ConfigFile config)
 	{
 		config.SetValue("Settings", "Fullscreen", false);
+		config.SetValue("Settings", "WindowWidth", 640);
+		config.SetValue("Settings", "WindowHeight", 480);
+		config.SetValue("Settings", "CanvasWidth", 0);
+		config.SetValue("Settings", "EdgePortraits", false);
 		config.SetValue("Settings", "MasterVolume", 0.75f);
 		config.SetValue("Settings", "BGMVolume", 0.5f);
 		config.SetValue("Settings", "SFXVolume", 1f);
@@ -248,9 +322,49 @@ public partial class SettingsMenuManager : Control
 		foreach (Node node in KeybindGrid.GetChildren())
 		{
 			if (node is KeybindButton keybind)
+			{
 				config.SetValue("Keybinds", keybind.AssociatedAction, OS.GetKeycodeString(keybind.DefaultKey));
+				config.SetValue("ControllerBinds", keybind.AssociatedAction, ControllerBinding.Serialize(keybind.DefaultControllerBinding));
+			}
 		}
 		config.Save("user://settings.cfg");
+	}
+	
+	private static readonly int[] AspectWidths = [0, 640, 768, 852, 1120];
+	private Vector2I WindowedSize = new(640, 480);
+
+	// the chosen canvas at the given whole-number scale, reduced until it fits on the screen
+	private static Vector2I CanvasWindowSize(int width, int scale)
+	{
+		Vector2I screen = DisplayServer.ScreenGetSize();
+		while (scale > 1 && screen.X > 0 && screen.Y > 0 && (width * scale > screen.X || DisplayLayout.LogicalHeight * scale > screen.Y))
+			scale--;
+		return new Vector2I(width * scale, DisplayLayout.LogicalHeight * scale);
+	}
+
+	private void ApplyWindowSize(Vector2I size)
+	{
+		Window window = GetWindow();
+		Vector2I screen = DisplayServer.ScreenGetSize();
+		if (screen.X > 0 && screen.Y > 0)
+			size = new Vector2I(Mathf.Min(size.X, screen.X), Mathf.Min(size.Y, screen.Y));
+		window.Size = size;
+		window.MoveToCenter();
+	}
+
+	private void ShowNote(string title, string message)
+	{
+		AcceptDialog dialog = new()
+		{
+			Title = title,
+			DialogText = message,
+			Unresizable = true
+		};
+		AddChild(dialog);
+		dialog.Confirmed += dialog.QueueFree;
+		dialog.Canceled += dialog.QueueFree;
+		dialog.PopupCentered();
+		dialog.Show();
 	}
 
 	private void SetBusVolume(string bus, float volume)
@@ -303,6 +417,8 @@ public partial class SettingsMenuManager : Control
 	[Export] private HSlider SFXSlider;
 	[Export] private Button TestSFXButton;
 	[Export] private CheckBox FullscreenCheckbox;
+	[Export] private OptionButton AspectDropdown;
+	[Export] private OptionButton PortraitsDropdown;
 	[Export] private HSlider BattlelogSpeedSlider;
 	[Export] private HSlider ActionDelaySlider;
 	[Export] private HSlider DialogueSpeedSlider;

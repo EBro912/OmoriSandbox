@@ -53,7 +53,7 @@ internal sealed class Boss : Enemy
         {
             Stage = 4;
             CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 2);
-            RemoveStatModifier("Immortal");
+            RemoveStatModifier("Immortal", true);
             DialogueManager.Instance.QueueMessage(this, @"HUH!?\! HOW ARE YOU STILL MOVING!?");
             await DialogueManager.Instance.WaitForDialogue();
             return;

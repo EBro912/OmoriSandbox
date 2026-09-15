@@ -127,11 +127,8 @@ texture = ExtResource("6_5dd4i")
 z_index = 1
 texture_filter = 1
 clip_contents = true
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -144.0
-offset_right = 145.0
+offset_left = 176.0
+offset_right = 465.0
 offset_bottom = 190.0
 grow_horizontal = 2
 texture = ExtResource("1_l6cm7")
@@ -145,39 +142,30 @@ autoplay = "default"
 frame_progress = 0.2651262
 
 [node name="Version" type="Label" parent="Main" unique_id=1710322497]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
 offset_left = 3.0
-offset_top = -13.0
+offset_top = 467.0
 offset_right = 71.0
-offset_bottom = -3.0
+offset_bottom = 477.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 14
 text = "OmoriSandbox"
 
 [node name="ModsLoaded" type="Label" parent="Main" unique_id=589990206]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
 offset_left = 3.0
-offset_top = -30.0
+offset_top = 450.0
 offset_right = 98.0
-offset_bottom = -16.0
+offset_bottom = 464.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 14
 text = "0 mods loaded"
 
 [node name="ShowModsButton" type="Button" parent="Main" unique_id=564612540]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
 offset_left = 4.0
-offset_top = -57.0
+offset_top = 423.0
 offset_right = 68.0
-offset_bottom = -33.0
+offset_bottom = 447.0
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_styles/normal = ExtResource("10_1ajci")
@@ -226,15 +214,10 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 
 [node name="MainControls" type="VBoxContainer" parent="Main" unique_id=76276941]
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -139.0
-offset_top = -185.0
-offset_right = 139.0
-offset_bottom = -7.0
+offset_left = 181.0
+offset_top = 295.0
+offset_right = 459.0
+offset_bottom = 473.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_horizontal = 4
@@ -371,17 +354,12 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnExpiryCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnExpiryCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -461.0
-offset_right = 200.0
-offset_bottom = -22.0
+offset_left = 120.0
+offset_top = 19.0
+offset_right = 520.0
+offset_bottom = 458.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = ExtResource("10_1ajci")
@@ -393,6 +371,8 @@ BGMSlider = NodePath("ScrollContainer/VBoxContainer/BGMSlider/HSlider")
 SFXSlider = NodePath("ScrollContainer/VBoxContainer/SFXSlider/HSlider")
 TestSFXButton = NodePath("ScrollContainer/VBoxContainer/TestSFX")
 FullscreenCheckbox = NodePath("ScrollContainer/VBoxContainer/Fullscreen")
+AspectDropdown = NodePath("ScrollContainer/VBoxContainer/Aspect/OptionButton")
+PortraitsDropdown = NodePath("ScrollContainer/VBoxContainer/Portraits/OptionButton")
 BattlelogSpeedSlider = NodePath("ScrollContainer/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
 ActionDelaySlider = NodePath("ScrollContainer/VBoxContainer/ActionDelaySlider/DelaySlider")
 DialogueSpeedSlider = NodePath("ScrollContainer/VBoxContainer/DialogueSpeedSlider/HSlider")
@@ -454,6 +434,7 @@ offset_bottom = -45.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
+follow_focus = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/ScrollContainer" unique_id=49627157]
 layout_mode = 2
@@ -461,13 +442,13 @@ size_flags_horizontal = 6
 size_flags_vertical = 4
 theme_override_constants/separation = 4
 
-[node name="VideoAudio" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=315148989]
+[node name="Graphics" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=315148989]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
-text = "Video & Audio"
+text = "Graphics"
 
 [node name="Fullscreen" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=560981282]
 layout_mode = 2
@@ -476,6 +457,74 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Fullscreen"
+
+[node name="Aspect" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1485167171]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/Aspect" unique_id=5902847]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Aspect"
+
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/ScrollContainer/VBoxContainer/Aspect" unique_id=1073141850]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+item_count = 5
+popup/item_0/text = "Fit window"
+popup/item_0/id = 0
+popup/item_1/text = "4:3 (640 x 480)"
+popup/item_1/id = 1
+popup/item_2/text = "16:10 (768 x 480)"
+popup/item_2/id = 2
+popup/item_3/text = "16:9 (852 x 480)"
+popup/item_3/id = 3
+popup/item_4/text = "21:9 (1120 x 480)"
+popup/item_4/id = 4
+
+[node name="Portraits" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2028678821]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/Portraits" unique_id=1819821906]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Portraits"
+
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/ScrollContainer/VBoxContainer/Portraits" unique_id=1921019542]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+item_count = 2
+popup/item_0/text = "Centered"
+popup/item_0/id = 0
+popup/item_1/text = "Edges"
+popup/item_1/id = 1
+
+[node name="HSeparatorAudio" type="HSeparator" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=235695091]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Audio" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=175473037]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Audio"
 
 [node name="MasterSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1996218175]
 layout_mode = 2
@@ -911,7 +960,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
-text = "Keybinds"
+text = "Controls"
 
 [node name="RestartDelay" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1563829350]
 layout_mode = 2
@@ -979,13 +1028,39 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1.50x"
 
+[node name="BindingHeaders" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Action" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Action"
+
+[node name="Keyboard" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders"]
+custom_minimum_size = Vector2(85, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Keyboard"
+horizontal_alignment = 1
+
+[node name="Controller" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders"]
+custom_minimum_size = Vector2(115, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Controller"
+horizontal_alignment = 1
+
 [node name="KeybindsContainer" type="GridContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=58266562]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/h_separation = 35
 theme_override_constants/v_separation = 8
-columns = 2
+columns = 1
 
 [node name="Accept" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=317920462 instance=ExtResource("14_5pajh")]
 layout_mode = 2
@@ -1051,7 +1126,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
-text = "Reset Keybinds"
+text = "Reset All Binds"
 
 [node name="BackButton" type="Button" parent="Main/Settings" unique_id=1909750552]
 layout_mode = 1
@@ -1236,15 +1311,10 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Back"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Main" unique_id=166694676]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -90.0
-offset_top = -30.0
-offset_right = -8.0
-offset_bottom = -6.0
+offset_left = 550.0
+offset_top = 450.0
+offset_right = 632.0
+offset_bottom = 474.0
 grow_horizontal = 0
 grow_vertical = 0
 
@@ -1406,11 +1476,8 @@ text = "+ Add Enemy"
 
 [node name="SettingsTabs" type="TabContainer" parent="Editor" unique_id=1582260830]
 z_index = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -150.0
-offset_right = 250.0
+offset_left = 170.0
+offset_right = 570.0
 offset_bottom = 50.0
 grow_horizontal = 2
 scale = Vector2(0.75, 0.75)
@@ -1952,9 +2019,9 @@ text = "Common Layers: 10: Top Layer
 [node name="UIPreview" type="Control" parent="Editor" unique_id=1935063543]
 visible = false
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 0
+offset_right = 640.0
+offset_bottom = 480.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -1973,17 +2040,18 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Energy" type="Sprite2D" parent="Editor/UIPreview" unique_id=636751327]
 z_index = -4
-position = Vector2(320, 360)
+position = Vector2(140, 340)
 texture = ExtResource("23_qywvv")
+centered = false
 region_enabled = true
-region_rect = Rect2(0, 0, 362, 48)
+region_rect = Rect2(1, 1, 360, 45)
 region_filter_clip_enabled = true
 
 [node name="EnergyAmount" type="Label" parent="Editor/UIPreview/Energy" unique_id=1633251323]
-offset_left = 145.0
-offset_top = -13.0
-offset_right = 168.0
-offset_bottom = 11.0
+offset_left = 325.0
+offset_top = 10.0
+offset_right = 348.0
+offset_bottom = 34.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.501961)
 theme_override_constants/outline_size = 8
 theme_override_fonts/font = ExtResource("2_ekxnf")

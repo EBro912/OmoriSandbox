@@ -58,7 +58,7 @@ public class SnaleyThree : Enemy
         {
             PendingRelease = false;
             CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 1);
-            RemoveStatModifier("Immortal");
+            RemoveStatModifier("Immortal", true);
         }
         await Task.CompletedTask;
     }

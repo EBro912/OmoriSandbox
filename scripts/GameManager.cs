@@ -19,7 +19,7 @@ public partial class GameManager : Node
 	/// <summary>
 	/// The current version of OmoriSandbox.
 	/// </summary>
-	public const string Version = "OmoriSandbox v1.1.3";
+	public const string Version = "OmoriSandbox v1.2 (dev build)";
 	
 	[Export] private PackedScene BattlecardUI;
 	[Export] private PackedScene EnemyNode;
@@ -233,6 +233,7 @@ public partial class GameManager : Node
 			3 => new Vector2(512, 5),
 			_ => card.Position
 		};
+		DisplayLayout.Instance?.PlacePortrait(card, actor.Position);
 		PartyMemberComponent component = new();
 		card.AddChild(component);
 		// the slot provides the bubble layout, the set only provides graphics and skills

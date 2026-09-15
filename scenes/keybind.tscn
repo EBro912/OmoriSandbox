@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://kajtkfbt0k6k"]
+[gd_scene format=3 uid="uid://kajtkfbt0k6k"]
 
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_lix1u"]
 [ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="2_o7f8x"]
@@ -6,7 +6,7 @@
 [ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_t4iyq"]
 [ext_resource type="Script" uid="uid://dwrm70qiryrkh" path="res://scripts/KeybindButton.cs" id="5_o7f8x"]
 
-[node name="Keybind" type="HBoxContainer"]
+[node name="Keybind" type="HBoxContainer" unique_id=1837662466]
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
@@ -21,21 +21,39 @@ size_flags_horizontal = 8
 alignment = 2
 script = ExtResource("5_o7f8x")
 
-[node name="ActionLabel" type="Label" parent="."]
+[node name="ActionLabel" type="Label" parent="." unique_id=723546889]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("1_lix1u")
 theme_override_font_sizes/font_size = 20
 text = "Keybind"
 
-[node name="KeyButton" type="Button" parent="."]
-custom_minimum_size = Vector2(50, 0)
+[node name="KeyButton" type="Button" parent="." unique_id=414904360]
+custom_minimum_size = Vector2(85, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+tooltip_text = "Press a keyboard key to bind. Click again or wait 10 seconds to cancel."
 theme_override_fonts/font = ExtResource("1_lix1u")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("2_o7f8x")
 theme_override_styles/pressed = ExtResource("3_83n5n")
 theme_override_styles/hover = ExtResource("4_t4iyq")
 text = "..."
+clip_text = true
+
+[node name="ControllerButton" type="Button" parent="." unique_id=1061149227]
+custom_minimum_size = Vector2(115, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Press a controller button, move a stick, or pull a trigger to bind.
+Click again or wait 10 seconds to cancel."
+theme_override_fonts/font = ExtResource("1_lix1u")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("2_o7f8x")
+theme_override_styles/pressed = ExtResource("3_83n5n")
+theme_override_styles/hover = ExtResource("4_t4iyq")
+text = "Unbound"
+clip_text = true

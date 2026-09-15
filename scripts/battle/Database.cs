@@ -5053,7 +5053,7 @@ public class Database
 
 				// he only dies once his own ultimate has resolved, so the next
 				// ultimate in the chain sees one fewer enemy on the field
-				self.RemoveStatModifier("Immortal");
+				self.RemoveStatModifier("Immortal", true);
 				self.CurrentHP = 0;
 			}
 		);
@@ -7495,9 +7495,10 @@ public class Database
 			.WithCounterpart("SpeedUp")
 			.WithStateIcons(new StateIcon("bnw_-1spd", "Speed Down 1: x0.8 SPD"), new StateIcon("bnw_-2spd", "Speed Down 2: x0.5 SPD"), new StateIcon("bnw_-3spd", "Speed Down 3: x0.25 SPD")));
 
-		Modifiers.Add("ReleaseEnergy", () => new StatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f)));
+		Modifiers.Add("ReleaseEnergy", () => new StatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f))
+			.WithStateIcons(new StateIcon("bnw_energy", "Release Energy: ATK/DEF/LCK/SPD x1.25")));
 		Modifiers.Add("ReleaseEnergyBasil", () => new ReleaseEnergyBasilStatModifier(new StatBonus(StatType.SPD, 1.25f), new StatBonus(StatType.ATK, 1.25f), new StatBonus(StatType.DEF, 1.25f), new StatBonus(StatType.LCK, 1.25f))
-			.WithStateIcons(new StateIcon("bnw_regen", "HP Regen: 10% HEART/turn"), new StateIcon("bnw_regenmana", "Mana Regen: 5% JUICE/turn")));
+			.WithStateIcons(new StateIcon("bnw_energy_basil", "Release Energy (Basil): ATK/DEF/LCK/SPD x1.25, 10% HEART + 5% JUICE regen/turn")));
 		Modifiers.Add("ReleaseEnergyBasilBonus",
 			() => new StatModifier(4, new StatBonus(StatType.SPD, 1.2f), new StatBonus(StatType.ATK, 1.2f),
 				new StatBonus(StatType.DEF, 1.2f), new StatBonus(StatType.LCK, 1.2f)));
@@ -7511,7 +7512,7 @@ public class Database
 			.WithStateIcons(new StateIcon("bnw_guard", "Guard: x0.5 incoming damage")));
 		Modifiers.Add("SecondChance", () => new SecondChanceStatModifier(1));
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
-		Modifiers.Add("Immortal", () => new ImmortalStatModifier());
+		Modifiers.Add("Immortal", () => new ImmortalStatModifier().WithRemovalGuard());
 		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());

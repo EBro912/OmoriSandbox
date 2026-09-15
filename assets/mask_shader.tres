@@ -8,5 +8,5 @@ shader_parameter/slice_x = 90.0
 shader_parameter/slice_y = 0.0
 shader_parameter/slice_width = 12.0
 shader_parameter/slice_height = 28.0
-shader_parameter/region_width = 285.0
+shader_parameter/region_width = 289.0
 shader_parameter/region_height = 28.0

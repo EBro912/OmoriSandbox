@@ -97,7 +97,7 @@ public partial class PartyMemberComponent : Node
 
 		Position = actor.Position;
 
-		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
+		RefreshCenterPoint();
 		PartyMember.OnEmotionChanged += EmotionChanged;
 		PartyMember.OnAnimationChanged += AnimationChanged;
 		PartyMember.OnDamaged += Damaged;
@@ -108,6 +108,11 @@ public partial class PartyMemberComponent : Node
 		Callable.From(RefreshStateVisuals).CallDeferred();
 
 		return true;
+	}
+
+	internal void RefreshCenterPoint()
+	{
+		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
 	}
 
 	private void RefreshStateVisuals()

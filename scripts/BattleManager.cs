@@ -1240,7 +1240,7 @@ public partial class BattleManager : Node
 				return;
 			case SkillTarget.AllyOrEnemy:
 				CurrentPartyMemberTarget = CurrentParty[CurrentPartyMember].Position;
-				string key = OS.GetKeycodeString(SettingsMenuManager.Instance.GetKeybindForAction("SwitchSides"))
+				string key = SettingsMenuManager.Instance.GetBindingDisplayForAction("SwitchSides")
 					.ToUpper();
 				BattleLogManager.Instance.ClearAndShowMessage($"Use on whom?\nPress {key} to switch sides.");
 				return;
@@ -1884,6 +1884,7 @@ public partial class BattleManager : Node
 	{
 		EndOfBattleOptionsContainer.Visible = true;
 		StageSelectorContainer.Visible = GameType is GameModeType.BossRush;
+		EndOfBattleOptionsContainer.GetChild(1).GetChild<Button>(0).GrabFocus(hideFocus: !MainMenuManager.Instance.UsingController);
 	}
 
 	private async Task EndOfBattle(bool victory)
