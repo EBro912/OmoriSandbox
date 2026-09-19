@@ -25,36 +25,36 @@ public partial class PartyMemberComponent : Node
 	private float DisplayedHP;
 	private float DisplayedJuice;
 
-    /// <summary>
-    /// The <see cref="Actors.PartyMember"/> actor this component is attached to.
-    /// </summary>
-    public PartyMember Actor => PartyMember;
+	/// <summary>
+	/// The <see cref="Actors.PartyMember"/> actor this component is attached to.
+	/// </summary>
+	public PartyMember Actor => PartyMember;
 	private FollowupBubbles FollowupBubbles;
-    /// <summary>
-    /// The on-screen position of the <see cref="Actors.PartyMember"/>.<br/>
+	/// <summary>
+	/// The on-screen position of the <see cref="Actors.PartyMember"/>.<br/>
 	/// See <see cref="BattleManager.GetPartyMemberAtPosition(int)"/> for valid positions.
-    /// </summary>
-    public int Position { get; private set; }
-    /// <summary>
-    /// Whether the <see cref="Actors.PartyMember"/> has a followup.
-    /// </summary>
-    public bool HasFollowup => FollowupBubbles != null;
-    /// <summary>
-    /// The followup set assigned to the <see cref="Actors.PartyMember"/>, or null when followups are disabled.
-    /// </summary>
-    internal FollowupSet FollowupSet { get; private set; }
-    /// <summary>
-    /// The battlecard portrait node, tinted by the <see cref="DialogueManager"/> while dialogue is on screen.
-    /// </summary>
-    internal TextureRect Battlecard { get; private set; }
+	/// </summary>
+	public int Position { get; private set; }
+	/// <summary>
+	/// Whether the <see cref="Actors.PartyMember"/> has a followup.
+	/// </summary>
+	public bool HasFollowup => FollowupBubbles != null;
+	/// <summary>
+	/// The followup set assigned to the <see cref="Actors.PartyMember"/>, or null when followups are disabled.
+	/// </summary>
+	internal FollowupSet FollowupSet { get; private set; }
+	/// <summary>
+	/// The battlecard portrait node, tinted by the <see cref="DialogueManager"/> while dialogue is on screen.
+	/// </summary>
+	internal TextureRect Battlecard { get; private set; }
 
-    private Timer HurtTimer = new()
-    {
-	    Autostart = false,
-	    OneShot = true
-    };
+	private Timer HurtTimer = new()
+	{
+		Autostart = false,
+		OneShot = true
+	};
 
-    internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, FollowupSet set, BattlePresetActor actor)
+	internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, FollowupSet set, BattlePresetActor actor)
 	{
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
@@ -64,9 +64,9 @@ public partial class PartyMemberComponent : Node
 		if (!PartyMember.Init(face, actor))
 			return false;
 		Battlecard = GetNode<TextureRect>("../Battlecard");
-		HPLabel = GetNode<Label>("../Battlecard/HealthLabel/");
+		HPLabel = GetNode<Label>("../Battlecard/Health/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
-		JuiceLabel = GetNode<Label>("../Battlecard/JuiceLabel");
+		JuiceLabel = GetNode<Label>("../Battlecard/Juice/JuiceLabel");
 		JuiceBar = GetNode<TextureProgressBar>("../Battlecard/Juice");
 		SelectedBox = GetNode<TextureRect>("../SelectedCard");
 		StateIcons = GetNode<HFlowContainer>("../StateIcons");
@@ -88,7 +88,7 @@ public partial class PartyMemberComponent : Node
 
 		if (followup != null)
 		{
-            FollowupBubbles bubbles = followup.Instantiate<FollowupBubbles>();
+			FollowupBubbles bubbles = followup.Instantiate<FollowupBubbles>();
 			bubbles.ApplySet(set, actor.Position);
 			GetParent().AddChild(bubbles);
 			FollowupBubbles = bubbles;
@@ -186,17 +186,17 @@ public partial class PartyMemberComponent : Node
 		set => SelectedBox.Visible = value;
 	}
 
-    internal void FadeInFollowups(HashSet<InputDirection> disabledDirections = null)
+	internal void FadeInFollowups(HashSet<InputDirection> disabledDirections = null)
 	{
 		FollowupBubbles.ShowBubbles(disabledDirections);
 	}
 
-    internal void FadeOutFollowups()
+	internal void FadeOutFollowups()
 	{
 		FollowupBubbles.HideBubbles();
 	}
 
-    internal void FadeOutFollowupsExcept(InputDirection selected)
+	internal void FadeOutFollowupsExcept(InputDirection selected)
 	{
 		FollowupBubbles.HideBubblesExcept(selected);
 	}

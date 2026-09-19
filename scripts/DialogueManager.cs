@@ -277,7 +277,7 @@ public partial class DialogueManager : Node2D
 			}
 
 			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " +
-			                            BuildHeader(current.Font) + current.Message);
+										BuildHeader(current.Font) + current.Message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = current.Speaker.Length + 2;
 		}

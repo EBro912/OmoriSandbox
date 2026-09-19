@@ -13,8 +13,8 @@ internal partial class ItemMenu : PagedMenu
 	private readonly List<(Item, int)> Items = [];
 	private List<(Item, int)> DisplayedItems = [];
 
-	protected override Vector2 OpenPosition => new(138, 384);
-	protected override Vector2 ClosedPosition => new(138, 490);
+	protected override Vector2 OpenPosition => new(140, 385);
+	protected override Vector2 ClosedPosition => new(140, 490);
 
 	protected override int TotalCount => Items.Count;
 	protected override int DisplayedCount => DisplayedItems.Count;
@@ -33,27 +33,27 @@ internal partial class ItemMenu : PagedMenu
 		{
 			CursorIndex = memory.SavedIndex;
 			Page = memory.SavedPage;
-        }
+		}
 		else if (memory.SavedState == MenuState.Toy &&
 			Items.Count > 0 &&
 			Items[0].Item1.IsToy &&
 			memory.SavedPage <= MaxPage &&
 			memory.SavedIndex < Items.Count)
 		{
-            CursorIndex = memory.SavedIndex;
-            Page = memory.SavedPage;
-        }
+			CursorIndex = memory.SavedIndex;
+			Page = memory.SavedPage;
+		}
 		else
 		{
 			CursorIndex = 0;
 			Page = 0;
-        }
+		}
 		CursorSprite.StartBounce();
 		UpdatePage();
-        Show();
+		Show();
 	}
 
-    public void Populate(bool toys)
+	public void Populate(bool toys)
 	{
 		Items.Clear();
 		Items.AddRange(toys ? BattleManager.Instance.GetToys() : BattleManager.Instance.GetSnacks());
@@ -62,10 +62,10 @@ internal partial class ItemMenu : PagedMenu
 
 	protected override void UpdatePage()
 	{
-        CostText.Text = "";
-        foreach (AutofitLabel l in ItemLabels)
-            l.Text = "";
-        if (Empty)
+		CostText.Text = "";
+		foreach (AutofitLabel l in ItemLabels)
+			l.Text = "";
+		if (Empty)
 		{
 			CursorPositions = Positions.GetRange(0, 1);
 			CursorIndex = 0;
@@ -82,11 +82,11 @@ internal partial class ItemMenu : PagedMenu
 		{
 			ItemLabels[i].SetFittedText(DisplayedItems[i].Item1.Name);
 		}
-        CursorPositions = Positions.GetRange(0, DisplayedItems.Count);
-        if (CursorIndex >= DisplayedItems.Count)
-	        CursorIndex = DisplayedItems.Count - 1;
-        UpdateCursor();
-        ShowInfo();
+		CursorPositions = Positions.GetRange(0, DisplayedItems.Count);
+		if (CursorIndex >= DisplayedItems.Count)
+			CursorIndex = DisplayedItems.Count - 1;
+		UpdateCursor();
+		ShowInfo();
 	}
 
 	protected override void ShowInfo()
@@ -107,7 +107,7 @@ internal partial class ItemMenu : PagedMenu
 	{
 		if (Empty) return;
 		Item selected = DisplayedItems[CursorIndex].Item1;
-        if (BattleManager.Instance.OnSelectItem(selected))
+		if (BattleManager.Instance.OnSelectItem(selected))
 			CursorSprite.StopBounce();
 	}
 }

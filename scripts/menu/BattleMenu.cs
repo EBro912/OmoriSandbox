@@ -20,16 +20,16 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 		switch (mode)
 		{
 			case MenuSkinMode.Dreamworld:
-				AttackSprite.RegionRect = new Rect2(653, 130, 180, 40);
-				SkillSprite.RegionRect = new Rect2(835, 130, 180, 40);
-				SnackSprite.RegionRect = new Rect2(653, 172, 180, 40);
-				ToySprite.RegionRect = new Rect2(835, 172, 180, 40);
+				AttackSprite.RegionRect = new Rect2(654, 131, 179, 39);
+				SkillSprite.RegionRect = new Rect2(835, 131, 179, 39);
+				SnackSprite.RegionRect = new Rect2(654, 172, 179, 39);
+				ToySprite.RegionRect = new Rect2(835, 172, 179, 39);
 				break;
 			case MenuSkinMode.Faraway:
-				AttackSprite.RegionRect = new Rect2(653, 212, 180, 40);
-				SkillSprite.RegionRect = new Rect2(835, 212, 180, 40);
-				SnackSprite.RegionRect = new Rect2(653, 254, 180, 40);
-				ToySprite.RegionRect = new Rect2(835, 254, 180, 40);
+				AttackSprite.RegionRect = new Rect2(654, 213, 179, 39);
+				SkillSprite.RegionRect = new Rect2(835, 213, 179, 39);
+				SnackSprite.RegionRect = new Rect2(654, 254, 179, 39);
+				ToySprite.RegionRect = new Rect2(835, 254, 179, 39);
 				break;
 			case MenuSkinMode.Blackspace:
 				GD.PrintErr("MenuSkinMode.Blackspace unimplemented for BattleMenu.");
@@ -46,8 +46,8 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 		CursorPositions = [new Vector2I(-153, -72), new Vector2I(35, -72), new Vector2I(-153, -27), new Vector2I(35, -27)];
 	}
 
-    public override void OnOpen(SelectionMemory memory)
-    {
+	public override void OnOpen(SelectionMemory memory)
+	{
 		if (memory.SavedState == MenuState.Battle)
 			CursorIndex = memory.SavedIndex;
 		else if (memory.SavedState == MenuState.Skill)
@@ -56,12 +56,12 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 			CursorIndex = 2;
 		else if (memory.SavedState == MenuState.Toy)
 			CursorIndex = 3;
-        else
+		else
 			CursorIndex = 0;
 		CursorSprite.StartBounce();
 		UpdateCursor();
 		Show();
-    }
+	}
 
 	protected override void MoveCursor(Vector2I direction)
 	{

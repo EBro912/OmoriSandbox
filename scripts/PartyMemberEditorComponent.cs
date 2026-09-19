@@ -111,8 +111,8 @@ internal partial class PartyMemberEditorComponent : Control
 		BattleCard = battleCard;
 		Animator = BattleCard.GetNode<StateAnimator>("Battlecard/StateAnimatorComponent");
 		Face = BattleCard.GetNode<AnimatedSprite2D>("Battlecard/Face");
-		HealthLabel = BattleCard.GetNode<Label>("Battlecard/HealthLabel");
-		JuiceLabel = BattleCard.GetNode<Label>("Battlecard/JuiceLabel");
+		HealthLabel = BattleCard.GetNode<Label>("Battlecard/Health/HealthLabel");
+		JuiceLabel = BattleCard.GetNode<Label>("Battlecard/Juice/JuiceLabel");
 		
 		ActorPosition = position;
 		FollowupSetDropdown.Selected = FollowupSetDropdown.GetItemIndex(FollowupSets.DefaultIdForPosition(position));
@@ -140,8 +140,8 @@ internal partial class PartyMemberEditorComponent : Control
 		BattleCard = battleCard;
 		Animator = BattleCard.GetNode<StateAnimator>("Battlecard/StateAnimatorComponent");
 		Face = BattleCard.GetNode<AnimatedSprite2D>("Battlecard/Face");
-		HealthLabel = BattleCard.GetNode<Label>("Battlecard/HealthLabel");
-		JuiceLabel = BattleCard.GetNode<Label>("Battlecard/JuiceLabel");
+		HealthLabel = BattleCard.GetNode<Label>("Battlecard/Health/HealthLabel");
+		JuiceLabel = BattleCard.GetNode<Label>("Battlecard/Juice/JuiceLabel");
 		StatAdjustmentEditor.SetStats(adjustedStats);
 
 		ActorPosition = position;
