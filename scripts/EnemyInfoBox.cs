@@ -31,7 +31,7 @@ public partial class EnemyInfoBox : Control
 		HPBar.MaxValue = Enemy.CurrentStats.MaxHP;
 		HPBar.Value = Enemy.CurrentHP;
 		NameLabel.Text = Enemy.Name;
-		float width = Mathf.Max(Infobox.CustomMinimumSize.X, NameLabel.GetMinimumSize().X + 15);
+		float width = Mathf.Max(Infobox.CustomMinimumSize.X, NameLabel.GetMinimumSize().X + 19);
 		Infobox.Size = new Vector2(width, Infobox.Size.Y);
 		Infobox.Position = new Vector2(-width / 2f, Infobox.Position.Y);
 	}

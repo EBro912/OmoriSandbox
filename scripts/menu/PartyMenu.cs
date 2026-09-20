@@ -13,7 +13,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 	public override void _Ready()
 	{
 		Options = ["Fight", "Run"];
-		CursorPositions = [new Vector2I(-105, -72), new Vector2I(-105, -27)];
+		CursorPositions = [new Vector2I(-98, -70), new Vector2I(-78, -31)];
 	}
 
 	public void SetSkinMode(MenuSkinMode mode)
@@ -25,8 +25,8 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 				RunSprite.RegionRect = new Rect2(654, 418, 360, 39);
 				break;
 			case MenuSkinMode.Faraway:
-				FightSprite.RegionRect = new Rect2(654, 460, 360, 40);
-				RunSprite.RegionRect = new Rect2(654, 499, 360, 39);
+				FightSprite.RegionRect = new Rect2(654, 458, 360, 41);
+				RunSprite.RegionRect = new Rect2(654, 499, 360, 40);
 				break;
 			case MenuSkinMode.Blackspace:
 				FightSprite.RegionRect = new Rect2(654, 295, 360, 39);

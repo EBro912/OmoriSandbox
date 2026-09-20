@@ -1,15 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://coa7jio0ejncb"]
+[gd_scene format=3 uid="uid://coa7jio0ejncb"]
 
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_lkc2j"]
 
-[node name="LogLine" type="Control"]
+[node name="LogLine" type="Control" unique_id=1879067597]
 custom_minimum_size = Vector2(335, 26)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 335.0
 offset_bottom = 26.0
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=492591546]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0

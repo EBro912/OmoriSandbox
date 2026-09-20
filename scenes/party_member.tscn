@@ -85,7 +85,9 @@ offset_top = 127.0
 offset_right = 109.0
 offset_bottom = 139.0
 value = 100.0
+texture_under = ExtResource("5_ms8ku")
 texture_progress = ExtResource("5_ms8ku")
+tint_under = Color(0, 0, 0, 1)
 
 [node name="HealthLabel" type="Label" parent="Battlecard/Health" unique_id=1488056968]
 layout_mode = 0
@@ -109,7 +111,9 @@ offset_top = 146.0
 offset_right = 109.0
 offset_bottom = 158.0
 value = 100.0
+texture_under = ExtResource("6_xyj2y")
 texture_progress = ExtResource("6_xyj2y")
+tint_under = Color(0, 0, 0, 1)
 
 [node name="JuiceLabel" type="Label" parent="Battlecard/Juice" unique_id=486899302]
 layout_mode = 0

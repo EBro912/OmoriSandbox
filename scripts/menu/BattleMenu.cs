@@ -43,7 +43,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 	public override void _Ready()
 	{
 		Options = ["Attack", "Skill", "Snack", "Toy"];
-		CursorPositions = [new Vector2I(-153, -72), new Vector2I(35, -72), new Vector2I(-153, -27), new Vector2I(35, -27)];
+		CursorPositions = [new Vector2I(-154, -72), new Vector2I(28, -72), new Vector2I(-154, -30), new Vector2I(28, -30)];
 	}
 
 	public override void OnOpen(SelectionMemory memory)

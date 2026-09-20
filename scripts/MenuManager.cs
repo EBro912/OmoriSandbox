@@ -182,13 +182,13 @@ internal partial class MenuManager : Node
 	{
 		if (immediate)
 		{
-			EnergyBar.Position = new Vector2(320f, 450f);
+			EnergyBar.Position = new Vector2(320f, 446f);
 		}
 		else
 		{
 			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
-			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 450f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(320f, 446f), 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 

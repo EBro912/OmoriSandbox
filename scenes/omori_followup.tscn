@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://b8h6qs361gmp5"]
+[gd_scene format=3 uid="uid://b8h6qs361gmp5"]
 
 [ext_resource type="Script" uid="uid://i0jitv8wumfr" path="res://scripts/FollowupBubbles.cs" id="1_de6qi"]
 [ext_resource type="Texture2D" uid="uid://bp4sh5ji6jwpv" path="res://assets/system/ACS_Bubble.png" id="1_t8imw"]
@@ -6,51 +6,51 @@
 [ext_resource type="Script" uid="uid://ddwjgbjgtbsv" path="res://scripts/FollowupDirection.cs" id="2_ldk6r"]
 [ext_resource type="Script" uid="uid://c3w7m65ic8go4" path="res://scripts/CursorBounce.cs" id="4_de6qi"]
 
-[node name="omori_followup" type="Node2D" node_paths=PackedStringArray("Directions")]
+[node name="omori_followup" type="Node2D" unique_id=1481259280 node_paths=PackedStringArray("Directions")]
 script = ExtResource("1_de6qi")
 Directions = [NodePath("BubbleUp"), NodePath("BubbleRight"), NodePath("BubbleDown")]
 
-[node name="BubbleUp" type="Sprite2D" parent="."]
-position = Vector2(67, -30)
+[node name="BubbleUp" type="Sprite2D" parent="." unique_id=162554579]
+position = Vector2(68, -32)
 texture = ExtResource("1_t8imw")
 region_enabled = true
 region_rect = Rect2(0, -1, 127, 99)
 script = ExtResource("2_ldk6r")
 InputDir = 1
 
-[node name="FingerUp" type="Sprite2D" parent="BubbleUp"]
-position = Vector2(4, -42)
+[node name="FingerUp" type="Sprite2D" parent="BubbleUp" unique_id=307858405]
+position = Vector2(5, -42)
 texture = ExtResource("2_1tklj")
 region_enabled = true
 region_rect = Rect2(96, 0, 29, 29)
 script = ExtResource("4_de6qi")
 Direction = 1
 
-[node name="BubbleRight" type="Sprite2D" parent="."]
-position = Vector2(156, 1)
+[node name="BubbleRight" type="Sprite2D" parent="." unique_id=754824067]
+position = Vector2(157, -6)
 texture = ExtResource("1_t8imw")
 region_enabled = true
 region_rect = Rect2(127, 0, 127, 99)
 script = ExtResource("2_ldk6r")
 InputDir = 4
 
-[node name="FingerRight" type="Sprite2D" parent="BubbleRight"]
-position = Vector2(56, -6)
+[node name="FingerRight" type="Sprite2D" parent="BubbleRight" unique_id=2047572636]
+position = Vector2(56, -5)
 texture = ExtResource("2_1tklj")
 region_enabled = true
 region_rect = Rect2(34, 0, 29, 29)
 script = ExtResource("4_de6qi")
 
-[node name="BubbleDown" type="Sprite2D" parent="."]
-position = Vector2(178, 66)
+[node name="BubbleDown" type="Sprite2D" parent="." unique_id=895544557]
+position = Vector2(175, 59)
 texture = ExtResource("1_t8imw")
 region_enabled = true
 region_rect = Rect2(258, 0, 127, 99)
 script = ExtResource("2_ldk6r")
 InputDir = 2
 
-[node name="FingerDown" type="Sprite2D" parent="BubbleDown"]
-position = Vector2(0, 36)
+[node name="FingerDown" type="Sprite2D" parent="BubbleDown" unique_id=267695789]
+position = Vector2(3, 36)
 texture = ExtResource("2_1tklj")
 region_enabled = true
 region_rect = Rect2(0, 0, 29, 29)

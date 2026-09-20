@@ -104,7 +104,6 @@ MainTabs = NodePath("../Editor/SettingsTabs")
 bus = &"BGM"
 
 [node name="Main" type="CanvasLayer" parent="." unique_id=1680379999]
-visible = false
 
 [node name="Parallax2D" type="Parallax2D" parent="Main" unique_id=727271642]
 repeat_size = Vector2(960, 0)

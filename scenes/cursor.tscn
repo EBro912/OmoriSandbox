@@ -2,10 +2,8 @@
 
 [ext_resource type="Texture2D" uid="uid://q4jxuj12jmru" path="res://assets/system/bsys_cursor.png" id="1_s0nli"]
 [ext_resource type="Script" uid="uid://c3w7m65ic8go4" path="res://scripts/CursorBounce.cs" id="2_ndevg"]
-[ext_resource type="Material" uid="uid://c5e4afccx5edf" path="res://assets/grayscale_shader.tres" id="3_ndevg"]
 
 [node name="Cursor" type="Sprite2D" unique_id=568568250]
 visible = false
 texture = ExtResource("1_s0nli")
 script = ExtResource("2_ndevg")
-Grayscale = ExtResource("3_ndevg")
