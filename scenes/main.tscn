@@ -373,8 +373,7 @@ shortcut_keys_enabled = false
 visible_characters_behavior = 1
 
 [node name="Icon" type="Sprite2D" parent="BattleCanvas/UI/BattleLog" unique_id=1266921557]
-visible = false
-position = Vector2(310.5, 40.882072)
+position = Vector2(315.5, 39.882072)
 scale = Vector2(0.75, 0.75)
 region_enabled = true
 region_rect = Rect2(108, 0, 108, 108)

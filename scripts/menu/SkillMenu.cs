@@ -104,7 +104,7 @@ internal partial class SkillMenu : PagedMenu
 		if (Empty) return;
 		Skill s = DisplayedSkills[CursorIndex];
 		CostText.Text = s.Cost(Actor).ToString();
-		BattleLogManager.Instance.ClearAndShowMessage($"[font_size=28]{s.Name}\n[font_size=20]{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
+		BattleLogManager.Instance.ClearAndShowDescription($"[font_size=28]{s.Name}\n[font_size=20]{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
 	}
 
 	protected override void OnSelect()

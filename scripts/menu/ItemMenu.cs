@@ -101,7 +101,7 @@ internal partial class ItemMenu : PagedMenu
 				$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}", i.Item1.SpritesheetPath,
 				i.Item1.SpriteIndex);
 		else
-			BattleLogManager.Instance.ClearAndShowMessage(
+			BattleLogManager.Instance.ClearAndShowDescription(
 				$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}");
 	}
 
