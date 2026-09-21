@@ -738,7 +738,7 @@ offset = Vector2(0, 2)
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu" unique_id=397386569]
 visible = false
-position = Vector2(350, 35)
+position = Vector2(350, 37)
 texture = ExtResource("26_kmb1v")
 flip_v = true
 region_enabled = true
@@ -868,7 +868,7 @@ offset = Vector2(0, 2)
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1837749994]
 visible = false
-position = Vector2(350, 35)
+position = Vector2(350, 37)
 texture = ExtResource("26_kmb1v")
 flip_v = true
 region_enabled = true
@@ -990,7 +990,7 @@ offset = Vector2(0, 2)
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1293085651]
 visible = false
-position = Vector2(350, 35)
+position = Vector2(350, 37)
 texture = ExtResource("26_kmb1v")
 flip_v = true
 region_enabled = true
