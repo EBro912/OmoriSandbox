@@ -13,7 +13,7 @@ internal partial class ItemMenu : PagedMenu
 	private readonly List<(Item, int)> Items = [];
 	private List<(Item, int)> DisplayedItems = [];
 
-	protected new List<Vector2I> Positions = [new(26, 53), new(196, 53), new(26, 77), new(196, 77)];
+	protected List<Vector2I> ItemMenuPositions = [new(26, 53), new(196, 53), new(26, 77), new(196, 77)];
 
 	protected override Vector2 OpenPosition => new(140, 385);
 	protected override Vector2 ClosedPosition => new(140, 490);
@@ -69,7 +69,7 @@ internal partial class ItemMenu : PagedMenu
 			l.Text = "";
 		if (Empty)
 		{
-			CursorPositions = Positions.GetRange(0, 1);
+			CursorPositions = ItemMenuPositions.GetRange(0, 1);
 			CursorIndex = 0;
 			UpdateCursor();
 			return;
@@ -84,7 +84,7 @@ internal partial class ItemMenu : PagedMenu
 		{
 			ItemLabels[i].SetFittedText(DisplayedItems[i].Item1.Name);
 		}
-		CursorPositions = Positions.GetRange(0, DisplayedItems.Count);
+		CursorPositions = ItemMenuPositions.GetRange(0, DisplayedItems.Count);
 		if (CursorIndex >= DisplayedItems.Count)
 			CursorIndex = DisplayedItems.Count - 1;
 		UpdateCursor();

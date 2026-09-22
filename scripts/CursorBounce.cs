@@ -18,9 +18,7 @@ internal partial class CursorBounce : Sprite2D
         Tween.SetTrans(Tween.TransitionType.Sine);
         string direction = Direction == BounceDirection.Horizontal ? "offset:x" : "offset:y";
         Tween.TweenProperty(this, direction, 2.9f, 0.325f);
-		Tween.TweenInterval(0.01f);
         Tween.TweenProperty(this, direction, -2.9f, 0.325f);
-        Tween.TweenInterval(0.01f);
         Tween.SetLoops();
     }
 

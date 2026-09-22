@@ -35,7 +35,7 @@ script = ExtResource("3_oj3bm")
 InputDir = 3
 
 [node name="FingerLeft" type="Sprite2D" parent="BubbleLeft" unique_id=450199582]
-position = Vector2(-60, 3)
+position = Vector2(-60, -3)
 texture = ExtResource("2_a21wm")
 region_enabled = true
 region_rect = Rect2(66, 0, 29, 29)
