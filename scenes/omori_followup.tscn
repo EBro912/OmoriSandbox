@@ -19,12 +19,14 @@ script = ExtResource("2_ldk6r")
 InputDir = 1
 
 [node name="FingerUp" type="Sprite2D" parent="BubbleUp" unique_id=307858405]
-position = Vector2(5, -42)
+position = Vector2(5, -39)
 texture = ExtResource("2_1tklj")
 region_enabled = true
 region_rect = Rect2(96, 0, 29, 29)
 script = ExtResource("4_de6qi")
 Direction = 1
+Amplitude = 4.35
+HalfPeriod = 0.402768
 
 [node name="BubbleRight" type="Sprite2D" parent="." unique_id=754824067]
 position = Vector2(157, -6)
@@ -35,11 +37,13 @@ script = ExtResource("2_ldk6r")
 InputDir = 4
 
 [node name="FingerRight" type="Sprite2D" parent="BubbleRight" unique_id=2047572636]
-position = Vector2(56, -5)
+position = Vector2(58, -5)
 texture = ExtResource("2_1tklj")
 region_enabled = true
 region_rect = Rect2(34, 0, 29, 29)
 script = ExtResource("4_de6qi")
+Amplitude = 4.8
+HalfPeriod = 0.402768
 
 [node name="BubbleDown" type="Sprite2D" parent="." unique_id=895544557]
 position = Vector2(175, 59)
@@ -50,9 +54,11 @@ script = ExtResource("2_ldk6r")
 InputDir = 2
 
 [node name="FingerDown" type="Sprite2D" parent="BubbleDown" unique_id=267695789]
-position = Vector2(3, 36)
+position = Vector2(3, 35)
 texture = ExtResource("2_1tklj")
 region_enabled = true
 region_rect = Rect2(0, 0, 29, 29)
 script = ExtResource("4_de6qi")
 Direction = 1
+Amplitude = 4.35
+HalfPeriod = 0.402768

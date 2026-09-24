@@ -27,7 +27,7 @@ public partial class BattleLogManager : Control
 	private readonly Queue<string> MessageQueue = [];
 	private readonly Queue<string> LineQueue = [];
 	private readonly List<Control> ActiveLines = [];
-	private const int HEIGHT = 26;
+	private const int HEIGHT = 27;
 	private const int FONT_SIZE = 24;
 	private const float MAX_LINE_WIDTH = 335f;
 	private readonly Vector2I NO_ICON = new(335, 78);

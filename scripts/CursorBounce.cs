@@ -6,6 +6,8 @@ namespace OmoriSandbox;
 internal partial class CursorBounce : Sprite2D
 {
 	[Export] private BounceDirection Direction = BounceDirection.Horizontal;
+	[Export] private float Amplitude = 2.9f;
+	[Export] private float HalfPeriod = 20f / 60f;
 	private ShaderMaterial Grayscale;
 
 	private Tween Tween;
@@ -14,13 +16,13 @@ internal partial class CursorBounce : Sprite2D
 	{
 		Grayscale = ResourceLoader.Load<ShaderMaterial>("res://assets/grayscale_shader.tres");
 
-        Tween = CreateTween();
-        Tween.SetTrans(Tween.TransitionType.Sine);
-        string direction = Direction == BounceDirection.Horizontal ? "offset:x" : "offset:y";
-        Tween.TweenProperty(this, direction, 2.9f, 0.325f);
-        Tween.TweenProperty(this, direction, -2.9f, 0.325f);
-        Tween.SetLoops();
-    }
+		Tween = CreateTween();
+		Tween.SetTrans(Tween.TransitionType.Sine);
+		string direction = Direction == BounceDirection.Horizontal ? "offset:x" : "offset:y";
+		Tween.TweenProperty(this, direction, Amplitude, HalfPeriod);
+		Tween.TweenProperty(this, direction, -Amplitude, HalfPeriod);
+		Tween.SetLoops();
+	}
 
 	public void StartBounce()
 	{

@@ -3,11 +3,11 @@
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_lkc2j"]
 
 [node name="LogLine" type="Control" unique_id=1879067597]
-custom_minimum_size = Vector2(335, 26)
+custom_minimum_size = Vector2(335, 27)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 335.0
-offset_bottom = 26.0
+offset_bottom = 27.0
 
 [node name="Label" type="Label" parent="." unique_id=492591546]
 layout_mode = 0

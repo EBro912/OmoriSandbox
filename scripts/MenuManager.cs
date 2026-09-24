@@ -52,7 +52,7 @@ internal partial class MenuManager : Node
 	private void RefreshEnergy(object sender, EventArgs e)
 	{
 		EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
-		EnergyBar.RegionRect = new Rect2(1f, 1f + (float)Math.Ceiling(BattleManager.Instance.Energy / 3f) * 45f, 360f, 45f);
+		EnergyBar.RegionRect = new Rect2(1f, 1f + Math.Min(BattleManager.Instance.Energy / 2, 4) * 45f, 360f, 45f);
 	}
 
 	public void ShowButtons(bool realWorld)

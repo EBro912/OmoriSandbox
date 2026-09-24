@@ -30,7 +30,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 				break;
 			case MenuSkinMode.Blackspace:
 				FightSprite.RegionRect = new Rect2(654, 295, 360, 39);
-				RunSprite.RegionRect = new Rect2(654, 355, 360, 39);
+				RunSprite.RegionRect = new Rect2(654, 335, 360, 40);
 				break;
 			default:
 				GD.PrintErr("Unknown MenuSkinMode:	" + mode);

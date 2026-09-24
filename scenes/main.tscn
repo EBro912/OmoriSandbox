@@ -388,6 +388,7 @@ offset_right = -14.0
 offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/line_separation = 1
 theme_override_fonts/normal_font = ExtResource("10_choun")
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true

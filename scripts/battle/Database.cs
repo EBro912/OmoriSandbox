@@ -7544,44 +7544,44 @@ public class Database
 		AddSnack("Hot Dog", "Better than a cold dog.\nHeals 100 HEART.", 100, 63);
 		AddSnack("Waffle", "Designed to hold syrup!\nHeals 150 HEART.", 150, 71);
 		AddSnack("Pancake", "Not designed to hold syrup...\nHeals 150 HEART.", 150, 8);
-		AddSnack("Pizza Slice", "1/8th of a Whole pizza.\nHeals 175 HEART.", 175, 16);
+		AddSnack("Pizza Slice", "1/8th of a WHOLE PIZZA.\nHeals 175 HEART.", 175, 16);
 		AddSnack("Fish Taco", "Aquatic taco.\nHeals 200 HEART.", 200, 24);
-		AddSnack("Cheeseburger", "Contains all food groups, so it's healthy! Heals 250 HEART.", 250, 32);
+		AddSnack("Cheeseburger", "Contains all food groups, so it's healthy!\nHeals 250 HEART.", 250, 32);
 
 		AddSnack("Chocolate", "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.", 0.4f, 40);
 		AddSnack("Donut", "Circular bread with a hole in it.\nHeals 60% of HEART.", 0.6f, 48);
 		AddSnack("Ramen", "Now that is a lot of sodium!\nHeals 80% of HEART.", 0.8f, 56);
 		AddSnack("Spaghetti", "Wet noodles slathered with chunky\nsauce. Fully heals a friend's HEART.", 1.0f, 64);
-		AddSnack("Dino Pasta", "Pasta shaped line dinosaurs.\nFully restores a friend's HEART.", 1.0f, 10);
+		AddSnack("Dino Pasta", "Pasta shaped like dinosaurs.\nFully restores a friend's HEART.", 1.0f, 10);
 
 		AddGroupSnack("Popcorn", "9/10 dentists hate it.\nHeals 35 HEART to all friends.", 35, 1);
 		AddGroupSnack("Fries", "From France, wherever that is...\nHeals 60 HEART to all friends.", 60, 9);
 		AddGroupSnack("Cheese Wheel", "Delicious, yet functional.\nHeals 100 HEART to all friends.", 100, 25);
 		AddGroupSnack("Whole Chicken", "An entire chicken, wings and all.\nHeals 175 HEART to all friends.", 175, 33);
-		AddGroupSnack("Whole Pizza", "8/8ths of a whole pizza.\nHeals 250 HEART to all friends.", 250, 41);
+		AddGroupSnack("Whole Pizza", "8/8ths of a WHOLE PIZZA.\nHeals 250 HEART to all friends.", 250, 41);
 		AddGroupSnack("Dino Clumps", "Chicken nuggets shaped like dinosaurs.\nHeals 250 HEART to all friends.", 250, 2);
 
-		AddJuiceSnack("Plum Juice", "For seniors. Wait, that's prune juice.\nHeals 15 JUICE.", 15, 26);
-		AddJuiceSnack("Apple Juice", "Apparently better than orange juice.\nHeals 25 JUICE.", 25, 42);
+		AddJuiceSnack("Plum Juice", "For seniors. Wait, that's PRUNE JUICE.\nHeals 15 JUICE.", 15, 26);
+		AddJuiceSnack("Apple Juice", "Apparently better than ORANGE JUICE.\nHeals 25 JUICE.", 25, 42);
 		AddJuiceSnack("Breadfruit Juice", "Does not taste like bread.\nHeals 50 JUICE.", 50, 66);
 		AddJuiceSnack("Lemonade", "When life gives you lemons, make this!\nHeals 75 JUICE.", 75, 11);
-		AddJuiceSnack("Orange Juice", "Apparently better than apple juice.\nHeals 100 JUICE.", 100, 35);
+		AddJuiceSnack("Orange Juice", "Apparently better than APPLE JUICE.\nHeals 100 JUICE.", 100, 35);
 		AddJuiceSnack("Pineapple Juice", "Painful... Why do you drink it?\nHeals 150 JUICE.", 150, 43);
 		AddJuiceSnack("Bottled Water", "Water in a bottle.\nHeals 100 JUICE.", 100, 44);
-		AddJuiceSnack("Fruit Juice?", "You're not sure what fruit it is.\nHeals 75 JUICE.", 75, 29);
+		AddJuiceSnack("Fruit Juice?", "You are not sure what fruit it is.\nHeals 75 JUICE.", 75, 29);
 
 
 		AddJuiceSnack("Cherry Soda", "Carbonated hell sludge.\nHeals 25% of JUICE.", 0.25f, 50);
 		AddJuiceSnack("Star Fruit Soda", "To be shared with a friend.\nHeals 35% of JUICE.", 0.35f, 58);
 		AddJuiceSnack("Tasty Soda", "Tasty soda for thirsty people.\nHeals 50% of JUICE.", 0.5f, 3);
-		AddJuiceSnack("Peach Soda", "A regular peach soda.\nHeals 60% of JUICE.", 0.6f, 19);
-		AddJuiceSnack("Butt Peach Soda", "An irregular peach soda.\nHeals 61% of JUICE.", 0.61f, 27);
+		AddJuiceSnack("Peach Soda", "A regular PEACH SODA.\nHeals 60% of JUICE.", 0.6f, 19);
+		AddJuiceSnack("Butt Peach Soda", "An irregular PEACH SODA.\nHeals 61% of JUICE.", 0.61f, 27);
 		AddJuiceSnack("Watermelon Juice", "Heavenly nectar.\nFully heals a friend's JUICE.", 1.0f, 36);
 		AddJuiceSnack("Dino Melon Soda", "Melon soda in a dino-shaped bottle.\nFully heals a friend's JUICE.", 1.0f, 5);
 
 		AddGroupJuiceSnack("Banana Smoothie", "A little bland, but it does the job.\nHeals 20 JUICE to all friends.", 20, 67);
 		AddGroupJuiceSnack("Mango Smoothie", "Makes you tango!\nHeals 40 JUICE to all friends.", 40, 52);
-		AddGroupJuiceSnack("Berry Smoothie", "A healthy smoothie that tastes like dirt. Heals 60 JUICE to all friends.", 60, 12);
+		AddGroupJuiceSnack("Berry Smoothie", "A healthy smoothie that tastes like\ndirt. Heals 60 JUICE to all friends.", 60, 12);
 		AddGroupJuiceSnack("Melon Smoothie", "Chunky green melon goodness.\nHeals 80 JUICE to all friends.", 80, 20);
 		AddGroupJuiceSnack("S.berry Smoothie", "The default smoothie.\nHeals 100 JUICE to all friends.", 100, 28);
 		AddGroupJuiceSnack("Dino Smoothie", "Berry smoothie in a dino-shaped cup.\nHeals 150 JUICE to all friends.", 150, 13);
@@ -7640,7 +7640,7 @@ public class Database
 
 		Items["Prune Juice"] = new Item(
 			name: "PRUNE JUICE",
-			description: "This tastes horrible. Don't drink it.\nHeals 30 JUICE...probably.",
+			description: "This tastes horrible. Don't drink it.\nHeals 30 JUICE... probably.",
 			target: SkillTarget.Ally,
 			effect: async (self, target) =>
 			{
@@ -7713,7 +7713,7 @@ public class Database
 
 		Items["Sno-Cone"] = new Item(
 			name: "SNO-CONE",
-			description: "Heals a friend's HEART and JUICE, and raises ALL STATS for the battle.",
+			description: "Heals a friend's HEART and JUICE, and\nraises ALL STATS for the battle.",
 			target: SkillTarget.Ally,
 			effect: async (self, target) =>
 			{
@@ -7835,7 +7835,7 @@ public class Database
 
 		Items["Big Rubber Band"] = new Item(
 			name: "BIG RUBBER BAND",
-			description: "Deals big damage to a foe and reduces their DEFENSE.",
+			description: "Deals big damage to a foe and\nreduces their DEFENSE.",
 			target: SkillTarget.Enemy,
 			effect: async (self, target) =>
 			{
@@ -7851,7 +7851,7 @@ public class Database
 
 		Items["Jacks"] = new Item(
 			name: "JACKS",
-			description: "Deals small damage to all foes and reduces their SPEED.",
+			description: "Deals small damage to all foes\nand reduces their SPEED.",
 			target: SkillTarget.AllEnemies,
 			effect: async (self, targets) =>
 			{
@@ -7966,7 +7966,7 @@ public class Database
 
 		Items["Poetry Book"] = new Item(
 			name: "POETRY BOOK",
-			description: "Sad words string together.\nInflicts SAD on a friend or foe.",
+			description: "Sad words strung together.\nInflicts SAD on a friend or foe.",
 			target: SkillTarget.AllyOrEnemy,
 			effect: async (self, target) =>
 			{
@@ -8000,7 +8000,7 @@ public class Database
 
 		Items["Dandelion"] = new Item(
 			name: "DANDELION",
-			description: "Has a calming effect.\nRemoves emotion from a friend or foe.",
+			description: "Has a calming effect.\nRemoves EMOTION from a friend or foe.",
 			target: SkillTarget.AllyOrEnemy,
 			effect: async (self, target) =>
 			{
