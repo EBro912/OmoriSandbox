@@ -9,7 +9,7 @@ internal abstract partial class PagedMenu : Menu
 {
 	public int Page { get; protected set; } = 0;
 
-	protected List<Vector2I> Positions = [new(28, 52), new(200, 52), new(28, 76), new(200, 76)];
+	protected List<Vector2I> Positions = [new(22, 54), new(192, 54), new(22, 76), new(192, 76)];
 
 	protected int MaxPage => Math.Max(0, (TotalCount - 3) / 2);
 
