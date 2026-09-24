@@ -12,6 +12,8 @@ internal abstract partial class Menu : Control
 	protected bool Empty = false;
 	protected Tween Tween;
 
+	internal const float MoveDuration = 15f / 60f;
+	internal const float MoveDelay = 1f / 60f;
 	protected abstract Vector2 OpenPosition { get; }
 	protected abstract Vector2 ClosedPosition { get; }
 
@@ -62,7 +64,7 @@ internal abstract partial class Menu : Control
 		else
 		{
 			Tween = CreateTween();
-			Tween.TweenProperty(this, "position", OpenPosition, 0.2f).SetTrans(Tween.TransitionType.Sine);
+			Tween.TweenProperty(this, "position", OpenPosition, MoveDuration).SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.Out).SetDelay(MoveDelay);
 		}
 	}
 
@@ -79,7 +81,7 @@ internal abstract partial class Menu : Control
 		    else
 		    {
 			    Tween = CreateTween();
-			    Tween.TweenProperty(this, "position", ClosedPosition, 0.2f).SetTrans(Tween.TransitionType.Sine);
+			    Tween.TweenProperty(this, "position", ClosedPosition, MoveDuration).SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.In).SetDelay(MoveDelay);
 			    Tween.TweenCallback(Callable.From(() => Visible = false));
 		    }
 	    }

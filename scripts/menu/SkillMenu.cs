@@ -18,7 +18,7 @@ internal partial class SkillMenu : PagedMenu
 	private PartyMember Actor;
 
 	protected override Vector2 OpenPosition => new(140, 385);
-	protected override Vector2 ClosedPosition => new(140, 490);
+	protected override Vector2 ClosedPosition => new(140, 480);
 
 	protected override int TotalCount => Skills.Count;
 	protected override int DisplayedCount => DisplayedSkills.Count;

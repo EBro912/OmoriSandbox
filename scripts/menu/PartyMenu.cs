@@ -8,7 +8,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 	[Export] private Sprite2D RunSprite;
 	
 	protected override Vector2 OpenPosition => new(320, 480);
-	protected override Vector2 ClosedPosition => new(320, 575);
+	protected override Vector2 ClosedPosition => new(320, 572);
 	
 	public override void _Ready()
 	{

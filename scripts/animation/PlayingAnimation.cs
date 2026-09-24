@@ -39,14 +39,34 @@ internal partial class PlayingAnimation : Node2D
 			if (frame.Additive != additive) continue;
 			AtlasTexture texture = Animation.GetTextureAt(frame.Pattern);
 			if (texture == null) continue;
-			Vector2 center = -texture.GetSize() / 2f;
+			Vector2 half = texture.GetSize() / 2f;
 			Vector2 scale = new(frame.Scale / 100f, frame.Scale / 100f);
 			if (frame.Mirror)
 				scale.X *= -1;
-			canvas.DrawSetTransform(DrawPosition + new Vector2(frame.X, frame.Y), Mathf.DegToRad(frame.Rotation), scale);
-			canvas.DrawTexture(texture, center, new Color(1f, 1f, 1f, frame.Opacity / 255f));
+			Transform2D cell = new(Mathf.DegToRad(frame.Rotation), scale, 0f, DrawPosition + new Vector2(frame.X, frame.Y));
+			Vector2[] points =
+			[
+				Truncate(cell * new Vector2(-half.X, -half.Y)),
+				Truncate(cell * new Vector2(half.X, -half.Y)),
+				Truncate(cell * new Vector2(half.X, half.Y)),
+				Truncate(cell * new Vector2(-half.X, half.Y))
+			];
+			Rect2 region = texture.Region;
+			Vector2 atlasSize = texture.Atlas.GetSize();
+			Vector2[] uvs =
+			[
+				region.Position / atlasSize,
+				new Vector2(region.End.X, region.Position.Y) / atlasSize,
+				region.End / atlasSize,
+				new Vector2(region.Position.X, region.End.Y) / atlasSize
+			];
+			Color color = new(1f, 1f, 1f, frame.Opacity / 255f);
+			Color[] colors = [color, color, color, color];
+			canvas.DrawPrimitive(points, colors, uvs, texture.Atlas);
 		}
 	}
+
+	private static Vector2 Truncate(Vector2 v) => new(System.MathF.Truncate(v.X), System.MathF.Truncate(v.Y));
 
 	public bool AdvanceFrame()
 	{

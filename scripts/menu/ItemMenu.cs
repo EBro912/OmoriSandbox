@@ -16,7 +16,7 @@ internal partial class ItemMenu : PagedMenu
 	protected List<Vector2I> ItemMenuPositions = [new(26, 55), new(196, 55), new(26, 79), new(196, 79)];
 
 	protected override Vector2 OpenPosition => new(140, 385);
-	protected override Vector2 ClosedPosition => new(140, 490);
+	protected override Vector2 ClosedPosition => new(140, 480);
 
 	protected override int TotalCount => Items.Count;
 	protected override int DisplayedCount => DisplayedItems.Count;

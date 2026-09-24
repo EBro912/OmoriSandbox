@@ -11,7 +11,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 	[Export] private Sprite2D ToySprite;
 	
 	protected override Vector2 OpenPosition => new(320, 480);
-	protected override Vector2 ClosedPosition => new(320, 575);
+	protected override Vector2 ClosedPosition => new(320, 572);
 	
 	private Vector2I GridSize = new(2, 2);
 
