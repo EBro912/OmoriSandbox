@@ -13,7 +13,7 @@ internal partial class ItemMenu : PagedMenu
 	private readonly List<(Item, int)> Items = [];
 	private List<(Item, int)> DisplayedItems = [];
 
-	protected List<Vector2I> ItemMenuPositions = [new(26, 53), new(196, 53), new(26, 77), new(196, 77)];
+	protected List<Vector2I> ItemMenuPositions = [new(26, 55), new(196, 55), new(26, 79), new(196, 79)];
 
 	protected override Vector2 OpenPosition => new(140, 385);
 	protected override Vector2 ClosedPosition => new(140, 490);

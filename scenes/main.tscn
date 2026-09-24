@@ -604,8 +604,6 @@ region_rect = Rect2(654, 499, 360, 40)
 
 [node name="Cursor" parent="BattleCanvas/UI/PartyMenu" unique_id=1476141000 instance=ExtResource("24_qkpxi")]
 visible = true
-position = Vector2(-14, 2)
-offset = Vector2(14, -2)
 
 [node name="BattleMenu" type="Control" parent="BattleCanvas/UI" unique_id=749760311 node_paths=PackedStringArray("AttackSprite", "SkillSprite", "SnackSprite", "ToySprite", "CursorSprite")]
 visible = false
@@ -760,7 +758,6 @@ script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/SkillMenu" unique_id=504568155 instance=ExtResource("24_qkpxi")]
 visible = true
-offset = Vector2(0, 2)
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu" unique_id=397386569]
 visible = false
@@ -890,7 +887,6 @@ script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/SnackMenu" unique_id=494831219 instance=ExtResource("24_qkpxi")]
 visible = true
-offset = Vector2(0, 2)
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1837749994]
 visible = false
@@ -1012,7 +1008,6 @@ script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/ToyMenu" unique_id=1265284258 instance=ExtResource("24_qkpxi")]
 visible = true
-offset = Vector2(0, 2)
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1293085651]
 visible = false
