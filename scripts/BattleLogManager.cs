@@ -31,8 +31,12 @@ public partial class BattleLogManager : Control
 	private const int FONT_SIZE = 24;
 	private const float MAX_LINE_WIDTH = 335f;
 	private readonly Vector2I NO_ICON = new(335, 78);
-	private readonly Vector2I WITH_ICON = new(255, 78);
+	private readonly Vector2I WITH_ICON = new(275, 78);
 	private const int ICON_SIZE = 108;
+
+	// normal position and description position are different to match base omori - pliplupp
+	private readonly Vector2I NormalPosition = new(14, 0);
+	private readonly Vector2I DescPosition = new(10, 1);
 	
 	/// <summary>
 	/// Returns true when the battle log is busy with messages.
@@ -95,6 +99,20 @@ public partial class BattleLogManager : Control
 	/// <param name="message">The message to display.</param>
 	public void ShowMessage(string message)
 	{
+		ImmediateLabel.Position = NormalPosition;
+		ImmediateLabel.Size = NO_ICON;
+		Icon.Visible = false;
+		ImmediateLabel.Text = message;
+	}
+
+	/// <summary>
+	/// Immediately shows a message in the battle log, but with the alternate position used for item/skill descriptions.<br/>
+	/// Accepts Godot BBCode for formatting.
+	/// </summary>
+	/// <param name="message">The message to display.</param>
+	public void ShowDescription(string message)
+	{
+		ImmediateLabel.Position = DescPosition;
 		ImmediateLabel.Size = NO_ICON;
 		Icon.Visible = false;
 		ImmediateLabel.Text = message;
@@ -109,6 +127,7 @@ public partial class BattleLogManager : Control
 	/// <param name="index">The atlas index of the sprite.</param>
 	public void ShowMessageWithIcon(string message, string spritesheetPath, int index)
 	{
+		ImmediateLabel.Position = DescPosition;
 		ImmediateLabel.Size = WITH_ICON;
 		Icon.Visible = true;
 		Icon.Texture = ResourceLoader.Load<Texture2D>(spritesheetPath);
@@ -128,6 +147,16 @@ public partial class BattleLogManager : Control
 	{
 		ClearBattleLog();
 		ShowMessage(message);
+	}
+
+	/// <summary>
+	/// Immediately shows a message in the battle log, clearing any queued or active messages first. Uses the alternate position meant for item/skill descriptions
+	/// </summary>
+	/// <param name="message">The message to display.</param>
+	public void ClearAndShowDescription(string message)
+	{
+		ClearBattleLog();
+		ShowDescription(message);
 	}
 
 	/// <summary>

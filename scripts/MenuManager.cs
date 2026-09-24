@@ -182,13 +182,13 @@ internal partial class MenuManager : Node
 	{
 		if (immediate)
 		{
-			EnergyBar.Position = new Vector2(139f, 424f);
+			EnergyBar.Position = new Vector2(140f, 424f);
 		}
 		else
 		{
 			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
-			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(139f, 424f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(140f, 424f), 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 
@@ -196,13 +196,13 @@ internal partial class MenuManager : Node
 	{
 		if (immediate)
 		{
-			EnergyBar.Position = new Vector2(139f, 340f);
+			EnergyBar.Position = new Vector2(140f, 340f);
 		}
 		else
 		{
 			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
-			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(139f, 340f), 0.2f).SetTrans(Tween.TransitionType.Sine);
+			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(140f, 340f), 0.2f).SetTrans(Tween.TransitionType.Sine);
 		}
 	}
 }

@@ -276,8 +276,7 @@ public partial class DialogueManager : Node2D
 				SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
 			}
 
-			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " +
-			                            BuildHeader(current.Font) + current.Message);
+			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " + BuildHeader(current.Font) + current.Message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = current.Speaker.Length + 2;
 		}
