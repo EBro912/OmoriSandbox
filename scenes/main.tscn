@@ -632,7 +632,7 @@ region_enabled = true
 region_rect = Rect2(654, 131, 179, 39)
 
 [node name="Skill" type="Sprite2D" parent="BattleCanvas/UI/BattleMenu" unique_id=370038928]
-position = Vector2(90, -73)
+position = Vector2(92, -73)
 texture = ExtResource("39_bjg73")
 region_enabled = true
 region_rect = Rect2(835, 131, 179, 39)
@@ -644,7 +644,7 @@ region_enabled = true
 region_rect = Rect2(654, 172, 179, 39)
 
 [node name="Toy" type="Sprite2D" parent="BattleCanvas/UI/BattleMenu" unique_id=1421781315]
-position = Vector2(90, -30)
+position = Vector2(92, -30)
 texture = ExtResource("39_bjg73")
 region_enabled = true
 region_rect = Rect2(835, 172, 179, 39)
