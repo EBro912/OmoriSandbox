@@ -41,7 +41,6 @@
 [ext_resource type="Script" uid="uid://brg8pn4xipyww" path="res://scripts/EnergyDots.cs" id="24_tel4y"]
 [ext_resource type="SpriteFrames" uid="uid://d0wkdk25n7b1w" path="res://animations/humphrey_face_swallow.tres" id="25_chjal"]
 [ext_resource type="Texture2D" uid="uid://bi2tnggbr827o" path="res://assets/pictures/player_skill_cherish.png" id="25_vchkt"]
-[ext_resource type="Texture2D" uid="uid://danupr12bhttw" path="res://assets/system/Battle_Window.png" id="26_kmb1v"]
 [ext_resource type="Material" uid="uid://duiu3jck554il" path="res://assets/mask_shader.tres" id="30_fv21b"]
 [ext_resource type="Texture2D" uid="uid://b2nt2i2gilu5a" path="res://assets/system/Window.png" id="36_bjg73"]
 [ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="37_c6pm6"]
@@ -397,8 +396,9 @@ shortcut_keys_enabled = false
 visible_characters_behavior = 1
 
 [node name="Icon" type="Sprite2D" parent="BattleCanvas/UI/BattleLog" unique_id=1266921557]
-position = Vector2(315.5, 39.882072)
+position = Vector2(276, 0)
 scale = Vector2(0.75, 0.75)
+centered = false
 region_enabled = true
 region_rect = Rect2(108, 0, 108, 108)
 
@@ -408,9 +408,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 2.0
-offset_right = 2.0
-offset_bottom = -6.0
+offset_left = 3.0
+offset_right = 3.0
+offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -761,18 +761,17 @@ visible = true
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu" unique_id=397386569]
 visible = false
-position = Vector2(350, 37)
-texture = ExtResource("26_kmb1v")
-flip_v = true
+position = Vector2(348, 42)
+texture = ExtResource("36_bjg73")
 region_enabled = true
-region_rect = Rect2(151, 111, 10, 5)
+region_rect = Rect2(132, 24, 24, 12)
 
 [node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu" unique_id=2061373747]
 visible = false
-position = Vector2(350, 90)
-texture = ExtResource("26_kmb1v")
+position = Vector2(348, 87)
+texture = ExtResource("36_bjg73")
 region_enabled = true
-region_rect = Rect2(151, 111, 10, 5)
+region_rect = Rect2(132, 60, 24, 12)
 
 [node name="ColorRect" type="ColorRect" parent="BattleCanvas/UI/SkillMenu" unique_id=1336403908]
 z_index = -1
@@ -828,13 +827,12 @@ text = "HOLD:"
 
 [node name="Value" type="Label" parent="BattleCanvas/UI/SnackMenu/Cost" unique_id=845700145]
 layout_mode = 0
-offset_left = 10.0
-offset_right = 63.0
+offset_left = 41.0
+offset_right = 94.0
 offset_bottom = 24.0
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 20
 text = "0"
-horizontal_alignment = 2
 
 [node name="Skill1" type="Label" parent="BattleCanvas/UI/SnackMenu" unique_id=484648521]
 layout_mode = 0
@@ -890,18 +888,17 @@ visible = true
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1837749994]
 visible = false
-position = Vector2(350, 37)
-texture = ExtResource("26_kmb1v")
-flip_v = true
+position = Vector2(348, 42)
+texture = ExtResource("36_bjg73")
 region_enabled = true
-region_rect = Rect2(151, 111, 10, 5)
+region_rect = Rect2(132, 24, 24, 12)
 
 [node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1410525238]
 visible = false
-position = Vector2(350, 90)
-texture = ExtResource("26_kmb1v")
+position = Vector2(348, 87)
+texture = ExtResource("36_bjg73")
 region_enabled = true
-region_rect = Rect2(151, 111, 10, 5)
+region_rect = Rect2(132, 60, 24, 12)
 
 [node name="ColorRect" type="ColorRect" parent="BattleCanvas/UI/SnackMenu" unique_id=373864363]
 z_index = -1
@@ -950,13 +947,12 @@ text = "HOLD:"
 
 [node name="Value" type="Label" parent="BattleCanvas/UI/ToyMenu/Cost" unique_id=1164099062]
 layout_mode = 0
-offset_left = 10.0
-offset_right = 63.0
+offset_left = 41.0
+offset_right = 94.0
 offset_bottom = 24.0
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 20
 text = "0"
-horizontal_alignment = 2
 
 [node name="Skill1" type="Label" parent="BattleCanvas/UI/ToyMenu" unique_id=1336353917]
 layout_mode = 0
@@ -1011,18 +1007,17 @@ visible = true
 
 [node name="PageUp" type="Sprite2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1293085651]
 visible = false
-position = Vector2(350, 37)
-texture = ExtResource("26_kmb1v")
-flip_v = true
+position = Vector2(348, 42)
+texture = ExtResource("36_bjg73")
 region_enabled = true
-region_rect = Rect2(151, 111, 10, 5)
+region_rect = Rect2(132, 24, 24, 12)
 
 [node name="PageDown" type="Sprite2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1558395907]
 visible = false
-position = Vector2(350, 90)
-texture = ExtResource("26_kmb1v")
+position = Vector2(348, 87)
+texture = ExtResource("36_bjg73")
 region_enabled = true
-region_rect = Rect2(151, 111, 10, 5)
+region_rect = Rect2(132, 60, 24, 12)
 
 [node name="ColorRect" type="ColorRect" parent="BattleCanvas/UI/ToyMenu" unique_id=989656319]
 z_index = -1
