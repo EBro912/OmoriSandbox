@@ -518,7 +518,8 @@ popup/item_1/id = 1
 [node name="PixelSnapping" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1668948476]
 layout_mode = 2
 size_flags_horizontal = 4
-tooltip_text = "Snaps sprites to whole pixels like the original game. Exact UI positions, but slow movement steps instead of gliding."
+tooltip_text = "Snaps sprites and UI to whole pixels like the original game.
+May cause certain moving elements to appear choppy."
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
