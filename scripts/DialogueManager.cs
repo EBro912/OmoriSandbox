@@ -607,7 +607,7 @@ public partial class DialogueManager : Node2D
 	private void AnimateOpen()
 	{
 		OpenCloseTween = CreateTween();
-		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 110, 0.1f);
+		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 112, 0.1f);
 		OpenCloseTween.TweenCallback(Callable.From(BeginMessage));
 	}
 

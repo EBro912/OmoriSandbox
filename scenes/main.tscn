@@ -404,7 +404,7 @@ color = Color(0, 0, 0, 1)
 [node name="DialogueBox" type="Node2D" parent="BattleCanvas/UI" unique_id=456223279 node_paths=PackedStringArray("Text", "Box", "SpeakerSprite", "Cursor", "ChoiceBox", "ChoiceTextParent")]
 visible = false
 z_index = 2
-position = Vector2(320, 360)
+position = Vector2(320, 358)
 script = ExtResource("22_5q0nq")
 Text = NodePath("Text")
 Box = NodePath("Box")
@@ -432,9 +432,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -180.0
-offset_top = -10.0
+offset_top = -9.0
 offset_right = 180.0
-offset_bottom = 10.0
+offset_bottom = 11.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("36_bjg73")
@@ -509,13 +509,13 @@ size_flags_vertical = 4
 
 [node name="SpeakerArrow" type="Sprite2D" parent="BattleCanvas/UI/DialogueBox" unique_id=1780541990]
 visible = false
-modulate = Color(0.870588, 0.870588, 0.870588, 1)
-position = Vector2(0, -57.5)
+z_index = 1
+position = Vector2(0, -60.5)
 texture = ExtResource("22_qkpxi")
 
 [node name="Cursor" parent="BattleCanvas/UI/DialogueBox" unique_id=1402784939 instance=ExtResource("24_qkpxi")]
 visible = true
-position = Vector2(145, 40)
+position = Vector2(145, 44)
 
 [node name="Energy" type="Sprite2D" parent="BattleCanvas/UI" unique_id=969074368]
 z_index = -4
