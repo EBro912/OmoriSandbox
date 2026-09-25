@@ -44,12 +44,12 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -72.5
-offset_top = 5.75
+offset_top = 3.75
 offset_right = 72.5
-offset_bottom = 25.75
+offset_bottom = 27.75
 grow_horizontal = 2
 theme_override_fonts/font = ExtResource("2_nwc6p")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 
 [node name="Health" type="TextureProgressBar" parent="Infobox" unique_id=1712390937]
@@ -59,10 +59,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -38.0
-offset_top = 6.5
-offset_right = 55.0
-offset_bottom = 18.5
+offset_left = -39.0
+offset_top = 7.5
+offset_right = 54.0
+offset_bottom = 19.5
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
@@ -70,7 +70,7 @@ texture_under = ExtResource("3_2w3pu")
 texture_progress = ExtResource("4_7ftv4")
 
 [node name="Heart" type="Sprite2D" parent="Infobox/Health" unique_id=265779773]
-position = Vector2(-10, 6)
+position = Vector2(-8, 6)
 texture = ExtResource("5_ackq1")
 
 [node name="Cursor" type="Sprite2D" parent="." unique_id=494038988]

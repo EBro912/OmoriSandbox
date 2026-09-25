@@ -18,20 +18,20 @@ internal partial class EditorManager : Node
 	private const int EnemiesTabIdx = 3;
 	private const int BossRushTabIdx = 4;
 
-    public void Init()
-    {
-	    BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
-	    
-	    PresetFolderButton.Pressed += () =>
-	    {
-		    Error error = OS.ShellOpen(ProjectSettings.GlobalizePath("user://presets"));
-		    if (error != Error.Ok)
-		    {
-			    GD.PrintErr("Failed to open presets folder");
-		    }
-	    };
-	    
-        ReturnButton.Pressed += () =>
+	public void Init()
+	{
+		BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
+		
+		PresetFolderButton.Pressed += () =>
+		{
+			Error error = OS.ShellOpen(ProjectSettings.GlobalizePath("user://presets"));
+			if (error != Error.Ok)
+			{
+				GD.PrintErr("Failed to open presets folder");
+			}
+		};
+		
+		ReturnButton.Pressed += () =>
 		{
 			ConfirmationDialog dialog = new()
 			{
@@ -115,7 +115,7 @@ internal partial class EditorManager : Node
 		ImportButton.Pressed += () =>
 		{
 			if (PresetManager.Instance.TryGetPreset(ImportPresetDropdown.GetItemText(ImportPresetDropdown.Selected),
-				    out BattlePreset preset))
+					out BattlePreset preset))
 			{
 				BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
 				editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
@@ -221,9 +221,9 @@ internal partial class EditorManager : Node
 		ResetButton.Pressed += PreResetToDefault;
 
 		ResetPresetDropdown();
-    }
-    
-    public void ReturnToTitle()
+	}
+	
+	public void ReturnToTitle()
 	{
 		MainMenuManager.Instance.ReturnToTitle();
 		ResetToDefault();
@@ -271,7 +271,7 @@ internal partial class EditorManager : Node
 			}
 
 			if (StageTabs.GetChildren()
-			    .Any(x => x is BossRushStageEditorComponent editor && editor.Enemies.GetTabCount() == 0))
+				.Any(x => x is BossRushStageEditorComponent editor && editor.Enemies.GetTabCount() == 0))
 			{
 				ShowWindow("Error", "Preset must have at least one enemy in all stages");
 				return;
@@ -746,44 +746,44 @@ internal partial class EditorManager : Node
 
 	public static EditorManager Instance { get; private set; }
 	
-    [Export] private AudioStreamPlayer BGMPreview;
-    [Export] private BattlebackDisplayComponent BattlebackPreview;
-    [Export] private Control[] AddActorControls;
-    [Export] private Control AddEnemyControl;
-    [Export] private PackedScene PartyMemberEditor;
-    [Export] private PackedScene EnemyEditor;
-    [Export] private PackedScene StageEditor;
-    [Export] private PackedScene BattleCard;
-    [Export] private TabContainer ActorTabs;
-    [Export] private TabContainer EnemyTabs;
-    [Export] private BattlebackBGMEditorComponent BattlebackBGMEditor;
-    [Export] private HSlider StartingEnergySlider;
-    [Export] private Label StartingEnergyValue;
-    [Export] private HSlider FollowupTierSlider;
-    [Export] private Label FollowupTierValue;
-    [Export] private CheckBox DisableDialogue;
-    [Export] private CheckBox DisableDamageNumbers;
-    [Export] private CheckBox CombinedBuffsDebuffs;
-    [Export] private Button AddItemButton;
-    [Export] private GridContainer ItemContainer;
-    [Export] private LineEdit SearchInput;
-    [Export] private Button SearchButton;
-    [Export] private TextEdit Results;
-    [Export] private Button SavePresetButton;
-    [Export] private LineEdit PresetInput;
-    [Export] private Button LoadPresetButton;
-    [Export] private Button DeletePresetButton;
-    [Export] private OptionButton PresetDropdown;
-    [Export] private Button ResetButton;
-    [Export] private Button ReturnButton;
-    [Export] private Button PresetFolderButton;
-    [Export] private Button AddStageButton;
-    [Export] private Button DuplicateStageButton;
-    [Export] private Button RemoveStageButton;
-    [Export] private Button MoveStageLeftButton;
-    [Export] private Button MoveStageRightButton;
-    [Export] private OptionButton ImportPresetDropdown;
-    [Export] private Button ImportButton;
-    [Export] private TabContainer StageTabs;
-    [Export] private TabContainer MainTabs;
+	[Export] private AudioStreamPlayer BGMPreview;
+	[Export] private BattlebackDisplayComponent BattlebackPreview;
+	[Export] private Control[] AddActorControls;
+	[Export] private Control AddEnemyControl;
+	[Export] private PackedScene PartyMemberEditor;
+	[Export] private PackedScene EnemyEditor;
+	[Export] private PackedScene StageEditor;
+	[Export] private PackedScene BattleCard;
+	[Export] private TabContainer ActorTabs;
+	[Export] private TabContainer EnemyTabs;
+	[Export] private BattlebackBGMEditorComponent BattlebackBGMEditor;
+	[Export] private HSlider StartingEnergySlider;
+	[Export] private Label StartingEnergyValue;
+	[Export] private HSlider FollowupTierSlider;
+	[Export] private Label FollowupTierValue;
+	[Export] private CheckBox DisableDialogue;
+	[Export] private CheckBox DisableDamageNumbers;
+	[Export] private CheckBox CombinedBuffsDebuffs;
+	[Export] private Button AddItemButton;
+	[Export] private GridContainer ItemContainer;
+	[Export] private LineEdit SearchInput;
+	[Export] private Button SearchButton;
+	[Export] private TextEdit Results;
+	[Export] private Button SavePresetButton;
+	[Export] private LineEdit PresetInput;
+	[Export] private Button LoadPresetButton;
+	[Export] private Button DeletePresetButton;
+	[Export] private OptionButton PresetDropdown;
+	[Export] private Button ResetButton;
+	[Export] private Button ReturnButton;
+	[Export] private Button PresetFolderButton;
+	[Export] private Button AddStageButton;
+	[Export] private Button DuplicateStageButton;
+	[Export] private Button RemoveStageButton;
+	[Export] private Button MoveStageLeftButton;
+	[Export] private Button MoveStageRightButton;
+	[Export] private OptionButton ImportPresetDropdown;
+	[Export] private Button ImportButton;
+	[Export] private TabContainer StageTabs;
+	[Export] private TabContainer MainTabs;
 }

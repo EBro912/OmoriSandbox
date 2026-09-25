@@ -7550,7 +7550,7 @@ public class Database
 		AddSnack("Chocolate", "Chocolate!? Oh, it's baking chocolate...\nHeals 40% of HEART.", 0.4f, 40);
 		AddSnack("Donut", "Circular bread with a hole in it.\nHeals 60% of HEART.", 0.6f, 48);
 		AddSnack("Ramen", "Now that is a lot of sodium!\nHeals 80% of HEART.", 0.8f, 56);
-		AddSnack("Spaghetti", "Wet noodles slathered with chunky sauce.\nFully heals a friend's HEART.", 1.0f, 64);
+		AddSnack("Spaghetti", "Wet noodles slathered with chunky sauce. Fully heals a friend's HEART.", 1.0f, 64);
 		AddSnack("Dino Pasta", "Pasta shaped line dinosaurs.\nFully restores a friend's HEART.", 1.0f, 10);
 
 		AddGroupSnack("Popcorn", "9/10 dentists hate it.\nHeals 35 HEART to all friends.", 35, 1);

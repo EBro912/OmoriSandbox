@@ -14,7 +14,7 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_3r6nr"]
 font = ExtResource("5_8dd6e")
-outline_size = 4
+outline_size = 8
 outline_color = Color(0, 0, 0, 0.5)
 shadow_size = 0
 shadow_color = Color(0.352941, 0.352941, 0.352941, 0.654902)
@@ -58,9 +58,10 @@ stretch_mode = 2
 metadata/_edit_use_anchors_ = true
 
 [node name="State" type="Sprite2D" parent="Battlecard" unique_id=1068484933]
+texture_filter = 1
 position = Vector2(-53, 55)
 texture = ExtResource("2_8dd6e")
-offset = Vector2(110, -42)
+offset = Vector2(109, -42)
 region_enabled = true
 region_rect = Rect2(17, 0, 98, 22)
 
@@ -73,45 +74,55 @@ region_rect = Rect2(0, 0, 100, 100)
 
 [node name="Face" type="AnimatedSprite2D" parent="Battlecard" unique_id=1096832500]
 z_index = -2
-position = Vector2(57, 69)
+position = Vector2(57, 68)
 sprite_frames = SubResource("SpriteFrames_ms8ku")
 
 [node name="Health" type="TextureProgressBar" parent="Battlecard" unique_id=1182080579]
+clip_children = 2
 layout_mode = 0
 offset_left = 28.0
 offset_top = 127.0
 offset_right = 109.0
 offset_bottom = 139.0
 value = 100.0
+texture_under = ExtResource("5_ms8ku")
 texture_progress = ExtResource("5_ms8ku")
+tint_under = Color(0, 0, 0, 1)
 
-[node name="Juice" type="TextureProgressBar" parent="Battlecard" unique_id=863770104]
+[node name="HealthLabel" type="Label" parent="Battlecard/Health" unique_id=1488056968]
 layout_mode = 0
-offset_left = 28.0
-offset_top = 146.0
-offset_right = 109.0
-offset_bottom = 158.0
-value = 100.0
-texture_progress = ExtResource("6_xyj2y")
-
-[node name="HealthLabel" type="Label" parent="Battlecard" unique_id=1488056968]
-layout_mode = 0
-offset_left = 32.0
-offset_top = 125.35
-offset_right = 105.0
-offset_bottom = 141.35
+offset_left = 3.0
+offset_top = -4.0
+offset_right = 76.0
+offset_bottom = 15.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5019608)
+theme_override_constants/outline_size = 2
 text = "0/0"
 label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2
 vertical_alignment = 1
 text_overrun_behavior = 3
 
-[node name="JuiceLabel" type="Label" parent="Battlecard" unique_id=486899302]
+[node name="Juice" type="TextureProgressBar" parent="Battlecard" unique_id=863770104]
+clip_children = 2
 layout_mode = 0
-offset_left = 32.0
-offset_top = 144.35
-offset_right = 105.0
-offset_bottom = 160.35
+offset_left = 28.0
+offset_top = 146.0
+offset_right = 109.0
+offset_bottom = 158.0
+value = 100.0
+texture_under = ExtResource("6_xyj2y")
+texture_progress = ExtResource("6_xyj2y")
+tint_under = Color(0, 0, 0, 1)
+
+[node name="JuiceLabel" type="Label" parent="Battlecard/Juice" unique_id=486899302]
+layout_mode = 0
+offset_left = 3.0
+offset_top = -3.0
+offset_right = 76.0
+offset_bottom = 16.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5019608)
+theme_override_constants/outline_size = 2
 text = "0/0"
 label_settings = SubResource("LabelSettings_3r6nr")
 horizontal_alignment = 2

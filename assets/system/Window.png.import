@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://crtuyyxlhfncl"
-path="res://.godot/imported/Omori_TitleScreen.png-022a67781206396480f10c573ccc789d.ctex"
+uid="uid://b2nt2i2gilu5a"
+path="res://.godot/imported/Window.png-f7146e393c1a468bbaff29dddddd8d22.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/atlases/Omori_TitleScreen.png"
-dest_files=["res://.godot/imported/Omori_TitleScreen.png-022a67781206396480f10c573ccc789d.ctex"]
+source_file="res://assets/system/Window.png"
+dest_files=["res://.godot/imported/Window.png-f7146e393c1a468bbaff29dddddd8d22.ctex"]
 
 [params]
 
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
