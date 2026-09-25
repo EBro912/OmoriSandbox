@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bdh481cgsv8wf"
-path="res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67be9.fontdata"
+uid="uid://c1ffiobkf516l"
+path="res://.godot/imported/OMORI_GAME2_Numbers.ttf-1644c1a6d14d75da8c4d31adfb831345.fontdata"
 
 [deps]
 
-source_file="res://fonts/OMORI_GAME2.ttf"
-dest_files=["res://.godot/imported/OMORI_GAME2.ttf-a4763e413fc0d1c66c70ec742df67be9.fontdata"]
+source_file="res://fonts/OMORI_GAME2_Numbers.ttf"
+dest_files=["res://.godot/imported/OMORI_GAME2_Numbers.ttf-1644c1a6d14d75da8c4d31adfb831345.fontdata"]
 
 [params]
 
@@ -22,14 +22,14 @@ msdf_size=64
 allow_system_fallback=true
 force_autohinter=false
 modulate_color_glyphs=false
-hinting=0
+hinting=1
 subpixel_positioning=2
 keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null
 fallbacks=[]
 Compress=null
-compress=true
+compress=false
 preload=[{
 "chars": [],
 "glyphs": [],

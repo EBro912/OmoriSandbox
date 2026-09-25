@@ -354,7 +354,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnExpiryCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnExpiryCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -373,6 +373,7 @@ TestSFXButton = NodePath("ScrollContainer/VBoxContainer/TestSFX")
 FullscreenCheckbox = NodePath("ScrollContainer/VBoxContainer/Fullscreen")
 AspectDropdown = NodePath("ScrollContainer/VBoxContainer/Aspect/OptionButton")
 PortraitsDropdown = NodePath("ScrollContainer/VBoxContainer/Portraits/OptionButton")
+PixelSnappingCheckbox = NodePath("ScrollContainer/VBoxContainer/PixelSnapping")
 BattlelogSpeedSlider = NodePath("ScrollContainer/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
 ActionDelaySlider = NodePath("ScrollContainer/VBoxContainer/ActionDelaySlider/DelaySlider")
 DialogueSpeedSlider = NodePath("ScrollContainer/VBoxContainer/DialogueSpeedSlider/HSlider")
@@ -433,8 +434,8 @@ offset_right = -3.0
 offset_bottom = -45.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_scroll_mode = 0
 follow_focus = true
+horizontal_scroll_mode = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/ScrollContainer" unique_id=49627157]
 layout_mode = 2
@@ -513,6 +514,15 @@ popup/item_0/text = "Centered"
 popup/item_0/id = 0
 popup/item_1/text = "Edges"
 popup/item_1/id = 1
+
+[node name="PixelSnapping" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1668948476]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Snaps sprites to whole pixels like the original game. Exact UI positions, but slow movement steps instead of gliding."
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Pixel Snapping"
 
 [node name="HSeparatorAudio" type="HSeparator" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=235695091]
 layout_mode = 2
@@ -1028,18 +1038,18 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1.50x"
 
-[node name="BindingHeaders" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer"]
+[node name="BindingHeaders" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2081743485]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Action" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders"]
+[node name="Action" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders" unique_id=332975692]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Action"
 
-[node name="Keyboard" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders"]
+[node name="Keyboard" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders" unique_id=90057005]
 custom_minimum_size = Vector2(85, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -1047,7 +1057,7 @@ theme_override_font_sizes/font_size = 20
 text = "Keyboard"
 horizontal_alignment = 1
 
-[node name="Controller" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders"]
+[node name="Controller" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders" unique_id=1295309611]
 custom_minimum_size = Vector2(115, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -1060,7 +1070,6 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/v_separation = 8
-columns = 1
 
 [node name="Accept" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=317920462 instance=ExtResource("14_5pajh")]
 layout_mode = 2

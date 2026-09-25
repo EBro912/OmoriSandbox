@@ -41,7 +41,12 @@ public partial class SettingsMenuManager : Control
 			if (index == 1)
 				ShowNote("Warning", "Some animations may look odd or broken when using edge portraits.");
 		};
-		
+
+		PixelSnappingCheckbox.Toggled += value =>
+		{
+			ApplyPixelSnapping(value);
+		};
+
 		DisplayLayout.Instance.WindowResized += OnWindowSizeChanged;
 		
 		MasterSlider.ValueChanged += value =>
@@ -112,6 +117,8 @@ public partial class SettingsMenuManager : Control
 		PortraitsDropdown.Selected = (bool)config.GetValue("Settings", "EdgePortraits", false) ? 1 : 0;
 		DisplayLayout.Instance?.SetEdgePortraits(PortraitsDropdown.Selected == 1);
 		FullscreenCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "Fullscreen", false);
+		PixelSnappingCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PixelSnapping", false);
+		ApplyPixelSnapping(PixelSnappingCheckbox.ButtonPressed);
 		MasterSlider.Value = (float)config.GetValue("Settings", "MasterVolume", 0.75f);
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
 		BGMSlider.Value = (float)config.GetValue("Settings", "BGMVolume", 0.5f);
@@ -206,6 +213,21 @@ public partial class SettingsMenuManager : Control
 		return GetWindow().Mode is not (Window.ModeEnum.Fullscreen or Window.ModeEnum.ExclusiveFullscreen or Window.ModeEnum.Maximized);
 	}
 
+	private void ApplyPixelSnapping(bool enabled)
+	{
+		GetTree().Root.Snap2DTransformsToPixel = enabled;
+		void Redraw(Node node)
+		{
+			if (node is Viewport viewport)
+				viewport.Snap2DTransformsToPixel = enabled;
+			if (node is CanvasItem item)
+				item.QueueRedraw();
+			foreach (Node child in node.GetChildren())
+				Redraw(child);
+		}
+		Redraw(GetTree().Root);
+	}
+
 	/// <summary>
 	/// Saves the current settings and keybinds to disk.
 	/// </summary>
@@ -217,6 +239,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "WindowHeight", WindowedSize.Y);
 		config.SetValue("Settings", "CanvasWidth", AspectWidths[AspectDropdown.Selected]);
 		config.SetValue("Settings", "EdgePortraits", PortraitsDropdown.Selected == 1);
+		config.SetValue("Settings", "PixelSnapping", PixelSnappingCheckbox.ButtonPressed);
 		config.SetValue("Settings", "MasterVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("Master")));
 		config.SetValue("Settings", "BGMVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGM")));
 		config.SetValue("Settings", "SFXVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("SFX")));
@@ -419,6 +442,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox FullscreenCheckbox;
 	[Export] private OptionButton AspectDropdown;
 	[Export] private OptionButton PortraitsDropdown;
+	[Export] private CheckBox PixelSnappingCheckbox;
 	[Export] private HSlider BattlelogSpeedSlider;
 	[Export] private HSlider ActionDelaySlider;
 	[Export] private HSlider DialogueSpeedSlider;

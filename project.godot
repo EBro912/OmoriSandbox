@@ -144,4 +144,3 @@ renderer/rendering_method="gl_compatibility"
 textures/lossless_compression/force_png=true
 textures/default_filters/anisotropic_filtering_level=0
 textures/decals/filter=0
-2d/snap/snap_2d_transforms_to_pixel=true

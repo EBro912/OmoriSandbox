@@ -48,11 +48,12 @@ public partial class DialogueManager : Node2D
 	private Dictionary<int, List<PauseType>> PauseIndices = [];
 	private Tween OpenCloseTween;
 	private Tween DimTween;
+	private Tween CursorFadeTween;
 	private bool UIDimmed;
 
 	private static readonly string[] ParagraphTags = ["[center]", "[right]", "[fill]", "[left]"];
 
-	private Vector2I CursorNormalPos = new(145, 35);
+	private Vector2 CursorNormalPos = new(140, 37.5f);
 	private string[] CurrentChoices;
 	private int ChoiceIndex = 0;
 
@@ -61,6 +62,7 @@ public partial class DialogueManager : Node2D
 	private const float CHOICE_BOX_BOTTOM = -60f;
 	private const float CURSOR_TOP_OFFSET = 30f;
 	private const float CURSOR_LEFT_PADDING = 30f;
+	private const float CURSOR_FADE_DURATION = 10f / 60f;
 
 	/// <summary>
 	/// If dialogue is disabled in the current preset.<br/>
@@ -71,7 +73,7 @@ public partial class DialogueManager : Node2D
 	public static DialogueManager Instance { get; private set; }
 	
 	private Vector2 DefaultPosition;
-	private const float NoEnergyBarOffset = 45f;
+	private const float NoEnergyBarOffset = 54f;
 
 	// whether the current message closes/advances itself when it finishes typing via the \^ marker
 	private bool AutoClose;
@@ -480,6 +482,10 @@ public partial class DialogueManager : Node2D
 	{
 		WaitingForInput = true;
 		Cursor.Visible = true;
+		Cursor.Modulate = new Color(1, 1, 1, 0);
+		CursorFadeTween?.Kill();
+		CursorFadeTween = CreateTween();
+		CursorFadeTween.TweenProperty(Cursor, "modulate:a", 1f, CURSOR_FADE_DURATION);
 	}
 
 	// invalidates pending pause timers from earlier messages/dialogues
@@ -607,7 +613,7 @@ public partial class DialogueManager : Node2D
 	private void AnimateOpen()
 	{
 		OpenCloseTween = CreateTween();
-		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 110, 0.1f);
+		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 112, 0.1f);
 		OpenCloseTween.TweenCallback(Callable.From(BeginMessage));
 	}
 
@@ -633,6 +639,8 @@ public partial class DialogueManager : Node2D
 		tween.TweenCallback(Callable.From(() =>
 		{
 			ChoiceTextParent.Visible = true;
+			CursorFadeTween?.Kill();
+			Cursor.Modulate = Colors.White;
 			Cursor.Visible = true;
 			Cursor.Position = GetCursorPosition(0);
 		}));

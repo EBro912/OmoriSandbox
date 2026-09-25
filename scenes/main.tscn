@@ -50,6 +50,7 @@
 [ext_resource type="Script" uid="uid://beu57fpcp01nm" path="res://scripts/menu/AutofitLabel.cs" id="44_nvyfr"]
 [ext_resource type="Material" path="res://assets/screen_blend_shader.tres" id="45_scrbl"]
 [ext_resource type="Script" path="res://scripts/display/DisplayLayout.cs" id="46_layout"]
+[ext_resource type="FontFile" uid="uid://c1ffiobkf516l" path="res://fonts/OMORI_GAME2_Numbers.ttf" id="47_nmbrs"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
 viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
@@ -439,10 +440,11 @@ ChoiceBox = NodePath("ChoiceBox")
 ChoiceTextParent = NodePath("ChoiceBox/MarginContainer/Text")
 
 [node name="Text" type="RichTextLabel" parent="BattleCanvas/UI/DialogueBox" unique_id=1194128622]
-offset_left = -166.0
-offset_top = -45.0
-offset_right = 168.0
-offset_bottom = 49.0
+offset_left = -162.0
+offset_top = -46.0
+offset_right = 162.0
+offset_bottom = 48.0
+theme_override_constants/line_separation = 1
 theme_override_constants/outline_size = 4
 bbcode_enabled = true
 scroll_active = false
@@ -457,9 +459,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -180.0
-offset_top = -10.0
+offset_top = -11.0
 offset_right = 180.0
-offset_bottom = 10.0
+offset_bottom = 9.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("36_bjg73")
@@ -534,13 +536,14 @@ size_flags_vertical = 4
 
 [node name="SpeakerArrow" type="Sprite2D" parent="BattleCanvas/UI/DialogueBox" unique_id=1780541990]
 visible = false
-modulate = Color(0.870588, 0.870588, 0.870588, 1)
-position = Vector2(0, -57.5)
+position = Vector2(0, -53)
 texture = ExtResource("22_qkpxi")
+centered = false
+offset = Vector2(-13, -17)
 
 [node name="Cursor" parent="BattleCanvas/UI/DialogueBox" unique_id=1402784939 instance=ExtResource("24_qkpxi")]
-visible = true
 position = Vector2(145, 40)
+HalfPeriod = 0.523599
 
 [node name="Energy" type="Sprite2D" parent="BattleCanvas/UI" unique_id=969074368]
 visible = false
@@ -559,7 +562,7 @@ offset_right = 349.0
 offset_bottom = 36.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.501961)
 theme_override_constants/outline_size = 8
-theme_override_fonts/font = ExtResource("10_choun")
+theme_override_fonts/font = ExtResource("47_nmbrs")
 theme_override_font_sizes/font_size = 28
 text = "00"
 horizontal_alignment = 1
@@ -681,8 +684,8 @@ PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
 
 [node name="Line2D" type="Line2D" parent="BattleCanvas/UI/SkillMenu" unique_id=744042075]
-position = Vector2(1, 33)
-points = PackedVector2Array(0, 0, 358, 0)
+position = Vector2(4, 33)
+points = PackedVector2Array(0, 0, 352, 0)
 width = 2.0
 
 [node name="Cost" type="Label" parent="BattleCanvas/UI/SkillMenu" unique_id=242754087]
@@ -812,8 +815,8 @@ PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
 
 [node name="Line2D" type="Line2D" parent="BattleCanvas/UI/SnackMenu" unique_id=1262857865]
-position = Vector2(1, 33)
-points = PackedVector2Array(0, 0, 358, 0)
+position = Vector2(4, 33)
+points = PackedVector2Array(0, 0, 352, 0)
 width = 2.0
 
 [node name="Cost" type="Label" parent="BattleCanvas/UI/SnackMenu" unique_id=577264049]
@@ -932,8 +935,8 @@ PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
 
 [node name="Line2D" type="Line2D" parent="BattleCanvas/UI/ToyMenu" unique_id=1107270121]
-position = Vector2(1, 33)
-points = PackedVector2Array(0, 0, 358, 0)
+position = Vector2(4, 33)
+points = PackedVector2Array(0, 0, 352, 0)
 width = 2.0
 
 [node name="Cost" type="Label" parent="BattleCanvas/UI/ToyMenu" unique_id=928952346]

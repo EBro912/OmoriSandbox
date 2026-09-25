@@ -29,7 +29,7 @@ oversampling=0.0
 Fallbacks=null
 fallbacks=[]
 Compress=null
-compress=false
+compress=true
 preload=[{
 "chars": [],
 "glyphs": [],
