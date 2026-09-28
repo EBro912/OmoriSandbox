@@ -665,7 +665,8 @@ public partial class BattleManager : Node
 			GD.PrintErr("Could not find preset: " + presetName);
 			return;
 		}
-		GameManager.Instance.LoadBattlePreset(preset, (int)StageSelectorSpinBox.Value);
+		if (!GameManager.Instance.LoadBattlePreset(preset, (int)StageSelectorSpinBox.Value))
+			MainMenuManager.Instance.ReturnToTitle();
 	}
 
 	internal void OnSelectAttack()
@@ -906,6 +907,7 @@ public partial class BattleManager : Node
 							}
 							await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
 							enemy.Actor.SetToast();
+							enemy.Actor.ClearStatModifiersOnDeath();
 							if (enemy.Actor.FallsOffScreen)
 								DyingEnemies.Add(enemy.GetParent<Node2D>());
 							// its forced commands are gone, so don't let the deferred pass below process it a second time
@@ -933,6 +935,7 @@ public partial class BattleManager : Node
 						}
 						await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
 						enemy.Actor.SetToast();
+						enemy.Actor.ClearStatModifiersOnDeath();
 						if (enemy.Actor.FallsOffScreen)
 							DyingEnemies.Add(enemy.GetParent<Node2D>());
 						DeferredDeathEnemies.Remove(enemy);
@@ -960,7 +963,7 @@ public partial class BattleManager : Node
 			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast)
 			{
 				member.Actor.SetToast();
-				member.Actor.RemoveAllStatModifiers();
+				member.Actor.ClearStatModifiersOnDeath();
 				// remove charm from any enemies
 				foreach (EnemyComponent enemy in Enemies)
 				{
@@ -1062,11 +1065,13 @@ public partial class BattleManager : Node
 		Actor next = candidates
 			.OrderByDescending(a =>
 			{
+				int priority = 0;
 				if (a is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
-					return cmd.Action.Priority;
-				return a is Enemy enemy ? enemy.TurnPriority : SkillPriority.Normal;
+					priority = cmd.Action.Priority;
+				else if (a is Enemy enemy)
+					priority = enemy.TurnPriority;
+				return (long)a.CurrentStats.SPD + priority;
 			})
-			.ThenByDescending(a => a.CurrentStats.SPD)
 			.ThenBy(a =>
 			{
 				PartyMemberComponent c = CurrentParty.FirstOrDefault(y => y.Actor == a);
@@ -1469,6 +1474,9 @@ public partial class BattleManager : Node
 				break;
 		}
 
+		if (currentAction.Action.Target == SkillTarget.Enemy && resolvedTargets.Count == 1)
+			resolvedTargets[0] = ResolveTauntTarget(currentAction.Actor, resolvedTargets[0]);
+
 		if (currentAction.Action is Skill skill)
 		{
 			if (!skill.MeetsRequirements(currentAction.Actor))
@@ -1545,6 +1553,19 @@ public partial class BattleManager : Node
 			SetPhase(BattlePhase.PostCommand);
 	}
 
+	private Actor ResolveTauntTarget(Actor user, Actor target)
+	{
+		if (target == null || (user is Enemy) == (target is Enemy)
+		    || user.HasStatModifier("Charm") || user.HasStatModifier("ObserveIgnoreTaunt"))
+			return target;
+		List<Actor> taunting = target is Enemy
+			? GetAllAliveEnemies().Where(x => x.HasStatModifier("Taunt")).Cast<Actor>().ToList()
+			: GetAlivePartyMembers().Select(Actor (x) => x.Actor).Where(x => x.HasStatModifier("Taunt")).ToList();
+		if (taunting.Count == 0 || taunting.Contains(target))
+			return target;
+		return taunting[GameManager.Instance.Random.RandiRange(0, taunting.Count - 1)];
+	}
+
 	private bool HandleFollowup(InputDirection direction)
 	{
 		if (Energy < 3 || !FollowupActive || ForceHideFollowup || !EnergyBar.Visible || FollowupSelected)
@@ -1596,11 +1617,51 @@ public partial class BattleManager : Node
 
 	/// <summary>
 	/// Forces a skill command to be executed after the current one.
+	/// Also clears the currently acting battler's action result, if any.
 	/// </summary>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="targets">The targets of the command.</param>
 	/// <param name="skill">The skill that is being forced.</param>
 	public void ForceCommand(Actor self, IReadOnlyList<Actor> targets, Skill skill)
+	{
+		CurrentCommand?.Actor.ClearResult();
+		EnqueueForcedCommand(self, targets, skill);
+	}
+
+	/// <summary>
+	/// Forces a skill command like <see cref="ForceCommand(Actor, Actor, Skill)"/>, but first clears every battler's action result,
+	/// like YEP's <c>BattleManager.queueForceAction</c>, unless <paramref name="clearResults"/> is false.
+	/// </summary>
+	/// <param name="self">The actor that the command is being forced upon.</param>
+	/// <param name="target">The target of the command.</param>
+	/// <param name="skill">The skill that is being forced.</param>
+	/// <param name="clearResults">Whether every battler's action result is cleared first.</param>
+	public void QueueForceCommand(Actor self, Actor target, Skill skill, bool clearResults = true)
+	{
+		QueueForceCommand(self, [target], skill, clearResults);
+	}
+
+	/// <summary>
+	/// Forces a skill command like <see cref="ForceCommand(Actor, IReadOnlyList{Actor}, Skill)"/>, but first clears every battler's action result,
+	/// like YEP's <c>BattleManager.queueForceAction</c>, unless <paramref name="clearResults"/> is false.
+	/// </summary>
+	/// <param name="self">The actor that the command is being forced upon.</param>
+	/// <param name="targets">The targets of the command.</param>
+	/// <param name="skill">The skill that is being forced.</param>
+	/// <param name="clearResults">Whether every battler's action result is cleared first.</param>
+	public void QueueForceCommand(Actor self, IReadOnlyList<Actor> targets, Skill skill, bool clearResults = true)
+	{
+		if (clearResults)
+		{
+			foreach (PartyMemberComponent member in CurrentParty)
+				member.Actor.ClearResult();
+			foreach (EnemyComponent enemy in Enemies)
+				enemy.Actor.ClearResult();
+		}
+		EnqueueForcedCommand(self, targets, skill);
+	}
+
+	private void EnqueueForcedCommand(Actor self, IReadOnlyList<Actor> targets, Skill skill)
 	{
 		if (self is PartyMember && skill.ShowFollowups)
 			// if the forced skill is an attack, hide the followup bubbles
@@ -1851,7 +1912,7 @@ public partial class BattleManager : Node
 						if (!Stages[CurrentStage].KeepEmotion)
 							x.Actor.SetEmotion("neutral", true);
 						if (!Stages[CurrentStage].KeepStatusEffects)
-							x.Actor.RemoveAllStatModifiers();
+							x.Actor.ClearStatModifiersOnRecoverAll();
 						x.UpdateStateIcons();
 					});
 					AudioManager.Instance.PlayBGM(Stages[CurrentStage].BGM, 0.05f,
@@ -2177,7 +2238,8 @@ public partial class BattleManager : Node
 		// locked bosses resolve advantage as their locked emotion
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
 
-		damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out _, attackElement);
+		if (!ignoreEmotion)
+			damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out _, attackElement);
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
@@ -2410,7 +2472,7 @@ public partial class BattleManager : Node
 	/// <param name="grayscaleOnDefeat">Whether this enemy should trigger a grayscale effect when defeated.</param>
 	/// <param name="layer">The layer to spawn this enemy on.</param>
 	/// <param name="adjustedStats">Stat adjustments added on top of the enemy's declared stats.</param>
-	/// <returns>The <see cref="EnemyComponent"/> of the spawned enemy.</returns>
+	/// <returns>The <see cref="EnemyComponent"/> of the spawned enemy, or null if the spawn fails.</returns>
 	public EnemyComponent SummonEnemy(string who, Vector2 position, string startingEmotion = "neutral",
 		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0, Stats adjustedStats = default)
 	{
@@ -2436,6 +2498,11 @@ public partial class BattleManager : Node
 		}
 
 		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, position);
+		if (enemy == null)
+		{
+			GD.PushWarning("Failed to spawn enemy: " + en.Name);
+			return null;
+		}
 		Enemies.Add(enemy);
 
 		// mid-battle spawns automatically get an immediate turn via PriorityActors, while end-of-turn spawns wait for next turn
@@ -2548,7 +2615,7 @@ public partial class BattleManager : Node
 	/// <param name="who">The database name of the enemy to transform into.</param>
 	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
 	/// <param name="offset">The position offset relative to the old enemy's position.</param>
-	/// <returns>The newly spawned <see cref="EnemyComponent"/>.</returns>
+	/// <returns>The newly spawned <see cref="EnemyComponent"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
 	public EnemyComponent TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default)
 	{
 		EnemyComponent target = Enemies.FirstOrDefault(x => x.Actor == original);

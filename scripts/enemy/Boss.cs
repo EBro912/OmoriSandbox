@@ -54,6 +54,7 @@ internal sealed class Boss : Enemy
             Stage = 4;
             CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 2);
             RemoveStatModifier("Immortal", true);
+            ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"HUH!?\! HOW ARE YOU STILL MOVING!?");
             await DialogueManager.Instance.WaitForDialogue();
             return;
@@ -66,6 +67,7 @@ internal sealed class Boss : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, @"[wave freq=10]Hwehwehwe![/wave][br]\!You weaklings!\! You call that an attack!?");
             await DialogueManager.Instance.WaitForDialogue();
+            ClearResult();
             Stage = 1;
         }
 
@@ -73,6 +75,7 @@ internal sealed class Boss : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, @"Hey, that kinda hurt!\! Hmph!\! This isn't fun anymore.");
             await DialogueManager.Instance.WaitForDialogue();
+            ClearResult();
             Stage = 2;
         }
                 
@@ -83,6 +86,7 @@ internal sealed class Boss : Enemy
             DialogueManager.Instance.QueueMessage("[center][font_size=52][wave freq=10][shake rate=20]BODY SLAM!!");
             await DialogueManager.Instance.WaitForDialogue();
             SetEmotion("angry", true);
+            ClearResult();
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["BSSAttackAll"]);
             Stage = 3;
         }

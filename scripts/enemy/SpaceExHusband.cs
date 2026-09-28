@@ -131,6 +131,7 @@ internal sealed class SpaceExHusband : Enemy
                 {
                     // back to RESIST ALL, his current emotion is not touched
                     Memory = "neutral";
+                    ClearResult();
                     FailWindow = 0;
                 }
             }
@@ -139,6 +140,7 @@ internal sealed class SpaceExHusband : Enemy
                 DialogueManager.Instance.QueueMessage(this, "Alas! I see a memory before me!");
                 await DialogueManager.Instance.WaitForDialogue();
                 await ChooseMemory();
+                ClearResult();
             }
             if (!Achieved)
             {
@@ -173,6 +175,7 @@ internal sealed class SpaceExHusband : Enemy
             SetEmotion("neutral", true);   // the transform back to the base variant flashes via OnEmotionChanged
             await Wait.Milliseconds(1200);
             Memory = "neutral";
+            ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"Nay! I must guard my HEART.\! I must become one... with the ice...");
             await DialogueManager.Instance.WaitForDialogue();
             IceCounter = 0;

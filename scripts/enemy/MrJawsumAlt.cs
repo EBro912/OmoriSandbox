@@ -80,6 +80,7 @@ internal sealed class MrJawsumAlt : Enemy
             await AnimationManager.Instance.WaitForTintScreen(new Color(1, 0, 0, 0.5f), 0.25f);
             AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack, 0.25f);
             SetEmotion("angry", true);
+            ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"What do you mean we're running low on henchmen!?\! That's impossible!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;

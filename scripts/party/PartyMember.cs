@@ -52,7 +52,17 @@ public abstract class PartyMember : Actor
             GD.PrintErr("Failed to load Face animations for PartyMember: " + Name);
             return false;
         }
-        
+
+		if (!actor.Charm.Equals("none", StringComparison.CurrentCultureIgnoreCase))
+		{
+			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
+			{
+				GD.PrintErr("Failed to find Charm: " + actor.Charm);
+				return false;
+			}
+			Charm = c;
+		}
+
         // if the party member starts toast, they technically start neutral
         bool startToast = actor.Emotion == "toast";
         string emotion = startToast ? "neutral" : actor.Emotion;
@@ -79,16 +89,6 @@ public abstract class PartyMember : Actor
 			return false;
 		}
 		Weapon = w;
-		
-		if (!actor.Charm.Equals("none", System.StringComparison.CurrentCultureIgnoreCase))
-		{
-			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
-			{
-				GD.PrintErr("Failed to find Charm: " + actor.Charm);
-				return false;
-			}
-			Charm = c;
-		}
 
 		if (startToast)
 		{

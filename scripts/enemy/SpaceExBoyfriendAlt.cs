@@ -135,6 +135,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND can no longer become HAPPY or SAD!");
             await DialogueManager.Instance.WaitForDialogue();
             LockEmotion("angry");
+            ClearResult();
             Stage = 1;
         }
         
@@ -148,6 +149,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND became ENRAGED!");
             await DialogueManager.Instance.WaitForDialogue();
             LockEmotion("angry");
+            ClearResult();
             Stage = 2;
         }
         
@@ -161,6 +163,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
             DialogueManager.Instance.QueueMessage("SPACE EX-BOYFRIEND became FURIOUS!");
             await DialogueManager.Instance.WaitForDialogue();
             LockEmotion("angry");
+            ClearResult();
             Stage = 3;
         }
     }

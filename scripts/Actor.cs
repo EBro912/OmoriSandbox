@@ -162,20 +162,15 @@ public abstract class Actor
 		get
 		{
 			Stats current = GetBaseStats();
-
-			// emotion stats always apply before any other modifiers
-			StatBonus.ApplyAll(ref current, GetEmotionStatBonuses(CurrentEmotion));
-
-			foreach (StatModifier mod in StatModifiers.Values)
-			{
-				mod.ApplyStats(ref current);
-			}
-
+			foreach (StatType stat in ParamTypes)
+				current.ApplyParam(stat, GetParamPlus(stat), GetExactParamRate(stat));
 			// single round + clamp at the very end, matching the base game
 			current.ApplyStatLimits();
 			return current;
 		}
 	}
+
+	private static readonly StatType[] ParamTypes = Enum.GetValues<StatType>();
 
 	/// <summary>
 	/// The actor's total stat multiplier from their current emotion and all stat modifiers,
@@ -188,14 +183,19 @@ public abstract class Actor
 	/// <param name="stat">The <see cref="StatType"/> to get the total multiplier for.</param>
 	public float GetParamRate(StatType stat)
 	{
-		float rate = 1f;
+		return (float)GetExactParamRate(stat);
+	}
+
+	private double GetExactParamRate(StatType stat)
+	{
+		double rate = 1d;
 		foreach (StatBonus bonus in GetEmotionStatBonuses(CurrentEmotion))
 		{
 			if (bonus.Type == stat)
-				rate *= bonus.Multiplier;
+				rate *= StatBonus.ExactRate(bonus.Multiplier);
 		}
 		foreach (StatModifier mod in StatModifiers.Values)
-			rate *= mod.GetParamRate(stat);
+			rate *= StatBonus.ExactRate(mod.GetParamRate(stat));
 		return rate;
 	}
 
@@ -367,7 +367,7 @@ public abstract class Actor
 	/// Removes a <see cref="StatModifier"/> of the given name from this actor.
 	/// </summary>
 	/// <param name="modifier">The name of the modifier to remove.</param>
-	/// <param name="force">If true, removes the modifier even if it has a removal guard. See <see cref="StatModifier.WithRemovalGuard"/>.</param>
+	/// <param name="force">If true, removes the modifier even if it bypasses removal. See <see cref="StatModifier.WithBypassRecoverAllRemoval"/>.</param>
 	public void RemoveStatModifier(string modifier, bool force = false)
 	{
 		RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Manual, force);
@@ -376,25 +376,83 @@ public abstract class Actor
 	/// <summary>
 	/// Removes all <see cref="StatModifier"/>s from this actor.
 	/// </summary>
-	/// <param name="force">If true, also removes modifiers that have a removal guard. See <see cref="StatModifier.WithRemovalGuard"/>.</param>
+	/// <param name="force">If true, also removes modifiers that bypass removal. See <see cref="StatModifier.WithBypassRecoverAllRemoval"/>.</param>
 	public void RemoveAllStatModifiers(bool force = false)
 	{
 		foreach (string modifier in StatModifiers.Keys.ToList())
 			RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Cleared, force);
 	}
 
-	private void RemoveStatModifierInternal(string modifier, StatModifierRemovalReason reason, bool force = false)
+	/// <summary>
+	/// Whether this actor has a <see cref="StatModifier"/> in the given category. See <see cref="StatModifier.WithCategories"/>.
+	/// </summary>
+	/// <param name="category">The category name, ignoring case.</param>
+	public bool HasStatModifierInCategory(string category)
+	{
+		return StatModifiers.Values.Any(x => x.HasCategory(category));
+	}
+
+	/// <summary>
+	/// Removes every <see cref="StatModifier"/> in the given category.
+	/// </summary>
+	/// <param name="category">The category name, ignoring case.</param>
+	/// <param name="force">If true, also removes modifiers that bypass removal. See <see cref="StatModifier.WithBypassRecoverAllRemoval"/>.</param>
+	public void RemoveStatModifiersInCategory(string category, bool force = false)
+	{
+		foreach (KeyValuePair<string, StatModifier> entry in StatModifiers.ToList())
+		{
+			if (entry.Value.HasCategory(category))
+				RemoveStatModifierInternal(entry.Key, StatModifierRemovalReason.Manual, force);
+		}
+	}
+
+	/// <summary>
+	/// Fully restores this actor like RPG Maker's Recover All: modifiers are cleared without blocking their re-application,
+	/// the emotion returns to neutral (unless an emotion lock keeps the current emotion, since <see cref="SetEmotion"/> fails silently while locked) and HP and Juice are restored, reviving a toast actor.
+	/// Modifiers marked <see cref="StatModifier.WithBypassRecoverAllRemoval"/> stay.
+	/// </summary>
+	public void RecoverAll()
+	{
+		ClearStatModifiersOnRecoverAll();
+		SetEmotion("neutral", true);
+		if (IsToast)
+			Revive(CurrentStats.MaxHP);
+		else
+			CurrentHP = CurrentStats.MaxHP;
+		CurrentJuice = CurrentStats.MaxJuice;
+	}
+
+	internal void ClearStatModifiersOnRecoverAll()
+	{
+		foreach (KeyValuePair<string, StatModifier> entry in StatModifiers.ToList())
+		{
+			if (!entry.Value.BypassesRecoverAllRemoval)
+				RemoveStatModifierInternal(entry.Key, StatModifierRemovalReason.Cleared, true, false);
+		}
+	}
+
+	internal void ClearStatModifiersOnDeath()
+	{
+		foreach (KeyValuePair<string, StatModifier> entry in StatModifiers.ToList())
+		{
+			if (!entry.Value.BypassesDeathRemoval)
+				RemoveStatModifierInternal(entry.Key, StatModifierRemovalReason.Cleared, true, false);
+		}
+	}
+
+	private void RemoveStatModifierInternal(string modifier, StatModifierRemovalReason reason, bool force = false, bool record = true)
 	{
 		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod))
 			return;
 		// removal-guarded modifiers only get removed via force or their own turn counter
-		if (!force && mod.HasRemovalGuard && reason != StatModifierRemovalReason.Expired)
+		if (!force && mod.BypassesRecoverAllRemoval && reason != StatModifierRemovalReason.Expired)
 		{
 			GD.Print("Removal of modifier " + modifier + " on " + Name + " blocked by removal guard (" + reason + ")");
 			return;
 		}
 		StatModifiers.Remove(modifier);
-		RemovedSinceResultClear.Add(ResultKey(modifier, (mod as TierStatModifier)?.CurrentTier ?? 0));
+		if (record && !mod.ReapplyAllowed)
+			RemovedSinceResultClear.Add(ResultKey(modifier, (mod as TierStatModifier)?.CurrentTier ?? 0));
 		mod.OnRemove(this);
 		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
 		ClampHealthJuiceToMax();
@@ -407,7 +465,7 @@ public abstract class Actor
 
 	/// <summary>
 	/// Clears which modifiers were removed from this actor, mirroring RPG Maker's <c>clearResult</c>.<br/>
-	/// Until this runs, a removed modifier can't be added back unless "Allow State Reapply on Expiry" is enabled.
+	/// Until this runs, a removed modifier can't be added back unless "Allow State Reapply on Removal" is enabled.
 	/// The battle calls this when an action applies to or from this actor, after its action ends and at the end of the turn.
 	/// </summary>
 	public void ClearResult()
@@ -422,7 +480,7 @@ public abstract class Actor
 	
 	private bool IsReapplyBlocked(string modifier, int tier = 0)
 	{
-		if (BattleManager.Instance == null || SettingsMenuManager.Instance.AllowStateReapplyOnExpiry)
+		if (BattleManager.Instance == null || SettingsMenuManager.Instance.AllowStateReapplyOnRemoval)
 			return false;
 		if (!RemovedSinceResultClear.Contains(ResultKey(modifier, tier)))
 			return false;

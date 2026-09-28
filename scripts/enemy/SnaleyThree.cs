@@ -35,7 +35,7 @@ public class SnaleyThree : Enemy
         {
             PartyMember target = SelectTarget();
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+                BattleManager.Instance.QueueForceCommand(this, target, Skills["SNFollowup"]);
             return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
@@ -59,6 +59,7 @@ public class SnaleyThree : Enemy
             PendingRelease = false;
             CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 1);
             RemoveStatModifier("Immortal", true);
+            ClearResult();
         }
         await Task.CompletedTask;
     }
@@ -72,6 +73,7 @@ public class SnaleyThree : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             if (CurrentEmotion.Id != "ecstatic" && CurrentEmotion.Id != "manic")
                 SetEmotion("happy", true);
+            ClearResult();
             DialogueManager.Instance.QueueMessage("SNALEY is HAPPY!");
             await DialogueManager.Instance.WaitForDialogue();
         }

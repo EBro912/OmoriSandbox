@@ -54,6 +54,7 @@ internal sealed class KiteKidAlt : Enemy
                 foreach (Enemy enemy in enemies)
                 {
                     enemy.RemoveStatModifier("SpeedDown");
+                    enemy.ClearResult();
                     SetWindBuff(enemy, "AttackUp", 3);
                     SetWindBuff(enemy, "DefenseUp", 3);
                     SetWindBuff(enemy, "SpeedUp", 3);
@@ -66,6 +67,7 @@ internal sealed class KiteKidAlt : Enemy
                 foreach (Enemy enemy in enemies)
                 {
                     enemy.RemoveStatModifier("SpeedUp");
+                    enemy.ClearResult();
                     SetWindBuff(enemy, "AttackUp", 2);
                     SetWindBuff(enemy, "DefenseUp", 2);
                     SetWindBuff(enemy, "SpeedDown", 2);
@@ -81,6 +83,7 @@ internal sealed class KiteKidAlt : Enemy
                     enemy.RemoveStatModifier("DefenseUp");
                     enemy.RemoveStatModifier("SpeedDown");
                     enemy.RemoveStatModifier("SpeedUp");
+                    enemy.ClearResult();
                     AnimationManager.Instance.PlayAnimation(219, enemy);
                 }
                 break;
@@ -93,10 +96,13 @@ internal sealed class KiteKidAlt : Enemy
         if (enemy.StatModifiers.TryGetValue(modifier, out StatModifier held) && held is TierStatModifier t && t.CurrentTier == tier)
         {
             held.RefreshTurns();
+            enemy.ClearResult();
             return;
         }
         enemy.RemoveStatModifier(modifier);
+        enemy.ClearResult();
         enemy.AddTierStatModifier(modifier, tier, silent: true);
+        enemy.ClearResult();
     }
 
     public override async Task OnDefeat()

@@ -51,6 +51,7 @@ internal sealed class FearOfDrowning : Enemy
         if (IsBelowHP(0.7f) && Phase == 1)
         {
             Phase = 2;
+            ClearResult();
             await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
             UpdateSprite();
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
@@ -59,6 +60,7 @@ internal sealed class FearOfDrowning : Enemy
         if (IsBelowHP(0.3f) && Phase == 2)
         {
             Phase = 3;
+            ClearResult();
             await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
             UpdateSprite();
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);

@@ -354,7 +354,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnExpiryCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -398,7 +398,7 @@ ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEm
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
 EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
 CombinedAccuracyCheckbox = NodePath("ScrollContainer/VBoxContainer/CombinedAccuracy")
-AllowStateReapplyOnExpiryCheckbox = NodePath("ScrollContainer/VBoxContainer/AllowStateReapplyOnExpiry")
+AllowStateReapplyOnRemovalCheckbox = NodePath("ScrollContainer/VBoxContainer/AllowStateReapplyOnRemoval")
 RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/HSlider")
 RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/Label")
 SpeedUpSlider = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/HSlider")
@@ -924,14 +924,15 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Combined Accuracy Formula"
 
-[node name="AllowStateReapplyOnExpiry" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1493027761]
+[node name="AllowStateReapplyOnRemoval" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1493027761]
 layout_mode = 2
 size_flags_horizontal = 4
-tooltip_text = "Lets a state be re-applied on the turn it expired"
+tooltip_text = "Lets a state be re-applied right after it is removed for any reason,
+instead of being blocked until the next action or the end of the turn"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Allow State Reapply on Expiry"
+text = "Allow State Reapply on Removal"
 
 [node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1655251340]
 layout_mode = 2

@@ -18,6 +18,28 @@ public struct StatBonus
             stats.SetStatExact(bonus.Type, stats.GetStatExact(bonus.Type) * bonus.Multiplier + bonus.FlatBonus);
     }
 
+    internal static double ExactRate(float multiplier)
+    {
+        return float.IsFinite(multiplier) && Math.Abs(multiplier) <= 1e20f ? (double)(decimal)multiplier : multiplier;
+    }
+
+    internal static void ApplyParams(ref Stats stats, StatBonus[] bonuses)
+    {
+        foreach (StatType stat in Enum.GetValues<StatType>())
+        {
+            int plus = 0;
+            double rate = 1d;
+            foreach (StatBonus bonus in bonuses)
+            {
+                if (bonus.Type != stat)
+                    continue;
+                plus += bonus.FlatBonus;
+                rate *= ExactRate(bonus.Multiplier);
+            }
+            stats.ApplyParam(stat, plus, rate);
+        }
+    }
+
     /// <summary>
     /// The stat that this bonus modifies.
     /// </summary>
@@ -59,7 +81,8 @@ public struct StatBonus
     /// Creates a stat bonus that has both a multiplicative and flat additive stat bonus.
     /// </summary>
     /// <remarks>
-    /// Note: The addition takes place after the multiplication.
+    /// Note: For equipment, applied via <see cref="ApplyAll"/>, the addition takes place after the multiplication.
+    /// For emotions and stat modifiers, applied via <see cref="Actors.Actor.CurrentStats"/>, every flat bonus is summed first and the multipliers are applied to that total.
     /// </remarks>
     /// <param name="type">The stat that this bonus modifies.</param>
     /// <param name="multiplier">The multiplier to apply to the stat.</param>

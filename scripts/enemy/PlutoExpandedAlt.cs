@@ -54,7 +54,7 @@ internal sealed class PlutoExpandedAlt : Enemy
     {
         if (!HasMentionedFlex && WhoFlexed is null)
         {
-            WhoFlexed = SelectAllTargets().FirstOrDefault(x => x.HasStatModifier("Flex"))?.Name;
+            WhoFlexed = SelectAllTargets().FirstOrDefault(x => x is Kel && x.HasStatModifier("Flex"))?.Name;
         }
         
         if (IsBelowHP(0.5f) && !HasSpoken)
@@ -83,6 +83,7 @@ internal sealed class PlutoExpandedAlt : Enemy
                 $"Impressive progress, young {WhoFlexed.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
             await DialogueManager.Instance.WaitForDialogue();
             HasMentionedFlex = true;
+            ClearResult();
         }
     }
 

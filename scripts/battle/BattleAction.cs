@@ -24,9 +24,9 @@ public class BattleAction
 	/// </summary>
 	public SkillTarget Target { get; private set; }
 	/// <summary>
-	/// The priority of the action when calculating turn order.
+	/// The action's speed, like RPG Maker's skill and item speed: turn order sorts by the user's SPD plus this value.
 	/// </summary>
-	public SkillPriority Priority {get; private set;}
+	public int Priority {get; private set;}
 	/// <summary>
 	/// What happens when this action is performed.
 	/// </summary>
@@ -36,7 +36,7 @@ public class BattleAction
 	/// </summary>
 	public Func<Actor, IReadOnlyList<Actor>, Task> Setup { get; }
 
-	protected BattleAction(string name, string description, SkillTarget target, SkillPriority priority, Func<Actor, IReadOnlyList<Actor>, Task> effect,
+	protected BattleAction(string name, string description, SkillTarget target, int priority, Func<Actor, IReadOnlyList<Actor>, Task> effect,
 		Func<Actor, IReadOnlyList<Actor>, Task> setup = null)
 	{
 		Name = name;
@@ -47,7 +47,7 @@ public class BattleAction
 		Priority = priority;
 	}
 
-	protected BattleAction(string name, string description, SkillTarget target, SkillPriority priority,
+	protected BattleAction(string name, string description, SkillTarget target, int priority,
 		Func<Actor, Actor, Task> effect, Func<Actor, Actor, Task> setup = null)
 		: this(name, description, target, priority, async (self, targets) =>
 		{

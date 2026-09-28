@@ -8,7 +8,7 @@ namespace ExampleItemsMod;
 
 public class ButteredStatModifier : StatModifier
 {
-    // 3 turns of SPD x1.25, applied by the inherited ApplyStats
+    // 3 turns of SPD x1.25
     public ButteredStatModifier() : base(3, new StatBonus(StatType.SPD, 1.25f)) { }
 
     // recover 5% HEART at the start of each turn

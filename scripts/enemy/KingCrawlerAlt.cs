@@ -104,7 +104,10 @@ internal sealed class KingCrawlerAlt : Enemy
         MoleSlots.Add(slot);
         EnemyComponent stunned = Moles[slot - 2];   // troop index slot-1 == Moles[slot-2]
         if (Living(stunned))
+        {
             stunned.Actor.AddStatModifier("CallForFriendDelay", silent: true);
+            stunned.Actor.ClearResult();
+        }
     }
 
     public override Task OnDefeat()

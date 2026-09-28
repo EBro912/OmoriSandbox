@@ -65,13 +65,11 @@ internal sealed class Perfectheart : Enemy
             DialogueManager.Instance.QueueMessage(this, @"Oh...\! You are quite strong.");
             DialogueManager.Instance.QueueMessage(this, "It seems I must try a bit harder.");
             await DialogueManager.Instance.WaitForDialogue();
+            RecoverAll();
             AudioManager.Instance.PlaySFX("GEN_shine", 0.5f, 0.9f);
             OverlaySprite = AnimationManager.Instance.SpawnPerfectheartOverlay(new Vector2(CenterPoint.X, CenterPoint.Y - 45));
             await Wait.Milliseconds(2000);
             AnimationManager.Instance.PlayAnimation(216, this);
-            CurrentHP = CurrentStats.MaxHP;
-            SetEmotion("neutral", true);
-            RemoveAllStatModifiers();
             await Wait.Milliseconds(1000);
             SecondPhase = true;
             Variable1001 = 1;

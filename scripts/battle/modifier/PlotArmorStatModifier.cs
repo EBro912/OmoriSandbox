@@ -33,6 +33,7 @@ public sealed class PlotArmorStatModifier : StatModifier
     public override void OnStartOfTurn(Actor actor)
     {
         actor.RemoveStatModifier("PlotArmor");
+        actor.ClearResult();
         actor.ClearAnimation();
     }
 }

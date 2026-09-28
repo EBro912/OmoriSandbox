@@ -1,5 +1,6 @@
 using OmoriSandbox.Actors;
 using System;
+using System.Collections.Generic;
 
 namespace OmoriSandbox.Battle.Modifier;
 
@@ -49,9 +50,21 @@ public class StatModifier
     }
 
     /// <summary>
-    /// Whether this modifier ignores removals unless forced. See <see cref="WithRemovalGuard"/>.
+    /// Whether this modifier ignores removals unless forced, Recover All included. See <see cref="WithBypassRecoverAllRemoval"/>.
     /// </summary>
-    public bool HasRemovalGuard { get; private set; }
+    public bool BypassesRecoverAllRemoval { get; private set; }
+
+    /// <summary>
+    /// Whether this modifier stays on its holder when they die. See <see cref="WithBypassDeathRemoval"/>.
+    /// </summary>
+    public bool BypassesDeathRemoval { get; private set; }
+
+    /// <summary>
+    /// Whether this modifier can be added again right after it is removed. See <see cref="WithReapplyAllowed"/>.
+    /// </summary>
+    public bool ReapplyAllowed { get; private set; }
+
+    private readonly HashSet<string> Categories = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Whether this modifier's turn counter ticks each time its holder finishes performing an
@@ -84,16 +97,57 @@ public class StatModifier
     }
 
     /// <summary>
-    /// Marks this modifier as ignoring removal. <see cref="Actors.Actor.RemoveStatModifier(string, bool)"/>
-    /// and <see cref="Actors.Actor.RemoveAllStatModifiers(bool)"/> will not work unless the force parameter is set.
-    /// It still expires from its own turn counter, so pair this with an infinite duration for a permanent effect.
+    /// Marks this modifier as surviving <see cref="Actors.Actor.RecoverAll"/>, <see cref="Actors.Actor.RemoveStatModifiersInCategory(string, bool)"/>
+    /// and any other unforced removal, like the Yanfly "Bypass Recover All Removal" state category.
+    /// It still expires from its own turn counter and is cleared on death unless <see cref="WithBypassDeathRemoval"/> is also used.
     /// </summary>
-    public StatModifier WithRemovalGuard()
+    public StatModifier WithBypassRecoverAllRemoval()
     {
-        HasRemovalGuard = true;
+        BypassesRecoverAllRemoval = true;
         return this;
     }
-    
+
+    /// <summary>
+    /// Keeps this modifier on its holder when they die, like the Yanfly "Bypass Death Removal" state category.
+    /// </summary>
+    public StatModifier WithBypassDeathRemoval()
+    {
+        BypassesDeathRemoval = true;
+        return this;
+    }
+
+    /// <summary>
+    /// Lets this modifier be added again right after it is removed, even while "Allow State Reapply on Removal" is off.
+    /// </summary>
+    public StatModifier WithReapplyAllowed()
+    {
+        ReapplyAllowed = true;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds this modifier to the given categories, like Yanfly state categories. Category names ignore case.
+    /// </summary>
+    /// <param name="categories">The category names to add.</param>
+    public StatModifier WithCategories(params string[] categories)
+    {
+        foreach (string category in categories)
+        {
+            if (!string.IsNullOrWhiteSpace(category))
+                Categories.Add(category.Trim());
+        }
+        return this;
+    }
+
+    /// <summary>
+    /// Whether this modifier is in the given category. See <see cref="WithCategories"/>.
+    /// </summary>
+    /// <param name="category">The category name to check, ignoring case.</param>
+    public bool HasCategory(string category)
+    {
+        return !string.IsNullOrWhiteSpace(category) && Categories.Contains(category.Trim());
+    }
+
     internal virtual StateIcon[] GetStateIcons()
     {
         return StateIcons;
@@ -121,16 +175,6 @@ public class StatModifier
     /// <param name="actor">The <see cref="Actor"/> this modifier is attached to.</param>
     // TODO: OMORI ticks damage/regen-over-time effects inside end-of-turn, we currently do it at the start of the turn
     public virtual void OnStartOfTurn(Actor actor) {}
-
-    /// <summary>
-    /// Called when the stats are applied.
-    /// </summary>
-    /// <param name="stats">A reference to the <see cref="Stats"/> before any stats are applied.</param>
-    public virtual void ApplyStats(ref Stats stats)
-    {
-        // base class simply applies all stat bonuses to the provided stats
-        StatBonus.ApplyAll(ref stats, Bonuses);
-    }
 
     /// <summary>
     /// The total multiplier this modifier applies to the given stat, as the product of its

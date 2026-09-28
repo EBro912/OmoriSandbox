@@ -82,10 +82,10 @@ public class Skill : BattleAction
 	/// <param name="effect">The code that runs when this skill is used.</param>
 	/// <param name="cost">How much juice this skill costs to use.</param>
 	/// <param name="hidden">Whether this skill should show up in the actor's skill list.</param>
-	/// <param name="priority">The priority of the skill during turn order calculation.</param>
+	/// <param name="priority">The skill's speed, added to the user's SPD for turn order.</param>
 	/// <param name="showFollowups">Whether this skill causes the followup bubbles to appear.</param>
 	/// <param name="setup">Optional code that runs before the skill applies, like an RPG Maker <c>setup action</c>.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false, Func<Actor, Actor, Task> setup = null)
+	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, int priority = 0, bool showFollowups = false, Func<Actor, Actor, Task> setup = null)
 		: base(name, description, target, priority, effect, setup)
 	{
 		BaseCost = cost;
@@ -102,10 +102,10 @@ public class Skill : BattleAction
 	/// <param name="effect">The code that runs when this skill is used.</param>
 	/// <param name="cost">How much juice this skill costs to use.</param>
 	/// <param name="hidden">Whether this skill should show up in the actor's skill list.</param>
-	/// <param name="priority">The priority of the skill during turn order calculation.</param>
+	/// <param name="priority">The skill's speed, added to the user's SPD for turn order.</param>
 	/// /// <param name="showFollowups">Whether this skill causes the followup bubbles to appear.</param>
 	/// <param name="setup">Optional code that runs before the skill applies, like an RPG Maker <c>setup action</c>.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, SkillPriority priority = SkillPriority.Normal, bool showFollowups = false, Func<Actor, IReadOnlyList<Actor>, Task> setup = null)
+	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, int priority = 0, bool showFollowups = false, Func<Actor, IReadOnlyList<Actor>, Task> setup = null)
 		: base(name, description, target, priority, effect, setup)
 	{
 		BaseCost = cost;

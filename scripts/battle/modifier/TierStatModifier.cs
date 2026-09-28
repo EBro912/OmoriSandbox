@@ -153,15 +153,6 @@ public class TierStatModifier : StatModifier
 	}
 
 	/// <inheritdoc/>
-	public override void ApplyStats(ref Stats stats)
-	{
-		if (Bonuses.Length == 0)
-			return;
-		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
-		stats.SetStatExact(bonus.Type, stats.GetStatExact(bonus.Type) * bonus.Multiplier + bonus.FlatBonus);
-	}
-
-	/// <inheritdoc/>
 	public override float GetParamRate(StatType stat)
 	{
 		if (Bonuses.Length == 0)

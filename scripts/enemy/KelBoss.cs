@@ -64,7 +64,7 @@ internal sealed class KelBoss : Enemy
             Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
             // check if aubrey is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
+                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -73,7 +73,7 @@ internal sealed class KelBoss : Enemy
             Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
             // check if hero is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
+                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -108,7 +108,7 @@ internal sealed class KelBoss : Enemy
             Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
             // check if aubrey is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
+                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -117,7 +117,7 @@ internal sealed class KelBoss : Enemy
             Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
             // check if hero is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
+                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -144,7 +144,7 @@ internal sealed class KelBoss : Enemy
             Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
             // check if aubrey is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
+                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -153,7 +153,7 @@ internal sealed class KelBoss : Enemy
             Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
             // check if hero is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
+                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -188,7 +188,7 @@ internal sealed class KelBoss : Enemy
             Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
             // check if aubrey is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
+                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         
@@ -197,7 +197,7 @@ internal sealed class KelBoss : Enemy
             Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
             // check if hero is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
+                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
             return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
         }
         

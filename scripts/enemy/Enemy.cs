@@ -244,14 +244,14 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Turn-order priority taken from this turn's pre-rolled action.
 	/// </summary>
-	internal SkillPriority TurnPriority { get; private set; } = SkillPriority.Normal;
+	internal int TurnPriority { get; private set; }
 
 	internal void PreRollTurnPriority()
 	{
 		PreRolling = true;
 		try
 		{
-			TurnPriority = ProcessAI()?.Action.Priority ?? SkillPriority.Normal;
+			TurnPriority = ProcessAI()?.Action.Priority ?? 0;
 		}
 		finally
 		{

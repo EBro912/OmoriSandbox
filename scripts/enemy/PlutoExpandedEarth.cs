@@ -86,7 +86,10 @@ internal sealed class PlutoExpandedEarth : Enemy
                     DialogueManager.Instance.QueueMessage("PLUTO finishes charging his ultimate attack!");
                     await DialogueManager.Instance.WaitForDialogue();
                     foreach (PartyMember target in SelectAllTargets())
+                    {
                         target.AddStatModifier("PlutoBuff");
+                        target.ClearResult();
+                    }
                     break;
                 default:
                     DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
@@ -121,6 +124,7 @@ internal sealed class PlutoExpandedEarth : Enemy
         await DialogueManager.Instance.WaitForDialogue();
         // added after this turn's stat tick, so ProcessStartOfCommands sees 2 -> 1 -> expired over the next three turns
         AddStatModifier("PlutoCharging");
+        ClearResult();
         AnimationManager.Instance.PlayAnimation(218, this);
         Charging = true;
         Stunned = true;
@@ -157,6 +161,7 @@ internal sealed class PlutoExpandedEarth : Enemy
                 @"Impressive progress, young KEL!\! Your [color=#6095ff]FLEX[/color] has improved greatly!");
             await DialogueManager.Instance.WaitForDialogue();
             HasMentionedFlex = true;
+            ClearResult();
         }
     }
 

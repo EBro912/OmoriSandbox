@@ -133,6 +133,7 @@ internal sealed class SweetheartAlt : Enemy
 			DialogueManager.Instance.QueueMessage("SWEETHEART can no longer become SAD or ANGRY!");
 			await DialogueManager.Instance.WaitForDialogue();
 			LockEmotion("happy");
+			ClearResult();
 			Stage = 1;
 		}
 		
@@ -154,6 +155,7 @@ internal sealed class SweetheartAlt : Enemy
 			DialogueManager.Instance.QueueMessage("SWEETHEART became ECSTATIC!");
 			await DialogueManager.Instance.WaitForDialogue();
 			LockEmotion("happy");
+			ClearResult();
 			Stage = 3;
 		}
 		
@@ -168,6 +170,7 @@ internal sealed class SweetheartAlt : Enemy
 			DialogueManager.Instance.QueueMessage("SWEETHEART became MANIC!");
 			await DialogueManager.Instance.WaitForDialogue();
 			LockEmotion("happy");
+			ClearResult();
 			Stage = 4;
 		}
 	}
@@ -184,6 +187,7 @@ internal sealed class SweetheartAlt : Enemy
 				CharmingHero.Heal(100);
 			CharmPending = false;
 			CharmDone = true;
+			ClearResult();
 			// original event returns here, so a pending donut dialogue has to wait another turn
 			return;
 		}
@@ -193,6 +197,7 @@ internal sealed class SweetheartAlt : Enemy
 			await DialogueManager.Instance.WaitForDialogue();
 			DonutPending = false;
 			DonutDone = true;
+			ClearResult();
 		}
 	}
 

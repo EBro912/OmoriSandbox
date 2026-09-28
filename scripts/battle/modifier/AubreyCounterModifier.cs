@@ -35,7 +35,7 @@ public sealed class AubreyCounterModifier : StatModifier
                 if (Database.TryGetSkill("CounterAttack", out Skill s))
                 {
                     HasCounteredThisTurn = true;
-                    BattleManager.Instance.ForceCommand(defender, attacker, s);
+                    BattleManager.Instance.QueueForceCommand(defender, attacker, s, false);
                 }
             }
         }

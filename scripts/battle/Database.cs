@@ -519,7 +519,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(115, self);
 				self.AddStatModifier("Guard");
 			},
-			priority: SkillPriority.First
+			priority: 2000
 			// guard can always be used regardless of emotion
 		).WithCustomRequirement((_) => true);
 
@@ -569,7 +569,7 @@ public class Database
 					BattleManager.Instance.Damage(self, target,
 						() => (self.CurrentStats.ATK + self.CurrentStats.LCK) * 1.5f - target.CurrentStats.DEF, false);
 			},
-			priority: SkillPriority.First
+			priority: 2000
 		);
 		Skills["Stab"] = new Skill(
 			name: "STAB",
@@ -630,6 +630,7 @@ public class Database
 						e.ObserveTarget = taunting.Actor;
 						e.ObserveSetThisTurn = true;
 					}
+					target.AddStatModifier("ObserveIgnoreTaunt", silent: true);
 					BattleLogManager.Instance.QueueMessage(target, taunting.Actor,
 						"[actor] has their eyes on\n[target]!");
 					return;
@@ -665,8 +666,10 @@ public class Database
 					en.ObserveTarget = member;
 					en.ObserveSetThisTurn = true;
 				}
+				member.ClearResult();
+				target.AddStatModifier("ObserveIgnoreTaunt", silent: true);
 			},
-			priority: SkillPriority.Last
+			priority: -1000
 		);
 
 		Skills["HackAway"] = new Skill(
@@ -1197,7 +1200,7 @@ public class Database
 				target.SetEmotion("neutral", true);
 				AudioManager.Instance.FadeBGMTo(1f);
 			},
-			priority: SkillPriority.First
+			priority: 2000
 			// calm down can be used while afraid
 		).WithCustomRequirement((actor) => actor.CurrentEmotion.Id is not "stressed");
 
@@ -1215,7 +1218,7 @@ public class Database
 				target.AddStatModifier("Flex");
 				AudioManager.Instance.FadeBGMTo(1f);
 			},
-			priority: SkillPriority.First
+			priority: 2000
 		);
 
 		Skills["Persist"] = new Skill(
@@ -1233,7 +1236,7 @@ public class Database
 				target.AddStatModifier("SecondChance");
 				AudioManager.Instance.FadeBGMTo(1f);
 			},
-			priority: SkillPriority.First
+			priority: 2000
 		);
 
 
@@ -1260,6 +1263,7 @@ public class Database
 			description: "Your JUICE will not fall for 3 turns.\nCost: 0",
 			target: SkillTarget.Self,
 			cost: 0,
+			priority: 1000,
 			effect: async (_, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(target, "[actor] gathered themself...");
@@ -1274,7 +1278,7 @@ public class Database
 			description: "Heal your wounds and come back stronger.\nCost: 0",
 			target: SkillTarget.Self,
 			cost: 0,
-			priority: SkillPriority.First,
+			priority: 1000,
 			effect: async (_, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(target, "[actor] steadies their breathing.");
@@ -1389,7 +1393,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] takes a picture.");
 				BattleLogManager.Instance.QueueMessage("The foe's HIT RATE fell!");
 			},
-			priority: SkillPriority.First
+			priority: 2000
 		);
 
 		Skills["HerbalRemedy"] = new Skill(
@@ -1468,7 +1472,7 @@ public class Database
 			description: "Acts first, reducing all foes' ATTACK. Heals\nall friends for 40% of their HEART. Cost: 50",
 			target: SkillTarget.AllEnemies,
 			cost: 50,
-			priority: SkillPriority.First,
+			priority: 2000,
 			effect: async (self, targets) =>
 			{
 				AudioManager.Instance.PlaySFX("GEN_shine", 0.5f, 0.9f);
@@ -1595,6 +1599,7 @@ public class Database
 				await AnimationManager.Instance.WaitForRedHands();
 				await AnimationManager.Instance.WaitForFlowerCrown();
 				await AnimationManager.Instance.WaitForScreenAnimation(344, true);
+				AnimationManager.Instance.PlayPhotograph();
 				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
 				{
 					AnimationManager.Instance.PlayAnimation(212, member.Actor);
@@ -1603,7 +1608,6 @@ public class Database
 				}
 
 				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.PlayPhotograph();
 				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
 				{
 					AnimationManager.Instance.PlayAnimation(214, member.Actor);
@@ -1613,6 +1617,7 @@ public class Database
 						member.Actor.AddStatModifier("ReleaseEnergyBasil", silent: true);
 				}
 
+				await Wait.Frames(20);
 				foreach (Actor enemy in targets)
 				{
 					BattleManager.Instance.Damage(self, enemy, () => 1000, true, 0f, false, true);
@@ -1692,7 +1697,7 @@ public class Database
 				target.AddStatModifier("AubreyCounter");
 				await Task.CompletedTask;
 			},
-			priority: SkillPriority.First
+			priority: 2000
 		);
 
 		Skills["CounterAttack"] = new Skill(
@@ -2213,7 +2218,7 @@ public class Database
 					enemy.AddStatModifier("HitRateDown");
 				await Task.CompletedTask;
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 
 		Skills["Curveball"] = new Skill(
@@ -2373,6 +2378,7 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(60, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a SNOWBALL at\n[target]!");
+				BattleManager.Instance.MakeSad(target);
 				if (target.CurrentEmotion.Group?.Id == "sad")
 				{
 					BattleManager.Instance.Damage(self, target,
@@ -2382,7 +2388,6 @@ public class Database
 				{
 					BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF, false);
-					BattleManager.Instance.MakeSad(target);
 				}
 			}
 		);
@@ -2666,7 +2671,7 @@ public class Database
 					charmState.CharmedBy = self as PartyMember;
 				await Wait.Milliseconds(2000);
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 		Skills["Enchant"] = new Skill(
 			name: "ENCHANT",
@@ -2685,7 +2690,7 @@ public class Database
 				BattleManager.Instance.MakeHappy(target);
 				await Wait.Milliseconds(2000);
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 		Skills["Captivate"] = new Skill(
 			name: "CAPTIVATE",
@@ -2699,7 +2704,7 @@ public class Database
 				self.AddStatModifier("Taunt");
 				await Wait.Milliseconds(1000);
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 		Skills["Mesmerize"] = new Skill(
 			name: "MESMERIZE",
@@ -2715,7 +2720,7 @@ public class Database
 				self.AddStatModifier("Guard");
 				await Wait.Milliseconds(1000);
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 		Skills["SpicyFood"] = new Skill(
 			name: "SPICY FOOD",
@@ -2753,7 +2758,7 @@ public class Database
 			description: "Acts first, reducing a foe's ATTACK.\nCost: 25",
 			target: SkillTarget.Enemy,
 			cost: 25,
-			priority: SkillPriority.First,
+			priority: 1000,
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] smiles.");
@@ -2768,7 +2773,7 @@ public class Database
 			description: "Acts first. Reduces all foes' ATTACK and\nmakes them HAPPY. Cost: 35",
 			target: SkillTarget.AllEnemies,
 			cost: 35,
-			priority: SkillPriority.First,
+			priority: 1000,
 			effect: async (self, targets) =>
 			{
 				AnimationManager.Instance.PlayScreenAnimation(90, targets[0] is Enemy);
@@ -2788,7 +2793,7 @@ public class Database
 			description: "Acts first, healing a friend for 40% of\ntheir HEART. Cost: 15",
 			target: SkillTarget.Ally,
 			cost: 15,
-			priority: SkillPriority.First,
+			priority: 1000,
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] prepares a quick meal for [target].");
@@ -2953,7 +2958,7 @@ public class Database
 				heal = first.Heal(heal);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
-				BattleManager.Instance.ForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["OAttack"]);
 			},
 			hidden: true
@@ -2977,7 +2982,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {juice} JUICE!");
-				BattleManager.Instance.ForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["OAttack"]);
 			},
 			hidden: true
@@ -3001,7 +3006,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] signals to [target]!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, first, $"[target] recovers {juice} JUICE!");
-				BattleManager.Instance.ForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["OAttack"]);
 			},
 			hidden: true
@@ -3023,7 +3028,7 @@ public class Database
 				heal = second.Heal(heal);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] encourages [target]!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
-				BattleManager.Instance.ForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["AAttack"]);
 			},
 			hidden: true
@@ -3048,7 +3053,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] encourages [target]!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {juice} JUICE!");
-				BattleManager.Instance.ForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["AAttack"]);
 			},
 			hidden: true
@@ -3073,7 +3078,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] encourages [target]!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, second, $"[target] recovers {juice} JUICE!");
-				BattleManager.Instance.ForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["AAttack"]);
 			},
 			hidden: true
@@ -3095,7 +3100,7 @@ public class Database
 				heal = fourth.Heal(heal);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] psyches up [target]!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
-				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
 				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
 					fourth.SetEmotion("neutral", true);
@@ -3122,7 +3127,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] psyches up [target]!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
-				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
 				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
 					fourth.SetEmotion("neutral", true);
@@ -3149,7 +3154,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] psyches up [target]!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, fourth, $"[target] recovers {juice} JUICE!");
-				BattleManager.Instance.ForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
+				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.GetRandomAliveEnemy(),
 					Skills["KAttack"]);
 				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
 					fourth.SetEmotion("neutral", true);
@@ -4025,7 +4030,7 @@ public class Database
 			   BattleLogManager.Instance.QueueMessage(target, "[actor] hides in its bun.");
 			   target.AddStatModifier("Guard");
 		   },
-		   priority: SkillPriority.First
+		   priority: 2000
 		);
 
 		// Creepypasta //
@@ -4557,12 +4562,6 @@ public class Database
 			description: "TEAProtect",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
-			setup: (self, _) =>
-			{
-				self.AddStatModifier("AccuracyUp", silent: true);
-				return Task.CompletedTask;
-			},
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] unleashes her energy!");
@@ -5003,6 +5002,7 @@ public class Database
 			description: "SMIUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			priority: 100,
 			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
 			setup: (self, _) =>
 			{
@@ -5026,6 +5026,7 @@ public class Database
 			description: "SMUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			priority: 100,
 			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
 			setup: (self, _) =>
 			{
@@ -5101,6 +5102,7 @@ public class Database
 			description: "SMIIUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			priority: 100,
 			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
 			setup: (self, _) =>
 			{
@@ -5152,6 +5154,7 @@ public class Database
 			description: "SMIIIUltimateAttack",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
+			priority: 100,
 			// vanilla adds ACCURACY UP in the setup action and lets it expire at the end of the turn
 			setup: (self, _) =>
 			{
@@ -5398,7 +5401,7 @@ public class Database
 			description: "PEMeteor",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			priority: SkillPriority.First,
+			priority: 1000,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] summons a\nmeteor shower!");
@@ -6106,8 +6109,7 @@ public class Database
 				await Wait.Milliseconds(333);
 				await AnimationManager.Instance.WaitForAnimation(219, target);
 				target.AddTierStatModifier("AttackDown");
-			},
-			priority: SkillPriority.First
+			}
 		);
 		
 		Skills["HBossDazzle"] = new Skill(
@@ -6130,7 +6132,7 @@ public class Database
 					BattleManager.Instance.MakeHappy(member);
 				}
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 		
 		Skills["HBossCook"] = new Skill(
@@ -6710,7 +6712,7 @@ public class Database
 			description: "SNMegaphone",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			priority: SkillPriority.Last,
+			priority: -500,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses an AIRHORN!");
@@ -7005,7 +7007,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(123, target);
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2f - target.CurrentStats.DEF, false, neverCrit: true);
 			},
-			priority: SkillPriority.First
+			priority: 1000
 		);
 		
 		Skills["ANTease"] = new Skill(
@@ -7218,7 +7220,7 @@ public class Database
 			description: "HOAngelAttack",
 			target: SkillTarget.Enemy,
 			cost: 0,
-			priority: SkillPriority.First,
+			priority: 999,
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "ANGEL swiftly strikes [target]!");
@@ -7512,7 +7514,7 @@ public class Database
 			.WithStateIcons(new StateIcon("bnw_guard", "Guard: x0.5 incoming damage")));
 		Modifiers.Add("SecondChance", () => new SecondChanceStatModifier(1));
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
-		Modifiers.Add("Immortal", () => new ImmortalStatModifier().WithRemovalGuard());
+		Modifiers.Add("Immortal", () => new ImmortalStatModifier().WithBypassRecoverAllRemoval());
 		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
@@ -7521,6 +7523,7 @@ public class Database
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
 		Modifiers.Add("Charm", () => new CharmStatModifier(1).WithActionEndTicking());
+		Modifiers.Add("ObserveIgnoreTaunt", () => new StatModifier(2).WithActionEndTicking());
 		Modifiers.Add("SpaceExHusbandBlock", () => new SpaceExHusbandStatModifier());
 		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(3));
 		Modifiers.Add("PlutoCharging", () => new StatModifier(2, new StatBonus(StatType.DEF, 3f)));
@@ -7638,55 +7641,8 @@ public class Database
 		   spriteIndex: 0
 	   );
 
-		Items["Prune Juice"] = new Item(
-			name: "PRUNE JUICE",
-			description: "This tastes horrible. Don't drink it.\nHeals 30 JUICE... probably.",
-			target: SkillTarget.Ally,
-			effect: async (self, target) =>
-			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses PRUNE JUICE!");
-				AnimationManager.Instance.PlayAnimation(213, target);
-				int total = 30;
-				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
-					total = 45;
-				total = target.HealJuice(total);
-				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
-				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
-				int hpLoss = (int)Math.Round(target.CurrentHP * 0.3f, MidpointRounding.AwayFromZero);
-				target.Damage(hpLoss);
-				// damaging items don't kill
-				if (target.CurrentHP == 0)
-					target.CurrentHP = 1;
-				await Task.CompletedTask;
-			},
-			spritesheetPath: "res://assets/system/itemConsumables.png",
-			spriteIndex: 26
-		);
-
-		Items["Rotten Milk"] = new Item(
-			name: "ROTTEN MILK",
-			description: "This is bad. Don't drink it.\nHeals 10 JUICE + ???",
-			target: SkillTarget.Ally,
-			effect: async (self, target) =>
-			{
-				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses ROTTEN MILK!");
-				AnimationManager.Instance.PlayAnimation(213, target);
-				int total = 10;
-				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
-					total = 15;
-				total = target.HealJuice(total);
-				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
-				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
-				int hpLoss = (int)Math.Round(target.CurrentHP * 0.5f, MidpointRounding.AwayFromZero);
-				target.Damage(hpLoss);
-				// damaging items don't kill
-				if (target.CurrentHP == 0)
-					target.CurrentHP = 1;
-				await Task.CompletedTask;
-			},
-			spritesheetPath: "res://assets/system/itemConsumables.png",
-			spriteIndex: 79
-		);
+		AddDamagingJuiceItem("Prune Juice", "This tastes horrible. Don't drink it.\nHeals 30 JUICE... probably.", 0.3, 30, 45, 26);
+		AddDamagingJuiceItem("Rotten Milk", "This is bad. Don't drink it.\nHeals 10 JUICE + ???", 0.5, 10, 15, 79);
 
 		Items["Milk"] = new Item(
 			name: "MILK",
@@ -8306,6 +8262,47 @@ public class Database
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
 				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
+				await Task.CompletedTask;
+			},
+			spritesheetPath: "res://assets/system/itemConsumables.png",
+			spriteIndex: iconIndex
+		);
+	}
+
+	private static void AddDamagingJuiceItem(string name, string description, double hpRate, int juice, int blenderJuice, int iconIndex)
+	{
+		Items[name] = new Item(
+			name: name.ToUpper(),
+			description: description,
+			target: SkillTarget.Ally,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses {name.ToUpper()}!");
+				AnimationManager.Instance.PlayAnimation(213, target);
+				bool blender = BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable");
+				int hpLoss = target.Damage((int)Math.Floor(target.CurrentHP * hpRate));
+				// damaging items don't kill
+				if (target.CurrentHP == 0)
+					target.CurrentHP = 1;
+				int total = target.HealJuice(blender ? blenderJuice : juice);
+				if (hpLoss > 0)
+				{
+					if (blender)
+						AudioManager.Instance.PlaySFX("se_impact_double", 1f, 1.5f);
+					else
+						AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
+					if (target is PartyMember)
+					{
+						BattleManager.Instance.AddEnergy(1);
+						AnimationManager.Instance.InitShake(new Shake(5, 5, 10));
+					}
+				}
+				BattleManager.Instance.SpawnDamageNumber(hpLoss, target.CenterPoint);
+				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+				if (blender && hpLoss > 0)
+					BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
+				BattleLogManager.Instance.QueueMessage(self, target, hpLoss > 0 ? $"[target] took {hpLoss} damage!" : "[target] took no damage!");
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				await Task.CompletedTask;
 			},

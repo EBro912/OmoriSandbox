@@ -92,6 +92,13 @@ public struct Stats
         return GetStat(stat) + GetFraction(stat);
     }
 
+    internal void ApplyParam(StatType stat, int plus, double rate)
+    {
+        double value = (GetStat(stat) + (double)GetFraction(stat) + plus) * rate;
+        value = Math.Clamp(Math.Round(value, MidpointRounding.AwayFromZero), int.MinValue, int.MaxValue);
+        SetStat(stat, (int)value);
+    }
+
     /// <summary>
     /// Sets the current value of the given <see cref="StatType"/>.
     /// </summary>
@@ -99,7 +106,7 @@ public struct Stats
     /// <param name="value">The value to set the stat to.</param>
     public void SetStat(StatType stat, int value)
     {
-        if (stat is StatType.MaxJuice or StatType.MaxHP or StatType.EVA)
+        if (stat is StatType.MaxJuice or StatType.EVA)
             value = Math.Max(0, value);
         else
             value = Math.Max(1, value);
@@ -115,7 +122,7 @@ public struct Stats
     public void SetStatExact(StatType stat, float value)
     {
         int mirror = (int)Math.Round(value, MidpointRounding.AwayFromZero);
-        if (stat is StatType.MaxJuice or StatType.MaxHP or StatType.EVA or StatType.HIT)
+        if (stat is StatType.MaxJuice or StatType.EVA or StatType.HIT)
             mirror = Math.Max(0, mirror);
         else
             mirror = Math.Max(1, mirror);
@@ -134,7 +141,7 @@ public struct Stats
     public void ApplyStatLimits()
     {
         bool disableLimit = SettingsMenuManager.Instance?.DisableStatLimit ?? false;
-        MaxHP = Math.Max(0, MaxHP);
+        MaxHP = Math.Max(1, MaxHP);
         MaxJuice = Math.Max(0, MaxJuice);
         EVA = Math.Max(0, EVA);
         HIT = Math.Max(1, HIT);

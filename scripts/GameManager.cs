@@ -107,7 +107,7 @@ public partial class GameManager : Node
 		BattlebackRoot.Material = enabled ? GreyscaleMaterial : null;
 	}
 
-	internal void LoadBattlePreset(BattlePreset preset, int startingStage)
+	internal bool LoadBattlePreset(BattlePreset preset, int startingStage)
 	{
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
@@ -139,6 +139,23 @@ public partial class GameManager : Node
 			}
 
 			party.Add(actor);
+		}
+
+		if (party.Count == 0)
+		{
+			GD.PrintErr($"Preset {preset.Name} has no party members that could be spawned, not starting the battle.");
+			AcceptDialog dialog = new()
+			{
+				Title = "Cannot Start Battle",
+				DialogText = "This preset has no party members that could be spawned.\nAdd a party member in the editor, or check the console for errors.",
+				Unresizable = true
+			};
+			AddChild(dialog);
+			dialog.Confirmed += dialog.QueueFree;
+			dialog.Canceled += dialog.QueueFree;
+			dialog.PopupCentered();
+			dialog.Show();
+			return false;
 		}
 
 		foreach (BattlePresetEnemy entry in preset.Enemies)
@@ -175,6 +192,7 @@ public partial class GameManager : Node
 		DialogueManager.Instance.DialogueDisabled = preset.DisableDialogue;
 		DiscordManager.SetBattling(enemy.Count);
 		BattleManager.Instance.Init(party, enemy, preset.Stages, preset, startingStage);
+		return true;
 	}
 
 	internal void DespawnAll()

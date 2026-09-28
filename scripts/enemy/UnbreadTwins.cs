@@ -98,6 +98,7 @@ internal sealed class UnbreadTwins : Enemy
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS can no longer become HAPPY or ANGRY!");
 			await DialogueManager.Instance.WaitForDialogue();
 			LockEmotion("sad");
+			ClearResult();
 			Stage = 1;
 		}
 	}
@@ -121,6 +122,7 @@ internal sealed class UnbreadTwins : Enemy
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooooo!");
 			await DialogueManager.Instance.WaitForDialogue();
 			SetEmotionForced("depressed");
+			ClearResult();
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS became DEPRESSED...");
 			await DialogueManager.Instance.WaitForDialogue();
 			Stage = 3;
@@ -132,6 +134,7 @@ internal sealed class UnbreadTwins : Enemy
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooo...");
 			await DialogueManager.Instance.WaitForDialogue();
 			SetEmotionForced("miserable");
+			ClearResult();
 			DialogueManager.Instance.QueueMessage("UNBREAD TWINS became MISERABLE...");
 			await DialogueManager.Instance.WaitForDialogue();
 			Stage = 4;
@@ -174,7 +177,10 @@ internal sealed class UnbreadTwins : Enemy
 			if (Bakes == 0)
 				FirstBread = Breads[i];
 			else if (GodotObject.IsInstanceValid(FirstBread) && !FirstBread.Actor.IsToast)
+			{
 				FirstBread.Actor.AddStatModifier("CallForFriendDelay", silent: true);
+				FirstBread.Actor.ClearResult();
+			}
 			Bakes++;
 			return;
 		}

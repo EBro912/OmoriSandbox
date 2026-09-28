@@ -54,6 +54,7 @@ internal sealed class SnaleyOne : Enemy
         {
             if (CurrentEmotion.Id != "depressed" && CurrentEmotion.Id != "miserable")
                 SetEmotion("sad", true);
+            ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"Sigh...\! I don't know if I'm cut out for this...");
             await DialogueManager.Instance.WaitForDialogue();
             DialogueManager.Instance.QueueMessage("SNALEY is SAD...");

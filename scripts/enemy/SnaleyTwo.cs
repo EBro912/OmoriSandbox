@@ -32,7 +32,7 @@ internal sealed class SnaleyTwo : Enemy
         {
             PartyMember target = SelectTarget();
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+                BattleManager.Instance.QueueForceCommand(this, target, Skills["SNFollowup"]);
             return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         
@@ -42,7 +42,7 @@ internal sealed class SnaleyTwo : Enemy
         {
             PartyMember target = SelectTarget();
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, target, Skills["SNFollowup"]);
+                BattleManager.Instance.QueueForceCommand(this, target, Skills["SNFollowup"]);
             return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
         }
         if (Roll() < 26)
@@ -75,6 +75,7 @@ internal sealed class SnaleyTwo : Enemy
         {
             if (CurrentEmotion.Id != "ecstatic" && CurrentEmotion.Id != "manic")
                 SetEmotion("happy", true);
+            ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"How was that!?\! One of these days, I'll be as strong as you!");
             await DialogueManager.Instance.WaitForDialogue();
             AudioManager.Instance.PlaySFX("GEN_shine", 1f, 0.9f);

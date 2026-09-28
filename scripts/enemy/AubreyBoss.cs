@@ -55,7 +55,7 @@ internal sealed class AubreyBoss : Enemy
             Enemy kel = aliveEnemies.FirstOrDefault(x => x is KelBoss);
             // check if kel is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtKel"]);
+                BattleManager.Instance.QueueForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtKel"]);
             return new BattleCommand(this, SelectTarget(), Skills["AAttack"]);
         }
         
@@ -64,7 +64,7 @@ internal sealed class AubreyBoss : Enemy
             Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
             // check if hero is alive, if not just choose a random other enemy
             if (!PreRolling)
-                BattleManager.Instance.ForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtHero"]);
+                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["ABossLookAtHero"]);
             return new BattleCommand(this, SelectTarget(), Skills["AAttack"]);
         }
 
