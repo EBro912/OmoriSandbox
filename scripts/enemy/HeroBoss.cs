@@ -21,21 +21,17 @@ internal sealed class HeroBoss : Enemy
 		return emotion.Id is "neutral" or "happy" or "sad" or "angry";
 	}
 	
-	private int TurnCount = 0;
 	public override BattleCommand ProcessAI()
 	{
-		if (!PreRolling)
-		    TurnCount++;
-		
 		if (HasMultiTargetObserve())
 			return new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]);
 		
 		if (HasObserveTarget(out PartyMember observe))
 			return new BattleCommand(this, observe, Skills["SpicyFood"]);
 		
-		if (TurnCount == 1)
+		if (TrueTurnCount == 1)
 			return new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]);
-		if (TurnCount == 3)
+		if (TrueTurnCount == 3)
 		{
 			Enemy kel = SelectAllEnemies().MaxBy(x => x.CurrentStats.SPD);
 			return new BattleCommand(this, kel, Skills["HBossCoffee"]);

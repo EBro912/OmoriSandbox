@@ -21,15 +21,11 @@ internal sealed class HumphreySwarmAlt : Enemy
         return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
-    private int Turn = 0;
     // prevent race condition between two triggers
     private bool HasTransformed = false;
     
     public override BattleCommand ProcessAI()
     {
-        if (!PreRolling)
-            Turn++;
-        
         if (HasMultiTargetObserve())
             return new BattleCommand(this, SelectTargets(3), Skills["HUSAttack3"]);
         
@@ -80,7 +76,7 @@ internal sealed class HumphreySwarmAlt : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        if (Turn >= 5 && !HasTransformed)
+        if (BattleManager.Instance.TurnCount == 5 && !HasTransformed)
         {
             HasTransformed = true;
             await ChangePhase();

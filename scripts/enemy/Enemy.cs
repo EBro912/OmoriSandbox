@@ -242,13 +242,28 @@ public abstract class Enemy : Actor
 	protected bool PreRolling { get; private set; }
 
 	/// <summary>
+	/// The true turn number to check for in <see cref="ProcessAI"/> for an enemy that uses certain skills on certain turns.
+	/// </summary>
+	/// <remarks>
+	/// During turn N it reads N, like <see cref="BattleManager.TurnCount"/>, except in the turn-order roll at the start of commands, which reads N - 1 because the base game makes that roll before the turn count goes up.
+	/// The roll that picks the enemy's action and a turn-order re-roll after its emotion changes both read N.
+	/// </remarks>
+	protected int TrueTurnCount => BattleManager.Instance.TurnCount - (PreRolling && !EmotionRerolling ? 1 : 0);
+
+	/// <summary>
 	/// Turn-order priority taken from this turn's pre-rolled action.
 	/// </summary>
 	internal int TurnPriority { get; private set; }
 
-	internal void PreRollTurnPriority()
+	internal bool HasPreRolledAction { get; set; }
+
+	private bool EmotionRerolling;
+
+	internal void PreRollTurnPriority(bool emotionReroll = false)
 	{
 		PreRolling = true;
+		EmotionRerolling = emotionReroll;
+		HasPreRolledAction = true;
 		try
 		{
 			TurnPriority = ProcessAI()?.Action.Priority ?? 0;
@@ -256,6 +271,7 @@ public abstract class Enemy : Actor
 		finally
 		{
 			PreRolling = false;
+			EmotionRerolling = false;
 		}
 	}
 	/// <summary>

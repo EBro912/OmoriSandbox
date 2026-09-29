@@ -20,7 +20,7 @@ internal sealed class AubreyEnemy : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
     protected override PartyMember SelectTarget()
@@ -81,6 +81,8 @@ internal sealed class AubreyEnemy : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
+        if (BattleManager.Instance.TurnCount < 1)
+            return;
         Turn++;
         if (Turn > ChurchGoerLines.Length)
             return;

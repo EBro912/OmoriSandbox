@@ -65,14 +65,12 @@ internal sealed class KingCrawlerAlt : Enemy
     // CallForFriendDelay below to fail
     private readonly List<EnemyComponent> Moles = [];
     private readonly List<int> MoleSlots = [];   // reinforcement slot used by each summon
-    private int Turn = 0;
 
     private static bool Alive(EnemyComponent e) =>
         GodotObject.IsInstanceValid(e) && !e.Actor.IsToast && e.Actor.CurrentHP > 0;
 
     public override async Task ProcessEndOfTurn()
     {
-        Turn++;
         // eat every living mole in troop order at turn end
         HashSet<EnemyComponent> eaten = [];
         foreach (EnemyComponent mole in Moles.Where(Alive))
@@ -87,7 +85,7 @@ internal sealed class KingCrawlerAlt : Enemy
         bool Living(EnemyComponent e) => Alive(e) && !eaten.Contains(e);
 
         // page 5: summon unless troop index 2 is alive
-        if (Turn % 4 != 1)
+        if (BattleManager.Instance.TurnCount % 4 != 1)
             return;
         if (Moles.Count >= 2 && Living(Moles[1]))
             return;

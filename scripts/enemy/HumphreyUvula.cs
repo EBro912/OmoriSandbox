@@ -29,25 +29,21 @@ internal sealed class HumphreyUvula : Enemy
 		@"Do you see anyone else struggling?\! Behave yourselves, foodstuff!",
 	];
 	private int Taunt = 0;
-	private bool TransformTurn = true;
 	private Tween BreatheTween;
 
-	public override Task OnStartOfBattle()
+	public override async Task OnStartOfBattle()
 	{
 		Breathe();
-		return base.OnStartOfBattle();
+		DialogueManager.Instance.QueueMessage(this, "[br]Heh! You'll never defeat me, loser!");
+		await DialogueManager.Instance.WaitForDialogue();
 	}
 
 	public override async Task ProcessEndOfTurn()
 	{
 		if (CurrentHP <= 0)
 			return;
-		// don't start taunting until after the initial transformation turn
-		if (TransformTurn)
-		{
-			TransformTurn = false;
+		if (BattleManager.Instance.TurnCount < 1)
 			return;
-		}
 		DialogueManager.Instance.QueueMessage(this, Taunts[Taunt]);
 		await DialogueManager.Instance.WaitForDialogue();
 		Taunt = (Taunt + 1) % Taunts.Length;

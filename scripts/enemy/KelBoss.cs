@@ -19,20 +19,16 @@ internal sealed class KelBoss : Enemy
         return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
     
-    private int TurnCount = 0;
     public override BattleCommand ProcessAI()
     {
-        if (!PreRolling)
-            TurnCount++;
-        
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["RunNGun"]);
         
-        if (TurnCount == 1)
+        if (TrueTurnCount == 1)
             return new BattleCommand(this, SelectAllEnemies(), Skills["KBossRainCloud"]);
-        if (TurnCount == 3)
+        if (TrueTurnCount == 3)
             return new BattleCommand(this, this, Skills["KBossFlex"]);
-        if (TurnCount == 4)
+        if (TrueTurnCount == 4)
             return new BattleCommand(this, SelectTarget(), Skills["RunNGun"]);
 
         return CurrentEmotion.Id switch

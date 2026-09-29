@@ -36,7 +36,6 @@ public class Aqua : Enemy
 
     private int Mercy = 0;
     private bool Attacked = false;
-    private int Turn = 0;
     private HashSet<string> UsedActs = [];
     private int Duplicates = 0;
     private bool UsedOmega = false;
@@ -164,15 +163,9 @@ public class Aqua : Enemy
         }
     }
 
-    public override Task ProcessStartOfTurn()
-    {
-        Turn++;
-        return Task.CompletedTask;
-    }
-
     public override BattleCommand ProcessAI()
     {
-        return (Turn % 3) switch
+        return (TrueTurnCount % 3) switch
         {
             1 => new BattleCommand(this, SelectTarget(), Skills["AQKnifeFan"]),
             2 => new BattleCommand(this, SelectTarget(), Skills["AQKnifeChain"]),

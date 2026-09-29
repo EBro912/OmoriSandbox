@@ -17,16 +17,12 @@ internal sealed class SnaleyOne : Enemy
     }
     protected override string[] EquippedSkills => ["SNAttack", "SNDoNothing"];
 
-    private int Turn = 0;
-    
     public override BattleCommand ProcessAI()
     {
-        if (!PreRolling)
-            Turn++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SNAttack"]);
-        
-        if (Turn is 3 or 4)
+
+        if (TrueTurnCount is 3 or 4)
             return new BattleCommand(this, this, Skills["SNDoNothing"]);
         return new BattleCommand(this, SelectTarget(), Skills["SNAttack"]);
     }
@@ -45,12 +41,12 @@ internal sealed class SnaleyOne : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        if (Turn == 1)
+        if (BattleManager.Instance.TurnCount == 1)
         {
             DialogueManager.Instance.QueueMessage(this, @"Battles are harder than they look...\! I gotta try harder!");
             await DialogueManager.Instance.WaitForDialogue();
         }
-        else if (Turn == 2)
+        else if (BattleManager.Instance.TurnCount == 2)
         {
             if (CurrentEmotion.Id != "depressed" && CurrentEmotion.Id != "miserable")
                 SetEmotion("sad", true);

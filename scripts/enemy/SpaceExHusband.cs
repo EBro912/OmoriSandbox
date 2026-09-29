@@ -105,7 +105,6 @@ internal sealed class SpaceExHusband : Enemy
         return new BattleCommand(this, SelectTargets(4), Skills["SEHBulletHell"]);
     }
     
-    private int Turn = 0;
     private string Memory = "neutral";
     private bool Achieved = false;
     private int IceCounter = 0;
@@ -114,15 +113,15 @@ internal sealed class SpaceExHusband : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        Turn++;
-        if (Turn == 2)
+        int turn = BattleManager.Instance.TurnCount;
+        if (turn == 2)
         {
             DialogueManager.Instance.QueueMessage(this, "All I have left are my memories...");
             DialogueManager.Instance.QueueMessage(this, "But even they cannot make me feel anymore.");
             await DialogueManager.Instance.WaitForDialogue();
         }
 
-        if (Turn >= 2)
+        if (turn >= 2)
         {
             if (!Achieved)
             {
@@ -161,7 +160,7 @@ internal sealed class SpaceExHusband : Enemy
             }
         }
 
-        if (Turn >= 3 && Turn % 2 == 1 && Memory != "neutral" && CurrentEmotion.Id != Memory)
+        if (turn >= 3 && turn % 2 == 1 && Memory != "neutral" && CurrentEmotion.Id != Memory)
         {
             DialogueManager.Instance.QueueMessage(this, @"Sigh...\! No one truly understands the depths of my pain.");
             DialogueManager.Instance.QueueMessage(this, @"If I do not feel...\! then the pain can no longer reach me.");

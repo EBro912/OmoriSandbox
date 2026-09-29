@@ -155,6 +155,14 @@ public partial class BattleManager : Node
 	/// </summary>
 	public bool IsBattling { get; private set; } = false;
 
+	/// <summary>
+	/// The battle's turn count. Starts from 0 at battle start and resets in every new battle and Boss Rush stage.
+	/// </summary>
+	/// <remarks>
+	/// Like base game, it increments when the command menu closes, so turn N reads N from <see cref="Enemy.ProcessStartOfCommands"/> through <see cref="TurnEnded"/>, while <see cref="TurnStarted"/> and the command menu before turn N read N - 1.
+	/// </remarks>
+	public int TurnCount { get; private set; }
+
 	private bool ProcessedStartOfTurn = false;
 	private bool ProcessedStartOfCommands = false;
 	private bool ProcessedEndOfTurn = false;
@@ -658,6 +666,7 @@ public partial class BattleManager : Node
 		DialogueManager.Instance.Reset();
 		AudioManager.Instance.Reset();
 		Phase = BattlePhase.PreBattle;
+		TurnCount = 0;
 		ProcessedStartOfTurn = false;
 		ProcessedStartOfCommands = false;
 		ProcessedEndOfTurn = false;
@@ -835,6 +844,7 @@ public partial class BattleManager : Node
 
 				if (!ProcessedStartOfCommands)
 				{
+					TurnCount++;
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
 						if (enemy.Actor.IsToast)
@@ -861,6 +871,8 @@ public partial class BattleManager : Node
 				}
 				else
 				{
+					if (CurrentCommand.Actor is Enemy actingEnemy)
+						actingEnemy.HasPreRolledAction = false;
 					if (SettingsMenuManager.Instance.LogDebug)
 						GD.Print("Next action: " + CurrentCommand.Action.Name + " by " + CurrentCommand.Actor.Name);
 					SetPhase(BattlePhase.CommandExecute);
@@ -1117,9 +1129,9 @@ public partial class BattleManager : Node
 			return;
 		
 		// skip if the enemy cannot act
-		if (!ProcessedStartOfCommands || ActedThisTurn.Contains(enemy) || enemy.IsToast || enemy.Stunned)
+		if (!enemy.HasPreRolledAction || ActedThisTurn.Contains(enemy) || enemy.IsToast || enemy.Stunned)
 			return;
-		RunGuarded(enemy.PreRollTurnPriority, $"{enemy.Name}.PreRollTurnPriority");
+		RunGuarded(() => enemy.PreRollTurnPriority(emotionReroll: true), $"{enemy.Name}.PreRollTurnPriority");
 		if (SettingsMenuManager.Instance.LogDebug)
 			GD.Print($"{enemy.Name} changed emotion group to {current.Id} before acting, re-rolled turn priority: {enemy.TurnPriority}");
 	}
@@ -1150,6 +1162,8 @@ public partial class BattleManager : Node
 		ProcessedEndOfTurn = false;
 		ProcessedStartOfCommands = false;
 		BattleStartForcesOnly = false;
+		foreach (EnemyComponent enemy in Enemies)
+			enemy.Actor.HasPreRolledAction = false;
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		if (!ProcessedStartOfTurn)
 		{
@@ -1798,6 +1812,8 @@ public partial class BattleManager : Node
 		}
 
 		CheckBattleOver();
+		if (Phase == BattlePhase.BattleOver)
+			return;
 
 		ProcessedStartOfTurn = false;
 		SetPhase(BattlePhase.FightRun);
@@ -1946,6 +1962,7 @@ public partial class BattleManager : Node
 					ForceHideFollowup = false;
 					PriorityActors.Clear();
 					CurrentCommand = null;
+					TurnCount = 0;
 					ProcessedStartOfTurn = false;
 					// leave BattleOver so a restart during the next stage's intro dialogue
 					// queues (like the first stage's) instead of resetting mid-hook

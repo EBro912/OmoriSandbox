@@ -17,18 +17,14 @@ internal sealed class SnaleyTwo : Enemy
     }
     protected override string[] EquippedSkills => ["SNAttack", "SNDoNothing", "SNBeatdown", "SNAttackFollowup", "SNFollowup"];
 
-    private int Turn = 0;
-    
     public override BattleCommand ProcessAI()
     {
-        if (!PreRolling)
-            Turn++;
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["SNBeatdown"]);
-        
-        if (Turn is 1)
+
+        if (TrueTurnCount is 1)
             return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
-        if (Turn is 2)
+        if (TrueTurnCount is 2)
         {
             PartyMember target = SelectTarget();
             if (!PreRolling)
@@ -64,14 +60,14 @@ internal sealed class SnaleyTwo : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        if (Turn == 1)
+        if (BattleManager.Instance.TurnCount == 1)
         {
             DialogueManager.Instance.QueueMessage(this, "[wave freq=10.0]Wasn't that cool!?[/wave] I'm awesome!");
             await DialogueManager.Instance.WaitForDialogue();
             DialogueManager.Instance.QueueMessage(this, "I can do [color=#6095ff]FOLLOW-UP SKILLS[/color] too! Watch this!");
             await DialogueManager.Instance.WaitForDialogue();
         }
-        else if (Turn == 2)
+        else if (BattleManager.Instance.TurnCount == 2)
         {
             if (CurrentEmotion.Id != "ecstatic" && CurrentEmotion.Id != "manic")
                 SetEmotion("happy", true);
