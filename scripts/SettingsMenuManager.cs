@@ -42,10 +42,7 @@ public partial class SettingsMenuManager : Control
 				ShowNote("Warning", "Some animations may look odd or broken when using edge portraits.");
 		};
 
-		PixelSnappingCheckbox.Toggled += value =>
-		{
-			ApplyPixelSnapping(value);
-		};
+		PixelSnappingCheckbox.Toggled += ApplyPixelSnapping;
 
 		DisplayLayout.Instance.WindowResized += OnWindowSizeChanged;
 		
@@ -144,6 +141,7 @@ public partial class SettingsMenuManager : Control
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 		DialogueSpeedSlider.Value = (double)config.GetValue("Settings", "DialogueSpeed", 1d);
+		TextSkipCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "TextSkip", true);
 
 		LastSelectedPreset = (string)config.GetValue("Settings", "LastSelectedPreset", "");
 
@@ -251,6 +249,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", (int)BattlelogSpeedSlider.Value);
 		config.SetValue("Settings", "ActionDelay", (int)ActionDelaySlider.Value);
 		config.SetValue("Settings", "DialogueSpeed", DialogueSpeedSlider.Value);
+		config.SetValue("Settings", "TextSkip", TextSkipCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ShowFPS", ShowFPSCheckbox.ButtonPressed);
 		config.SetValue("Settings", "LogDebugMessages", LogDebugCheckbox.ButtonPressed);
 		config.SetValue("Settings", "PreventAccidentalRun", PreventRunCheckbox.ButtonPressed);
@@ -325,6 +324,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", 3);
 		config.SetValue("Settings", "ActionDelay", 3);
 		config.SetValue("Settings", "DialogueSpeed", 1d);
+		config.SetValue("Settings", "TextSkip", true);
 		config.SetValue("Settings", "ShowFPS", true);
 		config.SetValue("Settings", "LogDebugMessages", false);
 		config.SetValue("Settings", "PreventAccidentalRun", false);
@@ -432,6 +432,7 @@ public partial class SettingsMenuManager : Control
 	public int ActionDelay => (int)ActionDelaySlider.Value;
 	public double DialogueSpeed => DialogueSpeedSlider.Value;
 	public bool InstantDialogue => DialogueSpeedSlider.Value >= DialogueSpeedSlider.MaxValue;
+	public bool TextSkip => TextSkipCheckbox.ButtonPressed;
 	public bool EnemySelectionWrapping => EnemySelectionWrappingCheckbox.ButtonPressed;
 	public double SelectionHoldTime => SelectionHoldTimeSlider.Value;
 	public double SelectionChangeSpeed => SelectionChangeSpeedSlider.Value;
@@ -452,6 +453,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private HSlider ActionDelaySlider;
 	[Export] private HSlider DialogueSpeedSlider;
 	[Export] private Label DialogueSpeedLabel;
+	[Export] private CheckBox TextSkipCheckbox;
 	[Export] private CheckBox ShowFPSCheckbox;
 	[Export] private CheckBox LogDebugCheckbox;
 	[Export] private CheckBox PreventRunCheckbox;

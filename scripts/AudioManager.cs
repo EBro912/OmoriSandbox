@@ -3,6 +3,7 @@ using Godot;
 using OmoriSandbox.Animation;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace OmoriSandbox;
@@ -18,6 +19,8 @@ public partial class AudioManager : Node
 
 	private readonly Dictionary<string, AudioStreamOggVorbis> SFXDictionary = [];
 	private readonly SortedDictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
+	private readonly Dictionary<string, double> BGMLoopOffsets = [];
+	private string CurrentBGM = "";
 
 	public static AudioManager Instance { get; private set; }
 
@@ -75,6 +78,7 @@ public partial class AudioManager : Node
 			AudioStreamOggVorbis stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + bgm);
 			stream.Loop = true;
 			stream.LoopOffset = 0;
+			RegisterBGMLoopOffset(bgm.GetBaseName(), stream);
 			BGMDictionary.Add(bgm.GetBaseName(), stream);
 		}
 
@@ -158,6 +162,8 @@ public partial class AudioManager : Node
 		volume = Math.Clamp(volume, 0.001f, 3f);
 		pitch = Math.Clamp(pitch, 0.1f, 2f);
 		
+		stream.LoopOffset = BGMLoopOffsets.GetValueOrDefault(name);
+		CurrentBGM = name;
 		BGM.Stream = stream;
 		BGM.PitchScale = pitch;
 		BGM.VolumeDb = Mathf.LinearToDb(volume);
@@ -173,6 +179,7 @@ public partial class AudioManager : Node
 		{
 			stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgm/" + name + ".ogg");
 			stream.Loop = true;
+			RegisterBGMLoopOffset(name, stream);
 			BGMDictionary.Add(name, stream);
 			return true;
 		}
@@ -208,11 +215,13 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Sets the loop offset for the BGM.
 	/// </summary>
-	/// <param name="seconds">The time offset to loop to, in seconds. Values greater than the length of the track will be ignored.</param>
+	/// <param name="seconds">The time offset to loop to, in seconds. 0 or less uses the track's own loop point. Values greater than the length of the track will be ignored.</param>
 	public void SetBGMLoopOffset(double seconds)
 	{
 		if (BGM.Stream is AudioStreamOggVorbis stream)
 		{
+			if (seconds <= 0)
+				seconds = BGMLoopOffsets.GetValueOrDefault(CurrentBGM);
 			if (seconds < stream.GetLength())
 				stream.LoopOffset = seconds;
 		}
@@ -221,6 +230,11 @@ public partial class AudioManager : Node
 	internal float GetBGMPosition()
 	{
 		return BGM.GetPlaybackPosition() + (float)AudioServer.GetTimeSinceLastMix();
+	}
+
+	internal double GetDefaultBGMLoopOffset(string name)
+	{
+		return BGMLoopOffsets.GetValueOrDefault(name);
 	}
 
 	internal bool LoadCustomBGM(string path)
@@ -238,6 +252,7 @@ public partial class AudioManager : Node
 			return false;
 		}
 		stream.Loop = true;
+		RegisterBGMLoopOffset(name, stream);
 		return BGMDictionary.TryAdd(name, stream);
 	}
 
@@ -256,6 +271,49 @@ public partial class AudioManager : Node
 			return false;
 		}
 		return SFXDictionary.TryAdd(name, stream);
+	}
+
+	internal bool HasSFX(string name)
+	{
+		return SFXDictionary.ContainsKey(name);
+	}
+
+	private void RegisterBGMLoopOffset(string name, AudioStreamOggVorbis stream)
+	{
+		double loopStart = ReadLoopStart(stream);
+		if (loopStart > 0 && loopStart < stream.GetLength())
+			stream.LoopOffset = loopStart;
+		BGMLoopOffsets[name] = stream.LoopOffset;
+	}
+
+	private static double ReadLoopStart(AudioStreamOggVorbis stream)
+	{
+		foreach (Variant page in stream.PacketSequence.PacketData)
+		{
+			foreach (Variant entry in page.AsGodotArray())
+			{
+				byte[] packet = entry.AsByteArray();
+				if (packet.Length < 7 || packet[0] != 3 || Encoding.ASCII.GetString(packet, 1, 6) != "vorbis")
+					continue;
+				string comments = Encoding.ASCII.GetString(packet);
+				double rate = stream.PacketSequence.SamplingRate;
+				long loopLength = ReadTag(comments, "LOOPLENGTH=");
+				return loopLength > 0 && rate > 0 ? ReadTag(comments, "LOOPSTART=") / rate : 0;
+			}
+		}
+		return 0;
+	}
+
+	private static long ReadTag(string comments, string key)
+	{
+		int start = comments.IndexOf(key, StringComparison.Ordinal);
+		if (start < 0)
+			return 0;
+		start += key.Length;
+		int end = start;
+		while (end < comments.Length && char.IsAsciiDigit(comments[end]))
+			end++;
+		return long.TryParse(comments[start..end], out long value) ? value : 0;
 	}
 
 	/// <summary>

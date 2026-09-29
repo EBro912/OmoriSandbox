@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://d32syyvyr6iwr" path="res://scenes/party_member.tscn" id="5_tefeu"]
 [ext_resource type="PackedScene" uid="uid://dksr6yuevphnc" path="res://scenes/hero_followup.tscn" id="6_0ld40"]
 [ext_resource type="PackedScene" uid="uid://dcw23mfavolv2" path="res://scenes/kel_followup.tscn" id="7_gqmmt"]
-[ext_resource type="Material" uid="uid://c5e4afccx5edf" path="res://assets/grayscale_shader.tres" id="7_ty1g6"]
+[ext_resource type="Material" path="res://assets/battleback_grayscale_shader.tres" id="7_ty1g6"]
 [ext_resource type="PackedScene" uid="uid://u0o0invoxvnj" path="res://scenes/enemy.tscn" id="8_choun"]
 [ext_resource type="Script" uid="uid://cfj46ohy2ou47" path="res://scripts/BattleLogManager.cs" id="9_eb6dy"]
 [ext_resource type="Script" uid="uid://x1plm141bj2x" path="res://scripts/BattleManager.cs" id="9_y6deb"]

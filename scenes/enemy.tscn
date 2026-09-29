@@ -1,5 +1,10 @@
 [gd_scene format=3 uid="uid://u0o0invoxvnj"]
 
+[ext_resource type="Shader" path="res://assets/enemy_tint_shader.gdshader" id="1_tint"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tint"]
+shader = ExtResource("1_tint")
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_xwavj"]
 animations = [{
 "frames": [],
@@ -14,6 +19,6 @@ z_as_relative = false
 use_parent_material = true
 
 [node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=2114584219]
-use_parent_material = true
+material = SubResource("ShaderMaterial_tint")
 sprite_frames = SubResource("SpriteFrames_xwavj")
 animation = &"neutral"

@@ -101,6 +101,11 @@ public partial class AnimationManager : Node
 				animation.SetFrameShake(shake.Frame, shake.Power, shake.Speed, shake.Duration);
 			}
 
+			foreach (int[] flash in info.Flash)
+			{
+				animation.SetFrameFlash(flash[0], flash[1], flash[2..6], flash[6]);
+			}
+
 			if (!Animations.TryAdd(info.Id, animation))
 			{
 				GD.PrintErr("Unable to add animation ID " + info.Id + ", is there a duplicate?");
@@ -183,17 +188,19 @@ public partial class AnimationManager : Node
 
 				foreach (Timings timing in animation.Timings)
 				{
+					if (timing.Se?.Name == "ft_doShake")
+					{
+						anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
+						continue;
+					}
+					if (timing.FlashScope is 1 or 2 or 3)
+						anim.SetFrameFlash(timing.Frame, timing.FlashScope, timing.FlashColor, timing.FlashDuration);
 					if (timing.Se == null)
 						continue;
-					if (timing.Se.Name == "ft_doShake")
-						anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
-					else
-					{
-						if (!LoadModSFX(root, dir, timing.Se.Name))
-							report.Warn("animations", animation.Name,
-								$"Unable to find SFX {timing.Se.Name}.ogg for modded animation {animation.Id}");
-						anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
-					}
+					if (!LoadModSFX(root, dir, timing.Se.Name))
+						report.Warn("animations", animation.Name,
+							$"Unable to find SFX {timing.Se.Name}.ogg for modded animation {animation.Id}");
+					anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
 				}
 
 				Animations.Add(animation.Id, anim);
@@ -385,17 +392,19 @@ public partial class AnimationManager : Node
 
 				foreach (Timings timing in timingData)
 				{
+					if (timing.Se?.Name == "ft_doShake")
+					{
+						anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
+						continue;
+					}
+					if (timing.FlashScope is 1 or 2 or 3)
+						anim.SetFrameFlash(timing.Frame, timing.FlashScope, timing.FlashColor, timing.FlashDuration);
 					if (timing.Se == null)
 						continue;
-					if (timing.Se.Name == "ft_doShake")
-						anim.SetFrameShake(timing.Frame, timing.FlashColor[0], timing.FlashColor[1], timing.FlashDuration);
-					else
-					{
-						if (!LoadModSFX(root, dir, timing.Se.Name))
-							report.Warn("animations", id.ToString(),
-								$"Unable to find SFX {timing.Se.Name}.ogg for modded animation {id}");
-						anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
-					}
+					if (!LoadModSFX(root, dir, timing.Se.Name))
+						report.Warn("animations", id.ToString(),
+							$"Unable to find SFX {timing.Se.Name}.ogg for modded animation {id}");
+					anim.SetFrameSFX(timing.Frame, new SFX(timing.Se.Name, timing.Se.Pitch, timing.Se.Volume));
 				}
 
 				Animations.Add(id, anim);
@@ -425,9 +434,14 @@ public partial class AnimationManager : Node
 
 	private bool LoadModSFX(string root, string dir, string name)
 	{
+		if (AudioManager.Instance.HasSFX(name))
+			return true;
 		string path = $"user://mods/{root}/{dir}/{name}.ogg";
 		if (FileAccess.FileExists(path))
 			return AudioManager.Instance.LoadCustomSFX(path);
+		string sfxDir = DirAccess.GetDirectoriesAt($"user://mods/{root}").FirstOrDefault(x => x.ToLower() == "sfx");
+		if (sfxDir != null && FileAccess.FileExists($"user://mods/{root}/{sfxDir}/{name}.ogg"))
+			return true;
 		return ResourceLoader.Exists($"res://audio/sfx/{name}.ogg");
 	}
 
@@ -454,6 +468,11 @@ public partial class AnimationManager : Node
 		}
 		
 		BattlebackRoot.Position = new Vector2((float)Math.Round(Shake), 0);
+
+		foreach (PlayingAnimation playing in PlayingAnimations)
+		{
+			playing.UpdateFlashes();
+		}
 	}
 
 	private void NextFrame()
@@ -463,6 +482,7 @@ public partial class AnimationManager : Node
 			// returns true if we're out of frames
 			if (PlayingAnimations[i].AdvanceFrame())
 			{
+				PlayingAnimations[i].RestoreTarget();
 				PlayingAnimations[i].EmitSignal(PlayingAnimation.SignalName.Finished);
 				PlayingAnimations[i].QueueFree();
 				PlayingAnimations.RemoveAt(i);
@@ -484,6 +504,11 @@ public partial class AnimationManager : Node
 			if (PlayingAnimations[i].Animation.TryGetFrameShake(PlayingAnimations[i].CurrentFrame, out Shake shake))
 			{
 				InitShake(shake);
+			}
+
+			if (PlayingAnimations[i].Animation.TryGetFrameFlash(PlayingAnimations[i].CurrentFrame, out List<Flash> flashes))
+			{
+				flashes.ForEach(PlayingAnimations[i].StartFlash);
 			}
 		}
 	}
@@ -541,7 +566,7 @@ public partial class AnimationManager : Node
 	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
 	public void PlayAnimation(int id, Actor target)
 	{
-		StartAnimation(id, target.CenterPoint, target is Enemy);
+		StartAnimation(id, target.CenterPoint, target is Enemy, target);
 	}
 
 	/// <summary>
@@ -578,7 +603,7 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForAnimation(int id, Actor target)
 	{
-		PlayingAnimation playing = StartAnimation(id, target.CenterPoint, target is Enemy);
+		PlayingAnimation playing = StartAnimation(id, target.CenterPoint, target is Enemy, target);
 		if (playing == null) return;
 		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
@@ -1058,7 +1083,7 @@ public partial class AnimationManager : Node
 			child.QueueFree();
 	}
 
-	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy)
+	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy, Actor target = null)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 		{
@@ -1090,12 +1115,16 @@ public partial class AnimationManager : Node
 			InitShake(shake);
 		}
 
-		PlayingAnimation playing = new(animation, position, index);
+		PlayingAnimation playing = new(animation, position, index, target);
 		if (targetsEnemy)
 			EnemyAnimations.AddChild(playing);
 		else
 			AddChild(playing);
 		PlayingAnimations.Add(playing);
+		if (animation.TryGetFrameFlash(0, out List<Flash> flashes))
+		{
+			flashes.ForEach(playing.StartFlash);
+		}
 		return playing;
 	}
 
@@ -1116,6 +1145,10 @@ public partial class AnimationManager : Node
 
 		PlayingAnimation playing = new(animation, new Vector2(320, 240), layer);
 		PlayingAnimations.Add(playing);
+		if (animation.TryGetFrameFlash(0, out List<Flash> flashes))
+		{
+			flashes.ForEach(playing.StartFlash);
+		}
 		return playing;
 	}
 
@@ -1123,6 +1156,7 @@ public partial class AnimationManager : Node
 	{
 		foreach (PlayingAnimation animation in PlayingAnimations)
 		{
+			animation.RestoreTarget();
 			animation.EmitSignal(PlayingAnimation.SignalName.Finished);
 			animation.QueueFree();
 		}
@@ -1148,6 +1182,7 @@ internal class AnimationInfo
 	public float[][][] Frames;
 	public SFXInfo[] SFX;
 	public ShakeInfo[] Shake;
+	public int[][] Flash;
 }
 
 internal class SFXInfo

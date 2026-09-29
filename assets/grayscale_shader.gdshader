@@ -5,5 +5,5 @@ void fragment() {
     
     float luminance = dot(tex_color.rgb, vec3(0.2126, 0.7152, 0.0722));
     
-    COLOR = vec4(vec3(luminance), tex_color.a * COLOR.a);
+    COLOR = vec4(vec3(luminance), COLOR.a);
 }

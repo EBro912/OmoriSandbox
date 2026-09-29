@@ -1164,7 +1164,7 @@ public partial class BattleManager : Node
 		BattleStartForcesOnly = false;
 		foreach (EnemyComponent enemy in Enemies)
 			enemy.Actor.HasPreRolledAction = false;
-		GameManager.Instance.SetBattlebackGrayscale(false);
+		GameManager.Instance.FadeOutBattlebackGrayscale();
 		if (!ProcessedStartOfTurn)
 		{
 			foreach (PartyMemberComponent member in CurrentParty.Where(x => !x.Actor.IsToast))
@@ -1396,7 +1396,7 @@ public partial class BattleManager : Node
 		}
 
 		BattleLogManager.Instance.ClearBattleLog();
-		GameManager.Instance.SetBattlebackGrayscale(false);
+		GameManager.Instance.FadeOutBattlebackGrayscale();
 		if (SettingsMenuManager.Instance.LogDebug)
 			GD.Print("Processing action " + currentAction.Action.Name);
 		List<Actor> resolvedTargets = [];
@@ -2166,6 +2166,7 @@ public partial class BattleManager : Node
 		if (target is PartyMember && roundedInt > 0)
 		{
 			Energy = Math.Min(10, Energy + 1);
+			AnimationManager.Instance.InitShake(new Shake(5, 5, 10));
 		}
 
 		SpawnDamageNumber(roundedInt, target.CenterPoint, critical: critical);

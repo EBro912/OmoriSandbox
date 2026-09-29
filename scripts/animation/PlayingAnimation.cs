@@ -1,5 +1,6 @@
 using System.Numerics;
 using Godot;
+using OmoriSandbox.Actors;
 using Vector2 = Godot.Vector2;
 
 namespace OmoriSandbox.Animation;
@@ -9,21 +10,37 @@ internal partial class PlayingAnimation : Node2D
 	[Signal]
 	public delegate void FinishedEventHandler();
 
+	private const int Rate = 4;
+
 	public int CurrentFrame { get; private set; } = 0;
 	public readonly RPGMAnimatedSprite Animation;
 	public Vector2 DrawPosition { get; private set; }
+	public readonly Actor Target;
+
+	internal Color ScreenFlashColor;
+	internal int ScreenFlashDuration;
+	internal Color TargetFlashColor;
+	internal int TargetFlashDuration;
+	internal int HidingDuration;
+	private bool FlashedTarget;
+	private bool HidTarget;
+	internal Rect2 ScreenFlashRect => DisplayLayout.Instance.VisibleBattleRect.Grow(32);
 
 	// additive cells can't share a CanvasItem with normal cells, so they draw on a child
 	// layer with an additive blend material
 	private readonly AdditiveLayer Additive;
+	private readonly ScreenFlashLayer ScreenFlash;
 
-	public PlayingAnimation(RPGMAnimatedSprite animation, Vector2 drawPosition, int layer)
+	public PlayingAnimation(RPGMAnimatedSprite animation, Vector2 drawPosition, int layer, Actor target = null)
 	{
 		Animation = animation;
 		DrawPosition = drawPosition;
 		ZIndex = layer;
+		Target = target;
 		Additive = new AdditiveLayer(this);
 		AddChild(Additive);
+		ScreenFlash = new ScreenFlashLayer(this);
+		AddChild(ScreenFlash);
 		QueueRedraw();
 	}
 
@@ -78,6 +95,84 @@ internal partial class PlayingAnimation : Node2D
 		return false;
 	}
 
+	public void StartFlash(Flash flash)
+	{
+		int duration = flash.Duration * Rate;
+		switch (flash.Scope)
+		{
+			case 1:
+				TargetFlashColor = flash.Color;
+				TargetFlashDuration = duration;
+				FlashedTarget = true;
+				UpdateTargetFlash();
+				break;
+			case 2:
+				ScreenFlashColor = flash.Color;
+				ScreenFlashDuration = duration;
+				ScreenFlash.QueueRedraw();
+				UpdateScreenFlash();
+				break;
+			case 3:
+				HidingDuration = duration;
+				HidTarget = true;
+				SetTargetVisible(false);
+				UpdateHiding();
+				break;
+		}
+	}
+
+	public void UpdateFlashes()
+	{
+		UpdateTargetFlash();
+		UpdateScreenFlash();
+		UpdateHiding();
+	}
+
+	public void RestoreTarget()
+	{
+		if (FlashedTarget)
+			(Target as Enemy)?.SetBlendColor(new Color(0, 0, 0, 0));
+		if (HidTarget)
+			SetTargetVisible(true);
+	}
+
+	private void UpdateTargetFlash()
+	{
+		if (TargetFlashDuration <= 0)
+			return;
+		int d = TargetFlashDuration--;
+		TargetFlashColor.A *= (d - 1f) / d;
+		(Target as Enemy)?.SetBlendColor(TargetFlashColor);
+	}
+
+	private void UpdateHiding()
+	{
+		if (HidingDuration <= 0)
+			return;
+		HidingDuration--;
+		if (HidingDuration == 0)
+		{
+			HidTarget = false;
+			SetTargetVisible(true);
+		}
+	}
+
+	private void SetTargetVisible(bool visible)
+	{
+		if (Target is Enemy enemy && IsInstanceValid(enemy.Sprite))
+			enemy.Sprite.Visible = visible;
+	}
+
+	private void UpdateScreenFlash()
+	{
+		if (ScreenFlashDuration <= 0)
+			return;
+		int d = ScreenFlashDuration--;
+		ScreenFlashColor.A *= (d - 1f) / d;
+		ScreenFlash.Visible = ScreenFlashDuration > 0;
+		ScreenFlash.QueueRedraw();
+	}
+
 	private sealed partial class AdditiveLayer : Node2D
 	{
 		private readonly PlayingAnimation Owner;
@@ -91,6 +186,22 @@ internal partial class PlayingAnimation : Node2D
 		public override void _Draw()
 		{
 			Owner.DrawCells(this, additive: true);
+		}
+	}
+
+	private sealed partial class ScreenFlashLayer : Node2D
+	{
+		private readonly PlayingAnimation Playing;
+
+		public ScreenFlashLayer(PlayingAnimation playing)
+		{
+			Playing = playing;
+		}
+
+		public override void _Draw()
+		{
+			if (Playing.ScreenFlashColor.A > 0f)
+				DrawRect(Playing.ScreenFlashRect, Playing.ScreenFlashColor);
 		}
 	}
 }

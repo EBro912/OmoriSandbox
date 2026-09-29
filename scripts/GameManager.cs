@@ -27,9 +27,12 @@ public partial class GameManager : Node
 	[Export] private Node2D BattlebackRoot;
 	[Export] private Label FPSLabel;
 	[Export] private Node Party;
-	[Export] private Material GreyscaleMaterial;
-
+	[Export] private ShaderMaterial GreyscaleMaterial;
 	[Export] private PackedScene[] Followups;
+	
+	private const float GrayscaleFadeDuration = 0.5f;
+	private readonly List<CanvasItem> GrayscaleSprites = [];
+	private Tween GrayscaleFade;
 
 	/// <summary>
 	/// A random number generator.
@@ -104,7 +107,43 @@ public partial class GameManager : Node
 	/// <param name="enabled">Whether the greyscale filter should be enabled.</param>
 	public void SetBattlebackGrayscale(bool enabled)
 	{
+		GrayscaleFade?.Kill();
+		if (enabled)
+		{
+			GrayscaleSprites.Clear();
+			foreach (Node child in BattlebackRoot.GetChildren())
+			{
+				if (child.IsInGroup(EnemyNodeGroup))
+					GrayscaleSprites.Add(child.GetNode<CanvasItem>("Sprite"));
+			}
+		}
 		BattlebackRoot.Material = enabled ? GreyscaleMaterial : null;
+		SetGrayscaleAmount(enabled ? 1f : 0f);
+		if (!enabled)
+			GrayscaleSprites.Clear();
+	}
+
+	internal void FadeOutBattlebackGrayscale()
+	{
+		if (BattlebackRoot.Material == null || (GrayscaleFade != null && GrayscaleFade.IsRunning()))
+			return;
+		GrayscaleFade = CreateTween();
+		GrayscaleFade.TweenMethod(Callable.From<float>(SetGrayscaleAmount), 1f, 0f, GrayscaleFadeDuration);
+		GrayscaleFade.TweenCallback(Callable.From(() =>
+		{
+			BattlebackRoot.Material = null;
+			GrayscaleSprites.Clear();
+		}));
+	}
+
+	private void SetGrayscaleAmount(float amount)
+	{
+		GreyscaleMaterial.SetShaderParameter("amount", amount);
+		foreach (CanvasItem sprite in GrayscaleSprites)
+		{
+			if (IsInstanceValid(sprite))
+				sprite.SetInstanceShaderParameter("defeat_tone", amount);
+		}
 	}
 
 	internal bool LoadBattlePreset(BattlePreset preset, int startingStage)

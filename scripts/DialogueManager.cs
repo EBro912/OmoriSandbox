@@ -1,4 +1,3 @@
-using System;
 using Godot;
 using System.Collections.Generic;
 using System.Text;
@@ -35,7 +34,7 @@ public partial class DialogueManager : Node2D
 	private Queue<MessageBox> MessageQueue = [];
 	private bool HasChoice = false;
 
-	private const float TEXT_SPEED = 0.02f;
+	private const float TEXT_SPEED = 1f / 60f;
 	private const float TEXT_SIZE = 32.5f;
 	private bool WaitingForInput = false;
 	private bool IsTyping = false;
@@ -44,8 +43,9 @@ public partial class DialogueManager : Node2D
 	private bool WaitingForChoice = false;
 	private double CharTimer = 0;
 	private int CurrentMessageLength = 0;
-	private int CharsTillSound = 2;
-	private Dictionary<int, List<PauseType>> PauseIndices = [];
+	private int CharsTillSound = 3;
+	private Dictionary<int, List<Pause>> PauseIndices = [];
+	private RichTextLabel Measure;
 	private Tween OpenCloseTween;
 	private Tween DimTween;
 	private Tween CursorFadeTween;
@@ -75,8 +75,11 @@ public partial class DialogueManager : Node2D
 	private Vector2 DefaultPosition;
 	private const float NoEnergyBarOffset = 54f;
 
-	// whether the current message closes/advances itself when it finishes typing via the \^ marker
+	// whether the current message closes/advances itself when it finishes typing via the \^ marker, unless it has choices
 	private bool AutoClose;
+	private bool TextFinished;
+	private bool ShowFast;
+	private double TriggerHeldTime;
 
 	public override void _EnterTree()
 	{
@@ -86,18 +89,16 @@ public partial class DialogueManager : Node2D
 
 	public override void _Process(double delta)
 	{
+		bool triggered = UpdateTriggered(delta);
 		if (!Visible)
 			return;
 
 		if (IsTyping)
 		{
-			if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
-			{
-				SkipForward();
-				return;
-			}
+			if (triggered && SettingsMenuManager.Instance.TextSkip)
+				ShowFast = true;
 
-			if (SettingsMenuManager.Instance.InstantDialogue)
+			if (ShowFast || SettingsMenuManager.Instance.InstantDialogue)
 			{
 				// type the whole message at once, scripted pauses and input waits still apply
 				while (IsTyping)
@@ -108,27 +109,22 @@ public partial class DialogueManager : Node2D
 
 			double delay = TEXT_SPEED / SettingsMenuManager.Instance.DialogueSpeed;
 			CharTimer += delta;
-			if (CharTimer >= delay)
+			// when the delay is shorter than a frame, one char per frame can't keep up
+			// type enough chars this frame to hold the configured rate
+			while (CharTimer >= delay && IsTyping)
 			{
-				CharTimer = 0;
-				// when the delay is shorter than a frame, one char per frame can't keep up
-				// type enough chars this frame to hold the configured rate
-				int chars = Math.Max(1, (int)(delta / delay));
-				for (int i = 0; i < chars && IsTyping; i++)
-					TypeChar();
+				CharTimer -= delay;
+				TypeChar();
 			}
-		}
-		else if (WaitingForTimer)
-		{
-			if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
-				SkipForward();
+			if (!IsTyping)
+				CharTimer = 0;
 		}
 		else if (WaitingForInput)
 		{
-			if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
+			if (triggered && !CursorFadeTween.IsRunning())
 			{
 				WaitingForInput = false;
-				if (Text.VisibleCharacters < CurrentMessageLength)
+				if (!TextFinished)
 				{
 					Cursor.Visible = false;
 					IsTyping = true;
@@ -200,39 +196,58 @@ public partial class DialogueManager : Node2D
 		}
 	}
 
+	private bool UpdateTriggered(double delta)
+	{
+		if (Input.IsActionJustPressed("Accept") || Input.IsActionJustPressed("Back"))
+		{
+			TriggerHeldTime = 0;
+			return true;
+		}
+		if (!Input.IsActionPressed("Accept") && !Input.IsActionPressed("Back"))
+			return false;
+		int before = (int)(TriggerHeldTime * 60 + 0.01);
+		TriggerHeldTime += delta;
+		int after = (int)(TriggerHeldTime * 60 + 0.01);
+		for (int frame = before + 1; frame <= after; frame++)
+		{
+			if (frame >= 24 && frame % 6 == 0)
+				return true;
+		}
+		return false;
+	}
+
 	private void TypeChar()
 	{
-		if (Text.VisibleCharacters >= CurrentMessageLength)
+		if (PauseIndices.TryGetValue(Text.VisibleCharacters, out List<Pause> pauses))
 		{
-			IsTyping = false;
-			EndOfMessage();
-			return;
-		}
-
-		if (PauseIndices.TryGetValue(Text.VisibleCharacters, out List<PauseType> pauses))
-		{
-			PauseType p = pauses[0];
+			Pause p = pauses[0];
 			pauses.RemoveAt(0);
 			// the pause sits before the character at this index, which stays hidden until typing resumes
 			if (pauses.Count == 0)
 				PauseIndices.Remove(Text.VisibleCharacters);
+			if (pauses.Count == 0 && p.Type == PauseType.Input && Text.VisibleCharacters >= CurrentMessageLength && !AutoClose)
+				return;
 			IsTyping = false;
-			switch (p)
+			switch (p.Type)
 			{
-				case PauseType.QuarterSecond:
-					WaitForTimer(0.25d);
-					break;
-				case PauseType.Second:
-					WaitForTimer(1d);
+				case PauseType.Wait:
+					WaitForTimer(p.Frames / 60d);
 					break;
 				case PauseType.Input:
 					WaitForInput();
 					break;
 				default:
-					GD.PrintErr("Unhandled PauseType: " + p);
+					GD.PrintErr("Unhandled PauseType: " + p.Type);
 					break;
 			}
 
+			return;
+		}
+
+		if (Text.VisibleCharacters >= CurrentMessageLength)
+		{
+			IsTyping = false;
+			EndOfMessage();
 			return;
 		}
 
@@ -247,7 +262,7 @@ public partial class DialogueManager : Node2D
 		CharsTillSound--;
 		if (CharsTillSound == 0)
 		{
-			CharsTillSound = 2;
+			CharsTillSound = 3;
 			// at high dialogue speeds multiple chars type in one frame, cap at one blip per frame
 			ulong frame = Engine.GetProcessFrames();
 			if (frame == LastSoundFrame)
@@ -269,6 +284,8 @@ public partial class DialogueManager : Node2D
 		MessageBox current = MessageQueue.Dequeue();
 		PauseIndices.Clear();
 		AutoClose = false;
+		TextFinished = false;
+		ShowFast = false;
 		if (current.Speaker != null)
 		{
 			if (current.SpeakerPos != default)
@@ -340,120 +357,131 @@ public partial class DialogueManager : Node2D
 	private string FindPauses(string input)
 	{
 		StringBuilder sb = new();
+		List<(int Offset, Pause Pause)> found = [];
 		bool insideTag = false;
-		bool insideSlash = false;
-		// BBCode characters are not included in VisibleCharacters
-		int visibleIndex = 0;
 
-		foreach (char c in input)
+		for (int i = 0; i < input.Length; i++)
 		{
+			char c = input[i];
+			if (!insideTag && c is '\\')
+			{
+				i = ReadEscape(input, i, sb, found);
+				continue;
+			}
+
 			if (c is '[')
-			{
 				insideTag = true;
-				sb.Append(c);
-				continue;
-			}
-
-			if (c is ']')
-			{
+			else if (c is ']')
 				insideTag = false;
-				sb.Append(c);
-				continue;
-			}
-
-			if (!insideTag)
-			{
-				if (insideSlash)
-				{
-					switch (c)
-					{
-						case '.':
-							AddPause(visibleIndex, PauseType.QuarterSecond);
-							break;
-						case '|':
-							AddPause(visibleIndex, PauseType.Second);
-							break;
-						case '!':
-							AddPause(visibleIndex, PauseType.Input);
-							break;
-						case '^':
-							AutoClose = true;
-							break;
-						default:
-							GD.PushWarning("Invalid pause tag in dialogue: \\" + c);
-							break;
-					}
-
-					insideSlash = false;
-					continue;
-				}
-
-				if (c is '\\')
-				{
-					insideSlash = true;
-					continue;
-				}
-
-				visibleIndex++;
-			}
 
 			sb.Append(c);
 		}
 
-		return sb.ToString();
+		// Godot treats BBCode tags as a single "character"
+		// we can use a fake text label to measure pauses before displaying
+		// unlike Omori, we don't actually render any text
+		// so the performance impact is marginal at best
+		string bbcode = sb.ToString();
+		if (Measure == null)
+		{
+			Measure = new RichTextLabel { BbcodeEnabled = true, Visible = false };
+			AddChild(Measure);
+		}
+		Measure.CustomEffects = Text.CustomEffects;
+		Measure.Clear();
+		int start = 0;
+		foreach ((int offset, Pause pause) in found)
+		{
+			Measure.AppendText(bbcode[start..offset]);
+			start = offset;
+			AddPause(Measure.GetTotalCharacterCount(), pause);
+		}
+		return bbcode;
 	}
 
-	private void AddPause(int index, PauseType type)
+	private int ReadEscape(string input, int slash, StringBuilder sb, List<(int Offset, Pause Pause)> found)
 	{
-		if (!PauseIndices.TryGetValue(index, out List<PauseType> list))
+		int i = slash + 1;
+		if (i >= input.Length)
+			return slash;
+
+		switch (input[i])
+		{
+			case '.':
+				found.Add((sb.Length, new Pause(PauseType.Wait, 15)));
+				return i;
+			case '|':
+				found.Add((sb.Length, new Pause(PauseType.Wait, 60)));
+				return i;
+			case '!':
+				found.Add((sb.Length, new Pause(PauseType.Input, 0)));
+				return i;
+			case '^':
+				AutoClose = true;
+				return i;
+			case '\\':
+				sb.Append('\\');
+				return i;
+		}
+
+		if (!char.IsAsciiLetter(input[i]))
+		{
+			GD.PushWarning("Invalid pause tag in dialogue: \\" + input[i]);
+			return i;
+		}
+
+		int end = i;
+		while (end < input.Length && char.IsAsciiLetter(input[end]))
+			end++;
+		string code = input[i..end].ToUpperInvariant();
+		int last = end - 1;
+		int frames = 0;
+		if (end < input.Length && input[end] == '[')
+		{
+			int close = end + 1;
+			while (close < input.Length && char.IsAsciiDigit(input[close]))
+				close++;
+			if (close > end + 1 && close < input.Length && input[close] == ']')
+			{
+				int.TryParse(input[(end + 1)..close], out frames);
+				last = close;
+			}
+		}
+
+		if (code == "W")
+		{
+			if (frames > 0)
+				found.Add((sb.Length, new Pause(PauseType.Wait, frames)));
+		}
+		else
+		{
+			GD.PushWarning("Invalid pause tag in dialogue: \\" + code);
+		}
+		return last;
+	}
+
+	private void AddPause(int index, Pause pause)
+	{
+		if (!PauseIndices.TryGetValue(index, out List<Pause> list))
 		{
 			list = [];
 			PauseIndices[index] = list;
 		}
-		list.Add(type);
-	}
-
-	private void SkipForward()
-	{
-		IsTyping = false;
-		WaitingForTimer = false;
-
-		int target = CurrentMessageLength;
-		foreach (var pause in PauseIndices)
-		{
-			if (pause.Key >= Text.VisibleCharacters && pause.Value.Contains(PauseType.Input) && pause.Key < target)
-				target = pause.Key;
-		}
-
-		if (target < CurrentMessageLength)
-		{
-			// stop at the pause marker, consuming it so typing doesn't trigger it again
-			Text.VisibleCharacters = target;
-			PauseIndices.Remove(target);
-			WaitForInput();
-		}
-		else
-		{
-			Text.VisibleCharacters = CurrentMessageLength;
-			EndOfMessage();
-		}
+		list.Add(pause);
 	}
 
 	private void EndOfMessage()
 	{
-		if (AutoClose)
-		{
-			AdvanceAutoClose();
-			return;
-		}
+		TextFinished = true;
 		if (HasChoice)
 			WaitForChoice();
+		else if (AutoClose)
+			AdvanceAutoClose();
 		else
 			WaitForInput();
 	}
 
 	// closes or advances a \^ message without waiting for input
-	// if the message has a choice, the first option is chosen
 	private void AdvanceAutoClose()
 	{
 		if (MessageQueue.Count == 0)
@@ -462,18 +490,11 @@ public partial class DialogueManager : Node2D
 			SpeakerSprite.Visible = false;
 			Text.Visible = false;
 			WaitingForAnimation = true;
-			// FinishMessage emits FinishedDialogue, plus ChoiceSelected with the first option when there is a choice
+			// FinishMessage emits FinishedDialogue
 			AnimateClose();
 		}
 		else
 		{
-			if (HasChoice)
-			{
-				// the choice box is never shown, emit the first option and move on
-				string choice = CurrentChoices[0];
-				HasChoice = false;
-				EmitSignal(SignalName.ChoiceSelected, choice);
-			}
 			BeginMessage();
 		}
 	}
@@ -543,8 +564,8 @@ public partial class DialogueManager : Node2D
 	/// <summary>
 	/// Queues a message to be displayed in the dialogue box.
 	/// </summary>
-	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
-	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
+	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(string message, string[] choices = null, FontType font = FontType.Normal)
@@ -557,8 +578,8 @@ public partial class DialogueManager : Node2D
 	/// The speaker arrow will point to the <see cref="Enemy"/>'s position on screen.
 	/// </summary>
 	/// <param name="speaker">The <see cref="Enemy"/> to show as the speaker.</param>
-	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
-	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
+	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(Enemy speaker, string message, string[] choices = null, FontType font = FontType.Normal)
@@ -571,8 +592,8 @@ public partial class DialogueManager : Node2D
 	/// </summary>
 	/// <param name="speaker">The name of the speaker.</param>
 	/// <param name="speakerPos">The position on screen to use as the speaker target.</param>
-	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
-	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
+	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null,
@@ -600,8 +621,8 @@ public partial class DialogueManager : Node2D
 	/// Queues a message to be displayed in the dialogue box, with a custom speaker name.
 	/// </summary>
 	/// <param name="speaker">The name of the speaker.</param>
-	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 0.25s, <c>\|</c> pauses for 1s,
-	/// <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, auto-selecting the first choice if any.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
+	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
 	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
 	public void QueueMessage(string speaker, string message, string[] choices = null, FontType font = FontType.Normal)
@@ -716,6 +737,8 @@ public partial class DialogueManager : Node2D
 		PauseGeneration++;
 		HasChoice = false;
 		AutoClose = false;
+		TextFinished = false;
+		ShowFast = false;
 		Position = DefaultPosition;
 		WaitingForAnimation = false;
 		WaitingForInput = false;
@@ -723,7 +746,7 @@ public partial class DialogueManager : Node2D
 		WaitingForTimer = false;
 		IsTyping = false;
 		Cursor.Visible = false;
-		CharsTillSound = 2;
+		CharsTillSound = 3;
 		CurrentMessageLength = 0;
 		CharTimer = 0;
 		ChoiceIndex = 0;
@@ -765,8 +788,9 @@ public partial class DialogueManager : Node2D
 
 	private enum PauseType
 	{
-		QuarterSecond,
-		Second,
+		Wait,
 		Input
 	}
+
+	private readonly record struct Pause(PauseType Type, int Frames);
 }

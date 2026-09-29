@@ -33,7 +33,7 @@ internal partial class BattlebackBGMEditorComponent : Control
         BGMDropdown.Selected = BGMDropdown.GetItemIndex("battle_vf");
         if (!BGMPreview.Playing && AudioManager.Instance.TryGetBGM("battle_vf", out AudioStreamOggVorbis stream))
         {
-            BGMPreview.Stream = stream;
+            SetPreviewStream(stream, AudioManager.Instance.GetDefaultBGMLoopOffset("battle_vf"));
             BGMPlayer.MaxValue = stream.GetLength();
             LoopPoint.MaxValue = stream.GetLength();
             BGMPlayButton.Text = "Play";
@@ -64,9 +64,12 @@ internal partial class BattlebackBGMEditorComponent : Control
 			string bgm = BGMDropdown.GetItemText((int)idx);
 			if (AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis s))
 			{
-				BGMPreview.Stream = s;
+				double trackLoopPoint = AudioManager.Instance.GetDefaultBGMLoopOffset(bgm);
+				SetPreviewStream(s, trackLoopPoint);
 				BGMPlayer.MaxValue = s.GetLength();
 				LoopPoint.MaxValue = s.GetLength();
+				LoopPoint.Value = trackLoopPoint;
+				TrackLoopPoint = LoopPoint.Value;
 				BGMPlayButton.Text = "Play";
 				BGMPreview.Play();
 				BGMPreview.StreamPaused = true;
@@ -135,7 +138,7 @@ internal partial class BattlebackBGMEditorComponent : Control
 	    string bgm = BGMDropdown.GetItemText(BGMDropdown.Selected);
 	    if (AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis s))
 	    {
-		    BGMPreview.Stream = s;
+		    SetPreviewStream(s, LoopPoint.Value);
 		    BGMPlayer.MaxValue = s.GetLength();
 		    LoopPoint.MaxValue = s.GetLength();
 		    BGMPreview.PitchScale = (float)BGMPitch.Value;
@@ -151,6 +154,14 @@ internal partial class BattlebackBGMEditorComponent : Control
 	    SelectedBattleback = "battleback_vf_default";
 	    SelectedBGM = "battle_vf";
 	    BattlebackPreview.SetBattleback(SelectedBattleback);
+    }
+
+    private void SetPreviewStream(AudioStreamOggVorbis source, double loopOffset)
+    {
+	    AudioStreamOggVorbis preview = (AudioStreamOggVorbis)source.Duplicate();
+	    if (loopOffset < preview.GetLength())
+		    preview.LoopOffset = loopOffset;
+	    BGMPreview.Stream = preview;
     }
     
     public string SelectedBattleback
@@ -193,11 +204,12 @@ internal partial class BattlebackBGMEditorComponent : Control
     }
     public double BGMLoopPointValue 
     {
-	    get => LoopPoint.Value;
-	    set => LoopPoint.Value = value;
+	    get => LoopPoint.Value == TrackLoopPoint ? 0 : LoopPoint.Value;
+	    set => LoopPoint.Value = value > 0 ? value : TrackLoopPoint;
     }
 
     private bool PreviewingBGM = false;
+    private double TrackLoopPoint;
     private AudioStreamPlayer BGMPreview;
     private BattlebackDisplayComponent BattlebackPreview;
     [Export] private OptionButton BattlebackDropdown;

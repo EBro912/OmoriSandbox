@@ -101,6 +101,12 @@ public abstract class Enemy : Actor
 		}
 	}
 
+	internal void SetBlendColor(Color color)
+	{
+		if (GodotObject.IsInstanceValid(Sprite))
+			Sprite.SetInstanceShaderParameter("blend_color", color);
+	}
+
 	/// <summary>
 	/// Selects a target. Mainly used in <see cref="ProcessAI"/> for single-target skills. Can be overriden for custom targeting behavior.
 	/// </summary>

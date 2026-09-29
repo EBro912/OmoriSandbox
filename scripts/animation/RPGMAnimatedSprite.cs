@@ -15,6 +15,7 @@ internal class RPGMAnimatedSprite
 	private readonly List<List<Frame>> Frames = [];
 	private readonly Dictionary<int, List<SFX>> FrameSFX = [];
 	private readonly Dictionary<int, Shake> FrameShake = [];
+	private readonly Dictionary<int, List<Flash>> FrameFlash = [];
 	private readonly int Columns;
 	private readonly int AltColumns;
 
@@ -53,6 +54,19 @@ internal class RPGMAnimatedSprite
 	public void SetFrameShake(int frame, int power, int speed, int duration)
 	{
 		FrameShake[frame] = Shake.FromFlash(power, speed, duration);
+	}
+
+	public void SetFrameFlash(int frame, int scope, int[] color, int duration)
+	{
+		Flash flash = new(scope, new Color(color[0] / 255f, color[1] / 255f, color[2] / 255f, color[3] / 255f), duration);
+		if (FrameFlash.TryGetValue(frame, out List<Flash> value))
+		{
+			value.Add(flash);
+		}
+		else
+		{
+			FrameFlash[frame] = [flash];
+		}
 	}
 
 	// avoid creating a fresh AtlasTexture per cell per redraw
@@ -119,6 +133,11 @@ internal class RPGMAnimatedSprite
 		return FrameShake.TryGetValue(frame, out shake);
 	}
 
+	public bool TryGetFrameFlash(int frame, out List<Flash> flashes)
+	{
+		return FrameFlash.TryGetValue(frame, out flashes);
+	}
+
 	public IEnumerable<List<SFX>> AllSFX => FrameSFX.Values;
 
 	public int FrameCount => Frames.Count;
@@ -142,6 +161,13 @@ internal struct SFX(string name, float pitch = 100f, float volume = 100f)
 	public readonly string Name = name;
 	public readonly float Pitch = pitch;
 	public readonly float Volume = volume;
+}
+
+internal struct Flash(int scope, Color color, int duration)
+{
+	public readonly int Scope = scope;
+	public readonly Color Color = color;
+	public readonly int Duration = duration;
 }
 
 /// <summary>
