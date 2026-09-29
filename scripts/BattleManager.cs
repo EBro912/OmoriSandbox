@@ -159,6 +159,7 @@ public partial class BattleManager : Node
 	private bool ProcessedStartOfCommands = false;
 	private bool ProcessedEndOfTurn = false;
 	private bool InEndOfTurnHooks = false;
+	private bool BattleStartForcesOnly = false;
 
 	public static BattleManager Instance { get; private set; }
 
@@ -300,6 +301,18 @@ public partial class BattleManager : Node
 			}
 		}
 		RaiseGuarded(BattleStarted, new BattleStartedEventArgs(CurrentPresetName, CurrentStage), "BattleStarted");
+		if (ForcedCommands.Count > 0)
+		{
+			foreach (PartyMemberComponent member in CurrentParty)
+				ActedThisTurn.Add(member.Actor);
+			foreach (EnemyComponent enemy in Enemies)
+				ActedThisTurn.Add(enemy.Actor);
+			ProcessedStartOfCommands = true;
+			ProcessedEndOfTurn = false;
+			BattleStartForcesOnly = true;
+			SetPhase(BattlePhase.PreCommand);
+			return;
+		}
 		SetPhase(BattlePhase.FightRun);
 	}
 
@@ -649,6 +662,7 @@ public partial class BattleManager : Node
 		ProcessedStartOfCommands = false;
 		ProcessedEndOfTurn = false;
 		InEndOfTurnHooks = false;
+		BattleStartForcesOnly = false;
 		RestartLabel.Visible = false;
 		RestartQueued = false;
 		RestartTimer = 1;
@@ -1018,6 +1032,9 @@ public partial class BattleManager : Node
 				ForceHideFollowup = false;
 		}
 
+		if (BattleStartForcesOnly)
+			return null;
+
 		// priority actors, post-forced command actors or mid-battle spawns who haven't had their normal turn
 		while (PriorityActors.Count > 0)
 		{
@@ -1132,6 +1149,7 @@ public partial class BattleManager : Node
 		CurrentCommand = null;
 		ProcessedEndOfTurn = false;
 		ProcessedStartOfCommands = false;
+		BattleStartForcesOnly = false;
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		if (!ProcessedStartOfTurn)
 		{
@@ -1772,7 +1790,8 @@ public partial class BattleManager : Node
 		}
 
 		// if any forced commands or priority actors were added during ProcessEndOfTurn, run those still
-		if (ForcedCommands.Count > 0 || PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a)))
+		if (ForcedCommands.Count > 0 ||
+		    (!BattleStartForcesOnly && PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a))))
 		{
 			SetPhase(BattlePhase.PreCommand);
 			return;
@@ -1922,6 +1941,11 @@ public partial class BattleManager : Node
 					AudioManager.Instance.SetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
 					await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
+					ForcedCommands.Clear();
+					PendingFollowup = null;
+					ForceHideFollowup = false;
+					PriorityActors.Clear();
+					CurrentCommand = null;
 					ProcessedStartOfTurn = false;
 					// leave BattleOver so a restart during the next stage's intro dialogue
 					// queues (like the first stage's) instead of resetting mid-hook

@@ -2664,6 +2664,7 @@ public class Database
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] draws [target]'s\nattention.");
+				RemoveObserveIgnoreTaunt();
 				await AnimationManager.Instance.WaitForScreenAnimation(90, false);
 				target.AddStatModifier("Charm");
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier charmMod) &&
@@ -2682,6 +2683,7 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, target,
 					"[actor] draws the foe's attention\nwith a smile.");
+				RemoveObserveIgnoreTaunt();
 				await AnimationManager.Instance.WaitForScreenAnimation(90, false);
 				target.AddStatModifier("Charm");
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier enchantMod) &&
@@ -2718,6 +2720,7 @@ public class Database
 				await AnimationManager.Instance.WaitForScreenAnimation(92, false);
 				self.AddStatModifier("Taunt");
 				self.AddStatModifier("Guard");
+				RemoveObserveIgnoreTaunt();
 				await Wait.Milliseconds(1000);
 			},
 			priority: 1000
@@ -8216,6 +8219,15 @@ public class Database
 		return SettingsMenuManager.Instance.InfiniteBuffsDebuffs
 			? new TierStatModifier(bonuses)
 			: new TierStatModifier(6, bonuses);
+	}
+
+	private static void RemoveObserveIgnoreTaunt()
+	{
+		foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+		{
+			enemy.RemoveStatModifier("ObserveIgnoreTaunt");
+			enemy.ClearResult();
+		}
 	}
 
 	/// <summary>
