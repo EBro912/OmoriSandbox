@@ -57,8 +57,8 @@ internal sealed class Pluto : Enemy
         return new BattleCommand(this, this, Skills["PLBrag"]);
     }
 
-    private EnemyComponent LeftArm;
-    private EnemyComponent RightArm;
+    private Enemy LeftArm;
+    private Enemy RightArm;
     public override Task OnStartOfBattle()
     {
         LeftArm = BattleManager.Instance.SummonEnemy("LeftArm", CenterPoint - new Vector2(-140, 50), layer: Layer + 1);
@@ -85,9 +85,9 @@ internal sealed class Pluto : Enemy
     public override Task OnDefeat()
     {
         if (LeftArm != null)
-            LeftArm.Actor.CurrentHP = 0;
+            LeftArm.CurrentHP = 0;
         if (RightArm != null)
-            RightArm.Actor.CurrentHP = 0;
+            RightArm.CurrentHP = 0;
         return Task.CompletedTask;
     }
 

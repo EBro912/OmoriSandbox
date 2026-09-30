@@ -45,12 +45,12 @@ internal sealed class FearOfHeights : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             AnimationManager.Instance.InitShake(new Shake(9, 5, 60));
             await Wait.Frames(60);
-            foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+            foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
             {
                 // fear of heights bypasses plot armor
-                member.Actor.CurrentHP = 0;
-                member.Actor.SetToast();
-                member.Actor.ClearStatModifiersOnDeath();
+                member.CurrentHP = 0;
+                member.SetToast();
+                member.ClearStatModifiersOnDeath();
             }
             await Wait.Frames(100);
             DialogueManager.Instance.QueueMessage("You hit the ground.");

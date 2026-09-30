@@ -21,7 +21,7 @@ internal sealed class KingCarnivore : Enemy
         return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
-    private readonly List<EnemyComponent> Roots = [];
+    private readonly List<Enemy> Roots = [];
     
     public override Task OnStartOfBattle()
     {
@@ -32,8 +32,8 @@ internal sealed class KingCarnivore : Enemy
 
     public override Task OnDefeat()
     {
-        foreach (EnemyComponent enemy in Roots)
-            enemy.Actor.CurrentHP = 0;
+        foreach (Enemy enemy in Roots)
+            enemy.CurrentHP = 0;
         return Task.CompletedTask;
     }
 

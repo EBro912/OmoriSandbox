@@ -22,7 +22,7 @@ internal sealed class Creepypasta : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["CPAttack"]);
         
-        if (BattleManager.Instance.GetAlivePartyMembers().Any(x => x.Actor.IsBelowHP(0.2f)))
+        if (BattleManager.Instance.GetAlivePartyMembers().Any(x => x.IsBelowHP(0.2f)))
             goto scare;
 
         switch (CurrentEmotion.Id)

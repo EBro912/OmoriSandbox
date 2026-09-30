@@ -9,7 +9,7 @@ namespace OmoriSandbox;
 /// <summary>
 /// The component attached to an enemy <see cref="Node"/> in the scene.
 /// </summary>
-public partial class EnemyComponent : Node
+public partial class EnemyComponent : ActorComponent
 {
 	private static readonly Color SelectionBlink = new(1f, 1f, 1f, 64f / 255f);
 	private static readonly Color NoBlend = new(0f, 0f, 0f, 0f);
@@ -29,11 +29,13 @@ public partial class EnemyComponent : Node
 	/// <summary>
 	/// The <see cref="Actors.Enemy"/> actor this component is attached to.
 	/// </summary>
-	public Enemy Actor { get; private set; }
+	public override Enemy Actor => Enemy;
+	private Enemy Enemy;
 
 	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
 	{
-		Actor = enemy;
+		enemy.Bind(this);
+		Enemy = enemy;
 		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
 		Actor.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
@@ -58,6 +60,11 @@ public partial class EnemyComponent : Node
 	}
 
 	internal Vector2 DamageNumberPosition => Actor.CenterPoint + new Vector2(0f, FeetY) + Actor.DamageNumberOffset + new Vector2(-1f, -85f);
+
+	internal override void ShowDamageNumber(int damage, DamageType type, bool critical)
+	{
+		BattleManager.Instance.SpawnDamageNumber(damage, DamageNumberPosition, type, critical);
+	}
 
 	internal void ShowInfoBox(bool show)
 	{

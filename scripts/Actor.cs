@@ -61,6 +61,31 @@ public abstract class Actor
 	/// The center point of the actor, calculated by the center of its sprite.
 	/// </summary>
 	public Vector2 CenterPoint = Vector2.Zero;
+
+	private ActorComponent _Component;
+	/// <summary>
+	/// The actor's node in the current battle, or null when it isn't in one.
+	/// </summary>
+	/// <remarks>
+	/// This gets set when the actor spawns into a battle, it will be null again as soon as that node starts being removed, including when the
+	/// battle is exited or restarted, when a Boss Rush stage changes, when the enemy is replaced with <see cref="BattleManager.TransformEnemy"/>,
+	/// or when spawning fails.<br/>
+	/// <see cref="Enemy.Component"/> and <see cref="PartyMember.Component"/> return their own component types.
+	/// </remarks>
+	public virtual ActorComponent Component =>
+		GodotObject.IsInstanceValid(_Component) && !_Component.IsQueuedForDeletion()
+		&& _Component.GetParent()?.IsQueuedForDeletion() != true ? _Component : null;
+
+	internal void Bind(ActorComponent component)
+	{
+		_Component = component;
+	}
+
+	internal void Unbind(ActorComponent component)
+	{
+		if (_Component == component)
+			_Component = null;
+	}
 	/// <summary>
 	/// The actor's current <see cref="Emotion"/>. Defaults to neutral.
 	/// </summary>
@@ -903,6 +928,16 @@ public abstract class Actor
 	/// <param name="emotion">The emotion to check.</param>
 	/// <returns>True if this actor can feel the given <paramref name="emotion"/>.</returns>
 	public virtual bool IsEmotionValid(Emotion emotion) { return true; }
+
+	/// <summary>
+	/// Checks if this actor can feel the emotion with the given id. See <see cref="IsEmotionValid(Emotion)"/>.
+	/// </summary>
+	/// <param name="id">The id of the emotion to check.</param>
+	/// <returns>True if the emotion exists and this actor can feel it, false for unknown ids.</returns>
+	public bool IsEmotionValid(string id)
+	{
+		return Database.TryGetEmotion(id, out Emotion emotion) && IsEmotionValid(emotion);
+	}
 
     /// <summary>
     /// Sets this actor's emotion by id. Will fail and log a battle message if the actor cannot feel the given emotion,

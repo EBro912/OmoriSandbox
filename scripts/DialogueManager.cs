@@ -703,10 +703,11 @@ public partial class DialogueManager : Node2D
 	{
 		if (BattleManager.Instance != null)
 		{
-			foreach (PartyMemberComponent member in BattleManager.Instance.GetAllPartyMembers())
+			foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
 			{
-				if (member.Battlecard != null)
-					yield return member.Battlecard;
+				Control battlecard = member.Component?.Battlecard;
+				if (battlecard != null)
+					yield return battlecard;
 			}
 		}
 		if (MenuManager.Instance != null)

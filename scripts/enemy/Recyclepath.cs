@@ -22,8 +22,8 @@ internal sealed class Recyclepath : Enemy
         return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
-    private EnemyComponent LeftRecycultist;
-    private EnemyComponent RightRecycultist;
+    private Enemy LeftRecycultist;
+    private Enemy RightRecycultist;
 
     public override BattleCommand ProcessAI()
     {
@@ -33,7 +33,7 @@ internal sealed class Recyclepath : Enemy
         if (HasStatModifier("Stockpile") && Roll() < 31)
             return new BattleCommand(this, SelectTarget(), Skills["RPathFlingTrash"]);
         // we need to check these separately due to the sprite flipping behavior
-        if (LeftRecycultist == null || LeftRecycultist.Actor.IsToast)
+        if (LeftRecycultist == null || LeftRecycultist.IsToast)
         {
             if (!PreRolling)
                 LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
@@ -41,7 +41,7 @@ internal sealed class Recyclepath : Enemy
             return new BattleCommand(this, this, Skills["RPathSummon"]);
         }
 
-        if (RightRecycultist == null || RightRecycultist.Actor.IsToast)
+        if (RightRecycultist == null || RightRecycultist.IsToast)
         {
             if (!PreRolling)
                 RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),

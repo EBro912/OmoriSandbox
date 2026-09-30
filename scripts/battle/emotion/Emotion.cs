@@ -30,7 +30,9 @@ public sealed class Emotion
 	public string GroupId { get; private set; }
 
 	/// <summary>
-	/// The resolved <see cref="EmotionGroup"/>. Set by the database when the emotion is registered.
+	/// The resolved <see cref="EmotionGroup"/>. Set by the database when the emotion is registered.<br/>
+	/// Null for group-less emotions (neutral, afraid, stressed) and when the group was never registered,
+	/// so check it (or compare <see cref="GroupId"/>) before reading its members.
 	/// </summary>
 	public EmotionGroup Group { get; internal set; }
 

@@ -72,7 +72,7 @@ internal sealed class BossmanHero : Enemy
         return emotion.Id is "neutral";
     }
 
-    private readonly EnemyComponent[] GatorGuys = new EnemyComponent[2];
+    private readonly Enemy[] GatorGuys = new Enemy[2];
 
     public override Task OnStartOfBattle()
     {
@@ -95,8 +95,8 @@ internal sealed class BossmanHero : Enemy
 
     public override async Task OnDefeat()
     {
-        foreach (EnemyComponent enemy in GatorGuys)
-            enemy.Actor.CurrentHP = 0;
+        foreach (Enemy enemy in GatorGuys)
+            enemy.CurrentHP = 0;
         DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Friends...\! Let's...\! make a de...\! Huff...\| Huff...\| Wheeze...");
         await DialogueManager.Instance.WaitForDialogue();
     }
@@ -139,18 +139,18 @@ internal sealed class BossmanHero : Enemy
 
             if (Roll() < 26)
             {
-                EnemyComponent gatorGuy = GatorGuys.FirstOrDefault(x => !x.Actor.IsToast);
+                Enemy gatorGuy = GatorGuys.FirstOrDefault(x => !x.IsToast);
                 if (gatorGuy == null)
                     return;
                 AudioManager.Instance.PlaySFX("SE_dinosaur", 1.4f);
-                DialogueManager.Instance.QueueMessage(gatorGuy.Actor, "Hey BOSS! I'll take your deal!");
+                DialogueManager.Instance.QueueMessage(gatorGuy, "Hey BOSS! I'll take your deal!");
                 await DialogueManager.Instance.WaitForDialogue();
                 
                 // when a Gator Guy takes the deal, the buff needs to be swapped to the debuff version
                 string gatorBuffSkill = Buffs[debuff];
                 string debuffSkill = Debuffs[buff];
                 if (buff == 6)
-                    BattleManager.Instance.ForceCommand(gatorGuy.Actor, SelectAllEnemies(), Skills["GGPizzaParty"]);
+                    BattleManager.Instance.ForceCommand(gatorGuy, SelectAllEnemies(), Skills["GGPizzaParty"]);
                 else
                     BattleManager.Instance.ForceCommand(this, debuffSkill.EndsWith("Friends") ? SelectAllTargets() : SelectAllEnemies(), Skills[debuffSkill]);
                 if (debuff == 6) 

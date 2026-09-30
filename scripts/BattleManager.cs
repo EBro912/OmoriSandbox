@@ -867,7 +867,7 @@ public partial class BattleManager : Node
 				    && CurrentCommand.Action is Skill skill
 				    && skill.ShowFollowups)
 				{
-					PartyMemberComponent component = CurrentParty.First(x => x.Actor == CurrentCommand.Actor);
+					PartyMemberComponent component = ((PartyMember)CurrentCommand.Actor).Component;
 					if (component.HasFollowup)
 					{
 						component.FadeOutFollowups();
@@ -1075,7 +1075,7 @@ public partial class BattleManager : Node
 			})
 			.ThenBy(a =>
 			{
-				PartyMemberComponent c = CurrentParty.FirstOrDefault(y => y.Actor == a);
+				PartyMemberComponent c = (a as PartyMember)?.Component;
 				return c?.Position ?? int.MaxValue;
 			})
 			.First();
@@ -1333,7 +1333,7 @@ public partial class BattleManager : Node
 			case SkillTarget.AllAllies:
 			case SkillTarget.AllDeadAllies:
 				PlayerCommands[actor] = new BattleCommand(actor,
-					GetAllPartyMembers().Select(x => x.Actor).ToList(), SelectedAction);
+					GetAllPartyMembers(), SelectedAction);
 				break;
 			case SkillTarget.AllEnemies:
 				PlayerCommands[actor] = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
@@ -1381,11 +1381,11 @@ public partial class BattleManager : Node
 			case SkillTarget.AllAllies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
 					? GetAllAliveEnemies()
-					: GetAlivePartyMembers().Select(x => x.Actor));
+					: GetAlivePartyMembers());
 				break;
 			case SkillTarget.AllEnemies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
-					? GetAlivePartyMembers().Select(x => x.Actor)
+					? GetAlivePartyMembers()
 					: GetAllAliveEnemies());
 				break;
 			case SkillTarget.XRandomEnemies:
@@ -1417,7 +1417,7 @@ public partial class BattleManager : Node
 				if (IsInvalidTarget(currentAction.Targets[0]))
 					resolvedTargets.Add(currentAction.Targets[0] is Enemy
 						? GetAllAliveEnemies().FirstOrDefault()
-						: GetAlivePartyMembers().FirstOrDefault()?.Actor);
+						: GetAlivePartyMembers().FirstOrDefault());
 				else
 					resolvedTargets.Add(currentAction.Targets[0]);
 				break;
@@ -1442,7 +1442,7 @@ public partial class BattleManager : Node
 
 				break;
 			case SkillTarget.AllDeadAllies:
-				List<PartyMember> deadAllies = GetDeadPartyMembers().Select(x => x.Actor).ToList();
+				List<PartyMember> deadAllies = GetDeadPartyMembers();
 				if (currentAction.Actor is Enemy || (deadAllies.Count == 0 && currentAction.Action is not Item))
 				{
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
@@ -1455,7 +1455,7 @@ public partial class BattleManager : Node
 					resolvedTargets.AddRange(deadAllies);
 				else
 					// if nobody is toast, pass everybody so items like jam packets can still run the "it had no effect" logic
-					resolvedTargets.AddRange(GetAllPartyMembers().Select(x => x.Actor));
+					resolvedTargets.AddRange(GetAllPartyMembers());
 				break;
 			case SkillTarget.AllyNotSelf:
 				if (currentAction.Targets[0].IsToast)
@@ -1521,7 +1521,7 @@ public partial class BattleManager : Node
 				}
 				else
 				{
-					PartyMemberComponent component = CurrentParty.First(x => x.Actor == currentAction.Actor);
+					PartyMemberComponent component = ((PartyMember)currentAction.Actor).Component;
 					if (component.HasFollowup && component.FollowupSet != null)
 					{
 						bool afraid = currentAction.Actor.CurrentEmotion.BlocksActions;
@@ -1568,7 +1568,7 @@ public partial class BattleManager : Node
 			return target;
 		List<Actor> taunting = target is Enemy
 			? GetAllAliveEnemies().Where(x => x.HasStatModifier("Taunt")).Cast<Actor>().ToList()
-			: GetAlivePartyMembers().Select(Actor (x) => x.Actor).Where(x => x.HasStatModifier("Taunt")).ToList();
+			: GetAlivePartyMembers().Where(x => x.HasStatModifier("Taunt")).Cast<Actor>().ToList();
 		if (taunting.Count == 0 || taunting.Contains(target))
 			return target;
 		return taunting[GameManager.Instance.Random.RandiRange(0, taunting.Count - 1)];
@@ -1579,7 +1579,7 @@ public partial class BattleManager : Node
 		if (Energy < 3 || !FollowupActive || ForceHideFollowup || !EnergyBar.Visible || FollowupSelected)
 			return false;
 
-		PartyMemberComponent current = CurrentParty.First(x => x.Actor == CurrentCommand.Actor);
+		PartyMemberComponent current = ((PartyMember)CurrentCommand.Actor).Component;
 		FollowupInput? role = FollowupSets.InputFor(direction, current.Position);
 		if (role == null || current.FollowupSet == null ||
 		    !current.FollowupSet.Entries.TryGetValue(role.Value, out FollowupEntry pair))
@@ -1686,7 +1686,7 @@ public partial class BattleManager : Node
 	{
 		FollowupSelected = true;
 		AudioManager.Instance.PlaySFX("Skill2", 1f, 0.8f);
-		CurrentParty.First(x => x.Actor == CurrentCommand.Actor).FadeOutFollowupsExcept(direction);
+		((PartyMember)CurrentCommand.Actor).Component.FadeOutFollowupsExcept(direction);
 	}
 	
 	private bool IsFollowupEntryUsable(int targetPosition, string baseSkillName, bool includeEnergy)
@@ -2497,16 +2497,15 @@ public partial class BattleManager : Node
 		if (DamageNumbersDisabled)
 			return;
 
-		// temporary, will be improved
-		PartyMemberComponent member = CurrentParty.FirstOrDefault(x => x.Actor == target);
-		if (member != null)
+		ActorComponent component = target.Component;
+		if (component != null)
 		{
-			member.QueueDamageNumber(damage, type, critical);
+			component.ShowDamageNumber(damage, type, critical);
 			return;
 		}
 
-		EnemyComponent enemy = Enemies.FirstOrDefault(x => x.Actor == target);
-		SpawnDamageNumber(damage, enemy?.DamageNumberPosition ?? target.CenterPoint, type, critical);
+		GD.PushWarning("SpawnDamageNumber target has no component, falling back to actor CenterPoint!");
+		SpawnDamageNumber(damage, target.CenterPoint, type, critical);
 	}
 
 	/// <summary>
@@ -2519,8 +2518,8 @@ public partial class BattleManager : Node
 	/// <param name="grayscaleOnDefeat">Whether this enemy should trigger a grayscale effect when defeated.</param>
 	/// <param name="layer">The layer to spawn this enemy on.</param>
 	/// <param name="adjustedStats">Stat adjustments added on top of the enemy's declared stats.</param>
-	/// <returns>The <see cref="EnemyComponent"/> of the spawned enemy, or null if the spawn fails.</returns>
-	public EnemyComponent SummonEnemy(string who, Vector2 position, string startingEmotion = "neutral",
+	/// <returns>The spawned <see cref="Enemy"/>, or null if the spawn fails, such as for an unknown name.</returns>
+	public Enemy SummonEnemy(string who, Vector2 position, string startingEmotion = "neutral",
 		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0, Stats adjustedStats = default)
 	{
 		BattlePresetEnemy en = new()
@@ -2532,7 +2531,7 @@ public partial class BattleManager : Node
 			Layer = layer,
 			AdjustedStats = adjustedStats
 		};
-		return SummonEnemy(en, position);
+		return SummonEnemy(en, position)?.Actor;
 	}
 	
 	internal EnemyComponent SummonEnemy(BattlePresetEnemy en, Vector2 position)
@@ -2582,8 +2581,8 @@ public partial class BattleManager : Node
 	/// <param name="skills">The skills to equip, or null for the preset default (attack only).</param>
 	/// <param name="followupSet">The followup set id to use. Null uses the position's default set, "None" disables followups.</param>
 	/// <param name="adjustedStats">Stat adjustments added on top of the member's base stats.</param>
-	/// <returns>The <see cref="PartyMemberComponent"/> of the summoned member, or null if the summon fails.</returns>
-	public PartyMemberComponent SummonPartyMember(string who, int position, int level = 1,
+	/// <returns>The summoned <see cref="PartyMember"/>, or null if the summon fails.</returns>
+	public PartyMember SummonPartyMember(string who, int position, int level = 1,
 		string weapon = "Knife", string charm = "None", string emotion = "neutral",
 		string[] skills = null, string followupSet = null, Stats adjustedStats = default)
 	{
@@ -2636,9 +2635,9 @@ public partial class BattleManager : Node
 
 		// insert keeping CurrentParty ordered by Position, without moving a live command cursor
 		// off the member that is currently selecting
-		Actor selecting = Phase is BattlePhase.PlayerCommand or BattlePhase.SkillSelection or BattlePhase.TargetSelection
+		PartyMemberComponent selecting = Phase is BattlePhase.PlayerCommand or BattlePhase.SkillSelection or BattlePhase.TargetSelection
 			&& CurrentPartyMember > -1 && CurrentPartyMember < CurrentParty.Count
-				? CurrentParty[CurrentPartyMember].Actor
+				? CurrentParty[CurrentPartyMember]
 				: null;
 		int insertAt = CurrentParty.FindIndex(x => x.Position > position);
 		if (insertAt < 0)
@@ -2646,11 +2645,11 @@ public partial class BattleManager : Node
 		else
 			CurrentParty.Insert(insertAt, component);
 		if (selecting != null)
-			CurrentPartyMember = CurrentParty.FindIndex(x => x.Actor == selecting);
+			CurrentPartyMember = CurrentParty.IndexOf(selecting);
 
 		// a summoned member with followups may need to reveal the energy bar
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
-		return component;
+		return component.Actor;
 	}
 
 	/// <summary>
@@ -2662,10 +2661,10 @@ public partial class BattleManager : Node
 	/// <param name="who">The database name of the enemy to transform into.</param>
 	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
 	/// <param name="offset">The position offset relative to the old enemy's position.</param>
-	/// <returns>The newly spawned <see cref="EnemyComponent"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
-	public EnemyComponent TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default)
+	/// <returns>The new <see cref="Enemy"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
+	public Enemy TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default)
 	{
-		EnemyComponent target = Enemies.FirstOrDefault(x => x.Actor == original);
+		EnemyComponent target = original?.Component;
 		if (target == null) return null;
 		
 		Enemies.Remove(target);
@@ -2859,7 +2858,7 @@ public partial class BattleManager : Node
 	/// <returns>True if the actor is considered invalid.</returns>
 	public bool IsInvalidTarget(Actor actor)
 	{
-		return actor == null || actor.IsToast || (actor is Enemy ? Enemies.All(x => x.Actor != actor) : CurrentParty.All(x => x.Actor != actor));
+		return actor == null || actor.IsToast || actor.Component == null;
 	}
 
 	/// <returns>The <see cref="BattleCommand"/> that is currently being processed.</returns>
@@ -2869,30 +2868,31 @@ public partial class BattleManager : Node
 	}
 
 	/// <summary>
-	/// Gets the <see cref="PartyMemberComponent"/> of all party members who are not toast.
+	/// Gets all party members who are not toast.
 	/// </summary>
-	public List<PartyMemberComponent> GetAlivePartyMembers()
+	public List<PartyMember> GetAlivePartyMembers()
 	{
-		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
+		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).Select(x => x.Actor).ToList();
 	}
 
 	/// <summary>
-	/// Gets the <see cref="PartyMemberComponent"/> of all party members who are currently toast.
+	/// Gets all party members who are currently toast.
 	/// </summary>
-	public List<PartyMemberComponent> GetDeadPartyMembers()
+	public List<PartyMember> GetDeadPartyMembers()
 	{
-		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.IsToast).ToList();
+		return CurrentParty.Where(x => x.Actor.CurrentHP <= 0 && x.Actor.IsToast).Select(x => x.Actor).ToList();
 	}
 
 	/// <summary>
 	/// Gets all party members, including ones who are toast.
 	/// </summary>
 	/// <remarks>
-	/// In most situations, such as skill logic, use <see cref="GetAlivePartyMembers"/> instead.
+	/// In most situations, such as skill logic, use <see cref="GetAlivePartyMembers"/> instead.<br/>
+	/// The list is a copy, so changing it doesn't change the party.
 	/// </remarks>
-	public List<PartyMemberComponent> GetAllPartyMembers()
+	public List<PartyMember> GetAllPartyMembers()
 	{
-		return CurrentParty;
+		return CurrentParty.Select(x => x.Actor).ToList();
 	}
 
 	/// <summary>
@@ -2903,7 +2903,7 @@ public partial class BattleManager : Node
 	/// </remarks>
 	public bool PartyHasLivingWeapon(params string[] weaponNames)
 	{
-		return GetAlivePartyMembers().Any(x => weaponNames.Contains(x.Actor.Weapon?.Name));
+		return GetAlivePartyMembers().Any(x => weaponNames.Contains(x.Weapon?.Name));
 	}
 
 	/// <summary>
@@ -2914,7 +2914,7 @@ public partial class BattleManager : Node
 	/// </remarks>
 	public bool PartyHasLivingCharm(string charmName)
 	{
-		return GetAlivePartyMembers().Any(x => x.Actor.Charm?.Name == charmName);
+		return GetAlivePartyMembers().Any(x => x.Charm?.Name == charmName);
 	}
 
 	/// <summary>

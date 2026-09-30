@@ -33,7 +33,7 @@ internal sealed class KiteKidAlt : Enemy
         return new BattleCommand(this, this, Skills["KKBrag"]);
     }
 
-    private EnemyComponent KidsKite;
+    private Enemy KidsKite;
 
     public override async Task OnStartOfBattle()
     {
@@ -111,8 +111,8 @@ internal sealed class KiteKidAlt : Enemy
         DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
         DialogueManager.Instance.QueueMessage(this, "How could we lose?");
         await DialogueManager.Instance.WaitForDialogue();
-        if (KidsKite != null && !KidsKite.Actor.IsToast)
-            KidsKite.Actor.CurrentHP = 0;
+        if (KidsKite != null && !KidsKite.IsToast)
+            KidsKite.CurrentHP = 0;
     }
 
 }

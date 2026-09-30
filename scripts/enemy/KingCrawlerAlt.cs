@@ -64,26 +64,26 @@ internal sealed class KingCrawlerAlt : Enemy
 
     // vanilla bug: reinforcements are never removed from the troop list, so a dead mole keeps its index, causing the
     // CallForFriendDelay below to fail
-    private readonly List<EnemyComponent> Moles = [];
+    private readonly List<Enemy> Moles = [];
     private readonly List<int> MoleSlots = [];   // reinforcement slot used by each summon
 
-    private static bool Alive(EnemyComponent e) =>
-        GodotObject.IsInstanceValid(e) && !e.Actor.IsToast && e.Actor.CurrentHP > 0;
+    private static bool Alive(Enemy e) =>
+        e?.Component != null && !e.IsToast && e.CurrentHP > 0;
 
     public override async Task ProcessEndOfTurn()
     {
         // eat every living mole in troop order at turn end
-        HashSet<EnemyComponent> eaten = [];
-        foreach (EnemyComponent mole in Moles.Where(Alive))
+        HashSet<Enemy> eaten = [];
+        foreach (Enemy mole in Moles.Where(Alive))
         {
             DialogueManager.Instance.QueueMessage("KING CRAWLER eats a SPROUT MOLE!");
             await DialogueManager.Instance.WaitForDialogue();
-            BattleManager.Instance.ForceCommand(this, mole.Actor, Skills["KCEat"]);
+            BattleManager.Instance.ForceCommand(this, mole, Skills["KCEat"]);
             BattleManager.Instance.ForceCommand(this, this, Skills["KCRecover"]);
             eaten.Add(mole);
         }
         // the forced eat resolves before page 5 in vanilla, so moles queued for eating count as dead below
-        bool Living(EnemyComponent e) => Alive(e) && !eaten.Contains(e);
+        bool Living(Enemy e) => Alive(e) && !eaten.Contains(e);
 
         // page 5: summon unless troop index 2 is alive
         if (BattleManager.Instance.TurnCount % 4 != 1)
@@ -98,21 +98,21 @@ internal sealed class KingCrawlerAlt : Enemy
             : !Moles.Where((m, i) => MoleSlots[i] == 3).Any(Living) ? 3 : 0;
         if (slot == 0)
             return;
-        EnemyComponent summoned = BattleManager.Instance.SummonEnemy("LostSproutMole (King Crawler)", CenterPoint - new Vector2(100, 0), layer: Layer + 1);
+        Enemy summoned = BattleManager.Instance.SummonEnemy("LostSproutMole (King Crawler)", CenterPoint - new Vector2(100, 0), layer: Layer + 1);
         Moles.Add(summoned);
         MoleSlots.Add(slot);
-        EnemyComponent stunned = Moles[slot - 2];   // troop index slot-1 == Moles[slot-2]
+        Enemy stunned = Moles[slot - 2];   // troop index slot-1 == Moles[slot-2]
         if (Living(stunned))
         {
-            stunned.Actor.AddStatModifier("CallForFriendDelay", silent: true);
-            stunned.Actor.ClearResult();
+            stunned.AddStatModifier("CallForFriendDelay", silent: true);
+            stunned.ClearResult();
         }
     }
 
     public override Task OnDefeat()
     {
-        foreach (EnemyComponent mole in Moles.Where(Alive))
-            mole.Actor.CurrentHP = 0;
+        foreach (Enemy mole in Moles.Where(Alive))
+            mole.CurrentHP = 0;
         return Task.CompletedTask;
     }
 

@@ -95,12 +95,12 @@ internal sealed class Mutantheart : Enemy
             return;
         
         bool failed = false;
-        foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+        foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
         {
-            if (StateLookup[DesiredState].All(state => member.Actor.CurrentEmotion.Id != state))
+            if (StateLookup[DesiredState].All(state => member.CurrentEmotion.Id != state))
             {
                 failed = true;
-                BattleManager.Instance.ForceCommand(this, member.Actor, Skills["MHInstakill"]);
+                BattleManager.Instance.ForceCommand(this, member, Skills["MHInstakill"]);
             }
         }
         if (failed)

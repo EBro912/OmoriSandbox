@@ -67,6 +67,9 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public Stats AdjustedStats { get; private set; }
 
+	/// <inheritdoc/>
+	public sealed override EnemyComponent Component => (EnemyComponent)base.Component;
+
 	/// <summary>
 	/// Position of this enemy's info box center relative to the actor's "feet" (the bottom of the sprite).
 	/// Defaults to <c>Vector2.Zero</c> if not specified.
@@ -128,14 +131,14 @@ public abstract class Enemy : Actor
 	{
 		if (HasStatModifier("Charm"))
 			return (StatModifiers["Charm"] as CharmStatModifier).CharmedBy;
-		List<PartyMemberComponent> members = BattleManager.Instance.GetAlivePartyMembers();
-		List<PartyMemberComponent> taunting = members.FindAll(x => x.Actor.HasStatModifier("Taunt"));
+		List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
+		List<PartyMember> taunting = members.FindAll(x => x.HasStatModifier("Taunt"));
 		if (taunting.Count == 0)
 		{
 			// if nobody is taunting, pick a random target
-			return members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)].Actor;
+			return members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)];
 		}
-		return taunting[GameManager.Instance.Random.RandiRange(0, taunting.Count - 1)].Actor;
+		return taunting[GameManager.Instance.Random.RandiRange(0, taunting.Count - 1)];
 	}
 
 	/// <summary>
@@ -146,10 +149,10 @@ public abstract class Enemy : Actor
 	/// <returns>The <see cref="PartyMember"/>s that will be targeted.</returns>
 	protected virtual IReadOnlyList<PartyMember> SelectTargets(int amount)
 	{
-		List<PartyMemberComponent> targets = BattleManager.Instance.GetAlivePartyMembers();
+		List<PartyMember> targets = BattleManager.Instance.GetAlivePartyMembers();
 		List<PartyMember> result = [];
 		for (int i = 0; i < amount; i++)
-			result.Add(targets[GameManager.Instance.Random.RandiRange(0, targets.Count - 1)].Actor);
+			result.Add(targets[GameManager.Instance.Random.RandiRange(0, targets.Count - 1)]);
 		return result;
 	}
 
@@ -160,7 +163,7 @@ public abstract class Enemy : Actor
 	/// <returns>The <see cref="PartyMember"/>s that will be targeted.</returns>
 	protected virtual IReadOnlyList<PartyMember> SelectAllTargets()
 	{
-		return BattleManager.Instance.GetAlivePartyMembers().Select(x => x.Actor).ToList();
+		return BattleManager.Instance.GetAlivePartyMembers();
 	}
 
 	/// <summary>

@@ -24,17 +24,17 @@ internal sealed class MrJawsumAlt : Enemy
         return emotion.Id is "neutral" or "happy" or "sad" or "angry";
     }
 
-    private readonly EnemyComponent[] Gators = new EnemyComponent[2];
+    private readonly Enemy[] Gators = new Enemy[2];
     private readonly int[] Offsets = [-145, 145];
     private int Stage = 0;
 
     public override BattleCommand ProcessAI()
     {
-        if (Gators.All(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+        if (Gators.All(x => x?.Component == null || x.IsToast))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         if (Roll() < 21)
             return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
-        if (Gators.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+        if (Gators.Any(x => x?.Component == null || x.IsToast))
             return new BattleCommand(this, this, Skills["MJSummonGator"]);
         return new BattleCommand(this, SelectAllEnemies(), Skills["MJAttackOrder"]);
     }
@@ -43,7 +43,7 @@ internal sealed class MrJawsumAlt : Enemy
     {
         for (int i = 0; i < 2; i++)
         {
-            if (!GodotObject.IsInstanceValid(Gators[i]) || Gators[i].Actor.IsToast)
+            if (Gators[i]?.Component == null || Gators[i].IsToast)
             {
                 Gators[i] = BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)",
                     new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));
@@ -100,8 +100,8 @@ internal sealed class MrJawsumAlt : Enemy
         AddStatModifier("MinionBarrier");
         SpawnGatorGuy();
         SpawnGatorGuy();
-        foreach (EnemyComponent gator in Gators)
-            gator.Actor.AddStatModifier("CallForFriendDelay", silent: true);
+        foreach (Enemy gator in Gators)
+            gator.AddStatModifier("CallForFriendDelay", silent: true);
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");
         await DialogueManager.Instance.WaitForDialogue();
     }

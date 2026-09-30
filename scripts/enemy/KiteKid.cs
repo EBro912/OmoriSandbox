@@ -30,17 +30,17 @@ internal sealed class KiteKid : Enemy
         return new BattleCommand(this, this, Skills["KKBrag"]);
     }
 
-    private EnemyComponent KidsKite;
+    private Enemy KidsKite;
 
     public override async Task OnStartOfBattle()
     {
         KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint + new Vector2(-128, -6), layer: Layer + 1);
-        KidsKite.Actor.AddStatModifier("CallForFriendDelay", silent: true);
+        KidsKite.AddStatModifier("CallForFriendDelay", silent: true);
     }
 
     public override async Task ProcessEndOfTurn()
     {
-        if (KidsKite.Actor.IsToast)
+        if (KidsKite.IsToast)
         {
             KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint + new Vector2(-128, -6), layer: Layer + 1);
             AudioManager.Instance.PlaySFX("BA_Repair", 1f, 0.9f);
@@ -69,8 +69,8 @@ internal sealed class KiteKid : Enemy
         DialogueManager.Instance.QueueMessage(this, "But me and my kite have an unbreakable bond...");
         DialogueManager.Instance.QueueMessage(this, "How could we lose?");
         await DialogueManager.Instance.WaitForDialogue();
-        if (KidsKite != null && !KidsKite.Actor.IsToast)
-            KidsKite.Actor.CurrentHP = 0;
+        if (KidsKite != null && !KidsKite.IsToast)
+            KidsKite.CurrentHP = 0;
     }
 
     public override async Task OnEndOfBattle(bool victory)

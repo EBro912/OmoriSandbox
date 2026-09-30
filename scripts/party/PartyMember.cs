@@ -18,6 +18,9 @@ public abstract class PartyMember : Actor
 	public EmotionAsset CurrentAnimationAsset { get; private set; }
 
 	/// <inheritdoc/>
+	public sealed override PartyMemberComponent Component => (PartyMemberComponent)base.Component;
+
+	/// <inheritdoc/>
 	public override void PlayAnimation(string animationName)
 	{
 		CurrentAnimationAsset = null;

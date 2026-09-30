@@ -21,7 +21,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
     private static readonly string[] SpawnPool = ["Slice (Epilogue)", "Sourdough (Epilogue)", "Sesame (Epilogue)"];
     private int Stage = 0;
 
-    private readonly EnemyComponent[] Breads = new EnemyComponent[2];
+    private readonly Enemy[] Breads = new Enemy[2];
     // Unbread Twins only ever bake bread twice
     private int Bakes = 0;
     private readonly int[] Offsets = [-270, 200];
@@ -47,7 +47,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
                     goto attack;
                 if (Roll() < 36)
                     goto cook;
-                if (Bakes < 2 && Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+                if (Bakes < 2 && Breads.Any(x => x?.Component == null || x.IsToast))
                     goto bake;
                 goto nothing;
             case "depressed":
@@ -55,7 +55,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
                     goto attack;
                 if (Roll() < 36)
                     goto cook;
-                if (Bakes < 2 && Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+                if (Bakes < 2 && Breads.Any(x => x?.Component == null || x.IsToast))
                     goto bake;
                 goto nothing;
             case "sad":
@@ -65,7 +65,7 @@ internal sealed class UnbreadTwinsAlt : Enemy
             default:
                 if (Roll() < 51)
                     goto attack;
-                if (Bakes < 2 && Breads.Any(x => !GodotObject.IsInstanceValid(x) || x.Actor.IsToast))
+                if (Bakes < 2 && Breads.Any(x => x?.Component == null || x.IsToast))
                     goto bake;
                 goto nothing;
         }
@@ -144,9 +144,9 @@ internal sealed class UnbreadTwinsAlt : Enemy
 
     public override async Task OnDefeat()
     {
-        foreach (EnemyComponent bread in Breads)
-            if (GodotObject.IsInstanceValid(bread) && !bread.Actor.IsToast)
-                bread.Actor.CurrentHP = 0;
+        foreach (Enemy bread in Breads)
+            if (bread?.Component != null && !bread.IsToast)
+                bread.CurrentHP = 0;
         DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"Our resources have been depleted...\! What will we do without ingredients?");
         DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo...");
         await DialogueManager.Instance.WaitForDialogue();
@@ -164,19 +164,19 @@ internal sealed class UnbreadTwinsAlt : Enemy
         }
     }
 
-    private EnemyComponent FirstBread;
+    private Enemy FirstBread;
 
     public void SpawnBread()
     {
         for (int i = 0; i < 2; i++)
         {
-            if (GodotObject.IsInstanceValid(Breads[i]) && !Breads[i].Actor.IsToast)
+            if (Breads[i]?.Component != null && !Breads[i].IsToast)
                 continue;
             Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
             // the common event stuns the new bread (troop index 1 on bake 1, index 2 on bake 2) unless the first bread is
             // already dead at bake 2, in which case the slot-2 branch re-adds and the stun lands on the corpse
-            if (Bakes == 0 || (GodotObject.IsInstanceValid(FirstBread) && !FirstBread.Actor.IsToast))
-                Breads[i].Actor.AddStatModifier("CallForFriendDelay", silent: true);
+            if (Bakes == 0 || (FirstBread?.Component != null && !FirstBread.IsToast))
+                Breads[i].AddStatModifier("CallForFriendDelay", silent: true);
             if (Bakes == 0)
                 FirstBread = Breads[i];
             Bakes++;

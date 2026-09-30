@@ -87,8 +87,8 @@ public partial class ExampleFollowupsMod : Mod
             {
                 BattleLogManager.Instance.QueueMessage(self,
                     "[actor] and friends come together and\nuse their ultimate attack!");
-                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
-                    AnimationManager.Instance.PlayAnimation(243, member.Actor);
+                foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
+                    AnimationManager.Instance.PlayAnimation(243, member);
 
                 await AnimationManager.Instance.WaitForReleaseEnergy();
                 BattleLogManager.Instance.ClearBattleLog();
@@ -97,10 +97,10 @@ public partial class ExampleFollowupsMod : Mod
                     BattleManager.Instance.Damage(self, enemy, () => 450, true, 0f, false, true);
 
                 // everyone gets the vanilla release energy buff and feels SMUG
-                foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+                foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
                 {
-                    member.Actor.AddStatModifier("ReleaseEnergy");
-                    member.Actor.SetEmotion("smug", true);
+                    member.AddStatModifier("ReleaseEnergy");
+                    member.SetEmotion("smug", true);
                 }
             },
             hidden: true

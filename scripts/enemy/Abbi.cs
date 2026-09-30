@@ -19,7 +19,7 @@ internal sealed class Abbi : Enemy
         return emotion.Id is "neutral" or "sad" or "happy" or "angry";
     }
 
-    private readonly EnemyComponent[] Tentacles = new EnemyComponent[4];
+    private readonly Enemy[] Tentacles = new Enemy[4];
     private readonly int[] Offsets = [-200, -80, 40, 180];
 
     public override Task OnStartOfBattle()
@@ -41,7 +41,7 @@ internal sealed class Abbi : Enemy
         {
             for (int i = 0; i < 4; i++)
             {
-                if (!GodotObject.IsInstanceValid(Tentacles[i]) || Tentacles[i].Actor.IsToast)
+                if (Tentacles[i]?.Component == null || Tentacles[i].IsToast)
                 {
                     if (!PreRolling)
                         Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
@@ -71,8 +71,8 @@ internal sealed class Abbi : Enemy
 
     public override Task OnDefeat()
     {
-        foreach (EnemyComponent e in Tentacles)
-            e.Actor.CurrentHP = 0;
+        foreach (Enemy e in Tentacles)
+            e.CurrentHP = 0;
         return Task.CompletedTask;
     }
 

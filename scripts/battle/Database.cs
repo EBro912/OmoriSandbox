@@ -620,18 +620,18 @@ public class Database
 					"[actor] focuses their vision and observes\n[target]!");
 				AnimationManager.Instance.PlayAnimation(4, target);
 				await Wait.Milliseconds(1000);
-				List<PartyMemberComponent> members = BattleManager.Instance.GetAlivePartyMembers();
-				PartyMemberComponent taunting = members.FirstOrDefault(x => x.Actor.HasStatModifier("Taunt"));
+				List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
+				PartyMember taunting = members.FirstOrDefault(x => x.HasStatModifier("Taunt"));
 				if (taunting != null)
 				{
-					await AnimationManager.Instance.WaitForAnimation(4, taunting.Actor);
+					await AnimationManager.Instance.WaitForAnimation(4, taunting);
 					if (target is Enemy e)
 					{
-						e.ObserveTarget = taunting.Actor;
+						e.ObserveTarget = taunting;
 						e.ObserveSetThisTurn = true;
 					}
 					target.AddStatModifier("ObserveIgnoreTaunt", silent: true);
-					BattleLogManager.Instance.QueueMessage(target, taunting.Actor,
+					BattleLogManager.Instance.QueueMessage(target, taunting,
 						"[actor] has their eyes on\n[target]!");
 					return;
 				}
@@ -651,14 +651,14 @@ public class Database
 							enemy.ObserveSetThisTurn = true;
 						}
 						BattleLogManager.Instance.QueueMessage(speaker, "[actor] has their eyes on everyone!");
-						foreach (PartyMemberComponent m in members)
-							AnimationManager.Instance.PlayAnimation(4, m.Actor);
+						foreach (PartyMember m in members)
+							AnimationManager.Instance.PlayAnimation(4, m);
 						await Wait.Milliseconds(1000);
 						return;
 					}
 				}
 
-				PartyMember member = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)].Actor;
+				PartyMember member = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)];
 				BattleLogManager.Instance.QueueMessage(target, member, "[actor] has their eyes on\n[target]!");
 				await AnimationManager.Instance.WaitForAnimation(4, member);
 				if (target is Enemy en)
@@ -1068,9 +1068,9 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self,
 					"[actor] and friends come together and\nuse their ultimate attack!");
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(243, member.Actor);
+					AnimationManager.Instance.PlayAnimation(243, member);
 				}
 
 				await AnimationManager.Instance.WaitForReleaseEnergy();
@@ -1081,9 +1081,9 @@ public class Database
 					BattleManager.Instance.Damage(self, enemy, () => 300, true, 0f, false, true);
 				}
 
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					member.Actor.AddStatModifier("ReleaseEnergy");
+					member.AddStatModifier("ReleaseEnergy");
 				}
 			},
 			hidden: true
@@ -1098,9 +1098,9 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self,
 					"[actor] and friends come together and\nuse their ultimate attack!");
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(243, member.Actor);
+					AnimationManager.Instance.PlayAnimation(243, member);
 				}
 
 				await AnimationManager.Instance.WaitForReleaseEnergy();
@@ -1111,9 +1111,9 @@ public class Database
 					BattleManager.Instance.Damage(self, enemy, () => 600, true, 0f, false, true);
 				}
 
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					member.Actor.AddStatModifier("ReleaseEnergy");
+					member.AddStatModifier("ReleaseEnergy");
 				}
 			},
 			hidden: true
@@ -1128,9 +1128,9 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self,
 					"[actor] and friends come together and\nuse their ultimate attack!");
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(243, member.Actor);
+					AnimationManager.Instance.PlayAnimation(243, member);
 				}
 
 				await AnimationManager.Instance.WaitForReleaseEnergy();
@@ -1141,9 +1141,9 @@ public class Database
 					BattleManager.Instance.Damage(self, enemy, () => 1000, true, 0f, false, true);
 				}
 
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					member.Actor.AddStatModifier("ReleaseEnergy");
+					member.AddStatModifier("ReleaseEnergy");
 				}
 			},
 			hidden: true
@@ -1291,10 +1291,10 @@ public class Database
 				if (target.HasStatModifier("Encore"))
 				{
 					target.RemoveStatModifier("Encore");
-					foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+					foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 					{
-						member.Actor.Heal(300);
-						member.Actor.HealJuice(30);
+						member.Heal(300);
+						member.HealJuice(30);
 					}
 				}
 				else
@@ -1479,12 +1479,12 @@ public class Database
 				await AnimationManager.Instance.WaitForBasilSpecialAnimation("res://assets/pictures/border_rose.png",
 					335);
 				BattleLogManager.Instance.QueueMessage(self, "[actor] plants a ROSE.");
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(212, member.Actor);
-					int heal = (int)Math.Round(member.Actor.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
-					heal = member.Actor.Heal(heal);
-					BattleManager.Instance.SpawnDamageNumber(heal, member.Actor, DamageType.Heal);
+					AnimationManager.Instance.PlayAnimation(212, member);
+					int heal = (int)Math.Round(member.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
+					heal = member.Heal(heal);
+					BattleManager.Instance.SpawnDamageNumber(heal, member, DamageType.Heal);
 				}
 
 				await Wait.Milliseconds(500);
@@ -1589,9 +1589,9 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self,
 					"[actor] and friends come together and\nuse their ultimate attack!");
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(243, member.Actor);
+					AnimationManager.Instance.PlayAnimation(243, member);
 				}
 
 				await AnimationManager.Instance.WaitForReleaseEnergyBasil();
@@ -1600,21 +1600,21 @@ public class Database
 				await AnimationManager.Instance.WaitForFlowerCrown();
 				await AnimationManager.Instance.WaitForScreenAnimation(344, true);
 				AnimationManager.Instance.PlayPhotograph();
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(212, member.Actor);
-					member.Actor.Heal(member.Actor.CurrentStats.MaxHP);
-					member.Actor.HealJuice(member.Actor.CurrentStats.MaxJuice);
+					AnimationManager.Instance.PlayAnimation(212, member);
+					member.Heal(member.CurrentStats.MaxHP);
+					member.HealJuice(member.CurrentStats.MaxJuice);
 				}
 
 				await Wait.Milliseconds(1000);
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAlivePartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
-					AnimationManager.Instance.PlayAnimation(214, member.Actor);
-					if (member.Actor.HasStatModifier("ReleaseEnergyBasil"))
-						member.Actor.AddStatModifier("ReleaseEnergyBasilBonus", silent: true);
+					AnimationManager.Instance.PlayAnimation(214, member);
+					if (member.HasStatModifier("ReleaseEnergyBasil"))
+						member.AddStatModifier("ReleaseEnergyBasilBonus", silent: true);
 					else
-						member.Actor.AddStatModifier("ReleaseEnergyBasil", silent: true);
+						member.AddStatModifier("ReleaseEnergyBasil", silent: true);
 				}
 
 				await Wait.Frames(20);
@@ -6535,9 +6535,9 @@ public class Database
 					AnimationManager.Instance.PlayAnimation(218, member);
 				}
 
-				foreach (PartyMemberComponent member in BattleManager.Instance.GetAllPartyMembers())
+				foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
 				{
-					member.Actor.AddStatModifier("Tickle", 2);
+					member.AddStatModifier("Tickle", 2);
 				}
 			},
 			hidden: true

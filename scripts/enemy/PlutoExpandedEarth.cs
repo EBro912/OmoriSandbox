@@ -25,7 +25,7 @@ internal sealed class PlutoExpandedEarth : Enemy
         return emotion.Id is "neutral" or "sad" or "angry" or "happy";
     }
 
-    private EnemyComponent Earth;
+    private Enemy Earth;
 
     public override BattleCommand ProcessAI()
     {
@@ -146,7 +146,7 @@ internal sealed class PlutoExpandedEarth : Enemy
             Triggered = true;
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Ah...\! It seems that I have underestimated you once again.");
             await DialogueManager.Instance.WaitForDialogue();
-            if (Earth != null && !Earth.Actor.IsToast)
+            if (Earth != null && !Earth.IsToast)
             {
                 // the forced Finale resolves before page 2 in vanilla, StartCharge runs from the next ProcessBattleConditions
                 BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["PEEarthsFinale"]);
@@ -178,6 +178,6 @@ internal sealed class PlutoExpandedEarth : Enemy
     internal void KillEarth()
     {
         if (Earth != null)
-            Earth.Actor.CurrentHP = 0;
+            Earth.CurrentHP = 0;
     }
 }

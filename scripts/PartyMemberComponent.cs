@@ -11,7 +11,7 @@ namespace OmoriSandbox;
 /// <summary>
 /// The component attached to a party member <see cref="Node"/> in the scene.
 /// </summary>
-public partial class PartyMemberComponent : Node
+public partial class PartyMemberComponent : ActorComponent
 {
 	private PartyMember PartyMember;
 	private StateAnimator StateAnimator;
@@ -32,8 +32,10 @@ public partial class PartyMemberComponent : Node
 	/// <summary>
 	/// The <see cref="Actors.PartyMember"/> actor this component is attached to.
 	/// </summary>
-	public PartyMember Actor => PartyMember;
+	public override PartyMember Actor => PartyMember;
+	
 	private FollowupBubbles FollowupBubbles;
+	
 	/// <summary>
 	/// The on-screen position of the <see cref="Actors.PartyMember"/>.<br/>
 	/// See <see cref="BattleManager.GetPartyMemberAtPosition(int)"/> for valid positions.
@@ -60,6 +62,7 @@ public partial class PartyMemberComponent : Node
 
 	internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, FollowupSet set, BattlePresetActor actor)
 	{
+		partyMember.Bind(this);
 		PartyMember = partyMember;
 		AnimatedSprite2D face = GetNode<AnimatedSprite2D>("../Battlecard/Face");
 		StateAnimator = GetNode<StateAnimator>("../Battlecard/StateAnimatorComponent");
@@ -122,6 +125,11 @@ public partial class PartyMemberComponent : Node
 	internal void RefreshCenterPoint()
 	{
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
+	}
+
+	internal override void ShowDamageNumber(int damage, DamageType type, bool critical)
+	{
+		QueueDamageNumber(damage, type, critical);
 	}
 
 	internal void QueueDamageNumber(int damage, DamageType type, bool critical)
