@@ -9,6 +9,8 @@ internal sealed class HumphreyUvula : Enemy
 {
 	public override string Name => "HUMPHREY";
 	public override Vector2 InfoBoxOffset => new(0, -115);
+	public override Vector2 DamageNumberOffset => new(0, -150);
+	public override bool BlinksWhenSelected => false;
 	public override bool InfoBoxCursorAboveBox => true;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/uvula.tres");
 	protected override Stats Stats => new(1, 1, 1, 1, 900, 1, 95);

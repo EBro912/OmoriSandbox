@@ -24,7 +24,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 	{
 		base.SetEnemy(enemy);
 		Stats stats = Enemy.CurrentStats;
-		JuiceBar.MaxValue = stats.MaxJuice;
+		JuiceBar.MaxValue = Mathf.Max(1, stats.MaxJuice);
 		JuiceBar.Value = Enemy.CurrentJuice;
 		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
 		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{stats.MaxJuice}";
@@ -35,12 +35,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		HITLabel.Text = $"HIT: {stats.HIT}";
 		EVALabel.Text = $"EVA: {stats.EVA}";
 		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
-
-		// shift the emotion sprite relative to the size of the name
-		// keeps the sprite centered on the infobox
-		Sprite2D state = Animator.EmotionSprite;
-		float widthDelta = Infobox.Size.X - Infobox.CustomMinimumSize.X;
-		state.Position = new Vector2(widthDelta / 2f, state.Position.Y);
+		ResizeBox();
 	}
 
 	internal override void Show(bool show)
@@ -48,7 +43,7 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		base.Show(show);
 		Stats stats = Enemy.CurrentStats;
 		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
-		JuiceBar.MaxValue = stats.MaxJuice;
+		JuiceBar.MaxValue = Mathf.Max(1, stats.MaxJuice);
 		JuiceBar.Value = Enemy.CurrentJuice;
 		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{stats.MaxJuice}";
 		ATKLabel.Text = $"ATK: {stats.ATK}";
@@ -58,5 +53,23 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 		HITLabel.Text = $"HIT: {stats.HIT}";
 		EVALabel.Text = $"EVA: {stats.EVA}";
 		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
+		ResizeBox();
+	}
+
+	internal override float BoxWidth()
+	{
+		float left = Mathf.Max(ATKLabel.GetMinimumSize().X, Mathf.Max(SPDLabel.GetMinimumSize().X, HITLabel.GetMinimumSize().X));
+		float right = Mathf.Max(DEFLabel.GetMinimumSize().X, Mathf.Max(LCKLabel.GetMinimumSize().X, EVALabel.GetMinimumSize().X));
+		return Mathf.Max(base.BoxWidth(), Mathf.Max(2f * left + 128f, 2f * right + 118f));
+	}
+
+	internal override void ResizeBox()
+	{
+		base.ResizeBox();
+		// shift the emotion sprite relative to the size of the name
+		// keeps the sprite centered on the infobox
+		Sprite2D state = Animator.EmotionSprite;
+		float widthDelta = Infobox.Size.X - Infobox.CustomMinimumSize.X;
+		state.Position = new Vector2(widthDelta / 2f, state.Position.Y);
 	}
 }

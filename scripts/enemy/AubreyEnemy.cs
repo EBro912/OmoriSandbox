@@ -12,6 +12,7 @@ internal sealed class AubreyEnemy : Enemy
 {
     public override string Name => "AUBREY";
     public override Vector2 InfoBoxOffset => new(25, -200);
+    public override Vector2 DamageNumberOffset => new(30, -180);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/aubrey_enemy.tres");
     protected override Stats Stats => new(240, 120, 24, 8, 12, 5, 95);

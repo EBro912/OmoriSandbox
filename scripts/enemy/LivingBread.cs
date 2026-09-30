@@ -7,6 +7,7 @@ internal sealed class LivingBread : Enemy
 {
     public override string Name => "LIVING BREAD";
     public override Vector2 InfoBoxOffset => new(0, -125);
+    public override Vector2 DamageNumberOffset => new(0, 40);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/living_bread.tres");
     protected override Stats Stats => new(250, 75, 45, 15, 5, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)

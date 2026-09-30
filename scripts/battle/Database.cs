@@ -1484,7 +1484,7 @@ public class Database
 					AnimationManager.Instance.PlayAnimation(212, member.Actor);
 					int heal = (int)Math.Round(member.Actor.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
 					heal = member.Actor.Heal(heal);
-					BattleManager.Instance.SpawnDamageNumber(heal, member.Actor.CenterPoint, DamageType.Heal);
+					BattleManager.Instance.SpawnDamageNumber(heal, member.Actor, DamageType.Heal);
 				}
 
 				await Wait.Milliseconds(500);
@@ -1853,7 +1853,7 @@ public class Database
 				{
 					AnimationManager.Instance.PlayAnimation(213, self);
 					self.HealJuice(self.CurrentStats.MaxJuice);
-					BattleManager.Instance.SpawnDamageNumber(self.CurrentStats.MaxJuice, target.CenterPoint,
+					BattleManager.Instance.SpawnDamageNumber(self.CurrentStats.MaxJuice, self,
 						DamageType.JuiceGain);
 				}
 			}
@@ -1890,7 +1890,7 @@ public class Database
 				int damage = BattleManager.Instance.Damage(self, target, () => self.CurrentHP * 4f, false);
 				if (damage > -1)
 				{
-					BattleManager.Instance.SpawnDamageNumber(self.CurrentHP, self.CenterPoint);
+					BattleManager.Instance.SpawnDamageNumber(self.CurrentHP, self);
 					self.Damage(self.CurrentHP);
 				}
 			}
@@ -2803,7 +2803,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(85, target);
 				int rounded = (int)Math.Round(target.CurrentStats.MaxHP * .4f, MidpointRounding.AwayFromZero);
 				rounded = target.Heal(rounded);
-				BattleManager.Instance.SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(rounded, target, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 				AnimationManager.Instance.PlayAnimation(212, target);
 				await Wait.Milliseconds(1000);
@@ -2822,12 +2822,12 @@ public class Database
 
 				int rounded = (int)Math.Round(target.CurrentStats.MaxHP * .5f, MidpointRounding.AwayFromZero);
 				rounded = target.Heal(rounded);
-				BattleManager.Instance.SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(rounded, target, DamageType.Heal);
 				AnimationManager.Instance.PlayAnimation(212, target);
 
 				rounded = (int)Math.Round(self.CurrentStats.MaxHP * .5f, MidpointRounding.AwayFromZero);
 				rounded = self.Heal(rounded);
-				BattleManager.Instance.SpawnDamageNumber(rounded, self.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(rounded, self, DamageType.Heal);
 				AnimationManager.Instance.PlayAnimation(212, self);
 				await Wait.Milliseconds(1000);
 			}
@@ -2880,10 +2880,10 @@ public class Database
 				int heartHeal = (int)Math.Round(target.CurrentStats.MaxHP * 0.3f, MidpointRounding.AwayFromZero);
 				heartHeal = target.Heal(heartHeal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {heartHeal} HEART!");
-				BattleManager.Instance.SpawnDamageNumber(heartHeal, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(heartHeal, target, DamageType.Heal);
 				int juiceHeal = (int)Math.Round(target.CurrentStats.MaxJuice * 0.2f, MidpointRounding.AwayFromZero);
 				juiceHeal = target.HealJuice(juiceHeal);
-				BattleManager.Instance.SpawnDamageNumber(juiceHeal, target.CenterPoint + new Vector2(0, 50),
+				BattleManager.Instance.SpawnDamageNumber(juiceHeal, target,
 					DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {juiceHeal} JUICE!");
 			}
@@ -2938,7 +2938,7 @@ public class Database
 				target.SetEmotion("neutral", true);
 				int heal = (int)Math.Round(target.CurrentStats.MaxHP * 0.7f, MidpointRounding.AwayFromZero);
 				heal = target.Heal(heal);
-				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(heal, target, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] rose again!");
 				await Wait.Milliseconds(1000);
@@ -3194,7 +3194,7 @@ public class Database
 				float variance = GameManager.Instance.Random.RandfRange(0.8f, 1.2f);
 				int finalHeal = (int)Math.Round(heal * variance, MidpointRounding.AwayFromZero);
 				finalHeal = target.Heal(finalHeal);
-				BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(finalHeal, target, DamageType.Heal);
 				AnimationManager.Instance.PlayAnimation(212, target);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
 				await Wait.Milliseconds(1000);
@@ -3543,7 +3543,7 @@ public class Database
 				await Wait.Milliseconds(332);
 				foreach (Actor member in targets)
 				{
-					BattleManager.Instance.SpawnDamageNumber(member.CurrentJuice, member.CenterPoint, DamageType.JuiceLoss);
+					BattleManager.Instance.SpawnDamageNumber(member.CurrentJuice, member, DamageType.JuiceLoss);
 					member.CurrentJuice = 0;
 				}
 				await Wait.Milliseconds(1660);
@@ -4589,7 +4589,7 @@ public class Database
 			 {
 				 // damage was already scaled earlier
 				 self.Heal(damage, applyDebugScale: false);
-				 BattleManager.Instance.SpawnDamageNumber(damage, self.CenterPoint, DamageType.Heal);
+				 BattleManager.Instance.SpawnDamageNumber(damage, self, DamageType.Heal);
 			 }
 		 }
 		);
@@ -4605,10 +4605,10 @@ public class Database
 			 BattleLogManager.Instance.QueueMessage(self, target, "[actor] steals [target]'s\nbreath away.");
 			 int stolen = target.CurrentJuice;
 			 target.CurrentJuice = 0;
-			 BattleManager.Instance.SpawnDamageNumber(stolen, target.CenterPoint, DamageType.JuiceLoss);
+			 BattleManager.Instance.SpawnDamageNumber(stolen, target, DamageType.JuiceLoss);
 			 // a transfer of what the target actually had, so it isn't scaled
 			 self.HealJuice(stolen, applyDebugScale: false);
-			 BattleManager.Instance.SpawnDamageNumber(stolen, self.CenterPoint, DamageType.JuiceGain);
+			 BattleManager.Instance.SpawnDamageNumber(stolen, self, DamageType.JuiceGain);
 		 }
 		);
 
@@ -5493,7 +5493,7 @@ public class Database
 			effect: async (_, target) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(157, target);
-				BattleManager.Instance.SpawnDamageNumber(target.CurrentHP, target.CenterPoint);
+				BattleManager.Instance.SpawnDamageNumber(target.CurrentHP, target);
 				target.Damage(target.CurrentHP);
 			},
 			hidden: true
@@ -7661,7 +7661,7 @@ public class Database
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = 15;
 				total = target.HealJuice(total);
-				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+				BattleManager.Instance.SpawnDamageNumber(total, target, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				target.AddStatModifier("DefenseUp");
 				await Task.CompletedTask;
@@ -7679,9 +7679,9 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses SNO-CONE!");
 				await AnimationManager.Instance.WaitForAnimation(212, target);
 				target.Heal(target.CurrentStats.MaxHP);
-				BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxHP, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxHP, target, DamageType.Heal);
 				target.HealJuice(target.CurrentStats.MaxJuice);
-				BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxJuice, target.CenterPoint, DamageType.JuiceGain);
+				BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxJuice, target, DamageType.JuiceGain);
 				target.AddStatModifier("SnoCone");
 				AnimationManager.Instance.PlayAnimation(214, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[target]'s ATTACK rose!");
@@ -8186,7 +8186,7 @@ public class Database
 		{
 			int juice = (int)Math.Round(actor.CurrentStats.MaxJuice * 0.05f, MidpointRounding.AwayFromZero);
 			juice = actor.HealJuice(juice);
-			BattleManager.Instance.SpawnDamageNumber(juice, actor.CenterPoint, DamageType.JuiceGain);
+			BattleManager.Instance.SpawnDamageNumber(juice, actor, DamageType.JuiceGain);
 			return Task.CompletedTask;
 		});
 		Equipment["Sales Tag"] = new Equipment("Sales Tag", true).WithStartOfBattleEffect(actor =>
@@ -8247,7 +8247,7 @@ public class Database
 				if (BattleManager.Instance.PartyHasLivingWeapon("Frying Pan", "Ol' Reliable"))
 					heal = (int)Math.Round(heal * 1.5f, MidpointRounding.AwayFromZero);
 				heal = target.Heal(heal);
-				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(heal, target, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				await Task.CompletedTask;
 			},
@@ -8273,7 +8273,7 @@ public class Database
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
 				total = target.HealJuice(total);
-				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+				BattleManager.Instance.SpawnDamageNumber(total, target, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				await Task.CompletedTask;
 			},
@@ -8310,8 +8310,8 @@ public class Database
 						AnimationManager.Instance.InitShake(new Shake(5, 5, 10));
 					}
 				}
-				BattleManager.Instance.SpawnDamageNumber(hpLoss, target.CenterPoint);
-				BattleManager.Instance.SpawnDamageNumber(total, target.CenterPoint, DamageType.JuiceGain);
+				BattleManager.Instance.SpawnDamageNumber(hpLoss, target);
+				BattleManager.Instance.SpawnDamageNumber(total, target, DamageType.JuiceGain);
 				if (blender && hpLoss > 0)
 					BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
 				BattleLogManager.Instance.QueueMessage(self, target, hpLoss > 0 ? $"[target] took {hpLoss} damage!" : "[target] took no damage!");
@@ -8341,7 +8341,7 @@ public class Database
 					juice *= 1.5f;
 				int finalJuice = (int)Math.Round(juice, MidpointRounding.AwayFromZero);
 				finalJuice = target.HealJuice(finalJuice);
-				BattleManager.Instance.SpawnDamageNumber(finalJuice, target.CenterPoint, DamageType.JuiceGain);
+				BattleManager.Instance.SpawnDamageNumber(finalJuice, target, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalJuice} JUICE!");
 				await Task.CompletedTask;
 			},
@@ -8368,7 +8368,7 @@ public class Database
 					heal *= 1.5f;
 				int finalHeal = (int)Math.Round(heal, MidpointRounding.AwayFromZero);
 				finalHeal = target.Heal(finalHeal);
-				BattleManager.Instance.SpawnDamageNumber(finalHeal, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(finalHeal, target, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {finalHeal} HEART!");
 				await Task.CompletedTask;
 			},
@@ -8396,7 +8396,7 @@ public class Database
 			   {
 				   AnimationManager.Instance.PlayAnimation(212, member);
 				   int healed = member.Heal(heal);
-				   BattleManager.Instance.SpawnDamageNumber(healed, member.CenterPoint, DamageType.Heal);
+				   BattleManager.Instance.SpawnDamageNumber(healed, member, DamageType.Heal);
 				   BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {healed} HEART!");
 			   }
 			   await Task.CompletedTask;
@@ -8425,7 +8425,7 @@ public class Database
 			   {
 				   AnimationManager.Instance.PlayAnimation(213, member);
 				   int restored = member.HealJuice(total);
-				   BattleManager.Instance.SpawnDamageNumber(restored, member.CenterPoint, DamageType.JuiceGain);
+				   BattleManager.Instance.SpawnDamageNumber(restored, member, DamageType.JuiceGain);
 				   BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovered {restored} JUICE!");
 			   }
 			   await Task.CompletedTask;
@@ -8457,7 +8457,7 @@ public class Database
 					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
 				heal = target.Heal(heal);
 				total = target.HealJuice(total);
-				BattleManager.Instance.SpawnDamageNumber(heal, target.CenterPoint, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(heal, target, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				await Task.CompletedTask;

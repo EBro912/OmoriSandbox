@@ -65,6 +65,7 @@ internal partial class ItemMenu : PagedMenu
 	protected override void UpdatePage()
 	{
 		CostText.Text = "";
+		CostText.GetParent<Label>().Visible = !Empty;
 		foreach (AutofitLabel l in ItemLabels)
 			l.Text = "";
 		if (Empty)
@@ -72,6 +73,7 @@ internal partial class ItemMenu : PagedMenu
 			CursorPositions = ItemMenuPositions.GetRange(0, 1);
 			CursorIndex = 0;
 			UpdateCursor();
+			BattleLogManager.Instance.ClearBattleLog();
 			return;
 		}
 

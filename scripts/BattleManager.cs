@@ -309,6 +309,7 @@ public partial class BattleManager : Node
 			}
 		}
 		RaiseGuarded(BattleStarted, new BattleStartedEventArgs(CurrentPresetName, CurrentStage), "BattleStarted");
+		CurrentParty.ForEach(x => x.UpdateStateIcons());
 		if (ForcedCommands.Count > 0)
 		{
 			foreach (PartyMemberComponent member in CurrentParty)
@@ -552,12 +553,14 @@ public partial class BattleManager : Node
 			    && direction is InputDirection.Left or InputDirection.Right)
 			{
 				int old = CurrentEnemyTarget;
-				Enemies[old].ShowInfoBox(false);
 				CurrentEnemyTarget = SelectEnemy(CurrentEnemyTarget, direction);
-				Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 				// only play a sound if the cursor actually moves
 				if (CurrentEnemyTarget != old)
+				{
+					Enemies[old].ShowInfoBox(false);
+					Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 					AudioManager.Instance.PlaySFX("SYS_move");
+				}
 				return;
 			}
 
@@ -1199,6 +1202,8 @@ public partial class BattleManager : Node
 			ProcessedStartOfTurn = true;
 		}
 
+		CurrentParty.ForEach(x => x.UpdateStateIcons());
+
 		// a start-of-turn hook may have ended the battle or changed phase
 		// don't show the fight menu over it
 		if (Phase != BattlePhase.FightRun)
@@ -1537,8 +1542,7 @@ public partial class BattleManager : Node
 				currentAction.Actor.CurrentJuice -= skillCost;
 			}
 
-			if (currentAction.Actor is PartyMember && skill.ShowFollowups &&
-			    !currentAction.Actor.CurrentEmotion.BlocksActions)
+			if (currentAction.Actor is PartyMember && skill.ShowFollowups)
 			{
 				if (ForceHideFollowup)
 				{
@@ -1549,17 +1553,18 @@ public partial class BattleManager : Node
 					PartyMemberComponent component = CurrentParty.First(x => x.Actor == currentAction.Actor);
 					if (component.HasFollowup && component.FollowupSet != null)
 					{
+						bool afraid = currentAction.Actor.CurrentEmotion.BlocksActions;
 						HashSet<InputDirection> disabledDirections = [];
 						foreach (var entry in component.FollowupSet.Entries)
 						{
 							// each bubble already grays itself on energy via its own cost
-							if (!IsFollowupEntryUsable(entry.Value.TargetPosition, entry.Value.BaseSkillName,
+							if (afraid || !IsFollowupEntryUsable(entry.Value.TargetPosition, entry.Value.BaseSkillName,
 								    includeEnergy: false))
 								disabledDirections.Add(FollowupSets.DirectionFor(entry.Key, component.Position));
 						}
 
 						component.FadeInFollowups(disabledDirections);
-						FollowupActive = true;
+						FollowupActive = !afraid;
 					}
 				}
 			}
@@ -2156,7 +2161,7 @@ public partial class BattleManager : Node
 			// undo the sad juice bleed, the hit never landed
 			target.CurrentJuice += juiceLost;
 			AudioManager.Instance.PlaySFX("BA_miss");
-			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+			SpawnDamageNumber(-1, target, DamageType.Miss);
 			BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
 			return -1;
 		}
@@ -2169,7 +2174,7 @@ public partial class BattleManager : Node
 			AnimationManager.Instance.InitShake(new Shake(5, 5, 10));
 		}
 
-		SpawnDamageNumber(roundedInt, target.CenterPoint, critical: critical);
+		SpawnDamageNumber(roundedInt, target, critical: critical);
 		// we don't need to play a hitsound if the attack is a critical or if there's no damage
 		if (roundedInt > 0)
 		{
@@ -2194,7 +2199,7 @@ public partial class BattleManager : Node
 		if (juiceLost > 0)
 		{
 			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
-			SpawnDamageNumber(juiceLost, target.CenterPoint, DamageType.JuiceLoss);
+			SpawnDamageNumber(juiceLost, target, DamageType.JuiceLoss);
 		}
 
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
@@ -2239,7 +2244,7 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_miss");
 		}
 		// Miss text spawns a little further down
-		SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+		SpawnDamageNumber(-1, target, DamageType.Miss);
 		return true;
 	}
 
@@ -2325,11 +2330,11 @@ public partial class BattleManager : Node
 		if (roundedInt < 0)
 		{
 			AudioManager.Instance.PlaySFX("BA_miss");
-			SpawnDamageNumber(-1, target.CenterPoint, DamageType.Miss);
+			SpawnDamageNumber(-1, target, DamageType.Miss);
 			return -1;
 		}
 		target.DamageJuice(roundedInt, applyDebugScale: false);
-		SpawnDamageNumber(roundedInt, target.CenterPoint, DamageType.JuiceLoss);
+		SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
 		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),
@@ -2358,7 +2363,7 @@ public partial class BattleManager : Node
 		baseHealing = CalculateVariance(baseHealing, variance);
 		int rounded = (int)Math.Round(baseHealing, MidpointRounding.AwayFromZero);
 		rounded = target.Heal(rounded);
-		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.Heal);
+		SpawnDamageNumber(rounded, target, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
 		return rounded;
@@ -2381,7 +2386,7 @@ public partial class BattleManager : Node
 		float finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
 		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
 		rounded = target.HealJuice(rounded);
-		SpawnDamageNumber(rounded, target.CenterPoint, DamageType.JuiceGain);
+		SpawnDamageNumber(rounded, target, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
 	}
@@ -2505,6 +2510,35 @@ public partial class BattleManager : Node
 	}
 
 	/// <summary>
+	/// Spawns a damage number on a specific <paramref name="target"/>.
+	/// </summary>
+	/// <remarks>
+	/// Damage numbers targeting a party member spawn under their face, with each one 40px below the previous one.<br/>
+	/// Damage numbers targeting an enemy spawn at its <see cref="Enemy.DamageNumberOffset"/> relative to its feet and push older numbers up.
+	/// </remarks>
+	/// <param name="damage">The number to display.</param>
+	/// <param name="target">The actor the number belongs to.</param>
+	/// <param name="type">The <see cref="DamageType"/> of the damage. This value will modify the color of the damage number.</param>
+	/// <param name="critical">If true, the damage number will blink red when spawned.</param>
+	public void SpawnDamageNumber(int damage, Actor target, DamageType type = DamageType.Damage,
+		bool critical = false)
+	{
+		if (DamageNumbersDisabled)
+			return;
+
+		// temporary, will be improved
+		PartyMemberComponent member = CurrentParty.FirstOrDefault(x => x.Actor == target);
+		if (member != null)
+		{
+			member.QueueDamageNumber(damage, type, critical);
+			return;
+		}
+
+		EnemyComponent enemy = Enemies.FirstOrDefault(x => x.Actor == target);
+		SpawnDamageNumber(damage, enemy?.DamageNumberPosition ?? target.CenterPoint, type, critical);
+	}
+
+	/// <summary>
 	/// Spawns an enemy at the given screen <paramref name="position"/>.
 	/// </summary>
 	/// <param name="who">Which enemy to spawn.</param>
@@ -2565,7 +2599,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// A member summoned during the command phase at a position after the currently selecting member
-	/// still chooses a command this turn, otherwise they act from the next turn onward.<br/>
+	/// still chooses a command on the current turn, otherwise they act from the next turn onward.<br/>
 	/// </remarks>
 	/// <param name="who">Which party member to spawn.</param>
 	/// <param name="position">The battlecard position to spawn the member at, from 0 to 3. If the position

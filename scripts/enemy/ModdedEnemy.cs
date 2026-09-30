@@ -31,7 +31,13 @@ internal class ModdedEnemy : Enemy
         ? Vector2.Zero
         : new Vector2(JsonEnemy.InfoBoxOffset[0], JsonEnemy.InfoBoxOffset[1]);
 
+    public override Vector2 DamageNumberOffset => JsonEnemy.DamageNumberOffset == null
+        ? Vector2.Zero
+        : new Vector2(JsonEnemy.DamageNumberOffset[0], JsonEnemy.DamageNumberOffset[1]);
+
     public override bool InfoBoxCursorAboveBox => JsonEnemy.InfoBoxCursorAboveBox;
+
+    public override bool BlinksWhenSelected => JsonEnemy.BlinksWhenSelected ?? true;
 
     public override bool IsEmotionValid(Emotion emotion)
     {

@@ -13,6 +13,7 @@ internal partial class StateAnimator : Node
 	// the default atlas textures provided by the scene
 	private Texture2D DefaultLabelTexture;
 	private Texture2D DefaultFaceTexture;
+	private Vector2? DefaultLabelOffset;
 
 	public override void _Ready()
 	{
@@ -25,6 +26,7 @@ internal partial class StateAnimator : Node
 	{
 		DefaultLabelTexture ??= StateSprite?.Texture;
 		DefaultFaceTexture ??= FaceStateSprite?.Texture;
+		DefaultLabelOffset ??= StateSprite?.Offset;
 	}
 
 	public void SetState(string state)
@@ -63,12 +65,14 @@ internal partial class StateAnimator : Node
 		{
 			StateSprite.RegionEnabled = false;
 			StateSprite.Texture = asset.LabelTexture;
+			StateSprite.Offset = DefaultLabelOffset.Value;
 		}
 		else if (asset.LabelAtlasRow.HasValue)
 		{
 			StateSprite.Texture = DefaultLabelTexture;
 			StateSprite.RegionEnabled = true;
 			StateSprite.RegionRect = StateAtlas(asset.LabelAtlasRow.Value);
+			StateSprite.Offset = DefaultLabelOffset.Value + new Vector2(1f, 1f);
 		}
 	}
 
@@ -109,7 +113,7 @@ internal partial class StateAnimator : Node
 
 	private Rect2 StateAtlas(int y)
 	{
-		return new Rect2(17f, 24f * y, 98f, 22f);
+		return new Rect2(0f, 24f * y, 134f, 24f);
 	}
 
 	private Rect2 FaceStateAtlas(int x = 0, int y = 0)

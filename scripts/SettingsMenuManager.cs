@@ -19,7 +19,7 @@ public partial class SettingsMenuManager : Control
 
 		FullscreenCheckbox.Toggled += value =>
 		{
-			DisplayServer.WindowSetMode(value ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
+			DisplayServer.WindowSetMode(value ? FullscreenMode(OS.GetName()) : DisplayServer.WindowMode.Windowed);
 		};
 
 		AspectDropdown.ItemSelected += index =>
@@ -209,6 +209,11 @@ public partial class SettingsMenuManager : Control
 	private bool IsWindowed()
 	{
 		return GetWindow().Mode is not (Window.ModeEnum.Fullscreen or Window.ModeEnum.ExclusiveFullscreen or Window.ModeEnum.Maximized);
+	}
+
+	private DisplayServer.WindowMode FullscreenMode(string osName)
+	{
+		return osName == "Windows" ? DisplayServer.WindowMode.ExclusiveFullscreen : DisplayServer.WindowMode.Fullscreen;
 	}
 
 	private void ApplyPixelSnapping(bool enabled)

@@ -7,6 +7,7 @@ internal sealed class GatorGuyJawsumAlt : Enemy
 {
     public override string Name => "GATOR GUY";
     public override Vector2 InfoBoxOffset => new(0, -250);
+    public override Vector2 DamageNumberOffset => new(-20, -160);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/gator_guy.tres");
     protected override Stats Stats => new(2200, 85, 100, 60, 70, 10, 95);

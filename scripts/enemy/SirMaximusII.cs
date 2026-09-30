@@ -12,6 +12,7 @@ internal sealed class SirMaximusII : Enemy
 
     public override string Name => "SIR MAXIMUS II";
     public override Vector2 InfoBoxOffset => new(0, -200);
+    public override Vector2 DamageNumberOffset => new(0, 40);
 
     protected override Stats Stats => new(750, 375, 20, 20, 10, 10, 95);
 

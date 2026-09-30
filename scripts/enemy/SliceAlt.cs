@@ -8,6 +8,7 @@ internal sealed class SliceAlt : Enemy
 {
     public override string Name => "SLICE";
     public override Vector2 InfoBoxOffset => new(0, -175);
+    public override Vector2 DamageNumberOffset => new(0, 20);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/slice.tres");
     protected override Stats Stats => new(1500, 1500, 88, 65, 95, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)

@@ -21,8 +21,6 @@
 [ext_resource type="Script" uid="uid://b6h3l1listplj" path="res://scripts/AnimationViewer.cs" id="17_j7ex8"]
 [ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="18_gw5y6"]
 [ext_resource type="PackedScene" uid="uid://cjovmomtfkxhh" path="res://scenes/battleback_bgm_editor_component.tscn" id="19_8egab"]
-[ext_resource type="Texture2D" uid="uid://b75xtstrsgcbh" path="res://assets/system/bsys_battlelog.png" id="22_1dfpl"]
-[ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="23_qywvv"]
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1040890594]
 
@@ -2037,53 +2035,3 @@ text = "Common Layers: 10: Top Layer
                    -5: Enemy Layer"
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
-
-[node name="UIPreview" type="Control" parent="Editor" unique_id=1935063543]
-visible = false
-layout_mode = 3
-anchors_preset = 0
-offset_right = 640.0
-offset_bottom = 480.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="BattleLog" type="TextureRect" parent="Editor/UIPreview" unique_id=2143046872]
-z_index = -1
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -178.0
-offset_right = 178.0
-offset_bottom = 88.0
-grow_horizontal = 2
-texture = ExtResource("22_1dfpl")
-metadata/_edit_use_anchors_ = true
-
-[node name="Energy" type="Sprite2D" parent="Editor/UIPreview" unique_id=636751327]
-z_index = -4
-position = Vector2(140, 340)
-texture = ExtResource("23_qywvv")
-centered = false
-region_enabled = true
-region_rect = Rect2(1, 1, 360, 45)
-region_filter_clip_enabled = true
-
-[node name="EnergyAmount" type="Label" parent="Editor/UIPreview/Energy" unique_id=1633251323]
-offset_left = 325.0
-offset_top = 10.0
-offset_right = 348.0
-offset_bottom = 34.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.501961)
-theme_override_constants/outline_size = 8
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 24
-text = "00"
-horizontal_alignment = 1
-
-[node name="BattleMenu" type="Sprite2D" parent="Editor/UIPreview" unique_id=1646232816]
-z_index = -1
-position = Vector2(320, 429)
-texture = ExtResource("23_qywvv")
-region_enabled = true
-region_rect = Rect2(653, 130, 362, 82)

@@ -19,7 +19,9 @@ internal struct JsonEnemyMod
     public string ObserveMultiSkill { get; set; }
     public string ObserveSingleSkill { get; set; }
     public int[] InfoBoxOffset { get; set; }
+    public int[] DamageNumberOffset { get; set; }
     public bool InfoBoxCursorAboveBox { get; set; }
+    public bool? BlinksWhenSelected { get; set; }
     public JsonEnemyAIData[] AI { get; set; }
 
     internal bool Validate(ModLoadReport report)
@@ -55,6 +57,11 @@ internal struct JsonEnemyMod
         {
             report.Warn("enemies", Name, "'infoBoxOffset' must be an [x, y] pair, ignoring!");
             InfoBoxOffset = null;
+        }
+        if (DamageNumberOffset != null && DamageNumberOffset.Length != 2)
+        {
+            report.Warn("enemies", Name, "'damageNumberOffset' must be an [x, y] pair, ignoring!");
+            DamageNumberOffset = null;
         }
         if (AI == null)
             report.Warn("enemies", Name, "No AI data defined");

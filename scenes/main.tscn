@@ -258,11 +258,13 @@ sprite_frames = ExtResource("13_og1vs")
 
 [node name="FlowerCrown" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1799073211]
 visible = false
+z_index = 20
 position = Vector2(320, 239.5)
 sprite_frames = ExtResource("14_2wyq8")
 
 [node name="ReleaseEnergyBasil" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1264285396]
 visible = false
+z_index = 20
 position = Vector2(320, 239.5)
 sprite_frames = ExtResource("15_vxglm")
 
@@ -274,6 +276,7 @@ offset_bottom = 480.0
 
 [node name="Snaley" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=827367663]
 visible = false
+z_index = 20
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -297,7 +300,7 @@ texture = ExtResource("23_5poiv")
 
 [node name="Encore" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1396240916]
 visible = false
-z_index = -4
+z_index = -99
 offset_right = 640.0
 offset_bottom = 544.0
 texture = ExtResource("24_cjqg0")
@@ -317,7 +320,7 @@ sprite_frames = ExtResource("24_2cjbq")
 
 [node name="HumphreyFaceSwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=250320552]
 visible = false
-z_index = 1
+z_index = 20
 position = Vector2(320, 240)
 sprite_frames = ExtResource("25_chjal")
 frame = 11
@@ -547,7 +550,7 @@ HalfPeriod = 0.523599
 
 [node name="Energy" type="Sprite2D" parent="BattleCanvas/UI" unique_id=969074368]
 visible = false
-z_index = -4
+z_index = 3
 position = Vector2(140, 340)
 texture = ExtResource("39_bjg73")
 centered = false
@@ -716,48 +719,44 @@ texture = ExtResource("11_eb6dy")
 layout_mode = 0
 offset_left = 51.0
 offset_top = 40.999992
-offset_right = 209.0
+offset_right = 175.0
 offset_bottom = 65.99999
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill2" type="Label" parent="BattleCanvas/UI/SkillMenu" unique_id=298075805]
 layout_mode = 0
 offset_left = 51.0
 offset_top = 63.000015
-offset_right = 176.0
+offset_right = 175.0
 offset_bottom = 88.000015
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill3" type="Label" parent="BattleCanvas/UI/SkillMenu" unique_id=128282095]
 layout_mode = 0
 offset_left = 221.0
 offset_top = 40.999992
-offset_right = 346.0
+offset_right = 345.0
 offset_bottom = 65.99999
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill4" type="Label" parent="BattleCanvas/UI/SkillMenu" unique_id=1506661507]
 layout_mode = 0
 offset_left = 221.0
 offset_top = 63.000015
-offset_right = 346.0
+offset_right = 345.0
 offset_bottom = 88.000015
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/SkillMenu" unique_id=504568155 instance=ExtResource("24_qkpxi")]
@@ -842,49 +841,44 @@ text = "0"
 layout_mode = 0
 offset_left = 46.0
 offset_top = 41.999992
-offset_right = 171.0
+offset_right = 170.0
 offset_bottom = 66.99999
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
-text_overrun_behavior = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill2" type="Label" parent="BattleCanvas/UI/SnackMenu" unique_id=1515995130]
 layout_mode = 0
 offset_left = 46.0
 offset_top = 66.000015
-offset_right = 171.0
+offset_right = 170.0
 offset_bottom = 91.000015
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill3" type="Label" parent="BattleCanvas/UI/SnackMenu" unique_id=1126055770]
 layout_mode = 0
 offset_left = 216.0
 offset_top = 41.999992
-offset_right = 341.0
+offset_right = 340.0
 offset_bottom = 66.99999
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill4" type="Label" parent="BattleCanvas/UI/SnackMenu" unique_id=244747533]
 layout_mode = 0
 offset_left = 216.0
 offset_top = 66.000015
-offset_right = 341.0
+offset_right = 340.0
 offset_bottom = 91.000015
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/SnackMenu" unique_id=494831219 instance=ExtResource("24_qkpxi")]
@@ -962,48 +956,44 @@ text = "0"
 layout_mode = 0
 offset_left = 46.0
 offset_top = 41.999992
-offset_right = 171.0
+offset_right = 170.0
 offset_bottom = 66.99999
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill2" type="Label" parent="BattleCanvas/UI/ToyMenu" unique_id=13541784]
 layout_mode = 0
 offset_left = 46.0
 offset_top = 66.000015
-offset_right = 171.0
+offset_right = 170.0
 offset_bottom = 91.000015
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill3" type="Label" parent="BattleCanvas/UI/ToyMenu" unique_id=1474707125]
 layout_mode = 0
 offset_left = 216.0
 offset_top = 41.999992
-offset_right = 341.0
+offset_right = 340.0
 offset_bottom = 66.99999
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Skill4" type="Label" parent="BattleCanvas/UI/ToyMenu" unique_id=517466932]
 layout_mode = 0
 offset_left = 216.0
 offset_top = 66.000015
-offset_right = 341.0
+offset_right = 340.0
 offset_bottom = 91.000015
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("10_choun")
 theme_override_font_sizes/font_size = 24
-autowrap_mode = 1
 script = ExtResource("44_nvyfr")
 
 [node name="Cursor" parent="BattleCanvas/UI/ToyMenu" unique_id=1265284258 instance=ExtResource("24_qkpxi")]

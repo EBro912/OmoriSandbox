@@ -16,7 +16,7 @@ public class ButteredStatModifier : StatModifier
     {
         int heal = (int)Math.Round(actor.CurrentStats.MaxHP * 0.05f, MidpointRounding.AwayFromZero);
         actor.Heal(heal);
-        BattleManager.Instance.SpawnDamageNumber(heal, actor.CenterPoint, DamageType.Heal);
+        BattleManager.Instance.SpawnDamageNumber(heal, actor, DamageType.Heal);
     }
 
     // incoming attacks "slide off", reducing damage taken by 10%

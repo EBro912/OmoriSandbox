@@ -36,7 +36,7 @@ public sealed class MinionBarrierModifier : StatModifier
 
             // debug damage was already applied earlier on
             enemy.Damage(shared, applyDebugScale: false);
-            BattleManager.Instance.SpawnDamageNumber(shared, enemy.CenterPoint);
+            BattleManager.Instance.SpawnDamageNumber(shared, enemy);
             AnimationManager.Instance.PlayAnimation(123, enemy);
             BattleLogManager.Instance.QueueMessage(attacker, enemy, "[target] takes " + shared + " damage!");
         }

@@ -68,6 +68,7 @@ internal partial class SkillMenu : PagedMenu
 	protected override void UpdatePage()
 	{
 		CostText.Text = "0";
+		CostText.GetParent<Label>().Visible = !Empty;
 		foreach (AutofitLabel l in SkillLabels)
 		{
 			l.Text = "";
@@ -78,6 +79,7 @@ internal partial class SkillMenu : PagedMenu
 			CursorPositions = Positions.GetRange(0, 1);
 			CursorIndex = 0;
 			UpdateCursor();
+			BattleLogManager.Instance.ClearBattleLog();
 			return;
 		}
 

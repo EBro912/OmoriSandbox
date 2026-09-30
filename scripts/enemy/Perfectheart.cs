@@ -10,6 +10,7 @@ internal sealed class Perfectheart : Enemy
 {
     public override string Name => "PERFECTHEART";
     public override Vector2 InfoBoxOffset => new(0, -165);
+    public override Vector2 DamageNumberOffset => new(0, -180);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/perfectheart.tres");
     protected override Stats Stats => new(10000, 5000, 140, 140, 140, 15, 1000);

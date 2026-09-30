@@ -11,6 +11,7 @@ internal sealed class HumphreyGrandeAlt : Enemy
 {
     public override string Name => "HUMPHREY GRANDE";
     public override Vector2 InfoBoxOffset => new(0, -255);
+    public override Vector2 DamageNumberOffset => new(0, -180);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/humphrey_grande.tres");
     protected override Stats Stats => new(9000, 4000, 100, 25, 1, 10, 95);

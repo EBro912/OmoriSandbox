@@ -12,9 +12,10 @@ internal sealed class BossmanHero : Enemy
 {
     public override string Name => "BOSSMAN HERO";
     public override Vector2 InfoBoxOffset => new(0, -250);
+    public override Vector2 DamageNumberOffset => new(0, -240);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/bossman_hero.tres");
-    protected override Stats Stats => new(8000, 8000, 70, 80, 10, 45, 95);
+    protected override Stats Stats => new(8000, 8000, 70, 80, 45, 10, 95);
     protected override string[] EquippedSkills 
         => ["BMHAttack", "BMHThrowMoney", "BMHFlingMoney", "BMHHealFriends", 
             "BMHHealFoes", "BMHBuffFriends", "BMHBuffFoes", "BMHDebuffFriends", 

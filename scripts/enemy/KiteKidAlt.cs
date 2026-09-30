@@ -12,6 +12,7 @@ internal sealed class KiteKidAlt : Enemy
 {
     public override string Name => "KITE KID";
     public override Vector2 InfoBoxOffset => new(25, -375);
+    public override Vector2 DamageNumberOffset => new(40, -100);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/kite_kid.tres");
     protected override Stats Stats => new(8000, 4000, 84, 68, 70, 10, 95);
     protected override string[] EquippedSkills => ["KKAttack", "KKBrag"];
@@ -36,7 +37,7 @@ internal sealed class KiteKidAlt : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        KidsKite = BattleManager.Instance.SummonEnemy("KidsKite (Epilogue)", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
+        KidsKite = BattleManager.Instance.SummonEnemy("KidsKite (Epilogue)", CenterPoint + new Vector2(-192, 2), layer: Layer + 1);
         DialogueManager.Instance.QueueMessage(this, "We are one with the wind!");
         DialogueManager.Instance.QueueMessage(this, "As long as it blows, we are unbeatable!");
         await DialogueManager.Instance.WaitForDialogue();

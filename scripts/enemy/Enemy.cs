@@ -79,6 +79,18 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public virtual bool InfoBoxCursorAboveBox => false;
 
+	/// <summary>
+	/// Whether this enemy blinks white while it is selected as a target. Defaults to true.
+	/// Vanilla turns the blink off for a few fights, such as the fear bosses.
+	/// </summary>
+	public virtual bool BlinksWhenSelected => true;
+
+	/// <summary>
+	/// Position of this enemy's damage numbers relative to the actor's "feet" (the bottom of the sprite).
+	/// Behaves the same as vanilla's DamageOffsetX and DamageOffsetY note tags. Defaults to <c>Vector2.Zero</c> if not specified.
+	/// </summary>
+	public virtual Vector2 DamageNumberOffset => Vector2.Zero;
+
 	// the enemy's declared stats, used by the editor stat display
 	internal Stats DeclaredStats => Stats;
 

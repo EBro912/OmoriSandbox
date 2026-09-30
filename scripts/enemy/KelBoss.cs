@@ -11,6 +11,7 @@ internal sealed class KelBoss : Enemy
     public override string Name => "KEL";
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/kel_boss.tres");
     public override Vector2 InfoBoxOffset => new(-15, -360);
+    public override Vector2 DamageNumberOffset => new(0, -150);
     protected override Stats Stats => new(9000, 9000, 100, 70, 230, 20, 100);
     protected override string[] EquippedSkills => ["KBossPassToAubrey", "KBossPassToHero", "KBossFlex", "KBossRainCloud", "KAttack", "RunNGun", "Annoy", "Tickle", "Rebound", "Curveball", "Ricochet"];
     protected internal override bool ObserveHasMulti => false;

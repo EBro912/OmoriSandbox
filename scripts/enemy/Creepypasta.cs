@@ -8,6 +8,7 @@ internal sealed class Creepypasta : Enemy
 {
     public override string Name => "CREEPYPASTA";
     public override Vector2 InfoBoxOffset => new(0, -115);
+    public override Vector2 DamageNumberOffset => new(0, 40);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/creepypasta.tres");
     protected override Stats Stats => new(300, 150, 50, 1, 90, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)

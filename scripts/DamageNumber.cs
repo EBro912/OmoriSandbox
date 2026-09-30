@@ -24,7 +24,7 @@ internal partial class DamageNumber : Node2D
         DamageType = type;
         Critical = critical;
         ZAsRelative = false;
-        ZIndex = 5;
+        ZIndex = 10;
         Position = position;
         if (DamageNumbers.TryGetValue(Position, out DamageNumber number))
             ShiftUp(number);

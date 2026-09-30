@@ -8,6 +8,7 @@ internal sealed class Sesame : Enemy
 {
     public override string Name => "SESAME";
     public override Vector2 InfoBoxOffset => new(0, -175);
+    public override Vector2 DamageNumberOffset => new(0, 20);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sesame.tres");
     protected override Stats Stats => new(288, 197, 51, 43, 91, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)

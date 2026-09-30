@@ -11,6 +11,7 @@ internal sealed class SlimeGirls : Enemy
 
 	public override string Name => "SLIME GIRLS";
 	public override Vector2 InfoBoxOffset => new(0, -235);
+	public override Vector2 DamageNumberOffset => new(0, -180);
 	public override bool InfoBoxCursorAboveBox => true;
 
 	protected override Stats Stats => new(5700, 1750, 57, 32, 52, 10, 95);

@@ -11,8 +11,14 @@ namespace OmoriSandbox;
 /// </summary>
 public partial class EnemyComponent : Node
 {
-	private Enemy Enemy;
+	private static readonly Color SelectionBlink = new(1f, 1f, 1f, 64f / 255f);
+	private static readonly Color NoBlend = new(0f, 0f, 0f, 0f);
+
 	private EnemyInfoBox InfoBox;
+	private bool Selected;
+	private double SelectedTime;
+	private Color BlinkColor = NoBlend;
+	private float FeetY;
 
 	private Timer HurtTimer = new()
 	{
@@ -23,13 +29,13 @@ public partial class EnemyComponent : Node
 	/// <summary>
 	/// The <see cref="Actors.Enemy"/> actor this component is attached to.
 	/// </summary>
-	public Enemy Actor => Enemy;
+	public Enemy Actor { get; private set; }
 
 	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
 	{
-		Enemy = enemy;
+		Actor = enemy;
 		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
-		Enemy.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
+		Actor.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox_moreinfo.tscn")
 				.Instantiate<EnemyMoreInfoBox>();
@@ -37,28 +43,57 @@ public partial class EnemyComponent : Node
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox.tscn")
 				.Instantiate<EnemyInfoBox>();
 		AddChild(InfoBox);
-		InfoBox.SetEnemy(Enemy);
+		InfoBox.SetEnemy(Actor);
 		ShowInfoBox(false);
 		
-		Enemy.CenterPoint = GetParent<Node2D>().GlobalPosition;
+		Actor.CenterPoint = GetParent<Node2D>().GlobalPosition;
 		// in vanilla, the box + offset is drawn relative to the actor's "feet"
-		float feetY = sprite.SpriteFrames.GetFrameTexture(sprite.Animation, 0).GetHeight() * sprite.GlobalScale.Y / 2f;
-		InfoBox.Position = Enemy.CenterPoint + new Vector2(Enemy.InfoBoxOffset.X, Enemy.InfoBoxOffset.Y + feetY);
-		InfoBox.SetCursorAboveBox(Enemy.InfoBoxCursorAboveBox);
-		Enemy.OnDamaged += Damaged;
-		Enemy.OnRevived += Revived;
-		HurtTimer.Timeout += () => Enemy.SetHurt(false);
+		FeetY = sprite.SpriteFrames.GetFrameTexture(sprite.Animation, 0).GetHeight() * sprite.GlobalScale.Y / 2f;
+		InfoBox.Position = Actor.CenterPoint + new Vector2(Actor.InfoBoxOffset.X, Actor.InfoBoxOffset.Y + FeetY);
+		InfoBox.SetCursorAboveBox(Actor.InfoBoxCursorAboveBox);
+		Actor.OnDamaged += Damaged;
+		Actor.OnRevived += Revived;
+		HurtTimer.Timeout += () => Actor.SetHurt(false);
 		AddChild(HurtTimer);
 	}
+
+	internal Vector2 DamageNumberPosition => Actor.CenterPoint + new Vector2(0f, FeetY) + Actor.DamageNumberOffset + new Vector2(-1f, -85f);
 
 	internal void ShowInfoBox(bool show)
 	{
 		InfoBox.Show(show);
+		switch (show)
+		{
+			case false when Selected:
+				SetBlink(NoBlend);
+				break;
+			case true when !Selected:
+				SelectedTime = 0d;
+				break;
+		}
+
+		Selected = show && Actor.BlinksWhenSelected;
+	}
+
+	/// <inheritdoc/>
+	public override void _Process(double delta)
+	{
+		if (!Selected)
+			return;
+		SelectedTime += delta;
+		int frame = (int)Math.Round(SelectedTime * 60d);
+		SetBlink(frame % 30 < 15 ? SelectionBlink : NoBlend);
+	}
+
+	private void SetBlink(Color color)
+	{
+		BlinkColor = color;
+		Actor.SetBlendColor(color);
 	}
 
 	private void Damaged(object sender, EventArgs e)
 	{
-		Enemy.SetHurt(true);
+		Actor.SetHurt(true);
 		HurtTimer.Start(0.75d);
 	}
 

@@ -281,6 +281,7 @@ public partial class GameManager : Node
 		if (instance == null)
 			return null;
 		Control card = BattlecardUI.Instantiate<Control>();
+		card.ZIndex = 9;
 		Party.AddChild(card);
 		card.Position = actor.Position switch
 		{

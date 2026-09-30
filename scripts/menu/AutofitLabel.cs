@@ -3,21 +3,17 @@ using Godot;
 namespace OmoriSandbox.Menu;
 
 /// <summary>
-/// A <see cref="Label"/> that can auto-fit its contents.
+/// A <see cref="Label"/> that squeezes its text horizontally to fit its width.
 /// </summary>
 public partial class AutofitLabel : Label
 {
     /// <summary>
-    /// The maximum font size of the label.
+    /// The font size of the label.
     /// </summary>
     [Export] public int MaxSize = 24;
-    /// <summary>
-    /// The minimum font size of the label
-    /// </summary>
-    [Export] public int MinSize = 16;
 
     /// <summary>
-    /// Sets the Label's text to <paramref name="text"/> and auto-sizes it to fit.
+    /// Sets the Label's text to <paramref name="text"/>, squeezing it horizontally if it is wider than the label.
     /// </summary>
     /// <param name="text">The text to set.</param>
     public void SetFittedText(string text)
@@ -28,18 +24,9 @@ public partial class AutofitLabel : Label
 
     private void Fit()
     {
-        Font font = GetThemeFont("font");
-        
-        for (int size = MaxSize; size >= MinSize; size--)
-        {
-            Vector2 textSize = font.GetStringSize(Text, fontSize: size);
-            if (textSize.X <= Size.X && textSize.Y <= Size.Y)
-            {
-                AddThemeFontSizeOverride("font_size", size);
-                return;
-            }
-        }
-        
-        AddThemeFontSizeOverride("font_size", MinSize);
+        AddThemeFontSizeOverride("font_size", MaxSize);
+        float width = OffsetRight - OffsetLeft;
+        float textWidth = GetThemeFont("font").GetStringSize(Text, fontSize: MaxSize).X;
+        Scale = new Vector2(textWidth > width ? width / textWidth : 1f, 1f);
     }
 }

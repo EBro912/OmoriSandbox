@@ -9,6 +9,7 @@ internal sealed class Pluto : Enemy
 {
     public override string Name => "???";
     public override Vector2 InfoBoxOffset => new(0, -250);
+    public override Vector2 DamageNumberOffset => new(0, -30);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/pluto.tres");
     protected override string[] EquippedSkills => ["PLDoNothing", "PLBrag", "PLHeadbutt", "PLExpand"];
     protected override Stats Stats => new(300, 150, 12, 10, 4, 10, 95);

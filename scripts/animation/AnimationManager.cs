@@ -125,7 +125,7 @@ public partial class AnimationManager : Node
 			return;
 		}
 		RegEx layerRegex = new();
-		layerRegex.Compile("<[a-z]{5}:(\\d)>");
+		layerRegex.Compile(@"(?i)<Layer:\s*(\d+)>");
 		int total = 0;
 		int attempted = 0;
 		foreach (RPGMakerAnimation animation in animationData)
@@ -145,7 +145,7 @@ public partial class AnimationManager : Node
 					continue;
 				}
 
-				int layer = 0;
+				int layer = 3;
 				RegExMatch match = layerRegex.Search(animation.Name);
 				if (match != null)
 					int.TryParse(match.GetString(1), out layer);
@@ -228,7 +228,7 @@ public partial class AnimationManager : Node
 
 		JArray ops = JArray.Parse(data);
 		RegEx layerRegex = new();
-		layerRegex.Compile("<[a-z]{5}:(\\d)>");
+		layerRegex.Compile(@"(?i)<Layer:\s*(\d+)>");
 
 		// group operations by animation ID
 		Dictionary<int, List<JObject>> grouped = [];
@@ -316,7 +316,7 @@ public partial class AnimationManager : Node
 					continue;
 				}
 
-				int layer = 0;
+				int layer = 3;
 				if (name != null)
 				{
 					RegExMatch match = layerRegex.Search(name);
@@ -850,7 +850,8 @@ public partial class AnimationManager : Node
 			Texture = ResourceLoader.Load<Texture2D>(effect),
 			Position = new Vector2(320f, 150f),
 			Scale = new Vector2(2f, 2f),
-			Modulate = Colors.Transparent
+			Modulate = Colors.Transparent,
+			ZIndex = 20
 		};
 		FullScreenEffectNode.AddChild(effectTex);
 
@@ -859,7 +860,8 @@ public partial class AnimationManager : Node
 			Texture = ResourceLoader.Load<Texture2D>(overlay),
 			Position = Vector2.Zero,
 			Centered = false,
-			Modulate = Colors.Transparent
+			Modulate = Colors.Transparent,
+			ZIndex = 20
 		};
 		FullScreenEffectNode.AddChild(overlayTex);
 
@@ -890,7 +892,8 @@ public partial class AnimationManager : Node
 			Texture = ResourceLoader.Load<Texture2D>(effect),
 			Position = new Vector2(320f, 150f),
 			Scale = new Vector2(2f, 2f),
-			Modulate = Colors.Transparent
+			Modulate = Colors.Transparent,
+			ZIndex = 20
 		};
 		FullScreenEffectNode.AddChild(effectTex);
 
@@ -1091,18 +1094,24 @@ public partial class AnimationManager : Node
 			return null;
 		}
 
-		int index = 0;
-		switch (animation.Layer)
+		int index = -4;
+		if (!targetsEnemy)
 		{
-			case 0:
-				index = 10;
-				break;
-			case 2:
-				index = -1;
-				break;
-			case 3:
-				index = targetsEnemy ? -4 : 0;
-				break;
+			switch (animation.Layer)
+			{
+				case 0:
+					index = 4;
+					break;
+				case 1:
+					index = 6;
+					break;
+				case 2:
+					index = 7;
+					break;
+				default:
+					index = 11;
+					break;
+			}
 		}
 
 		if (animation.TryGetFrameSFX(0, out List<SFX> sfx))

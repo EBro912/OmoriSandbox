@@ -11,7 +11,8 @@ internal sealed class SirMaximusIIIAlt : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sir_maximus.tres");
 
     public override string Name => "SIR MAXIMUS III";
-    public override Vector2 InfoBoxOffset => new(0, -200);
+    public override Vector2 InfoBoxOffset => new(0, -150);
+    public override Vector2 DamageNumberOffset => new(0, 40);
 
     protected override Stats Stats => new(4000, 2000, 75, 100, 75, 15, 95);
 

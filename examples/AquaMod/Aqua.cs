@@ -45,7 +45,7 @@ public class Aqua : Enemy
         if (UsedActs.Contains(act)) return;
         AudioManager.Instance.PlaySFX("mercy_add", 1, 2);
         Mercy += 25;
-        BattleManager.Instance.SpawnDamageNumber(25, CenterPoint, DamageType.JuiceGain);
+        BattleManager.Instance.SpawnDamageNumber(25, this, DamageType.JuiceGain);
     }
 
     public async Task DoACTDialogue(string act)
@@ -123,7 +123,7 @@ public class Aqua : Enemy
         {
             AudioManager.Instance.PlaySFX("mercy_add", 1, 2);
             Mercy += 25;
-            BattleManager.Instance.SpawnDamageNumber(25, CenterPoint, DamageType.JuiceGain);
+            BattleManager.Instance.SpawnDamageNumber(25, this, DamageType.JuiceGain);
             DialogueManager.Instance.QueueMessage(this, @"Uuu, what is this!?\. 'Pain'?\. How funny!!");
             DialogueManager.Instance.QueueMessage(this, @"Did you know?\. You should try some too!");
             await DialogueManager.Instance.WaitForDialogue();

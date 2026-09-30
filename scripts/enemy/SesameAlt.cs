@@ -8,6 +8,7 @@ internal sealed class SesameAlt : Enemy
 {
     public override string Name => "SESAME";
     public override Vector2 InfoBoxOffset => new(0, -175);
+    public override Vector2 DamageNumberOffset => new(0, 20);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sesame.tres");
     protected override Stats Stats => new(1000, 1000, 77, 43, 122, 20, 95);
     public override bool IsEmotionValid(Emotion emotion)

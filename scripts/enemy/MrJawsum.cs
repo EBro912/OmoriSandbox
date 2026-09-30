@@ -13,6 +13,7 @@ internal sealed class MrJawsum : Enemy
 {
     public override string Name => "MR. JAWSUM";
     public override Vector2 InfoBoxOffset => new(0, -225);
+    public override Vector2 DamageNumberOffset => new(0, -150);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/mr_jawsum.tres");
     protected override Stats Stats => new(500, 250, 999, 20, 1, 10, 95);

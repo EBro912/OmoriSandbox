@@ -9,6 +9,7 @@ internal sealed class KiteKid : Enemy
 {
     public override string Name => "KITE KID";
     public override Vector2 InfoBoxOffset => new(25, -375);
+    public override Vector2 DamageNumberOffset => new(40, -100);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/kite_kid.tres");
     protected override Stats Stats => new(750, 375, 24, 15, 25, 10, 95);
     protected override string[] EquippedSkills => ["KKAttack", "KKBrag"];
@@ -33,7 +34,7 @@ internal sealed class KiteKid : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
+        KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint + new Vector2(-128, -6), layer: Layer + 1);
         KidsKite.Actor.AddStatModifier("CallForFriendDelay", silent: true);
     }
 
@@ -41,7 +42,7 @@ internal sealed class KiteKid : Enemy
     {
         if (KidsKite.Actor.IsToast)
         {
-            KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint - new Vector2(125, 0), layer: Layer + 1);
+            KidsKite = BattleManager.Instance.SummonEnemy("KidsKite", CenterPoint + new Vector2(-128, -6), layer: Layer + 1);
             AudioManager.Instance.PlaySFX("BA_Repair", 1f, 0.9f);
             DialogueManager.Instance.QueueMessage("KITE KID repairs KID'S KITE.");
             await DialogueManager.Instance.WaitForDialogue();

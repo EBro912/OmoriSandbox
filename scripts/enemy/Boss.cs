@@ -22,6 +22,7 @@ internal sealed class Boss : Enemy
     }
 
     public override Vector2 InfoBoxOffset => new(0, -320);
+    public override Vector2 DamageNumberOffset => new(0, -60);
 
     private int Stage = 0;
 

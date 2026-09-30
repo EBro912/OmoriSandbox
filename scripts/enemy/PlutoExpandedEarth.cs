@@ -13,6 +13,7 @@ internal sealed class PlutoExpandedEarth : Enemy
 {
     public override string Name => "PLUTO (EXPANDED)";
     public override Vector2 InfoBoxOffset => new(0, -235);
+    public override Vector2 DamageNumberOffset => new(-10, -170);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation =>
         ResourceLoader.Load<SpriteFrames>("res://animations/pluto_expanded.tres");

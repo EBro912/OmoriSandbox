@@ -24,6 +24,10 @@ public partial class PartyMemberComponent : Node
 	
 	private float DisplayedHP;
 	private float DisplayedJuice;
+	private int MaxHP;
+	private int MaxJuice;
+	private readonly Queue<PendingDamageNumber> PendingDamageNumbers = new();
+	private int PopupCount;
 
 	/// <summary>
 	/// The <see cref="Actors.PartyMember"/> actor this component is attached to.
@@ -76,20 +80,23 @@ public partial class PartyMemberComponent : Node
 			StateIcons.ReverseFill = true;
 		}
 
-		HPBar.MaxValue = PartyMember.CurrentStats.MaxHP;
+		MaxHP = PartyMember.CurrentStats.MaxHP;
+		MaxJuice = PartyMember.CurrentStats.MaxJuice;
+		HPBar.MaxValue = Math.Max(1, MaxHP);
 		HPBar.Value = PartyMember.CurrentHP;
-		JuiceBar.MaxValue = PartyMember.CurrentStats.MaxJuice;
+		JuiceBar.MaxValue = Math.Max(1, MaxJuice);
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
 		DisplayedJuice = PartyMember.CurrentJuice;
 		
-		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
-		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
+		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{MaxHP}";
+		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
 
 		if (followup != null)
 		{
 			FollowupBubbles bubbles = followup.Instantiate<FollowupBubbles>();
 			bubbles.ApplySet(set, actor.Position);
+			bubbles.ZIndex = 3;
 			GetParent().AddChild(bubbles);
 			FollowupBubbles = bubbles;
 			FollowupSet = set;
@@ -101,6 +108,8 @@ public partial class PartyMemberComponent : Node
 		PartyMember.OnEmotionChanged += EmotionChanged;
 		PartyMember.OnAnimationChanged += AnimationChanged;
 		PartyMember.OnDamaged += Damaged;
+		PartyMember.OnStatModifierAdded += StatModifiersChanged;
+		PartyMember.OnStatModifierRemoved += StatModifiersChanged;
 		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
 		AddChild(HurtTimer);
 
@@ -113,6 +122,16 @@ public partial class PartyMemberComponent : Node
 	internal void RefreshCenterPoint()
 	{
 		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
+	}
+
+	internal void QueueDamageNumber(int damage, DamageType type, bool critical)
+	{
+		PendingDamageNumbers.Enqueue(new PendingDamageNumber(damage, type, critical));
+	}
+
+	internal Vector2 DamageNumberPosition(int queued, int popupCount)
+	{
+		return GetParent<Control>().GlobalPosition + new Vector2(56f, 82f - 20f * (float)Math.Floor(queued / 3f) + 40f * popupCount);
 	}
 
 	private void RefreshStateVisuals()
@@ -148,16 +167,38 @@ public partial class PartyMemberComponent : Node
 		HurtTimer.Start(1d);
 	}
 
+	private void StatModifiersChanged(object sender, StatModifierEventArgs e)
+	{
+		if (IsInstanceValid(this))
+			UpdateStateIcons();
+	}
+
 	public override void _Process(double delta)
 	{
+		// OMORI uses a queue system for damage numbers spawned on party members
+		// the position of where the number spawns is based off of the current numbers queued
+		// as well as how many numbers currently exist on the party member
+		// enemies do not use this system
+		if (PendingDamageNumbers.Count > 0)
+		{
+			int queued = PendingDamageNumbers.Count;
+			PendingDamageNumber number = PendingDamageNumbers.Dequeue();
+			BattleManager.Instance.SpawnDamageNumber(number.Damage, DamageNumberPosition(queued, PopupCount), number.Type, number.Critical);
+			PopupCount++;
+		}
+		else
+			PopupCount = 0;
+
 		// keep the cached maxes in sync with stat modifiers that change MaxHP/MaxJuice
 		Stats stats = PartyMember.CurrentStats;
-		if (HPBar.MaxValue != stats.MaxHP || JuiceBar.MaxValue != stats.MaxJuice)
+		if (MaxHP != stats.MaxHP || MaxJuice != stats.MaxJuice)
 		{
-			HPBar.MaxValue = stats.MaxHP;
-			JuiceBar.MaxValue = stats.MaxJuice;
-			HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
-			JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
+			MaxHP = stats.MaxHP;
+			MaxJuice = stats.MaxJuice;
+			HPBar.MaxValue = Math.Max(1, MaxHP);
+			JuiceBar.MaxValue = Math.Max(1, MaxJuice);
+			HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{MaxHP}";
+			JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
 		}
 
 		// nothing to animate once the displayed values have settled
@@ -173,8 +214,8 @@ public partial class PartyMemberComponent : Node
 		HPBar.Value = DisplayedHP;
 		JuiceBar.Value = DisplayedJuice;
 
-		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{HPBar.MaxValue}";
-		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{JuiceBar.MaxValue}";
+		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{MaxHP}";
+		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
 	}
 
 	internal void UpdateStateIcons()
@@ -206,4 +247,5 @@ public partial class PartyMemberComponent : Node
 		FollowupBubbles.HideBubblesExcept(selected);
 	}
 
+	private record struct PendingDamageNumber(int Damage, DamageType Type, bool Critical);
 }
