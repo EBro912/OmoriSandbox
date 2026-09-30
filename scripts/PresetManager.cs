@@ -12,6 +12,7 @@ internal partial class PresetManager : Node
     public static PresetManager Instance { get; private set; }
 
     private readonly Dictionary<string, BattlePreset> Presets = [];
+    private readonly Dictionary<string, string> ModPresets = [];
     
     public override void _EnterTree()
     {
@@ -87,13 +88,26 @@ internal partial class PresetManager : Node
         if (preset == null)
             return;
 
+        if (Presets.ContainsKey(preset.Name))
+        {
+            string renamed = $"{preset.Name} ({report.ModName})";
+            report.Warn("presets", file.GetFile(), $"A preset named \"{preset.Name}\" already exists, loading this one as \"{renamed}\" instead.");
+            preset.Name = renamed;
+        }
+
         if (!Presets.TryAdd(preset.Name, preset))
         {
             report.Error("presets", file.GetFile(),"A preset with this name already exists.");
             report.CountSkipped();
             return;
         }
+        ModPresets[preset.Name] = report.ModName;
         report.CountLoaded();
+    }
+
+    public string GetPresetMod(string name)
+    {
+        return ModPresets.GetValueOrDefault(name);
     }
 
     /// <summary>

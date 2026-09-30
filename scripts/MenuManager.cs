@@ -16,6 +16,7 @@ internal partial class MenuManager : Node
 	[Export] private ItemMenu ToyMenu;
 	[Export] private Sprite2D EnergyBar;
 	[Export] private Label EnergyText;
+	[Export] private EnergyDots EnergyDots;
 	private Tween EnergyBarTween;
 
 	// the energy bar node, tinted by the DialogueManager while dialogue is on screen
@@ -33,6 +34,8 @@ internal partial class MenuManager : Node
 	private Dictionary<MenuState, Menu> Menus;
 	private Dictionary<PartyMember, SelectionMemory> LastSelected = [];
 	private readonly HashSet<Menu> LoweredMenus = [];
+	private readonly MenuRepeat Repeat = new();
+	private MenuSkinMode? SkinOverride;
 
 	public override void _EnterTree()
 	{
@@ -51,22 +54,32 @@ internal partial class MenuManager : Node
 
 	private void RefreshEnergy(object sender, EventArgs e)
 	{
-		EnergyText.Text = $"{BattleManager.Instance.Energy:00}";
-		EnergyBar.RegionRect = new Rect2(1f, 1f + Math.Min(BattleManager.Instance.Energy / 2, 4) * 45f, 360f, 45f);
+		int energy = BattleManager.Instance.Energy;
+		EnergyText.Text = $"{energy:00}";
+		if (SkinOverride == MenuSkinMode.Blackspace)
+			EnergyBar.RegionRect = new Rect2(292f, 340f + (energy > 6 ? 2 : energy > 3 ? 1 : 0) * 45f, 360f, 45f);
+		else
+			EnergyBar.RegionRect = new Rect2(1f, 1f + Math.Min(energy / 2, 4) * 45f, 360f, 45f);
+	}
+
+	internal void SetPresetSkin(string menuSkin, bool itemless)
+	{
+		SkinOverride = menuSkin?.ToLowerInvariant() switch
+		{
+			"dreamworld" => MenuSkinMode.Dreamworld,
+			"faraway" => MenuSkinMode.Faraway,
+			"blackspace" => MenuSkinMode.Blackspace,
+			_ => null
+		};
+		BattleMenu.Itemless = itemless;
+		EnergyDots.Origin = SkinOverride == MenuSkinMode.Blackspace ? new Vector2(1, 229) : new Vector2(363, 1);
 	}
 
 	public void ShowButtons(bool realWorld)
 	{
-		if (realWorld)
-		{
-			PartyMenu.SetSkinMode(MenuSkinMode.Faraway);
-			BattleMenu.SetSkinMode(MenuSkinMode.Faraway);
-		}
-		else
-		{
-			PartyMenu.SetSkinMode(MenuSkinMode.Dreamworld);
-			BattleMenu.SetSkinMode(MenuSkinMode.Dreamworld);
-		}
+		MenuSkinMode mode = SkinOverride ?? (realWorld ? MenuSkinMode.Faraway : MenuSkinMode.Dreamworld);
+		PartyMenu.SetSkinMode(mode);
+		BattleMenu.SetSkinMode(mode);
 	}
 
 	public void ShowMenu(MenuState state, bool immediate = false, bool ignoreMemory = false)
@@ -130,16 +143,13 @@ internal partial class MenuManager : Node
 
 	public override void _Process(double delta)
 	{
-		if (CurrentState != MenuState.None)
+		Repeat.Update(delta);
+		if (CurrentState != MenuState.None && Repeat.Direction != Vector2I.Zero)
 		{
-			if (Input.IsActionJustPressed("MenuUp"))
-				CurrentMenu.OnInput(Vector2I.Up);
-			else if (Input.IsActionJustPressed("MenuDown"))
-				CurrentMenu.OnInput(Vector2I.Down);
-			else if (Input.IsActionJustPressed("MenuLeft"))
-				CurrentMenu.OnInput(Vector2I.Left);
-			else if (Input.IsActionJustPressed("MenuRight"))
-				CurrentMenu.OnInput(Vector2I.Right);
+			if (Repeat.Fresh)
+				CurrentMenu.OnInput(Repeat.Direction);
+			else
+				CurrentMenu.OnRepeat(Repeat.Direction);
 		}
 	}
 

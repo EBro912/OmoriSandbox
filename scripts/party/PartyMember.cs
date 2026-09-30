@@ -83,12 +83,15 @@ public abstract class PartyMember : Actor
         Level = actor.Level;
         int idx = Math.Clamp(actor.Level, 1, HPTree.Length) - 1;
 		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
-		if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
+		if (!actor.Weapon.Equals("none", StringComparison.CurrentCultureIgnoreCase))
 		{
-			GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
-			return false;
+			if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
+			{
+				GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
+				return false;
+			}
+			Weapon = w;
 		}
-		Weapon = w;
 
 		if (startToast)
 		{
@@ -127,7 +130,7 @@ public abstract class PartyMember : Actor
 	public override Stats GetBaseStats()
 	{
 		Stats stats = BaseStats;
-		Weapon.Apply(ref stats);
+		Weapon?.Apply(ref stats);
 		Charm?.Apply(ref stats);
 		return stats;
 	}
@@ -145,7 +148,8 @@ public abstract class PartyMember : Actor
     /// <inheritdoc/>
     public override async Task OnStartOfBattle()
     {
-	    await Weapon.StartOfBattle(this);
+		if (Weapon != null)
+			await Weapon.StartOfBattle(this);
 		if (Charm != null)
 			await Charm.StartOfBattle(this);
     }

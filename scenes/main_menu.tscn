@@ -55,7 +55,7 @@ TitlePresetDropdown = NodePath("../Main/MainControls/PresetSelector/PresetDropdo
 StageSelectorParent = NodePath("../Main/MainControls/StageSelector")
 StageSelectorSpinBox = NodePath("../Main/MainControls/StageSelector/StageSpinBox")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "LockBGMAndBattleback", "ItemlessMode", "MenuSkinDropdown", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -75,6 +75,9 @@ FollowupTierValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/Foll
 DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDialogue")
 DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDamageNumbers")
 CombinedBuffsDebuffs = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/CombinedBuffsDebuffs")
+LockBGMAndBattleback = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/LockBGMAndBattleback")
+ItemlessMode = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/ItemlessMode")
+MenuSkinDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin/OptionButton")
 AddItemButton = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/AddItemButton")
 ItemContainer = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/ScrollContainer/ItemsContainer")
 SearchInput = NodePath("../Editor/SettingsTabs/Tools/Skill Search/VBoxContainer/HBoxContainer/SearchInput")
@@ -352,7 +355,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -364,48 +367,49 @@ theme_override_styles/panel = ExtResource("10_1ajci")
 script = ExtResource("9_5dd4i")
 Logo = NodePath("../Logo")
 OmoriFace = NodePath("../Omori")
-MasterSlider = NodePath("ScrollContainer/VBoxContainer/MasterSlider/HSlider")
-BGMSlider = NodePath("ScrollContainer/VBoxContainer/BGMSlider/HSlider")
-SFXSlider = NodePath("ScrollContainer/VBoxContainer/SFXSlider/HSlider")
-TestSFXButton = NodePath("ScrollContainer/VBoxContainer/TestSFX")
-FullscreenCheckbox = NodePath("ScrollContainer/VBoxContainer/Fullscreen")
-AspectDropdown = NodePath("ScrollContainer/VBoxContainer/Aspect/OptionButton")
-PortraitsDropdown = NodePath("ScrollContainer/VBoxContainer/Portraits/OptionButton")
-PixelSnappingCheckbox = NodePath("ScrollContainer/VBoxContainer/PixelSnapping")
-BattlelogSpeedSlider = NodePath("ScrollContainer/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
-ActionDelaySlider = NodePath("ScrollContainer/VBoxContainer/ActionDelaySlider/DelaySlider")
-DialogueSpeedSlider = NodePath("ScrollContainer/VBoxContainer/DialogueSpeedSlider/HSlider")
-DialogueSpeedLabel = NodePath("ScrollContainer/VBoxContainer/DialogueSpeedSlider/Label")
-TextSkipCheckbox = NodePath("ScrollContainer/VBoxContainer/TextSkip")
-ShowFPSCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowFPS")
-LogDebugCheckbox = NodePath("ScrollContainer/VBoxContainer/LogDebug")
-PreventRunCheckbox = NodePath("ScrollContainer/VBoxContainer/RequireTwoRunInputs")
-DisableDamageLimitCheckbox = NodePath("ScrollContainer/VBoxContainer/DisableDamageLimit")
-DisableStatLimitCheckbox = NodePath("ScrollContainer/VBoxContainer/DisableStatLimit")
-ShowMoreInfoCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowMoreInfo")
-ShowStateIconsCheckbox = NodePath("ScrollContainer/VBoxContainer/ShowStateIcons")
-EnemySelectionWrappingCheckbox = NodePath("ScrollContainer/VBoxContainer/EnemySelectionWrapping")
-SelectionHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/SelectionHoldDelaySlider/HSlider")
-SelectionHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/SelectionHoldDelaySlider/Label")
-SelectionChangeSpeedSlider = NodePath("ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider/HSlider")
-SelectionChangeSpeedLabel = NodePath("ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider/Label")
-UseConsoleSpdCheckbox = NodePath("ScrollContainer/VBoxContainer/UseConsoleSpd")
-UseConsoleDefCheckbox = NodePath("ScrollContainer/VBoxContainer/UseConsoleDef")
-InfiniteBuffsDebuffsCheckbox = NodePath("ScrollContainer/VBoxContainer/InfiniteBuffsDebuffs")
-VertigoUsesAtkCheckbox = NodePath("ScrollContainer/VBoxContainer/VertigoUsesAtk")
-ToysUseEmotionDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/ToysUseEmotionDamage")
-SpaceExHusbandReleaseEnergyCheckbox = NodePath("ScrollContainer/VBoxContainer/SpaceExHusbandReleaseEnergy")
-EnableDebugDamageCheckbox = NodePath("ScrollContainer/VBoxContainer/EnableDebugDamage")
-CombinedAccuracyCheckbox = NodePath("ScrollContainer/VBoxContainer/CombinedAccuracy")
-AllowStateReapplyOnRemovalCheckbox = NodePath("ScrollContainer/VBoxContainer/AllowStateReapplyOnRemoval")
-RestartHoldTimeSlider = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/HSlider")
-RestartHoldTimeLabel = NodePath("ScrollContainer/VBoxContainer/RestartDelaySlider/Label")
-SpeedUpSlider = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/HSlider")
-SpeedUpLabel = NodePath("ScrollContainer/VBoxContainer/SpeedUpSlider/Label")
-KeybindGrid = NodePath("ScrollContainer/VBoxContainer/KeybindsContainer")
-ResetKeybindsButton = NodePath("ScrollContainer/VBoxContainer/ResetBindsButton")
+MasterSlider = NodePath("Tabs/Audio/VBoxContainer/MasterSlider/HSlider")
+BGMSlider = NodePath("Tabs/Audio/VBoxContainer/BGMSlider/HSlider")
+SFXSlider = NodePath("Tabs/Audio/VBoxContainer/SFXSlider/HSlider")
+TestSFXButton = NodePath("Tabs/Audio/VBoxContainer/TestSFX")
+FullscreenCheckbox = NodePath("Tabs/Graphics/VBoxContainer/Fullscreen")
+AspectDropdown = NodePath("Tabs/Graphics/VBoxContainer/Aspect/OptionButton")
+PortraitsDropdown = NodePath("Tabs/Graphics/VBoxContainer/Portraits/OptionButton")
+PixelSnappingCheckbox = NodePath("Tabs/Graphics/VBoxContainer/PixelSnapping")
+BattlelogSpeedSlider = NodePath("Tabs/Battle/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
+ActionDelaySlider = NodePath("Tabs/Battle/VBoxContainer/ActionDelaySlider/DelaySlider")
+DialogueSpeedSlider = NodePath("Tabs/Battle/VBoxContainer/DialogueSpeedSlider/HSlider")
+DialogueSpeedLabel = NodePath("Tabs/Battle/VBoxContainer/DialogueSpeedSlider/Label")
+TextSkipCheckbox = NodePath("Tabs/Battle/VBoxContainer/TextSkip")
+ShowFPSCheckbox = NodePath("Tabs/Graphics/VBoxContainer/ShowFPS")
+LogDebugCheckbox = NodePath("Tabs/Debug/VBoxContainer/LogDebug")
+PreventRunCheckbox = NodePath("Tabs/Battle/VBoxContainer/RequireTwoRunInputs")
+DisableDamageLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableDamageLimit")
+DisableStatLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableStatLimit")
+ShowMoreInfoCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowMoreInfo")
+ShowStateIconsCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowStateIcons")
+EnemySelectionWrappingCheckbox = NodePath("Tabs/Battle/VBoxContainer/EnemySelectionWrapping")
+SelectionHoldTimeSlider = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider/HSlider")
+SelectionHoldTimeLabel = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider/Label")
+SelectionChangeSpeedSlider = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldSpeedSlider/HSlider")
+SelectionChangeSpeedLabel = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldSpeedSlider/Label")
+UseConsoleSpdCheckbox = NodePath("Tabs/Rules/VBoxContainer/UseConsoleSpd")
+UseConsoleDefCheckbox = NodePath("Tabs/Rules/VBoxContainer/UseConsoleDef")
+InfiniteBuffsDebuffsCheckbox = NodePath("Tabs/Rules/VBoxContainer/InfiniteBuffsDebuffs")
+VertigoUsesAtkCheckbox = NodePath("Tabs/Rules/VBoxContainer/VertigoUsesAtk")
+ToysUseEmotionDamageCheckbox = NodePath("Tabs/Rules/VBoxContainer/ToysUseEmotionDamage")
+SpaceExHusbandReleaseEnergyCheckbox = NodePath("Tabs/Rules/VBoxContainer/SpaceExHusbandReleaseEnergy")
+EnableDebugDamageCheckbox = NodePath("Tabs/Debug/VBoxContainer/EnableDebugDamage")
+CombinedAccuracyCheckbox = NodePath("Tabs/Rules/VBoxContainer/CombinedAccuracy")
+AllowStateReapplyOnRemovalCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowStateReapplyOnRemoval")
+RestartHoldTimeSlider = NodePath("Tabs/Controls/VBoxContainer/RestartDelaySlider/HSlider")
+RestartHoldTimeLabel = NodePath("Tabs/Controls/VBoxContainer/RestartDelaySlider/Label")
+SpeedUpSlider = NodePath("Tabs/Controls/VBoxContainer/SpeedUpSlider/HSlider")
+SpeedUpLabel = NodePath("Tabs/Controls/VBoxContainer/SpeedUpSlider/Label")
+KeybindGrid = NodePath("Tabs/Controls/VBoxContainer/KeybindsContainer")
+ResetKeybindsButton = NodePath("Tabs/Controls/VBoxContainer/ResetBindsButton")
 BackButton = NodePath("BackButton")
 MainControls = NodePath("../MainControls")
+SettingsTabs = NodePath("Tabs")
 
 [node name="Settings" type="Label" parent="Main/Settings" unique_id=1197686200]
 layout_mode = 1
@@ -422,7 +426,7 @@ theme_override_font_sizes/font_size = 40
 text = "Settings"
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Main/Settings" unique_id=580906904]
+[node name="Tabs" type="TabContainer" parent="Main/Settings" unique_id=1222572119]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -433,16 +437,28 @@ offset_right = -3.0
 offset_bottom = -45.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/panel = ExtResource("10_1ajci")
+theme_override_styles/tab_unselected = ExtResource("10_1ajci")
+theme_override_styles/tab_hovered = ExtResource("12_1ajci")
+theme_override_styles/tab_selected = ExtResource("15_7b55j")
+current_tab = 0
+clip_tabs = false
+
+[node name="Graphics" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=1726232149]
+layout_mode = 2
 follow_focus = true
 horizontal_scroll_mode = 0
+metadata/_tab_index = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/ScrollContainer" unique_id=49627157]
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/Tabs/Graphics" unique_id=1808816821]
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
 theme_override_constants/separation = 4
 
-[node name="Graphics" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=315148989]
+[node name="Graphics" type="Label" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=315148989]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -450,7 +466,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Graphics"
 
-[node name="Fullscreen" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=560981282]
+[node name="Fullscreen" type="CheckBox" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=560981282]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -458,17 +474,17 @@ theme_override_font_sizes/font_size = 25
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Fullscreen"
 
-[node name="Aspect" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1485167171]
+[node name="Aspect" type="HBoxContainer" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1485167171]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/Aspect" unique_id=5902847]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Graphics/VBoxContainer/Aspect" unique_id=5902847]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Aspect"
 
-[node name="OptionButton" type="OptionButton" parent="Main/Settings/ScrollContainer/VBoxContainer/Aspect" unique_id=1073141850]
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Graphics/VBoxContainer/Aspect" unique_id=1073141850]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -489,17 +505,17 @@ popup/item_3/id = 3
 popup/item_4/text = "21:9 (1120 x 480)"
 popup/item_4/id = 4
 
-[node name="Portraits" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2028678821]
+[node name="Portraits" type="HBoxContainer" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=2028678821]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/Portraits" unique_id=1819821906]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Graphics/VBoxContainer/Portraits" unique_id=1819821906]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Portraits"
 
-[node name="OptionButton" type="OptionButton" parent="Main/Settings/ScrollContainer/VBoxContainer/Portraits" unique_id=1921019542]
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Graphics/VBoxContainer/Portraits" unique_id=1921019542]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -514,7 +530,7 @@ popup/item_0/id = 0
 popup/item_1/text = "Edges"
 popup/item_1/id = 1
 
-[node name="PixelSnapping" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1668948476]
+[node name="PixelSnapping" type="CheckBox" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1668948476]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Snaps sprites and UI to whole pixels like the original game.
@@ -524,11 +540,29 @@ theme_override_font_sizes/font_size = 25
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Pixel Snapping"
 
-[node name="HSeparatorAudio" type="HSeparator" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=235695091]
+[node name="ShowFPS" type="CheckBox" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1098298253]
 layout_mode = 2
-theme_override_constants/separation = 12
+size_flags_horizontal = 4
+tooltip_text = "Shows an FPS counter next to the watermark"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Show FPS"
 
-[node name="Audio" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=175473037]
+[node name="Audio" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=247372814]
+visible = false
+layout_mode = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+metadata/_tab_index = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/Tabs/Audio" unique_id=1458425151]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="Audio" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=175473037]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -536,17 +570,17 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Audio"
 
-[node name="MasterSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1996218175]
+[node name="MasterSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=1996218175]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/MasterSlider" unique_id=1047286100]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/MasterSlider" unique_id=1047286100]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Master"
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/MasterSlider" unique_id=1506762340]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Audio/VBoxContainer/MasterSlider" unique_id=1506762340]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_vertical = 4
@@ -555,18 +589,18 @@ step = 0.001
 value = 1.0
 scrollable = false
 
-[node name="BGMSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=118982529]
+[node name="BGMSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=118982529]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 27
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BGMSlider" unique_id=863588948]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/BGMSlider" unique_id=863588948]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "BGM"
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/BGMSlider" unique_id=1367396440]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Audio/VBoxContainer/BGMSlider" unique_id=1367396440]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -576,13 +610,13 @@ step = 0.001
 value = 0.5
 scrollable = false
 
-[node name="SFXSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1018979741]
+[node name="SFXSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=1018979741]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 31
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SFXSlider" unique_id=1122824205]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/SFXSlider" unique_id=1122824205]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -590,7 +624,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "SFX"
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SFXSlider" unique_id=1228106459]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Audio/VBoxContainer/SFXSlider" unique_id=1228106459]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -600,7 +634,7 @@ step = 0.001
 value = 1.0
 scrollable = false
 
-[node name="TestSFX" type="Button" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=101991504]
+[node name="TestSFX" type="Button" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=101991504]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -610,19 +644,28 @@ theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Test SFX"
 
-[node name="HSeparator" type="HSeparator" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1684096717]
+[node name="Battle" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=1014327348]
+visible = false
 layout_mode = 2
-theme_override_constants/separation = 12
+follow_focus = true
+horizontal_scroll_mode = 0
+metadata/_tab_index = 2
 
-[node name="BattleSettings" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1379274626]
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/Tabs/Battle" unique_id=1942381012]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="BattleSettings" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1379274626]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
-text = "Battle Settings"
+text = "Battle"
 
-[node name="BattlelogSpeed" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1809066632]
+[node name="BattlelogSpeed" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1809066632]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -630,12 +673,12 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Battlelog Speed"
 
-[node name="BattlelogSpeedSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1094329028]
+[node name="BattlelogSpeedSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1094329028]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="Slowest" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BattlelogSpeedSlider" unique_id=2035091266]
+[node name="Slowest" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/BattlelogSpeedSlider" unique_id=2035091266]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -643,7 +686,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Slow"
 
-[node name="BattlelogSpeedSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/BattlelogSpeedSlider" unique_id=1164164]
+[node name="BattlelogSpeedSlider" type="HSlider" parent="Main/Settings/Tabs/Battle/VBoxContainer/BattlelogSpeedSlider" unique_id=1164164]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -655,7 +698,7 @@ value = 3.0
 rounded = true
 scrollable = false
 
-[node name="Fastest" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BattlelogSpeedSlider" unique_id=1829566904]
+[node name="Fastest" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/BattlelogSpeedSlider" unique_id=1829566904]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -663,7 +706,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Fast"
 
-[node name="ActionDelay" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1411272787]
+[node name="ActionDelay" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1411272787]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -671,12 +714,12 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Action Delay"
 
-[node name="ActionDelaySlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1084289562]
+[node name="ActionDelaySlider" type="HBoxContainer" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1084289562]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="Long" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/ActionDelaySlider" unique_id=383978292]
+[node name="Long" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/ActionDelaySlider" unique_id=383978292]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -684,7 +727,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Long"
 
-[node name="DelaySlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/ActionDelaySlider" unique_id=256479886]
+[node name="DelaySlider" type="HSlider" parent="Main/Settings/Tabs/Battle/VBoxContainer/ActionDelaySlider" unique_id=256479886]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 8
@@ -696,7 +739,7 @@ value = 3.0
 rounded = true
 scrollable = false
 
-[node name="Short" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/ActionDelaySlider" unique_id=1298668787]
+[node name="Short" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/ActionDelaySlider" unique_id=1298668787]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -704,7 +747,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Short"
 
-[node name="DialogueSpeed" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1770004508]
+[node name="DialogueSpeed" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1770004508]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -712,13 +755,13 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Dialogue Speed"
 
-[node name="DialogueSpeedSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1770004509]
+[node name="DialogueSpeedSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1770004509]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/DialogueSpeedSlider" unique_id=1770004510]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Battle/VBoxContainer/DialogueSpeedSlider" unique_id=1770004510]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -731,14 +774,14 @@ step = 0.25
 value = 1.0
 scrollable = false
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/DialogueSpeedSlider" unique_id=1770004511]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/DialogueSpeedSlider" unique_id=1770004511]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1.00x"
 
-[node name="TextSkip" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1770004512]
+[node name="TextSkip" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1770004512]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Pressing Accept or Back during dialogue immediately skips 
@@ -748,25 +791,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Text Skip"
 
-[node name="ShowFPS" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1098298253]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Shows an FPS counter next to the watermark"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Show FPS"
-
-[node name="LogDebug" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2138556494]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Logs useful debug messages to the console/log file"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Log Debug Messages"
-
-[node name="RequireTwoRunInputs" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=773435890]
+[node name="RequireTwoRunInputs" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=773435890]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Makes Run require two select inputs in succession"
@@ -775,25 +800,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Prevent Accidental Run"
 
-[node name="DisableDamageLimit" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1436946514]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Disables the 9999 damage limit"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Disable Damage Limit"
-
-[node name="DisableStatLimit" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1171902192]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Disables the 999 stat limit"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Disable Stat Limit"
-
-[node name="ShowMoreInfo" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1355482956]
+[node name="ShowMoreInfo" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1355482956]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Shows detailed stat info for all actors"
@@ -802,7 +809,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show More Info"
 
-[node name="ShowStateIcons" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=406312013]
+[node name="ShowStateIcons" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=406312013]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Shows icons for certain stat modifiers for party members"
@@ -811,7 +818,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show State Icons"
 
-[node name="EnemySelectionWrapping" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=875057239]
+[node name="EnemySelectionWrapping" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=875057239]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Allows the selector for enemy targeting to wrap around when it reaches the edges"
@@ -820,74 +827,113 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Enemy Selection Wrapping"
 
-[node name="SelectionHoldDelay" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=25689085]
+[node name="SelectionHoldDelay" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=25689085]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-text = "Enemy Selection Hold Delay (Seconds)"
+text = "Selection Hold Delay (Seconds)"
 
-[node name="SelectionHoldDelaySlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=241933212]
+[node name="SelectionHoldDelaySlider" type="HBoxContainer" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=241933212]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldDelaySlider" unique_id=2043995819]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider" unique_id=2043995819]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-tooltip_text = "The amount of seconds it takes to hold a direction to 
-activate the auto enemy selection change"
+tooltip_text = "How long a direction must be held before
+battle menus and target selection start repeating it"
 min_value = 0.1
 max_value = 1.0
 step = 0.05
-value = 0.5
+value = 0.4
 scrollable = false
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldDelaySlider" unique_id=1029513462]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider" unique_id=1029513462]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-text = "0.50"
+text = "0.40"
 
-[node name="SelectionHoldSpeed" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=371021514]
+[node name="SelectionHoldSpeed" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=371021514]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
-text = "Enemy Selection Change Speed (Seconds)"
+text = "Selection Change Speed (Seconds)"
 
-[node name="SelectionHoldSpeedSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1550006696]
+[node name="SelectionHoldSpeedSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1550006696]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider" unique_id=950863285]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Battle/VBoxContainer/SelectionHoldSpeedSlider" unique_id=950863285]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-tooltip_text = "How often the enemy selection changes while the direction key is held"
+tooltip_text = "How often a held direction repeats in battle menus and target selection"
 min_value = 0.05
 max_value = 1.0
 step = 0.05
 value = 0.1
 scrollable = false
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SelectionHoldSpeedSlider" unique_id=727468717]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer/SelectionHoldSpeedSlider" unique_id=727468717]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "0.10"
 
-[node name="UseConsoleDef" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1799805994]
+[node name="Rules" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=1601042758]
+visible = false
+layout_mode = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+metadata/_tab_index = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/Tabs/Rules" unique_id=614958468]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="Rules" type="Label" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=723688761]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Rules"
+
+[node name="DisableDamageLimit" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1436946514]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Disables the 9999 damage limit"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Disable Damage Limit"
+
+[node name="DisableStatLimit" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1171902192]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Disables the 999 stat limit"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Disable Stat Limit"
+
+[node name="UseConsoleDef" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1799805994]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Uses the console version Defense Up values of 10%/20%/30%"
@@ -896,7 +942,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Console Defense Up Stats"
 
-[node name="UseConsoleSpd" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1950223518]
+[node name="UseConsoleSpd" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1950223518]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Uses the console version Speed Up 3 value of 200%"
@@ -905,7 +951,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Console Speed Up 3 Stat"
 
-[node name="InfiniteBuffsDebuffs" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2009039002]
+[node name="InfiniteBuffsDebuffs" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=2009039002]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Makes ATK/DEF/SPD buffs/debuffs never expire"
@@ -914,7 +960,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Infinite Buffs/Debuffs"
 
-[node name="VertigoUsesAtk" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1067448616]
+[node name="VertigoUsesAtk" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1067448616]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Makes Vertigo damage use ATK instead of SPD"
@@ -923,7 +969,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Vertigo Uses ATK Stat"
 
-[node name="CombinedAccuracy" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1657483920]
+[node name="CombinedAccuracy" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1657483920]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Accuracy uses a single roll of (user.HIT - target.EVA)
@@ -933,7 +979,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Combined Accuracy Formula"
 
-[node name="AllowStateReapplyOnRemoval" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1493027761]
+[node name="AllowStateReapplyOnRemoval" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1493027761]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Lets a state be re-applied right after it is removed for any reason,
@@ -943,7 +989,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Allow State Reapply on Removal"
 
-[node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1655251340]
+[node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1655251340]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Makes Toys affected by emotion damage"
@@ -952,7 +998,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Toys Use Emotion Damage"
 
-[node name="SpaceExHusbandReleaseEnergy" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=852665377]
+[node name="SpaceExHusbandReleaseEnergy" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=852665377]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Makes Space-Ex Husband vulnerable to Release Energy while neutral"
@@ -961,7 +1007,37 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Space Ex-Husband Vulnerable to Release Energy"
 
-[node name="EnableDebugDamage" type="CheckBox" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1791260836]
+[node name="Debug" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=67187411]
+visible = false
+layout_mode = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+metadata/_tab_index = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/Tabs/Debug" unique_id=470858338]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="Debug" type="Label" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=1468131590]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Debug"
+
+[node name="LogDebug" type="CheckBox" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=2138556494]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Logs useful debug messages to the console/log file"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Log Debug Messages"
+
+[node name="EnableDebugDamage" type="CheckBox" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=1791260836]
 layout_mode = 2
 size_flags_horizontal = 4
 tooltip_text = "Enables the 'Debug Damage' keybind, which multiplies all
@@ -971,11 +1047,20 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Enable Debug Damage"
 
-[node name="HSeparator2" type="HSeparator" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1237328606]
+[node name="Controls" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=954544944]
+visible = false
 layout_mode = 2
-theme_override_constants/separation = 12
+follow_focus = true
+horizontal_scroll_mode = 0
+metadata/_tab_index = 5
 
-[node name="Keybinds" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1897951667]
+[node name="VBoxContainer" type="VBoxContainer" parent="Main/Settings/Tabs/Controls" unique_id=1953272599]
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="Keybinds" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=1897951667]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -983,7 +1068,7 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Controls"
 
-[node name="RestartDelay" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1563829350]
+[node name="RestartDelay" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=1563829350]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -991,13 +1076,13 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Restart Hold Time (Seconds)"
 
-[node name="RestartDelaySlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1703591324]
+[node name="RestartDelaySlider" type="HBoxContainer" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=1703591324]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelaySlider" unique_id=2043672742]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Controls/VBoxContainer/RestartDelaySlider" unique_id=2043672742]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1009,14 +1094,14 @@ step = 0.25
 value = 1.0
 scrollable = false
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/RestartDelaySlider" unique_id=1478018613]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer/RestartDelaySlider" unique_id=1478018613]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1.00"
 
-[node name="SpeedUp" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=840186834]
+[node name="SpeedUp" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=840186834]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -1024,13 +1109,13 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Speed Up Multiplier"
 
-[node name="SpeedUpSlider" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=806995488]
+[node name="SpeedUpSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=806995488]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="HSlider" type="HSlider" parent="Main/Settings/ScrollContainer/VBoxContainer/SpeedUpSlider" unique_id=1510940673]
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Controls/VBoxContainer/SpeedUpSlider" unique_id=1510940673]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1042,25 +1127,25 @@ step = 0.25
 value = 1.5
 scrollable = false
 
-[node name="Label" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/SpeedUpSlider" unique_id=440720662]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer/SpeedUpSlider" unique_id=440720662]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1.50x"
 
-[node name="BindingHeaders" type="HBoxContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=2081743485]
+[node name="BindingHeaders" type="HBoxContainer" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=2081743485]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Action" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders" unique_id=332975692]
+[node name="Action" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer/BindingHeaders" unique_id=332975692]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Action"
 
-[node name="Keyboard" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders" unique_id=90057005]
+[node name="Keyboard" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer/BindingHeaders" unique_id=90057005]
 custom_minimum_size = Vector2(85, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -1068,7 +1153,7 @@ theme_override_font_sizes/font_size = 20
 text = "Keyboard"
 horizontal_alignment = 1
 
-[node name="Controller" type="Label" parent="Main/Settings/ScrollContainer/VBoxContainer/BindingHeaders" unique_id=1295309611]
+[node name="Controller" type="Label" parent="Main/Settings/Tabs/Controls/VBoxContainer/BindingHeaders" unique_id=1295309611]
 custom_minimum_size = Vector2(115, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -1076,68 +1161,68 @@ theme_override_font_sizes/font_size = 20
 text = "Controller"
 horizontal_alignment = 1
 
-[node name="KeybindsContainer" type="GridContainer" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=58266562]
+[node name="KeybindsContainer" type="GridContainer" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=58266562]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/v_separation = 8
 
-[node name="Accept" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=317920462 instance=ExtResource("14_5pajh")]
+[node name="Accept" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=317920462 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "Accept"
 DefaultKey = 90
 
-[node name="Back" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=608609255 instance=ExtResource("14_5pajh")]
+[node name="Back" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=608609255 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "Back"
 DefaultKey = 88
 
-[node name="MenuUp" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=1369986339 instance=ExtResource("14_5pajh")]
+[node name="MenuUp" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=1369986339 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "MenuUp"
 DefaultKey = 4194320
 
-[node name="MenuDown" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=375256063 instance=ExtResource("14_5pajh")]
+[node name="MenuDown" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=375256063 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "MenuDown"
 DefaultKey = 4194322
 
-[node name="MenuLeft" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=1867548815 instance=ExtResource("14_5pajh")]
+[node name="MenuLeft" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=1867548815 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "MenuLeft"
 DefaultKey = 4194319
 
-[node name="MenuRight" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=1099955277 instance=ExtResource("14_5pajh")]
+[node name="MenuRight" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=1099955277 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "MenuRight"
 DefaultKey = 4194321
 
-[node name="SwitchSides" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=1630460335 instance=ExtResource("14_5pajh")]
+[node name="SwitchSides" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=1630460335 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "SwitchSides"
 DefaultKey = 4194325
 
-[node name="Restart" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=1621862964 instance=ExtResource("14_5pajh")]
+[node name="Restart" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=1621862964 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "Restart"
 DefaultKey = 4194305
 
-[node name="ToggleFullscreen" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=1430654529 instance=ExtResource("14_5pajh")]
+[node name="ToggleFullscreen" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=1430654529 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "ToggleFullscreen"
 DefaultKey = 4194335
 
-[node name="SpeedUp" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=448969460 instance=ExtResource("14_5pajh")]
+[node name="SpeedUp" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=448969460 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "SpeedUp"
 DefaultKey = 4194326
 
-[node name="DebugDamage" parent="Main/Settings/ScrollContainer/VBoxContainer/KeybindsContainer" unique_id=422631332 instance=ExtResource("14_5pajh")]
+[node name="DebugDamage" parent="Main/Settings/Tabs/Controls/VBoxContainer/KeybindsContainer" unique_id=422631332 instance=ExtResource("14_5pajh")]
 layout_mode = 2
 AssociatedAction = "DebugDamage"
 DefaultKey = 4194325
 
-[node name="ResetBindsButton" type="Button" parent="Main/Settings/ScrollContainer/VBoxContainer" unique_id=1809692072]
+[node name="ResetBindsButton" type="Button" parent="Main/Settings/Tabs/Controls/VBoxContainer" unique_id=1809692072]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -1609,6 +1694,37 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Combined Buffs/Debuffs"
 
+[node name="LockBGMAndBattleback" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1495495260]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Lock BGM and Battleback"
+
+[node name="ItemlessMode" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1059368253]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Itemless Mode"
+
+[node name="MenuSkin" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=385386851]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin" unique_id=1884681025]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Menu Skin"
+
+[node name="OptionButton" type="OptionButton" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin" unique_id=1535937014]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+
 [node name="Save" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1068584530]
 layout_mode = 2
 
@@ -2023,15 +2139,15 @@ horizontal_alignment = 1
 [node name="SpinBox2" type="SpinBox" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer/VBoxContainer/HBoxContainer" unique_id=1910916136]
 layout_mode = 2
 min_value = -100.0
-value = 10.0
+value = 11.0
 rounded = true
 
 [node name="Layers" type="Label" parent="Editor/SettingsTabs/Tools/Animation Viewer/VBoxContainer/VBoxContainer" unique_id=576956947]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 24
-text = "Common Layers: 10: Top Layer 
-                    0: Party Layer 
+text = "Common Layers: 11: Party Layer (default)
+                    7 / 6 / 4: Party <Layer:2/1/0>
                    -5: Enemy Layer"
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]

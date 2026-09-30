@@ -38,10 +38,11 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 		}
 	}
 
-	protected override void MoveCursor(Vector2I direction)
+	protected override void MoveCursor(Vector2I direction, bool wrap)
 	{
 		int old = CursorIndex;
-		CursorIndex = (CursorIndex + direction.Y + Options.Count) % Options.Count;
+		int next = CursorIndex + direction.Y;
+		CursorIndex = wrap ? (next + Options.Count) % Options.Count : Mathf.Clamp(next, 0, Options.Count - 1);
 		UpdateCursor();
 		// only play a sound if the cursor actually moved
 		if (old != CursorIndex)

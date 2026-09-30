@@ -60,6 +60,7 @@ internal partial class PartyMemberEditorComponent : Control
 			RecalculateStats();
 		};
 
+		WeaponDropdown.AddItem("None");
 		foreach (string weapon in Database.GetAllWeaponNames())
 			WeaponDropdown.AddItem(weapon);
 		WeaponDropdown.ItemSelected += (item) =>
@@ -123,7 +124,7 @@ internal partial class PartyMemberEditorComponent : Control
 			QueueFree();
 		};
 
-		WeaponDropdown.Selected = 0;
+		WeaponDropdown.Selected = 1;
 		// charms are optional so we can leave it unselected
 		Populate("Omori");
 		RefreshSelected(0);
@@ -312,21 +313,21 @@ internal partial class PartyMemberEditorComponent : Control
 	{
 		string original = WeaponDropdown.GetItemText(WeaponDropdown.Selected);
 		WeaponDropdown.Clear();
+		WeaponDropdown.AddItem("None");
 		IEnumerable<string> weapons = Database.GetAllWeaponNames();
 		if (toggled && EquippableWeapons != null && EquippableWeapons.Length > 0)
 			weapons = weapons.Where(w => EquippableWeapons.Contains(w));
 		foreach (string weapon in weapons)
 			WeaponDropdown.AddItem(weapon);
 		int index = WeaponDropdown.GetItemIndex(original);
-		if (index != -1)
-			WeaponDropdown.Selected = index;
+		WeaponDropdown.Selected = index != -1 ? index : Mathf.Min(1, WeaponDropdown.ItemCount - 1);
 		SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
 	}
 
 	private void RecalculateStats()
 	{
 		Stats stats = BaseStats + StatAdjustmentEditor.GetStats();
-		SelectedWeapon.Apply(ref stats);
+		SelectedWeapon?.Apply(ref stats);
 		SelectedCharm?.Apply(ref stats);
 		if (SelectedEmotion != null)
 			StatBonus.ApplyParams(ref stats, SelectedEmotion.StatBonuses);
@@ -347,7 +348,9 @@ internal partial class PartyMemberEditorComponent : Control
 
 	private void SelectWeapon(string name)
 	{
-		if (Database.TryGetEquipment(name, out Equipment weapon))
+		if (name == "None")
+			SelectedWeapon = null;
+		else if (Database.TryGetEquipment(name, out Equipment weapon))
 			SelectedWeapon = weapon;
 	}
 

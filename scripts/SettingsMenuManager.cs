@@ -127,7 +127,7 @@ public partial class SettingsMenuManager : Control
 		ShowMoreInfoCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowMoreInfo", false);
 		ShowStateIconsCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowStateIcons", false);
 		EnemySelectionWrappingCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnemySelectionWrapping", false);
-		SelectionHoldTimeSlider.Value = (double)config.GetValue("Settings", "SelectionHoldTime", 0.5d);
+		SelectionHoldTimeSlider.Value = (double)config.GetValue("Settings", "SelectionHoldTime", 0.4d);
 		SelectionChangeSpeedSlider.Value = (double)config.GetValue("Settings", "SelectionChangeSpeed", 0.1d);
 		UseConsoleSpdCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "UseConsoleSpd", false);
 		UseConsoleDefCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "UseConsoleDef", false);
@@ -168,7 +168,10 @@ public partial class SettingsMenuManager : Control
 			if (!Visible)
 				SaveSettings();
 			else
+			{
+				SettingsTabs.CurrentTab = 0;
 				FullscreenCheckbox.GrabFocus(hideFocus: !MainMenuManager.Instance.UsingController);
+			}
 		};
 
 		Instance = this;
@@ -338,7 +341,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ShowMoreInfo", false);
 		config.SetValue("Settings", "ShowStateIcons", false);
 		config.SetValue("Settings", "EnemySelectionWrapping", false);
-		config.SetValue("Settings", "SelectionHoldTime", 0.5d);
+		config.SetValue("Settings", "SelectionHoldTime", 0.4d);
 		config.SetValue("Settings", "SelectionChangeSpeed", 0.1d);
 		config.SetValue("Settings","UseConsoleSpd", false);
 		config.SetValue("Settings","UseConsoleDef", false);
@@ -488,4 +491,5 @@ public partial class SettingsMenuManager : Control
 	[Export] private Button ResetKeybindsButton;
 	[Export] private Button BackButton;
 	[Export] private VBoxContainer MainControls;
+	[Export] private TabContainer SettingsTabs;
 }

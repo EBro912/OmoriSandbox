@@ -17,10 +17,15 @@ internal partial class EditorManager : Node
 	private GameModeType EditorMode = GameModeType.Normal;
 	private const int EnemiesTabIdx = 3;
 	private const int BossRushTabIdx = 4;
+	private static readonly string[] MenuSkins = ["Auto", "Dreamworld", "Faraway", "Blackspace"];
+	private bool ItemlessBeforeBlackspace;
 
 	public void Init()
 	{
 		BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
+		foreach (string skin in MenuSkins)
+			MenuSkinDropdown.AddItem(skin);
+		MenuSkinDropdown.ItemSelected += _ => ApplyMenuSkinToItemless();
 		
 		PresetFolderButton.Pressed += () =>
 		{
@@ -250,6 +255,13 @@ internal partial class EditorManager : Node
 			return;
 		}
 
+		string mod = PresetManager.Instance.GetPresetMod(PresetInput.Text);
+		if (mod != null)
+		{
+			ShowWindow("Error", $"A preset from the mod \"{mod}\" already uses this name");
+			return;
+		}
+
 		if (ActorTabs.GetChildCount() == 0)
 		{
 			ShowWindow("Error", "Preset must have at least one actor");
@@ -313,7 +325,10 @@ internal partial class EditorManager : Node
 			FollowupTier = (int)FollowupTierSlider.Value,
 			DisableDialogue = DisableDialogue.ButtonPressed,
 			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed,
-			CombinedBuffsDebuffs = CombinedBuffsDebuffs.ButtonPressed
+			CombinedBuffsDebuffs = CombinedBuffsDebuffs.ButtonPressed,
+			LockBGMAndBattleback = LockBGMAndBattleback.ButtonPressed,
+			ItemlessMode = ItemlessMode.ButtonPressed,
+			MenuSkin = MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected)
 		};
 
 		if (EditorMode is GameModeType.Normal)
@@ -475,6 +490,11 @@ internal partial class EditorManager : Node
 		DisableDialogue.ButtonPressed = preset.DisableDialogue;
 		DisableDamageNumbers.ButtonPressed = preset.DisableDamageNumbers;
 		CombinedBuffsDebuffs.ButtonPressed = preset.CombinedBuffsDebuffs;
+		LockBGMAndBattleback.ButtonPressed = preset.LockBGMAndBattleback;
+		ItemlessMode.Disabled = false;
+		ItemlessMode.ButtonPressed = preset.ItemlessMode;
+		MenuSkinDropdown.Selected = Math.Max(0, Array.FindIndex(MenuSkins, skin => skin.Equals(preset.MenuSkin, StringComparison.OrdinalIgnoreCase)));
+		ApplyMenuSkinToItemless();
 
 		foreach (KeyValuePair<string, int> entry in preset.Items)
 		{
@@ -603,12 +623,35 @@ internal partial class EditorManager : Node
 		}
 	}
 
+	private void ApplyMenuSkinToItemless()
+	{
+		if (MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected) == "Blackspace")
+		{
+			if (!ItemlessMode.Disabled)
+				ItemlessBeforeBlackspace = ItemlessMode.ButtonPressed;
+			ItemlessMode.ButtonPressed = true;
+			ItemlessMode.Disabled = true;
+		}
+		else if (ItemlessMode.Disabled)
+		{
+			ItemlessMode.Disabled = false;
+			// only update the checkbox if it wasn't already checked manually
+			ItemlessMode.ButtonPressed = ItemlessBeforeBlackspace;
+		}
+	}
+
 	private void PreDelete()
 	{
 		if (PresetDropdown.Selected == -1)
 			return;
 
 		string preset = PresetDropdown.GetItemText(PresetDropdown.Selected);
+		string mod = PresetManager.Instance.GetPresetMod(preset);
+		if (mod != null)
+		{
+			ShowWindow("Error", $"The {preset} preset comes from the mod \"{mod}\" and can't be deleted");
+			return;
+		}
 		ConfirmationDialog dialog = new()
 		{
 			Title = "Confirmation",
@@ -721,6 +764,10 @@ internal partial class EditorManager : Node
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
 		CombinedBuffsDebuffs.ButtonPressed = false;
+		LockBGMAndBattleback.ButtonPressed = false;
+		ItemlessMode.Disabled = false;
+		ItemlessMode.ButtonPressed = false;
+		MenuSkinDropdown.Selected = 0;
 
 		BGMPreview.Stop();
 		BattlebackBGMEditor.Reset();
@@ -764,6 +811,9 @@ internal partial class EditorManager : Node
 	[Export] private CheckBox DisableDialogue;
 	[Export] private CheckBox DisableDamageNumbers;
 	[Export] private CheckBox CombinedBuffsDebuffs;
+	[Export] private CheckBox LockBGMAndBattleback;
+	[Export] private CheckBox ItemlessMode;
+	[Export] private OptionButton MenuSkinDropdown;
 	[Export] private Button AddItemButton;
 	[Export] private GridContainer ItemContainer;
 	[Export] private LineEdit SearchInput;

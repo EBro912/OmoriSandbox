@@ -1,6 +1,7 @@
 using System;
 using Godot;
 using OmoriSandbox.Animation;
+using OmoriSandbox.Editor;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -152,6 +153,20 @@ public partial class AudioManager : Node
 	/// <param name="pitch">The pitch to play the BGM at, from 0.1 to 2.0.</param>
 	public void PlayBGM(string name, float volume, float pitch)
 	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored PlayBGM(\"{name}\"), the preset locks the BGM.");
+			BGM.VolumeDb = Mathf.LinearToDb(volume);
+			return;
+		}
+		ForcePlayBGM(name, volume, pitch);
+	}
+
+	internal bool BGMLocked { get; set; }
+
+	internal void ForcePlayBGM(string name, float volume, float pitch)
+	{
 		if (!TryGetBGM(name, out AudioStreamOggVorbis stream))
 		{
 			GD.PrintErr("Unknown BGM: " + name);
@@ -192,6 +207,12 @@ public partial class AudioManager : Node
 	/// </summary>
 	public void StopBGM()
 	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print("Ignored StopBGM(), the preset locks the BGM.");
+			return;
+		}
 		BGM.Stop();
 	}
 
@@ -200,6 +221,12 @@ public partial class AudioManager : Node
 	/// </summary>
 	public void PauseBGM(bool paused)
 	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored PauseBGM({paused}), the preset locks the BGM.");
+			return;
+		}
 		BGM.StreamPaused = paused;
 	}
 
@@ -217,6 +244,17 @@ public partial class AudioManager : Node
 	/// </summary>
 	/// <param name="seconds">The time offset to loop to, in seconds. 0 or less uses the track's own loop point. Values greater than the length of the track will be ignored.</param>
 	public void SetBGMLoopOffset(double seconds)
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored SetBGMLoopOffset({seconds}), the preset locks the BGM.");
+			return;
+		}
+		ForceSetBGMLoopOffset(seconds);
+	}
+
+	internal void ForceSetBGMLoopOffset(double seconds)
 	{
 		if (BGM.Stream is AudioStreamOggVorbis stream)
 		{

@@ -146,9 +146,7 @@ public partial class BattleManager : Node
 	private bool RestartQueued = false;
 	private double RestartTimer;
 
-	private InputDirection? EnemySelectHeldDir = null;
-	private double EnemySelectHoldTimer = 0;
-	private double EnemySelectRepeatTimer = 0;
+	private readonly MenuRepeat DirectionRepeat = new();
 
 	/// <summary>
 	/// Whether a battle is currently ongoing.
@@ -216,9 +214,9 @@ public partial class BattleManager : Node
 		{
 			Enemies = enemies;
 			CurrentStage = -1;
-			GameManager.Instance.SetBattleback(preset.Battleback);
-			AudioManager.Instance.PlayBGM(preset.BGM, 1f, (float)preset.BGMPitch);
-			AudioManager.Instance.SetBGMLoopOffset(preset.BGMLoopPoint);
+			GameManager.Instance.ForceSetBattleback(preset.Battleback);
+			AudioManager.Instance.ForcePlayBGM(preset.BGM, 1f, (float)preset.BGMPitch);
+			AudioManager.Instance.ForceSetBGMLoopOffset(preset.BGMLoopPoint);
 		}
 		else
 		{
@@ -227,16 +225,19 @@ public partial class BattleManager : Node
 			SummonEnemiesForStage(stages[CurrentStage].Enemies);
 			StageSelectorSpinBox.MaxValue = stages.Count - 1;
 			StageSelectorSpinBox.Value = startingStage;
-			GameManager.Instance.SetBattleback(preset.Stages[CurrentStage].Battleback);
-			AudioManager.Instance.PlayBGM(preset.Stages[CurrentStage].BGM, 1f, (float)preset.Stages[CurrentStage].BGMPitch);
-			AudioManager.Instance.SetBGMLoopOffset(preset.Stages[CurrentStage].BGMLoopPoint);
+			GameManager.Instance.ForceSetBattleback(preset.Stages[CurrentStage].Battleback);
+			AudioManager.Instance.ForcePlayBGM(preset.Stages[CurrentStage].BGM, 1f, (float)preset.Stages[CurrentStage].BGMPitch);
+			AudioManager.Instance.ForceSetBGMLoopOffset(preset.Stages[CurrentStage].BGMLoopPoint);
 		}
 
 		Items = preset.Items.ToDictionary(x => x.Key, x => Math.Min(x.Value, MaxItemCount));
+		MenuManager.Instance.SetPresetSkin(preset.MenuSkin, preset.ItemlessMode);
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		CombinedBuffsDebuffs = preset.CombinedBuffsDebuffs;
+		AudioManager.Instance.BGMLocked = preset.LockBGMAndBattleback;
+		GameManager.Instance.BattlebackLocked = preset.LockBGMAndBattleback;
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
 
@@ -331,6 +332,7 @@ public partial class BattleManager : Node
 			return;
 
 		EnergyDots.Tick(delta);
+		DirectionRepeat.Update(delta);
 
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
@@ -418,51 +420,16 @@ public partial class BattleManager : Node
 			}
 		}
 
-		if (Input.IsActionJustPressed("MenuLeft"))
+		if (DirectionRepeat.Direction != Vector2I.Zero)
 		{
-			HandleInputDirection(InputDirection.Left);
-			EnemySelectHeldDir = InputDirection.Left;
-			EnemySelectHoldTimer = 0;
-			EnemySelectRepeatTimer = 0;
-		}
-		else if (Input.IsActionJustPressed("MenuRight"))
-		{
-			HandleInputDirection(InputDirection.Right);
-			EnemySelectHeldDir = InputDirection.Right;
-			EnemySelectHoldTimer = 0;
-			EnemySelectRepeatTimer = 0;
-		}
-		else if (EnemySelectHeldDir != null)
-		{
-			string action = EnemySelectHeldDir == InputDirection.Left ? "MenuLeft" : "MenuRight";
-			if (Input.IsActionPressed(action) && Phase == BattlePhase.TargetSelection)
+			InputDirection direction = DirectionRepeat.Direction switch
 			{
-				EnemySelectHoldTimer += delta;
-				if (EnemySelectHoldTimer >= SettingsMenuManager.Instance.SelectionHoldTime)
-				{
-					EnemySelectRepeatTimer += delta;
-					double changeSpeed = SettingsMenuManager.Instance.SelectionChangeSpeed;
-					if (EnemySelectRepeatTimer >= changeSpeed)
-					{
-						EnemySelectRepeatTimer -= changeSpeed;
-						HandleInputDirection(EnemySelectHeldDir.Value);
-					}
-				}
-			}
-			else
-			{
-				EnemySelectHeldDir = null;
-			}
-		}
-
-		if (Input.IsActionJustPressed("MenuUp"))
-		{
-			HandleInputDirection(InputDirection.Up);
-		}
-
-		if (Input.IsActionJustPressed("MenuDown"))
-		{
-			HandleInputDirection(InputDirection.Down);
+				{ Y: < 0 } => InputDirection.Up,
+				{ Y: > 0 } => InputDirection.Down,
+				{ X: < 0 } => InputDirection.Left,
+				_ => InputDirection.Right
+			};
+			HandleInputDirection(direction, DirectionRepeat.Fresh);
 		}
 
 		if (Input.IsActionJustPressed("SwitchSides"))
@@ -535,9 +502,9 @@ public partial class BattleManager : Node
 		}
 	}
 
-	private void HandleInputDirection(InputDirection direction)
+	private void HandleInputDirection(InputDirection direction, bool fresh)
 	{
-		if (Phase == BattlePhase.CommandExecute || Phase == BattlePhase.WaitForBattleLog)
+		if (fresh && Phase is BattlePhase.CommandExecute or BattlePhase.WaitForBattleLog)
 		{
 			if (HandleFollowup(direction))
 			{
@@ -553,7 +520,7 @@ public partial class BattleManager : Node
 			    && direction is InputDirection.Left or InputDirection.Right)
 			{
 				int old = CurrentEnemyTarget;
-				CurrentEnemyTarget = SelectEnemy(CurrentEnemyTarget, direction);
+				CurrentEnemyTarget = SelectEnemy(CurrentEnemyTarget, direction, fresh);
 				// only play a sound if the cursor actually moves
 				if (CurrentEnemyTarget != old)
 				{
@@ -580,7 +547,7 @@ public partial class BattleManager : Node
 		}
 	}
 
-	private int SelectEnemy(int current, InputDirection direction)
+	private int SelectEnemy(int current, InputDirection direction, bool allowWrap)
 	{
 		if (Enemies.Count < 2)
 			return current;
@@ -593,7 +560,7 @@ public partial class BattleManager : Node
 			.ToList();
 
 		int sortedPosition = sortedEnemies.FindIndex(e => e.Index == current);
-		bool wrap = SettingsMenuManager.Instance.EnemySelectionWrapping;
+		bool wrap = allowWrap && SettingsMenuManager.Instance.EnemySelectionWrapping;
 
 		int nextPosition;
 		if (direction == InputDirection.Right)
@@ -668,6 +635,8 @@ public partial class BattleManager : Node
 		BattleLogManager.Instance.FinishedLogging -= OnBattleLogFinished;
 		DialogueManager.Instance.Reset();
 		AudioManager.Instance.Reset();
+		AudioManager.Instance.BGMLocked = false;
+		GameManager.Instance.BattlebackLocked = false;
 		Phase = BattlePhase.PreBattle;
 		TurnCount = 0;
 		ProcessedStartOfTurn = false;
@@ -1178,8 +1147,9 @@ public partial class BattleManager : Node
 						$"{modifier.GetType().Name}.OnStartOfTurn ({member.Actor.Name})");
 				}
 
-				await RunGuarded(() => member.Actor.Weapon.StartOfTurn(member.Actor),
-					$"weapon {member.Actor.Weapon.Name}.StartOfTurn ({member.Actor.Name})");
+				if (member.Actor.Weapon != null)
+					await RunGuarded(() => member.Actor.Weapon.StartOfTurn(member.Actor),
+						$"weapon {member.Actor.Weapon.Name}.StartOfTurn ({member.Actor.Name})");
 				if (member.Actor.Charm != null)
 					await RunGuarded(() => member.Actor.Charm.StartOfTurn(member.Actor),
 						$"charm {member.Actor.Charm.Name}.StartOfTurn ({member.Actor.Name})");
@@ -1249,11 +1219,12 @@ public partial class BattleManager : Node
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 		{
 			Stats stats = CurrentParty[CurrentPartyMember].Actor.CurrentStats;
+			Equipment weapon = CurrentParty[CurrentPartyMember].Actor.Weapon;
 			Equipment charm = CurrentParty[CurrentPartyMember].Actor.Charm;
 			BattleLogManager.Instance.ClearAndShowMessage(
 				$"What will {CurrentParty[CurrentPartyMember].Actor.Name.ToUpper()} do?" +
 				$"[font_size=18]\n[ATK: {stats.ATK}, DEF: {stats.DEF}, SPD: {stats.SPD}, LCK: {stats.LCK}, HIT: {stats.HIT}, EVA: {stats.EVA}]" +
-				$"\n[Weapon: [color=#c263e1]{CurrentParty[CurrentPartyMember].Actor.Weapon.Name}[/color], Charm: [color=#c263e1]{(charm == null ? "None" : charm.Name)}[/color]]");
+				$"\n[Weapon: [color=#c263e1]{(weapon == null ? "None" : weapon.Name)}[/color], Charm: [color=#c263e1]{(charm == null ? "None" : charm.Name)}[/color]]");
 		}
 		else
 			BattleLogManager.Instance.ClearAndShowMessage("What will " +
@@ -1917,7 +1888,7 @@ public partial class BattleManager : Node
 			{
 				string previousBGM = Stages[CurrentStage].BGM;
 				float currentPosition = AudioManager.Instance.GetBGMPosition();
-				AudioManager.Instance.PlayBGM("xx_victory");
+				AudioManager.Instance.ForcePlayBGM("xx_victory", 1f, 1f);
 				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
 				CurrentStage++;
 				if (CurrentStage < Stages.Count)
@@ -1925,7 +1896,7 @@ public partial class BattleManager : Node
 					await Wait.Milliseconds(3000);
 					await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 0.5f);
 					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
-					GameManager.Instance.SetBattleback(Stages[CurrentStage].Battleback);
+					GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
 					GameManager.Instance.SetBattlebackGrayscale(false);
 					BattleLogManager.Instance.ClearBattleLog();
 					MenuManager.Instance.ClearLastSelected();
@@ -1955,11 +1926,11 @@ public partial class BattleManager : Node
 							x.Actor.ClearStatModifiersOnRecoverAll();
 						x.UpdateStateIcons();
 					});
-					AudioManager.Instance.PlayBGM(Stages[CurrentStage].BGM, 0.05f,
+					AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
 						(float)Stages[CurrentStage].BGMPitch);
 					if (previousBGM == Stages[CurrentStage].BGM)
 						AudioManager.Instance.SeekBGM(currentPosition);
-					AudioManager.Instance.SetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
+					AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
 					await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
 					ForcedCommands.Clear();
@@ -1978,7 +1949,7 @@ public partial class BattleManager : Node
 			}
 			else
 			{
-				AudioManager.Instance.PlayBGM("xx_victory");
+				AudioManager.Instance.ForcePlayBGM("xx_victory", 1f, 1f);
 				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 				                                              "'s party was victorious!");
 			}

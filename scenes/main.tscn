@@ -111,7 +111,7 @@ StageSelectorContainer = NodePath("../UI/EndOfBattleOptions/StageSelect")
 StageSelectorSpinBox = NodePath("../UI/EndOfBattleOptions/StageSelect/SpinBox")
 RestartLabel = NodePath("../UI/HBoxContainer/Restart")
 
-[node name="MenuManager" type="Node" parent="BattleCanvas" unique_id=906353120 node_paths=PackedStringArray("PartyMenu", "BattleMenu", "SkillMenu", "SnackMenu", "ToyMenu", "EnergyBar", "EnergyText")]
+[node name="MenuManager" type="Node" parent="BattleCanvas" unique_id=906353120 node_paths=PackedStringArray("PartyMenu", "BattleMenu", "SkillMenu", "SnackMenu", "ToyMenu", "EnergyBar", "EnergyText", "EnergyDots")]
 script = ExtResource("9_ya4ey")
 PartyMenu = NodePath("../UI/PartyMenu")
 BattleMenu = NodePath("../UI/BattleMenu")
@@ -120,6 +120,7 @@ SnackMenu = NodePath("../UI/SnackMenu")
 ToyMenu = NodePath("../UI/ToyMenu")
 EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
+EnergyDots = NodePath("../UI/Energy/EnergyDots")
 
 [node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
 script = ExtResource("12_5q0nq")

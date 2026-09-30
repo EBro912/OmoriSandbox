@@ -23,10 +23,15 @@ internal abstract partial class Menu : Control
 		if (direction == Vector2I.Zero)
 			OnSelect();
 		else
-			MoveCursor(direction);
+			MoveCursor(direction, true);
 	}
 
-	protected virtual void MoveCursor(Vector2I direction) {}
+	public void OnRepeat(Vector2I direction)
+	{
+		MoveCursor(direction, false);
+	}
+
+	protected virtual void MoveCursor(Vector2I direction, bool wrap) {}
 
 	protected virtual void UpdateCursor()
 	{

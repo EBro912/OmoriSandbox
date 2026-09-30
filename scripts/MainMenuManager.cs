@@ -142,6 +142,8 @@ internal partial class MainMenuManager : Node
 
 		LoadExistingButton.Pressed += () =>
 		{
+			if (TitlePresetDropdown.Selected == -1)
+				return;
 			EditorManager.Instance.LoadPreset(TitlePresetDropdown.Selected);
 			EnterEditor();
 		};

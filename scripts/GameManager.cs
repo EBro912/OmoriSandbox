@@ -33,6 +33,7 @@ public partial class GameManager : Node
 	private const float GrayscaleFadeDuration = 0.5f;
 	private readonly List<CanvasItem> GrayscaleSprites = [];
 	private Tween GrayscaleFade;
+	internal bool BattlebackLocked { get; set; }
 
 	/// <summary>
 	/// A random number generator.
@@ -97,6 +98,17 @@ public partial class GameManager : Node
 	/// </summary>
 	/// <param name="name">The name of the battleback to set.</param>
 	public void SetBattleback(string name)
+	{
+		if (BattlebackLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored SetBattleback(\"{name}\"), the preset locks the battleback.");
+			return;
+		}
+		ForceSetBattleback(name);
+	}
+
+	internal void ForceSetBattleback(string name)
 	{
 		BattlebackParent.SetBattleback(name);
 	}

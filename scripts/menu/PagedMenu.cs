@@ -21,7 +21,7 @@ internal abstract partial class PagedMenu : Menu
 	protected abstract void UpdatePage();
 	protected abstract void ShowInfo();
 
-	protected override void MoveCursor(Vector2I direction)
+	protected override void MoveCursor(Vector2I direction, bool wrap)
 	{
 		if (Empty) return;
 		if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;

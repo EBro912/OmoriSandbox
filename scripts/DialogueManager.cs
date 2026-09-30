@@ -56,6 +56,7 @@ public partial class DialogueManager : Node2D
 	private Vector2 CursorNormalPos = new(140, 37.5f);
 	private string[] CurrentChoices;
 	private int ChoiceIndex = 0;
+	private readonly MenuRepeat ChoiceRepeat = new();
 
 	private const float CHOICE_BOX_RIGHT = 180f;
 	private const float CHOICE_BOX_DEFAULT_LEFT = 70f;
@@ -145,6 +146,7 @@ public partial class DialogueManager : Node2D
 		}
 		else if (WaitingForChoice)
 		{
+			ChoiceRepeat.Update(delta);
 			if (Input.IsActionJustPressed("Accept"))
 			{
 				AudioManager.Instance.PlaySFX("SYS_select");
@@ -175,20 +177,20 @@ public partial class DialogueManager : Node2D
 					BeginMessage();
 				}
 			}
-			else if (Input.IsActionJustPressed("MenuUp"))
+			else if (ChoiceRepeat.Direction == Vector2I.Up)
 			{
-				if (ChoiceIndex > 0)
+				if (ChoiceIndex > 0 || (ChoiceRepeat.Fresh && CurrentChoices.Length > 1))
 				{
-					ChoiceIndex--;
+					ChoiceIndex = (ChoiceIndex - 1 + CurrentChoices.Length) % CurrentChoices.Length;
 					Cursor.Position = GetCursorPosition(ChoiceIndex);
 					AudioManager.Instance.PlaySFX("SYS_move");
 				}
 			}
-			else if (Input.IsActionJustPressed("MenuDown"))
+			else if (ChoiceRepeat.Direction == Vector2I.Down)
 			{
-				if (ChoiceIndex < CurrentChoices.Length - 1)
+				if (ChoiceIndex < CurrentChoices.Length - 1 || (ChoiceRepeat.Fresh && CurrentChoices.Length > 1))
 				{
-					ChoiceIndex++;
+					ChoiceIndex = (ChoiceIndex + 1) % CurrentChoices.Length;
 					Cursor.Position = GetCursorPosition(ChoiceIndex);
 					AudioManager.Instance.PlaySFX("SYS_move");
 				}
