@@ -48,6 +48,7 @@ public partial class BattleManager : Node
 	private readonly Dictionary<Actor, BattleCommand> PlayerCommands = new();
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private readonly List<BattleCommand> ForcedCommands = [];
+	private int ForcedCountAtCommandStart = 0;
 	private PendingFollowupData PendingFollowup = null;
 	private readonly HashSet<BattleMenuOption> DisabledMenuOptions = [];
 
@@ -133,6 +134,40 @@ public partial class BattleManager : Node
 	/// Healing applied directly to an <see cref="Actor"/> (as most snacks do) does not raise this event.
 	/// </summary>
 	public event EventHandler<HealedEventArgs> Healed;
+
+	/// <summary>
+	/// Fired once an action's targets are resolved, right before the action runs.
+	/// Not fired for actions that don't run.
+	/// </summary>
+	/// <remarks>
+	/// An action doesn't run, and raises neither this event nor <see cref="ActionEnded"/>, when:
+	/// <list type="bullet">
+	/// <item><description>the actor fails the skill's requirements (for example, it is too AFRAID) or can't pay its JUICE cost.</description></item>
+	/// <item><description>no valid target is left.</description></item>
+	/// </list>
+	/// Forced commands skip the requirement and JUICE checks, but are still dropped when no valid target is left or their actor is toast.
+	/// A command dropped for having no valid target still spends its JUICE cost.
+	/// </remarks>
+	public event EventHandler<ActionEventArgs> ActionStarted;
+
+	/// <summary>
+	/// Fired after an action's effect has finished running, whether it hit, missed or was evaded, and even if the effect threw.
+	/// Every <see cref="ActionStarted"/> is followed by exactly one ActionEnded with the same arguments.
+	/// </summary>
+	public event EventHandler<ActionEventArgs> ActionEnded;
+
+	/// <summary>
+	/// Fired right before an enemy's <see cref="Enemy.ProcessAI"/> decides the action it performs.
+	/// Not fired for the turn-order rolls made while <c>Enemy.PreRolling</c> is set, or for forced commands.
+	/// </summary>
+	public event EventHandler<AIDecidingEventArgs> AIDeciding;
+
+	/// <summary>
+	/// Fired right after an enemy's <see cref="Enemy.ProcessAI"/> has decided the action it performs.
+	/// Like <see cref="AIDeciding"/>, only the real roll raises it.
+	/// Don't change or replace the command here; queue extra actions with <see cref="ForceCommand(Actor, Actor, Skill)"/> instead.
+	/// </summary>
+	public event EventHandler<AIDecidedEventArgs> AIDecided;
 
 	private bool FollowupActive = false;
 	private bool FollowupSelected = false;
@@ -297,7 +332,7 @@ public partial class BattleManager : Node
 			}
 		}
 
-		// summoned enemies append directly to the end of the enemy list so a regular for loop works
+		// summoned enemies append to the end of the enemy list and transforms replace in place, so a regular for loop works
 		for (int i = 0; i < Enemies.Count; i++)
 		{
 			Actor enemy = Enemies[i].Actor;
@@ -613,6 +648,7 @@ public partial class BattleManager : Node
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
+		ForcedCountAtCommandStart = 0;
 		PendingFollowup = null;
 		ForceHideFollowup = false;
 		PriorityActors.Clear();
@@ -877,6 +913,14 @@ public partial class BattleManager : Node
 				FollowupSelected = false;
 				FollowupActive = false;
 
+				foreach (PartyMemberComponent member in CurrentParty.ToList())
+				{
+					if (member.Actor.IsToast)
+						continue;
+					await RunGuarded(() => member.Actor.ProcessBattleConditions(),
+						$"{member.Actor.Name}.ProcessBattleConditions");
+				}
+
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
 					if (enemy.Actor.IsToast)
@@ -993,7 +1037,7 @@ public partial class BattleManager : Node
 			BattleCommand forced = ForcedCommands[0];
 			ForcedCommands.RemoveAt(0);
 			// skip forced commands whose actor has died since being queued
-			if (!(IsInvalidTarget(forced.Actor) || forced.Actor.Stunned))
+			if (!IsInvalidTarget(forced.Actor))
 				return forced;
 			// the dropped command no longer suppresses followup bubbles
 			if (forced.Actor is PartyMember && forced.Action is Skill forcedSkill && forcedSkill.ShowFollowups)
@@ -1089,7 +1133,12 @@ public partial class BattleManager : Node
 		if (actor is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
 			return cmd;
 		if (actor is Enemy enemy)
-			return enemy.ProcessAI();
+		{
+			RaiseGuarded(AIDeciding, new AIDecidingEventArgs(enemy), "AIDeciding");
+			BattleCommand decided = enemy.ProcessAI();
+			RaiseGuarded(AIDecided, new AIDecidedEventArgs(enemy, decided), "AIDecided");
+			return decided;
+		}
 		return null;
 	}
 
@@ -1125,6 +1174,7 @@ public partial class BattleManager : Node
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
 		ForcedCommands.Clear();
+		ForcedCountAtCommandStart = 0;
 		// a followup discarded here never spent its energy, so there is nothing to refund
 		PendingFollowup = null;
 		ForceHideFollowup = false;
@@ -1365,6 +1415,7 @@ public partial class BattleManager : Node
 	private async void HandleCommandExecute()
 	{
 		BattleCommand currentAction = CurrentCommand;
+		ForcedCountAtCommandStart = ForcedCommands.Count;
 
 		if (currentAction.Action is EmptyAction)
 		{
@@ -1376,6 +1427,7 @@ public partial class BattleManager : Node
 		if (SettingsMenuManager.Instance.LogDebug)
 			GD.Print("Processing action " + currentAction.Action.Name);
 		List<Actor> resolvedTargets = [];
+		bool noTarget = false;
 		switch (currentAction.Action.Target)
 		{
 			case SkillTarget.AllAllies:
@@ -1396,10 +1448,8 @@ public partial class BattleManager : Node
 						Actor newTarget = target is Enemy ? GetRandomAliveEnemy() : GetRandomAlivePartyMember();
 						if (newTarget == null)
 						{
-							BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-							                                       "'s skill did nothing.");
-							SetPhase(BattlePhase.WaitForBattleLog);
-							return;
+							noTarget = true;
+							break;
 						}
 						resolvedTargets.Add(newTarget);
 					}
@@ -1411,13 +1461,20 @@ public partial class BattleManager : Node
 
 				break;
 			case SkillTarget.Ally:
+			case SkillTarget.AllyNotSelf:
 			case SkillTarget.Enemy:
 			case SkillTarget.AllyOrEnemy:
 				// in vanilla, automatic retargeting will target the first valid actor in the troop, not a random one
 				if (IsInvalidTarget(currentAction.Targets[0]))
-					resolvedTargets.Add(currentAction.Targets[0] is Enemy
+				{
+					Actor replacement = currentAction.Targets[0] is Enemy
 						? GetAllAliveEnemies().FirstOrDefault()
-						: GetAlivePartyMembers().FirstOrDefault());
+						: GetAlivePartyMembers().FirstOrDefault();
+					if (replacement == null)
+						noTarget = true;
+					else
+						resolvedTargets.Add(replacement);
+				}
 				else
 					resolvedTargets.Add(currentAction.Targets[0]);
 				break;
@@ -1428,14 +1485,9 @@ public partial class BattleManager : Node
 						? null
 						: GetRandomAlivePartyMember();
 					if (newTarget == null)
-					{
-						BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-						                                       "'s skill did nothing.");
-						SetPhase(BattlePhase.WaitForBattleLog);
-						return;
-					}
-
-					resolvedTargets.Add(newTarget);
+						noTarget = true;
+					else
+						resolvedTargets.Add(newTarget);
 				}
 				else
 					resolvedTargets.Add(currentAction.Targets[0]);
@@ -1444,50 +1496,24 @@ public partial class BattleManager : Node
 			case SkillTarget.AllDeadAllies:
 				List<PartyMember> deadAllies = GetDeadPartyMembers();
 				if (currentAction.Actor is Enemy || (deadAllies.Count == 0 && currentAction.Action is not Item))
-				{
-					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-					                                       "'s skill did nothing.");
-					SetPhase(BattlePhase.WaitForBattleLog);
-					return;
-				}
-
-				if (deadAllies.Count > 0)
+					noTarget = true;
+				else if (deadAllies.Count > 0)
 					resolvedTargets.AddRange(deadAllies);
 				else
 					// if nobody is toast, pass everybody so items like jam packets can still run the "it had no effect" logic
 					resolvedTargets.AddRange(GetAllPartyMembers());
-				break;
-			case SkillTarget.AllyNotSelf:
-				if (currentAction.Targets[0].IsToast)
-				{
-					Actor newTarget = currentAction.Targets[0] is Enemy
-						? GetRandomAliveUniqueEnemy(currentAction.Actor)
-						: GetRandomUniqueAlivePartyMember(currentAction.Actor);
-					if (newTarget == null)
-					{
-						BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-						                                       "'s skill did nothing.");
-						SetPhase(BattlePhase.WaitForBattleLog);
-						return;
-					}
-
-					resolvedTargets.Add(newTarget);
-				}
-				else
-					resolvedTargets.Add(currentAction.Targets[0]);
-
 				break;
 			default:
 				resolvedTargets.AddRange(currentAction.Targets);
 				break;
 		}
 
-		if (currentAction.Action.Target == SkillTarget.Enemy && resolvedTargets.Count == 1)
+		if (!noTarget && currentAction.Action.Target == SkillTarget.Enemy && resolvedTargets.Count == 1)
 			resolvedTargets[0] = ResolveTauntTarget(currentAction.Actor, resolvedTargets[0]);
 
 		if (currentAction.Action is Skill skill)
 		{
-			if (!skill.MeetsRequirements(currentAction.Actor))
+			if (!currentAction.Forced && !skill.MeetsRequirements(currentAction.Actor))
 			{
 				if (currentAction.Actor.CurrentEmotion.BlocksActions
 				    || skill.RequirementFailureMessage == null)
@@ -1502,7 +1528,7 @@ public partial class BattleManager : Node
 			int skillCost = skill.Cost(currentAction.Actor);
 			if (skillCost > 0)
 			{
-				if (currentAction.Actor.CurrentJuice < skillCost)
+				if (!currentAction.Forced && currentAction.Actor.CurrentJuice < skillCost)
 				{
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
 					                                       " does not have enough JUICE!");
@@ -1510,7 +1536,13 @@ public partial class BattleManager : Node
 					return;
 				}
 
-				currentAction.Actor.CurrentJuice -= skillCost;
+				currentAction.Actor.CurrentJuice = Math.Max(0, currentAction.Actor.CurrentJuice - skillCost);
+			}
+
+			if (noTarget)
+			{
+				EndCommandWithoutTarget(currentAction);
+				return;
 			}
 
 			if (currentAction.Actor is PartyMember && skill.ShowFollowups)
@@ -1541,6 +1573,28 @@ public partial class BattleManager : Node
 			}
 		}
 
+		if (noTarget)
+		{
+			EndCommandWithoutTarget(currentAction);
+			return;
+		}
+
+		if (resolvedTargets.Count > 0 && resolvedTargets[^1] != null)
+		{
+			switch (currentAction.Action.LastTargetRecord)
+			{
+				case LastTargetRecord.Target:
+					RecordLastTarget(currentAction.Actor, resolvedTargets[^1]);
+					break;
+				case LastTargetRecord.User:
+					RecordLastTarget(currentAction.Actor, currentAction.Actor);
+					break;
+			}
+		}
+
+		ActionEventArgs actionArgs = new(currentAction.Actor, currentAction.Action, resolvedTargets);
+		RaiseGuarded(ActionStarted, actionArgs, "ActionStarted");
+
 		if (currentAction.Action.Setup != null)
 			await RunGuarded(() => currentAction.Action.Setup(currentAction.Actor, resolvedTargets),
 				$"setup of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
@@ -1555,10 +1609,18 @@ public partial class BattleManager : Node
 		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
 			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
 
+		RaiseGuarded(ActionEnded, actionArgs, "ActionEnded");
+
 		if (BattleLogManager.Instance.IsProcessingMessage)
 			SetPhase(BattlePhase.WaitForBattleLog);
 		else
 			SetPhase(BattlePhase.PostCommand);
+	}
+
+	private void EndCommandWithoutTarget(BattleCommand command)
+	{
+		BattleLogManager.Instance.QueueMessage(command.Actor.Name.ToUpper() + "'s skill did nothing.");
+		SetPhase(BattlePhase.WaitForBattleLog);
 	}
 
 	private Actor ResolveTauntTarget(Actor user, Actor target)
@@ -1600,9 +1662,18 @@ public partial class BattleManager : Node
 			return false;
 
 		// in base game, followups go after any other forced actions
-		BattleCommand command = skill.Target is SkillTarget.AllEnemies
-			? new BattleCommand(current.Actor, GetAllAliveEnemies(), skill)
-			: new BattleCommand(current.Actor, CurrentCommand.Targets, skill);
+		BattleCommand command = skill.Target switch
+		{
+			SkillTarget.AllEnemies => new BattleCommand(current.Actor, GetAllAliveEnemies(), skill),
+			SkillTarget.XRandomEnemies when GetRandomAliveEnemy() is Enemy random
+				=> new BattleCommand(current.Actor, random, skill),
+			SkillTarget.Enemy when SmoothEnemyTarget(current.Actor.LastTargetIndex) is Enemy enemy
+				=> new BattleCommand(current.Actor, enemy, skill),
+			SkillTarget.Ally when SmoothPartyTarget(current.Actor.LastTargetIndex) is PartyMember member
+				=> new BattleCommand(current.Actor, member, skill),
+			SkillTarget.Self => new BattleCommand(current.Actor, current.Actor, skill),
+			_ => new BattleCommand(current.Actor, CurrentCommand.Targets, skill)
+		};
 		PendingFollowup = new PendingFollowupData(command, pair.TargetPosition, pair.BaseSkillName);
 
 		// prevent followup bubbles from showing again if the followup itself is an attack
@@ -1615,6 +1686,10 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Forces a skill command to be executed after the current one.
 	/// </summary>
+	/// <remarks>
+	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="target">The target of the command.</param>
 	/// <param name="skill">The skill that is being forced.</param>
@@ -1627,6 +1702,10 @@ public partial class BattleManager : Node
 	/// Forces a skill command to be executed after the current one.
 	/// Also clears the currently acting battler's action result, if any.
 	/// </summary>
+	/// <remarks>
+	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="targets">The targets of the command.</param>
 	/// <param name="skill">The skill that is being forced.</param>
@@ -1640,6 +1719,10 @@ public partial class BattleManager : Node
 	/// Forces a skill command like <see cref="ForceCommand(Actor, Actor, Skill)"/>, but first clears every battler's action result,
 	/// like YEP's <c>BattleManager.queueForceAction</c>, unless <paramref name="clearResults"/> is false.
 	/// </summary>
+	/// <remarks>
+	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="target">The target of the command.</param>
 	/// <param name="skill">The skill that is being forced.</param>
@@ -1653,6 +1736,10 @@ public partial class BattleManager : Node
 	/// Forces a skill command like <see cref="ForceCommand(Actor, IReadOnlyList{Actor}, Skill)"/>, but first clears every battler's action result,
 	/// like YEP's <c>BattleManager.queueForceAction</c>, unless <paramref name="clearResults"/> is false.
 	/// </summary>
+	/// <remarks>
+	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="targets">The targets of the command.</param>
 	/// <param name="skill">The skill that is being forced.</param>
@@ -1675,11 +1762,24 @@ public partial class BattleManager : Node
 			// if the forced skill is an attack, hide the followup bubbles
 			ForceHideFollowup = true;
 		// forced commands execute in the order they were queued
-		ForcedCommands.Add(new BattleCommand(self, targets, skill));
+		ForcedCommands.Add(new BattleCommand(self, targets, skill) { Forced = true });
 		// if this actor hasn't had their normal turn, queue them for a priority turn after forced commands
 		// mimics base game behavior
 		if (!ActedThisTurn.Contains(self) && !PriorityActors.Contains(self))
 			PriorityActors.Add(self);
+	}
+
+	internal bool HasForcedCommandsSinceCommandStart => ForcedCommands.Count > ForcedCountAtCommandStart;
+
+	internal void DropForcedCommandsSinceCommandStart()
+	{
+		while (ForcedCommands.Count > ForcedCountAtCommandStart)
+		{
+			BattleCommand dropped = ForcedCommands[^1];
+			ForcedCommands.RemoveAt(ForcedCommands.Count - 1);
+			if (dropped.Actor is PartyMember && dropped.Action is Skill droppedSkill && droppedSkill.ShowFollowups)
+				ForceHideFollowup = false;
+		}
 	}
 
 	private void ProcessFollowupSuccess(InputDirection direction)
@@ -1934,6 +2034,7 @@ public partial class BattleManager : Node
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
 					await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
 					ForcedCommands.Clear();
+					ForcedCountAtCommandStart = 0;
 					PendingFollowup = null;
 					ForceHideFollowup = false;
 					PriorityActors.Clear();
@@ -2056,19 +2157,21 @@ public partial class BattleManager : Node
 		// locked bosses resolve advantage as their locked emotion
 		Emotion selfEmotion = self.EffectiveEmotion;
 		Emotion targetEmotion = target.EffectiveEmotion;
+		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, false);
 
-		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
+		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
 			damage = CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, attackElement);
+		context.Effectiveness = effectiveness;
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
 
 		// even though we know if the attack is a crit or not at this stage, pass false
 		// this may change in the future depending on feedback and use case
-		ApplyOverrides(DamagePhase.PreCrit, ref damage, self, target, false, neverMiss);
+		ApplyOverrides(DamagePhase.PreCrit, ref damage, context);
 
 		if (critical)
 		{
@@ -2077,18 +2180,19 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2.5f);
 		}
 
-		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical, neverMiss);
+		context.IsCritical = critical;
+		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, context);
 
 		if (critical)
 		{
 			damage += 1.5f;
 		}
 
-		ApplyOverrides(DamagePhase.PreVariance, ref damage, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreVariance, ref damage, context);
 
 		damage = CalculateVariance(damage, variance);
 
-		ApplyOverrides(DamagePhase.PreRounding, ref damage, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreRounding, ref damage, context);
 
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 
@@ -2100,7 +2204,7 @@ public partial class BattleManager : Node
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
 			rounded = 9999;
 
-		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
 
 		// sadness converts part of the damage to juice loss. emotion-locked states keep tier-1
 		// element rates but bleed 0.5/1.0, so the bleed follows the displayed emotion, not the lock's advantage emotion
@@ -2121,7 +2225,7 @@ public partial class BattleManager : Node
 
 		rounded = (float)Math.Round(rounded, MidpointRounding.AwayFromZero);
 
-		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreApply, ref rounded, context);
 
 		int roundedInt = (int)rounded;
 		
@@ -2133,7 +2237,7 @@ public partial class BattleManager : Node
 			target.CurrentJuice += juiceLost;
 			AudioManager.Instance.PlaySFX("BA_miss");
 			SpawnDamageNumber(-1, target, DamageType.Miss);
-			BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
+			if (!silent) BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
 			return -1;
 		}
 		// scaled above already, before the sad bleed split it
@@ -2173,7 +2277,7 @@ public partial class BattleManager : Node
 			SpawnDamageNumber(juiceLost, target, DamageType.JuiceLoss);
 		}
 
-		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
 
 		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, roundedInt, juiceLost, critical, false),
 			"DamageDealt");
@@ -2219,13 +2323,14 @@ public partial class BattleManager : Node
 		return true;
 	}
 
-	private void ApplyOverrides(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isCritical,
-		bool neverMiss)
+	private void ApplyOverrides(DamagePhase phase, ref float damage, DamageContext context)
 	{
-		foreach (StatModifier mod in attacker.StatModifiers.Values)
-			mod.OverrideDamage(phase, ref damage, attacker, defender, true, isCritical, neverMiss);
-		foreach (StatModifier mod in defender.StatModifiers.Values)
-			mod.OverrideDamage(phase, ref damage, attacker, defender, false, isCritical, neverMiss);
+		context.IsAttacking = true;
+		foreach (StatModifier mod in context.Attacker.StatModifiers.Values)
+			mod.OverrideDamage(phase, ref damage, context);
+		context.IsAttacking = false;
+		foreach (StatModifier mod in context.Defender.StatModifiers.Values)
+			mod.OverrideDamage(phase, ref damage, context);
 	}
 
 	/// <summary>
@@ -2253,16 +2358,19 @@ public partial class BattleManager : Node
 			return -1;
 
 		float damage = damageFunc();
+		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, true);
 		// locked bosses resolve advantage as their locked emotion
-		ApplyOverrides(DamagePhase.PreEmotion, ref damage, self, target, false, neverMiss);
+		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
 
+		int effectiveness = 0;
 		if (!ignoreEmotion)
-			damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out _, attackElement);
+			damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out effectiveness, attackElement);
+		context.Effectiveness = effectiveness;
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
 			 target.HasStatModifier("Tickle")) && !neverCrit;
 
-		ApplyOverrides(DamagePhase.PreCrit, ref damage, self, target, false, neverMiss);
+		ApplyOverrides(DamagePhase.PreCrit, ref damage, context);
 
 		if (critical)
 		{
@@ -2271,18 +2379,19 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
 		}
 
-		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, self, target, critical, neverMiss);
+		context.IsCritical = critical;
+		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, context);
 
 		if (critical)
 		{
 			damage += 1.5f;
 		}
 
-		ApplyOverrides(DamagePhase.PreVariance, ref damage, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreVariance, ref damage, context);
 
 		damage = CalculateVariance(damage, variance);
 
-		ApplyOverrides(DamagePhase.PreRounding, ref damage, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreRounding, ref damage, context);
 
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 
@@ -2293,8 +2402,8 @@ public partial class BattleManager : Node
 		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
 			rounded = 9999;
 
-		ApplyOverrides(DamagePhase.PreJuice, ref rounded, self, target, critical, neverMiss);
-		ApplyOverrides(DamagePhase.PreApply, ref rounded, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
+		ApplyOverrides(DamagePhase.PreApply, ref rounded, context);
 
 		int roundedInt = (int)rounded;
 		// a stat modifier fully negated the hit and drove the damage negative — treat it like a miss
@@ -2307,7 +2416,7 @@ public partial class BattleManager : Node
 		target.DamageJuice(roundedInt, applyDebugScale: false);
 		SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
-		ApplyOverrides(DamagePhase.PostApply, ref rounded, self, target, critical, neverMiss);
+		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
 		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),
 			"DamageDealt");
 		return roundedInt;
@@ -2654,7 +2763,7 @@ public partial class BattleManager : Node
 
 	/// <summary>
 	/// Transforms an enemy into another enemy, despawning the original and spawning the replacement
-	/// at the same position. The original enemy is immediately removed from the battle.
+	/// at the same position and index (see <see cref="GetEnemy"/>). The original enemy is immediately removed from the battle.
 	/// </summary>
 	/// <remarks>Special care must be used when using this method, as the old enemy will immediately become invalid.</remarks>
 	/// <param name="original">The enemy to transform from.</param>
@@ -2667,10 +2776,17 @@ public partial class BattleManager : Node
 		EnemyComponent target = original?.Component;
 		if (target == null) return null;
 		
+		int index = Enemies.IndexOf(target);
 		Enemies.Remove(target);
 		target.GetParent().QueueFree();
 		
-		return SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer);
+		Enemy transformed = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer);
+		if (transformed != null && index >= 0)
+		{
+			Enemies.Remove(transformed.Component);
+			Enemies.Insert(index, transformed.Component);
+		}
+		return transformed;
 	}
 
 	/// <summary>
@@ -2921,13 +3037,45 @@ public partial class BattleManager : Node
 	/// Retrieves the <see cref="PartyMember"/> at the given internal array <paramref name="index"/> in the party.
 	/// </summary>
 	/// <remarks>
-	/// This is the <i>order the PartyMembers are added to the party</i>, not their on-screen position.<br/>
+	/// Party members are counted in position order (0 to 3), skipping empty positions, so the index matches the position only when no earlier position is empty.<br/>
 	/// Use <see cref="GetPartyMemberAtPosition"/> for that purpose instead.
 	/// </remarks>
 	/// <param name="index"></param>
 	public PartyMember GetPartyMember(int index)
 	{
 		return CurrentParty.ElementAtOrDefault(Math.Clamp(index, 0, 3))?.Actor;
+	}
+
+	/// <summary>
+	/// Retrieves the <see cref="Enemy"/> at the given <paramref name="index"/>, in <see cref="GetAllEnemies"/> order, or null if it's out of range.
+	/// </summary>
+	/// <remarks>
+	/// Toast enemies keep their index, and summoned enemies are added at the end of the list.
+	/// </remarks>
+	/// <param name="index">The index to retrieve.</param>
+	public Enemy GetEnemy(int index)
+	{
+		return Enemies.ElementAtOrDefault(index)?.Actor;
+	}
+
+	internal void RecordLastTarget(Actor user, Actor target)
+	{
+		user.LastTarget = target;
+		user.LastTargetIndex = target is Enemy
+			? Enemies.IndexOf(((Enemy)target).Component)
+			: CurrentParty.IndexOf(((PartyMember)target).Component);
+	}
+
+	internal Enemy SmoothEnemyTarget(int index)
+	{
+		Enemy enemy = GetEnemy(index);
+		return enemy != null && enemy.CurrentHP > 0 && !enemy.IsToast ? enemy : GetAllAliveEnemies().FirstOrDefault();
+	}
+
+	internal PartyMember SmoothPartyTarget(int index)
+	{
+		PartyMember member = CurrentParty.ElementAtOrDefault(index)?.Actor;
+		return member != null && member.CurrentHP > 0 && !member.IsToast ? member : GetAlivePartyMembers().FirstOrDefault();
 	}
 
 	/// <summary>

@@ -14,7 +14,7 @@ internal sealed class HeroBoss : Enemy
 	public override Vector2 DamageNumberOffset => new(0, -150);
 	public override bool InfoBoxCursorAboveBox => true;
 	protected override Stats Stats => new(10000, 7000, 90, 100, 45, 10, 95);
-	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubrey", "HBossCallKel"];
+	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubreyAttack", "HBossCallAubrey", "HBossCallKelAttack", "HBossCallKel"];
 	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
@@ -50,22 +50,10 @@ internal sealed class HeroBoss : Enemy
 		
 		IReadOnlyList<Enemy> aliveEnemies = SelectAllEnemies();
 		if (aliveEnemies.Count > 2 && Roll() < 26)
-		{
-			Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
-			// check if aubrey is alive, if not just choose a random other enemy
-			if (!PreRolling)
-			    BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["HBossCallAubrey"]);
-			return new BattleCommand(this, SelectTarget(), Skills["HAttack"]);
-		}
+			return new BattleCommand(this, SelectTarget(), Skills["HBossCallAubreyAttack"]);
 		
 		if (aliveEnemies.Count > 2 && Roll() < 26)
-		{
-			Enemy kel = aliveEnemies.FirstOrDefault(x => x is KelBoss);
-			// check if kel is alive, if not just choose a random other enemy
-			if (!PreRolling)
-			    BattleManager.Instance.QueueForceCommand(this, kel ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["HBossCallKel"]);
-			return new BattleCommand(this, SelectTarget(), Skills["HAttack"]);
-		}
+			return new BattleCommand(this, SelectTarget(), Skills["HBossCallKelAttack"]);
 
 		if (CurrentEmotion.Id is "neutral" or "sad")
 		{

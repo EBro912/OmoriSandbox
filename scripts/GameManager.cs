@@ -41,6 +41,44 @@ public partial class GameManager : Node
 	public RandomNumberGenerator Random { get; private set; } = new();
 	internal DiscordManager DiscordManager { get; private set; }
 	public static GameManager Instance { get; private set; }
+
+	/// <summary>
+	/// The part of the battle area currently visible on screen, in battle coordinates.
+	/// </summary>
+	/// <remarks>
+	/// At 4:3 this is (0, 0, 640, 480). In widescreen it extends past both sides of the original 640x480 area.
+	/// </remarks>
+	public static Rect2 VisibleBattleRect => DisplayLayout.Instance?.VisibleBattleRect ?? new Rect2(0, 0, 640, 480);
+
+	/// <summary>
+	/// A node for mods to add battle visuals to. Anything under it stays aligned with the battle in widescreen.
+	/// </summary>
+	/// <remarks>
+	/// Use <see cref="CanvasItem.ZIndex"/> to draw above or below the game's own layers.
+	/// The game's main z-indices are:
+	/// enemy-side animations -4, battle windows -1 to 2, energy bar 3, party animations 4, 6, 7 and 11, party portraits 9,
+	/// damage numbers 10, follow-up bubbles 12 and 13, pictures 20.<br/>
+	/// The game never clears this node automatically. Its children can only be freed by your mod.
+	/// </remarks>
+	public static Node2D ModLayer { get; private set; }
+
+	/// <summary>
+	/// Keeps your own <see cref="CanvasLayer"/> aligned with the battle in widescreen.
+	/// </summary>
+	/// <remarks>
+	/// Call this once after creating the layer.
+	/// It is only needed for your own <see cref="CanvasLayer"/>, not for nodes under <see cref="ModLayer"/> or other game nodes.
+	/// </remarks>
+	/// <param name="layer">The layer to keep aligned.</param>
+	public static void RegisterCanvasLayer(CanvasLayer layer)
+	{
+		if (DisplayLayout.Instance == null)
+		{
+			GD.PushWarning("RegisterCanvasLayer was called before the game was ready, so the layer was not registered.");
+			return;
+		}
+		DisplayLayout.Instance.RegisterLayer(layer);
+	}
 	
 	private double DisplayedFPS = double.MinValue;
 
@@ -62,6 +100,8 @@ public partial class GameManager : Node
 	public override void _Ready()
 	{
 		Instance = this;
+		ModLayer = new Node2D { Name = "ModLayer" };
+		GetParent().CallDeferred(Node.MethodName.AddChild, ModLayer);
 		
 		GD.Print("Version: " + Version);
 

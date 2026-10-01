@@ -176,4 +176,17 @@ public abstract partial class Mod : Node
     {
         Database.RegisterModdedFollowupSet(id, entries, tiered);
     }
+
+    /// <summary>
+    /// Registers a new battleback, such as a <see cref="ScrollingBattleback"/>.
+    /// </summary>
+    /// <remarks>
+    /// It will be listed in the editor under its <see cref="IBattleback.Name"/> and can be used in presets and with <see cref="GameManager.SetBattleback"/>.
+    /// Image files in the mod's <c>battlebacks</c> folder are registered automatically, so only battlebacks built in code need this.
+    /// </remarks>
+    /// <param name="battleback">The battleback to add.</param>
+    protected static void RegisterBattleback(IBattleback battleback)
+    {
+        BattlebackManager.Instance.AddBattleback(battleback);
+    }
 }

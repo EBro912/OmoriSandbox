@@ -47,6 +47,29 @@ public class SpriteFramesBuilder
     }
 
     /// <summary>
+    /// Creates a new SpriteFramesBuilder that adds animations to a copy of existing <see cref="Godot.SpriteFrames"/>,
+    /// cutting the new frames from an atlas like <see cref="SpriteFramesBuilder(string, int, int)"/>.<br/>
+    /// The given frames are duplicated first, so the original is never modified.
+    /// </summary>
+    /// <param name="frames">The SpriteFrames to build on, such as a vanilla actor's <c>ResourceLoader.Load</c>.</param>
+    /// <param name="atlasPath">The path to the atlas file for the new animations. Must be a full path from the root mods folder.<br/>
+    /// Example: <c>MyMod/actors/MyActor/atlas.png</c></param>
+    /// <param name="width">The width of a single sprite in the atlas.</param>
+    /// <param name="height">The height of a single sprite in the atlas.</param>
+    public SpriteFramesBuilder(SpriteFrames frames, string atlasPath, int width, int height) : this(atlasPath, width, height)
+    {
+        if (SpriteFrames == null)
+            return;
+        if (frames == null)
+        {
+            GD.PushError("Cannot build on null SpriteFrames!");
+            SpriteFrames = null;
+            return;
+        }
+        SpriteFrames = (SpriteFrames)frames.Duplicate();
+    }
+
+    /// <summary>
     /// Adds an animation to the current SpriteFramesBuilder.<br/>
     /// </summary>
     /// <param name="animationId">The ID this animation corresponds to.</param>

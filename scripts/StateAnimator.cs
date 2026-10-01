@@ -3,7 +3,10 @@ using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox;
-internal partial class StateAnimator : Node
+/// <summary>
+/// Shows an actor's emotion label and portrait on a battlecard or enemy info box, fading the portrait between emotions.
+/// </summary>
+public partial class StateAnimator : Node
 {
 	[Export] private Sprite2D StateSprite;
 	[Export] private Sprite2D FaceStateSprite;
@@ -15,6 +18,7 @@ internal partial class StateAnimator : Node
 	private Texture2D DefaultFaceTexture;
 	private Vector2? DefaultLabelOffset;
 
+	/// <inheritdoc/>
 	public override void _Ready()
 	{
 		CacheDefaultTextures();
@@ -29,11 +33,21 @@ internal partial class StateAnimator : Node
 		DefaultLabelOffset ??= StateSprite?.Offset;
 	}
 
+	/// <summary>
+	/// Shows the label and portrait of the emotion with the given id, fading the portrait in.
+	/// Unknown ids show neutral and log a warning.
+	/// </summary>
+	/// <param name="state">The id of the emotion to show.</param>
 	public void SetState(string state)
 	{
 		ShowAsset(Resolve(state).Asset);
 	}
 
+	/// <summary>
+	/// Shows only the label of the emotion with the given id, keeping the current portrait.
+	/// Unknown ids show neutral and log a warning.
+	/// </summary>
+	/// <param name="state">The id of the emotion to show.</param>
 	public void SetStateAtlas(string state)
 	{
 		ShowLabel(Resolve(state).Asset);

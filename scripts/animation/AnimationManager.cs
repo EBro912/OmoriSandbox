@@ -559,80 +559,84 @@ public partial class AnimationManager : Node
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="target"/>.<br/>
-	/// Use <see cref="WaitForAnimation(int, Actor)"/> if you want to wait for the animation to finish.
+	/// Use <see cref="WaitForAnimation(int, Actor, int?)"/> if you want to wait for the animation to finish.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
-	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
-	public void PlayAnimation(int id, Actor target)
+	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
+	public void PlayAnimation(int id, Actor target, int? layer = null)
 	{
-		StartAnimation(id, target.CenterPoint, target is Enemy, target);
+		StartAnimation(id, target.CenterPoint, target is Enemy, target, layer: layer);
 	}
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/>.<br/>
-	/// Use <see cref="WaitForAnimation(int, Vector2, bool)"/> if you want to wait for the animation to finish.
+	/// Use <see cref="WaitForAnimation(int, Vector2, bool, int?)"/> if you want to wait for the animation to finish.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="position">The coordinates to play the animation at.</param>
 	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
-	public void PlayAnimation(int id, Vector2 position, bool targetsEnemy)
+	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
+	public void PlayAnimation(int id, Vector2 position, bool targetsEnemy, int? layer = null)
 	{
-		StartAnimation(id, position, targetsEnemy);
+		StartAnimation(id, position, targetsEnemy, layer: layer);
 	}
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the screen.<br/>
-	/// Use <see cref="WaitForScreenAnimation(int, bool)"/> if you want to wait for the animation to finish.
+	/// Use <see cref="WaitForScreenAnimation(int, bool, int?)"/> if you want to wait for the animation to finish.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="targetsEnemy">Whether this animation targets an enemy.<br/>
 	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
-	public void PlayScreenAnimation(int id, bool targetsEnemy)
+	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
+	public void PlayScreenAnimation(int id, bool targetsEnemy, int? layer = null)
 	{
-		StartAnimation(id, new Vector2(320, 240), targetsEnemy);
+		StartAnimation(id, new Vector2(320, 240), targetsEnemy, layer: layer);
 	}
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="target"/>, and waits for it to finish.<br/>
-	/// Use <see cref="PlayAnimation(int, Actor)"/> if you want the animation to play without waiting.
+	/// Use <see cref="PlayAnimation(int, Actor, int?)"/> if you want the animation to play without waiting.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
-	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.
+	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
-	public async Task WaitForAnimation(int id, Actor target)
+	public async Task WaitForAnimation(int id, Actor target, int? layer = null)
 	{
-		PlayingAnimation playing = StartAnimation(id, target.CenterPoint, target is Enemy, target);
+		PlayingAnimation playing = StartAnimation(id, target.CenterPoint, target is Enemy, target, layer: layer);
 		if (playing == null) return;
 		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/> and waits for it to finish.<br/>
-	/// Use <see cref="PlayAnimation(int, Vector2, bool)"/> if you want the animation to play without waiting.
+	/// Use <see cref="PlayAnimation(int, Vector2, bool, int?)"/> if you want the animation to play without waiting.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="position">The coordinates to play the animation at.</param>
 	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
-	public async Task WaitForAnimation(int id, Vector2 position, bool targetsEnemy)
+	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
+	public async Task WaitForAnimation(int id, Vector2 position, bool targetsEnemy, int? layer = null)
 	{
-		PlayingAnimation playing = StartAnimation(id, position, targetsEnemy);
+		PlayingAnimation playing = StartAnimation(id, position, targetsEnemy, layer: layer);
 		if (playing == null) return;
 		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
 
 	/// <summary>
 	/// Plays an animation with the given <paramref name="id"/> centered on the screen, and waits for it to finish.<br/>
-	/// Use <see cref="PlayScreenAnimation(int, bool)"/> if you want the animation to play without waiting.
+	/// Use <see cref="PlayScreenAnimation(int, bool, int?)"/> if you want the animation to play without waiting.
 	/// </summary>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="targetsEnemy">Whether this animation targets an enemy.<br/>
 	/// Mainly used for animation layering, such as skill animations that target enemies and need to display underneath the UI.</param>
+	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
-	public async Task WaitForScreenAnimation(int id, bool targetsEnemy)
+	public async Task WaitForScreenAnimation(int id, bool targetsEnemy, int? layer = null)
 	{
-		PlayingAnimation playing = StartAnimation(id, new Vector2(320, 240), targetsEnemy);
+		PlayingAnimation playing = StartAnimation(id, new Vector2(320, 240), targetsEnemy, layer: layer);
 		if (playing == null) return;
 		await ToSignal(playing, PlayingAnimation.SignalName.Finished);
 	}
@@ -1086,7 +1090,7 @@ public partial class AnimationManager : Node
 			child.QueueFree();
 	}
 
-	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy, Actor target = null)
+	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy, Actor target = null, int? layer = null)
 	{
 		if (!Animations.TryGetValue(id, out RPGMAnimatedSprite animation))
 		{
@@ -1124,7 +1128,7 @@ public partial class AnimationManager : Node
 			InitShake(shake);
 		}
 
-		PlayingAnimation playing = new(animation, position, index, target);
+		PlayingAnimation playing = new(animation, position, layer ?? index, target);
 		if (targetsEnemy)
 			EnemyAnimations.AddChild(playing);
 		else

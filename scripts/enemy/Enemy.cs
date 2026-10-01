@@ -83,6 +83,22 @@ public abstract class Enemy : Actor
 	public virtual bool InfoBoxCursorAboveBox => false;
 
 	/// <summary>
+	/// Re-places this enemy's info box and refreshes its name and width, for both the regular and the "Show More Info" box.<br/>
+	/// Call this after moving the enemy or changing <see cref="InfoBoxOffset"/>, <see cref="InfoBoxCursorAboveBox"/> or the name.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="Actor.CenterPoint"/> is recomputed from the enemy's node, then the box is placed at the sprite's "feet" plus
+	/// <see cref="InfoBoxOffset"/>, with its finger side from <see cref="InfoBoxCursorAboveBox"/>. The name is also refreshed
+	/// every time the box is shown.<br/>
+	/// Move the enemy by moving its node (the parent of <see cref="Actor.Sprite"/>), not the sprite, as the node's position is
+	/// what a revive restores. Does nothing if the enemy isn't spawned in a battle.
+	/// </remarks>
+	public void RefreshInfoBox()
+	{
+		Component?.RefreshInfoBox();
+	}
+
+	/// <summary>
 	/// Whether this enemy blinks white while it is selected as a target. Defaults to true.
 	/// Vanilla turns the blink off for a few fights, such as the fear bosses.
 	/// </summary>

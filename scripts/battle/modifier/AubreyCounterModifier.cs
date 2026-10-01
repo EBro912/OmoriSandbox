@@ -10,34 +10,26 @@ public sealed class AubreyCounterModifier : StatModifier
 {
     public AubreyCounterModifier(int turns) : base(turns) { }
 
-    private bool HasCounteredThisTurn = false;
-    
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
     {
-        if (phase is DamagePhase.PreApply)
+        if (phase is not DamagePhase.PostApply || isAttacking || attacker is not Enemy)
+            return;
+
+        BattleCommand command = BattleManager.Instance.GetCurrentCommand();
+        if (command?.Action is not Skill skill || command.Actor != attacker)
+            return;
+        if (skill.Target != SkillTarget.Enemy && !(skill.Target == SkillTarget.XRandomEnemies && command.Targets.Count == 1))
+            return;
+
+        if (defender.CurrentHP > 0 && !defender.IsToast)
         {
-            if (isAttacking)
-            {
-                HasCounteredThisTurn = false;
-                return;
-            }
+            if (!BattleManager.Instance.HasForcedCommandsSinceCommandStart && Database.TryGetSkill("CounterAttack", out Skill s))
+                BattleManager.Instance.QueueForceCommand(defender, attacker, s, false);
         }
-        
-        if (phase is DamagePhase.PostApply)
+        else
         {
-            if (HasCounteredThisTurn)
-                return;
-
-            BattleCommand command = BattleManager.Instance.GetCurrentCommand();
-
-            if (attacker is Enemy && command.Action is Skill skill && skill.Target == SkillTarget.Enemy)
-            {
-                if (Database.TryGetSkill("CounterAttack", out Skill s))
-                {
-                    HasCounteredThisTurn = true;
-                    BattleManager.Instance.QueueForceCommand(defender, attacker, s, false);
-                }
-            }
+            BattleManager.Instance.DropForcedCommandsSinceCommandStart();
+            defender.RemoveStatModifier("AubreyCounter");
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle;
@@ -118,5 +119,71 @@ public sealed class HealedEventArgs : EventArgs
         Target = target;
         Amount = amount;
         JuiceHeal = juiceHeal;
+    }
+}
+
+/// <summary>
+/// Event arguments for <see cref="BattleManager.ActionStarted"/> and <see cref="BattleManager.ActionEnded"/>.
+/// </summary>
+public sealed class ActionEventArgs : EventArgs
+{
+    /// <summary>
+    /// The actor performing the action.
+    /// </summary>
+    public Actor Actor { get; }
+
+    /// <summary>
+    /// The action being performed.
+    /// </summary>
+    public BattleAction Action { get; }
+
+    /// <summary>
+    /// The targets the action applies to, after invalid targets were replaced.
+    /// </summary>
+    public IReadOnlyList<Actor> Targets { get; }
+
+    internal ActionEventArgs(Actor actor, BattleAction action, IReadOnlyList<Actor> targets)
+    {
+        Actor = actor;
+        Action = action;
+        Targets = targets;
+    }
+}
+
+/// <summary>
+/// Event arguments for <see cref="BattleManager.AIDeciding"/>.
+/// </summary>
+public sealed class AIDecidingEventArgs : EventArgs
+{
+    /// <summary>
+    /// The enemy about to decide its action.
+    /// </summary>
+    public Enemy Enemy { get; }
+
+    internal AIDecidingEventArgs(Enemy enemy)
+    {
+        Enemy = enemy;
+    }
+}
+
+/// <summary>
+/// Event arguments for <see cref="BattleManager.AIDecided"/>.
+/// </summary>
+public sealed class AIDecidedEventArgs : EventArgs
+{
+    /// <summary>
+    /// The enemy that decided its action.
+    /// </summary>
+    public Enemy Enemy { get; }
+
+    /// <summary>
+    /// The command returned by <see cref="Actors.Enemy.ProcessAI"/>, which the enemy performs next. May be null.
+    /// </summary>
+    public BattleCommand Command { get; }
+
+    internal AIDecidedEventArgs(Enemy enemy, BattleCommand command)
+    {
+        Enemy = enemy;
+        Command = command;
     }
 }

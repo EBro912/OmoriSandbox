@@ -157,6 +157,12 @@ public abstract class PartyMember : Actor
 			await Charm.StartOfBattle(this);
     }
 
+	/// <summary>
+	/// Called after each action finishes, before the enemies' <see cref="Enemy.ProcessBattleConditions"/>.
+	/// Not called if the party member is toast.
+	/// </summary>
+	public virtual async Task ProcessBattleConditions() { await Task.CompletedTask; }
+
     /// <inheritdoc/>
     public abstract SpriteFrames Animation { get; }
 	/// <summary>

@@ -23,6 +23,8 @@ public class BattleCommand
     /// </summary>
     public readonly BattleAction Action;
 
+    internal bool Forced { get; init; }
+
 	/// <summary>
 	/// Creates a new <see cref="BattleCommand"/> context with a single target.
 	/// </summary>

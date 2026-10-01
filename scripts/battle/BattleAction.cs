@@ -35,6 +35,10 @@ public class BattleAction
 	/// Optional code that runs before this action applies, like an RPG Maker <c>setup action</c>.<br/>
 	/// </summary>
 	public Func<Actor, IReadOnlyList<Actor>, Task> Setup { get; }
+	/// <summary>
+	/// What this action records in <see cref="Actor.LastTarget"/> when it starts. Defaults to <see cref="LastTargetRecord.Target"/>.
+	/// </summary>
+	public LastTargetRecord LastTargetRecord { get; protected set; }
 
 	protected BattleAction(string name, string description, SkillTarget target, int priority, Func<Actor, IReadOnlyList<Actor>, Task> effect,
 		Func<Actor, IReadOnlyList<Actor>, Task> setup = null)

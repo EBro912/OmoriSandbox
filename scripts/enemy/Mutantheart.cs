@@ -100,7 +100,7 @@ internal sealed class Mutantheart : Enemy
             if (StateLookup[DesiredState].All(state => member.CurrentEmotion.Id != state))
             {
                 failed = true;
-                BattleManager.Instance.ForceCommand(this, member, Skills["MHInstakill"]);
+                BattleManager.Instance.ForceCommand(member, member, Skills["MHInstakill"]);
             }
         }
         if (failed)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -19,6 +20,8 @@ internal partial class DisplayLayout : Node
     internal float OffsetX => (Width - 640) / 2f;
     internal Rect2 VisibleBattleRect => new(-OffsetX, 0, Width, LogicalHeight);
     
+    internal int ExtraLayerCount => ExtraLayers.Count;
+
     [Export] private CanvasLayer[] Layers;
     [Export] private Node Party;
     [Export] private Control[] AddActorControls;
@@ -33,6 +36,7 @@ internal partial class DisplayLayout : Node
     [Export] private Control StatusBar;
     [Export] private Parallax2D TitleParallax;
 
+    private readonly List<CanvasLayer> ExtraLayers = [];
     private float StatusBarLeft;
     private float StatusBarRight;
     // window size the layout was last computed for
@@ -121,12 +125,25 @@ internal partial class DisplayLayout : Node
         card.Position = PortraitPosition(slot);
     }
 
+    internal void RegisterLayer(CanvasLayer layer)
+    {
+        if (!IsInstanceValid(layer) || ExtraLayers.Contains(layer))
+            return;
+        ExtraLayers.Add(layer);
+        layer.TreeExiting += () => ExtraLayers.Remove(layer);
+        layer.Offset = new Vector2(OffsetX, 0);
+    }
+
     private void Apply()
     {
         if (!IsNodeReady())
             return;
 
         foreach (CanvasLayer layer in Layers)
+            layer.Offset = new Vector2(OffsetX, 0);
+
+        ExtraLayers.RemoveAll(layer => !IsInstanceValid(layer));
+        foreach (CanvasLayer layer in ExtraLayers)
             layer.Offset = new Vector2(OffsetX, 0);
 
         foreach (Node child in Party.GetChildren())

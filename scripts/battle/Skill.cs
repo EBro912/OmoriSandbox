@@ -127,4 +127,14 @@ public class Skill : BattleAction
 		Requirement = requirement;
 		return this;
 	}
+
+	/// <summary>
+	/// Sets what this skill records in <see cref="Actor.LastTarget"/> when it starts.
+	/// </summary>
+	/// <param name="record">What to record. Defaults to <see cref="LastTargetRecord.Target"/>.</param>
+	public Skill WithLastTarget(LastTargetRecord record)
+	{
+		LastTargetRecord = record;
+		return this;
+	}
 }

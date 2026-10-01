@@ -69,6 +69,13 @@ public sealed class Emotion
 	
 	internal bool Registered;
 
+	internal string FeelsMessage(string actorName)
+	{
+		char mark = GroupId == "sad" ? '.' : '!';
+		int count = GroupId is "happy" or "sad" or "angry" && Tier is >= 1 and <= 3 ? Tier : 1;
+		return actorName.ToUpper() + " feels " + DisplayName + new string(mark, count);
+	}
+
 	private bool Frozen()
 	{
 		if (!Registered)

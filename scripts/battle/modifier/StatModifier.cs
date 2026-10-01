@@ -219,6 +219,22 @@ public class StatModifier
     /// <param name="isCritical">Whether the damage is currently a critical. This will always be <c>false</c> for pre-crit phases such as <c>PreEmotion</c></param>
     /// <param name="neverMiss">Whether the damage is set to never miss. Similar to the Certain Hit damage type in RPGMaker.</param>
     public virtual void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss) { }
+
+    /// <summary>
+    /// Called during damage calculation to override the damage result at various phases, with everything known about the
+    /// calculation in <paramref name="context"/>.
+    /// </summary>
+    /// <remarks>
+    /// By default, this calls <see cref="OverrideDamage(DamagePhase, ref float, Actor, Actor, bool, bool, bool)"/>, so existing
+    /// overrides of that overload keep working. Override one of the two. If you override both, call <c>base</c> from this one to run the other.
+    /// </remarks>
+    /// <param name="phase">The <see cref="DamagePhase"/> at which to override the damage at.</param>
+    /// <param name="damage">A reference to the current damage at this point in the damage calculation.</param>
+    /// <param name="context">The attacker, defender and attack details. The same instance is passed to every phase and modifier of one damage call.</param>
+    public virtual void OverrideDamage(DamagePhase phase, ref float damage, DamageContext context)
+    {
+        OverrideDamage(phase, ref damage, context.Attacker, context.Defender, context.IsAttacking, context.IsCritical, context.NeverMiss);
+    }
     
     /// <summary>
     /// Allows modifying the cost of skills.

@@ -125,6 +125,7 @@ internal sealed class BossmanHero : Enemy
         string choice = await DialogueManager.Instance.WaitForUserChoice();
         if (choice == "YES")
         {
+            await Wait.Frames(20);
             DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Attaboy! It's a deal!");
             await DialogueManager.Instance.WaitForDialogue();
             string buffSkill = Buffs[buff];
@@ -134,6 +135,7 @@ internal sealed class BossmanHero : Enemy
         }
         else
         {
+            await Wait.Frames(20);
             DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "That's a real shame...");
             await DialogueManager.Instance.WaitForDialogue();
 
@@ -142,15 +144,19 @@ internal sealed class BossmanHero : Enemy
                 Enemy gatorGuy = GatorGuys.FirstOrDefault(x => !x.IsToast);
                 if (gatorGuy == null)
                     return;
-                AudioManager.Instance.PlaySFX("SE_dinosaur", 1.4f);
-                DialogueManager.Instance.QueueMessage(gatorGuy, "Hey BOSS! I'll take your deal!");
+                await Wait.Frames(20);
+                AudioManager.Instance.PlaySFX("SE_dinosaur", 1.5f, 0.55f);
+                DialogueManager.Instance.QueueMessage(gatorGuy, "Hey, BOSS! I'll take your deal!");
+                await DialogueManager.Instance.WaitForDialogue();
+                await Wait.Frames(20);
+                DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Attaboy! It's a deal!");
                 await DialogueManager.Instance.WaitForDialogue();
                 
                 // when a Gator Guy takes the deal, the buff needs to be swapped to the debuff version
                 string gatorBuffSkill = Buffs[debuff];
                 string debuffSkill = Debuffs[buff];
                 if (buff == 6)
-                    BattleManager.Instance.ForceCommand(gatorGuy, SelectAllEnemies(), Skills["GGPizzaParty"]);
+                    BattleManager.Instance.ForceCommand(this, SelectAllEnemies(), Skills["GGPizzaParty"]);
                 else
                     BattleManager.Instance.ForceCommand(this, debuffSkill.EndsWith("Friends") ? SelectAllTargets() : SelectAllEnemies(), Skills[debuffSkill]);
                 if (debuff == 6) 

@@ -13,7 +13,7 @@ internal sealed class KelBoss : Enemy
     public override Vector2 InfoBoxOffset => new(-15, -360);
     public override Vector2 DamageNumberOffset => new(0, -150);
     protected override Stats Stats => new(9000, 9000, 100, 70, 230, 20, 100);
-    protected override string[] EquippedSkills => ["KBossPassToAubrey", "KBossPassToHero", "KBossFlex", "KBossRainCloud", "KAttack", "RunNGun", "Annoy", "Tickle", "Rebound", "Curveball", "Ricochet"];
+    protected override string[] EquippedSkills => ["KBossPassToAubreyAttack", "KBossPassToAubrey", "KBossPassToHeroAttack", "KBossPassToHero", "KBossFlex", "KBossRainCloud", "KAttack", "RunNGun", "Annoy", "Tickle", "Rebound", "Curveball", "Ricochet"];
     protected internal override bool ObserveHasMulti => false;
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -57,22 +57,10 @@ internal sealed class KelBoss : Enemy
         
         IReadOnlyList<Enemy> aliveEnemies = SelectAllEnemies();
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
-            // check if aubrey is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToAubreyAttack"]);
         
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
-            // check if hero is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToHeroAttack"]);
         
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["Tickle"]);
@@ -101,22 +89,10 @@ internal sealed class KelBoss : Enemy
         
         IReadOnlyList<Enemy> aliveEnemies = SelectAllEnemies();
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
-            // check if aubrey is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToAubreyAttack"]);
         
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
-            // check if hero is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToHeroAttack"]);
         
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["Tickle"]);
@@ -137,22 +113,10 @@ internal sealed class KelBoss : Enemy
         
         IReadOnlyList<Enemy> aliveEnemies = SelectAllEnemies();
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
-            // check if aubrey is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToAubreyAttack"]);
         
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
-            // check if hero is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToHeroAttack"]);
         
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["Tickle"]);
@@ -181,22 +145,10 @@ internal sealed class KelBoss : Enemy
         
         IReadOnlyList<Enemy> aliveEnemies = SelectAllEnemies();
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy aubrey = aliveEnemies.FirstOrDefault(x => x is AubreyBoss);
-            // check if aubrey is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, aubrey ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToAubrey"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToAubreyAttack"]);
         
         if (aliveEnemies.Count > 2 && Roll() < 26)
-        {
-            Enemy hero = aliveEnemies.FirstOrDefault(x => x is HeroBoss);
-            // check if hero is alive, if not just choose a random other enemy
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, hero ?? aliveEnemies.FirstOrDefault(x => x != this), Skills["KBossPassToHero"]);
-            return new BattleCommand(this, SelectTarget(), Skills["KAttack"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["KBossPassToHeroAttack"]);
         
         if (Roll() < 16)
             return new BattleCommand(this, SelectTarget(), Skills["Tickle"]);

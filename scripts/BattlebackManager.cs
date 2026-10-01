@@ -39,6 +39,21 @@ public sealed partial class BattlebackManager : Node
         return false;
     }
 
+    internal bool AddBattleback(IBattleback battleback)
+    {
+        if (string.IsNullOrWhiteSpace(battleback?.Name))
+        {
+            GD.PrintErr("Cannot add a battleback without a name!");
+            return false;
+        }
+        if (Battlebacks.ContainsKey(battleback.Name))
+        {
+            GD.PushWarning($"Battleback '{battleback.Name}' already exists, skipping.");
+            return false;
+        }
+        return Battlebacks.TryAdd(battleback.Name, battleback);
+    }
+
     /// <summary>
     /// Tries to retrieve a battleback by name from the cache.
     /// </summary>

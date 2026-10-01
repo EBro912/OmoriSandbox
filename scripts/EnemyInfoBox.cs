@@ -30,6 +30,11 @@ public partial class EnemyInfoBox : Control
 		Enemy = enemy;
 		HPBar.MaxValue = Enemy.CurrentStats.MaxHP;
 		HPBar.Value = Enemy.CurrentHP;
+		RefreshName();
+	}
+
+	internal virtual void RefreshName()
+	{
 		NameLabel.Text = Enemy.Name;
 		ResizeBox();
 	}
@@ -48,6 +53,7 @@ public partial class EnemyInfoBox : Control
 
 	internal virtual void Show(bool show)
 	{
+		RefreshName();
 		HPBar.MaxValue = Enemy.CurrentStats.MaxHP;
 		HPBar.Value = Enemy.CurrentHP;
 		if (SettingsMenuManager.Instance.ShowStateIcons)

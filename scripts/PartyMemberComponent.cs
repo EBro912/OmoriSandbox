@@ -226,7 +226,12 @@ public partial class PartyMemberComponent : ActorComponent
 		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
 	}
 
-	internal void UpdateStateIcons()
+	/// <summary>
+	/// Redraws the state icons next to this party member's battlecard from their current <see cref="Actors.Actor.StatModifiers"/>.<br/>
+	/// Icons already refresh when a modifier is added or removed; call this after changing what a modifier shows without
+	/// adding or removing it, such as a tier change. Does nothing while the Show State Icons setting is off.
+	/// </summary>
+	public void UpdateStateIcons()
 	{
 		if (!SettingsMenuManager.Instance.ShowStateIcons)
 			return;

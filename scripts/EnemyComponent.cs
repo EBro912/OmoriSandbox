@@ -48,11 +48,7 @@ public partial class EnemyComponent : ActorComponent
 		InfoBox.SetEnemy(Actor);
 		ShowInfoBox(false);
 		
-		Actor.CenterPoint = GetParent<Node2D>().GlobalPosition;
-		// in vanilla, the box + offset is drawn relative to the actor's "feet"
-		FeetY = sprite.SpriteFrames.GetFrameTexture(sprite.Animation, 0).GetHeight() * sprite.GlobalScale.Y / 2f;
-		InfoBox.Position = Actor.CenterPoint + new Vector2(Actor.InfoBoxOffset.X, Actor.InfoBoxOffset.Y + FeetY);
-		InfoBox.SetCursorAboveBox(Actor.InfoBoxCursorAboveBox);
+		RefreshInfoBox();
 		Actor.OnDamaged += Damaged;
 		Actor.OnRevived += Revived;
 		HurtTimer.Timeout += () => Actor.SetHurt(false);
@@ -64,6 +60,17 @@ public partial class EnemyComponent : ActorComponent
 	internal override void ShowDamageNumber(int damage, DamageType type, bool critical)
 	{
 		BattleManager.Instance.SpawnDamageNumber(damage, DamageNumberPosition, type, critical);
+	}
+
+	internal void RefreshInfoBox()
+	{
+		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
+		Actor.CenterPoint = GetParent<Node2D>().GlobalPosition;
+		// in vanilla, the box + offset is drawn relative to the actor's "feet"
+		FeetY = sprite.SpriteFrames.GetFrameTexture(sprite.Animation, 0).GetHeight() * sprite.GlobalScale.Y / 2f;
+		InfoBox.Position = Actor.CenterPoint + new Vector2(Actor.InfoBoxOffset.X, Actor.InfoBoxOffset.Y + FeetY);
+		InfoBox.SetCursorAboveBox(Actor.InfoBoxCursorAboveBox);
+		InfoBox.RefreshName();
 	}
 
 	internal void ShowInfoBox(bool show)

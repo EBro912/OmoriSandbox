@@ -103,4 +103,14 @@ public class Item : BattleAction
 		SpritesheetPath = spritesheetPath;
 		SpriteIndex = spriteIndex;
 	}
+
+	/// <summary>
+	/// Sets what this item records in <see cref="Actor.LastTarget"/> when it starts.
+	/// </summary>
+	/// <param name="record">What to record. Defaults to <see cref="LastTargetRecord.Target"/>.</param>
+	public Item WithLastTarget(LastTargetRecord record)
+	{
+		LastTargetRecord = record;
+		return this;
+	}
 }

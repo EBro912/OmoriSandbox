@@ -86,6 +86,24 @@ public abstract class Actor
 		if (_Component == component)
 			_Component = null;
 	}
+
+	/// <summary>
+	/// The actor this actor's last action ended up targeting, or null before its first action.
+	/// </summary>
+	/// <remarks>
+	/// Recorded when an action starts, after retargeting and taunts. For an action with several targets, the last one will be set.<br/>
+	/// Actions that never start, such as ones refused for JUICE, don't change it. Some skills don't update it, or record their user; see <see cref="Skill.WithLastTarget"/>.
+	/// </remarks>
+	public Actor LastTarget { get; internal set; }
+
+	/// <summary>
+	/// The index of <see cref="LastTarget"/> on the actor's own side, or 0 before this actor's first action.
+	/// </summary>
+	/// <remarks>
+	/// Party members are counted like <see cref="BattleManager.GetPartyMember"/> and enemies like <see cref="BattleManager.GetEnemy"/>.<br/>
+	/// This will be -1 if the target wasn't in the battle when the action started.
+	/// </remarks>
+	public int LastTargetIndex { get; internal set; }
 	/// <summary>
 	/// The actor's current <see cref="Emotion"/>. Defaults to neutral.
 	/// </summary>
@@ -153,7 +171,7 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Whether the actor is currently stunned. Setting this value to true will cause their actions to be skipped.
+	/// Whether the actor is currently stunned. Setting this value to true will cause their actions to be skipped. Forced commands will still run.
 	/// </summary>
 	// TODO: think of a better solution for this, as different states can fight for this variable
 	public bool Stunned = false;
@@ -880,6 +898,29 @@ public abstract class Actor
 	}
 
 	/// <summary>
+	/// Moves the point this actor's <see cref="Sprite"/> rotates and scales around, without moving the sprite on screen.
+	/// </summary>
+	/// <remarks>
+	/// Shifts <see cref="Node2D.Position"/> and <see cref="AnimatedSprite2D.Offset"/> together, for centered and uncentered sprites.
+	/// <see cref="CenterPoint"/> and enemy info boxes don't change, including after <see cref="Enemy.RefreshInfoBox"/>.
+	/// </remarks>
+	/// <param name="pivot">The pivot in pixels from the top-left corner of the sprite's current frame,
+	/// e.g. <c>new Vector2(width / 2f, height)</c> for the bottom center.</param>
+	public void SetSpritePivot(Vector2 pivot)
+	{
+		if (Sprite?.SpriteFrames == null)
+		{
+			GD.PushWarning(Name + " has no sprite to set a pivot on.");
+			return;
+		}
+
+		Vector2 size = Sprite.SpriteFrames.GetFrameTexture(Sprite.Animation, Sprite.Frame)?.GetSize() ?? Vector2.Zero;
+		Vector2 offset = Sprite.Centered ? size / 2f - pivot : -pivot;
+		Sprite.Position += Sprite.Transform.BasisXform(Sprite.Offset - offset);
+		Sprite.Offset = offset;
+	}
+
+	/// <summary>
 	/// Makes this actor toast. Resets their emotion to neutral and plays the toast animation as an override.
 	/// </summary>
 	/// <remarks>
@@ -963,7 +1004,7 @@ public abstract class Actor
 			ClampHealthJuiceToMax();
 			if (!silent)
 			{
-				BattleLogManager.Instance.QueueMessage(Name.ToUpper() + " feels " + emotion.DisplayName + "!");
+				BattleLogManager.Instance.QueueMessage(emotion.FeelsMessage(Name));
 			}
 
 			OnEmotionChanged?.Invoke(this, EventArgs.Empty);
