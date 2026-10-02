@@ -69,8 +69,6 @@ internal sealed class Pluto : Enemy
     private bool HasExpanded = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (IsBelowHP(0.5f) && !HasExpanded)
         {
             DialogueManager.Instance.QueueMessage(this, "[br][wave freq=20.0]GWAH[font_size=40]AHAHAH[font_size=52]AHAHA!!!");

@@ -5058,11 +5058,6 @@ public class Database
 
 				await AnimationManager.Instance.ToSignal(AnimationManager.Instance,
 					AnimationManager.SignalName.AnimationFinished);
-
-				// he only dies once his own ultimate has resolved, so the next
-				// ultimate in the chain sees one fewer enemy on the field
-				self.RemoveStatModifier("Immortal", true);
-				self.CurrentHP = 0;
 			}
 		);
 		
@@ -5375,6 +5370,19 @@ public class Database
 			}
 		);
 		
+		Skills["PERandomExpand"] = new Skill(
+			name: "PERandomExpand",
+			description: "PERandomExpand",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: (Actor self, Actor target) =>
+			{
+				BattleManager.Instance.QueueForceCommand(self, target, Skills["PEExpandFurther"]);
+				return Task.CompletedTask;
+			},
+			hidden: true
+		);
+
 		Skills["PEEarthsFinale"] = new Skill(
 			name: "PEEarthsFinale",
 			description: "PEEarthsFinale",
@@ -7597,7 +7605,7 @@ public class Database
 			.WithStateIcons(new StateIcon("bnw_guard", "Guard: x0.5 incoming damage")));
 		Modifiers.Add("SecondChance", () => new SecondChanceStatModifier(1));
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
-		Modifiers.Add("Immortal", () => new ImmortalStatModifier().WithBypassRecoverAllRemoval());
+		Modifiers.Add("Immortal", () => new ImmortalStatModifier());
 		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());

@@ -154,7 +154,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
             Stage = 2;
         }
         
-        if (CurrentHP > 0 && IsBelowHP(0.25f) && Stage <= 2)
+        if (IsBelowHP(0.25f) && Stage <= 2)
         {
             UnlockEmotion();
             DialogueManager.Instance.QueueMessage(this, "[br]Out of my way, earthly scum!");

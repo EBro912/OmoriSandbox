@@ -36,12 +36,19 @@ internal sealed class TheHooligans : Enemy
         return taunting.MaxBy(x => x.CurrentStats.SPD);
     }
 
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
+        BattleCommand command = BattleManager.Instance.GetCurrentCommand();
+        bool pepperSprayed = command?.Action is Item item && item.Name == "PEPPER SPRAY";
 
-        if (Stage == 0 && IsBelowHP(0.75f))
+        if (Stage == 0 && !pepperSprayed && IsBelowHP(0.75f))
         {
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "My master and I have been training for this moment...");
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, "You won't make fools out of us ever again!");
@@ -51,7 +58,7 @@ internal sealed class TheHooligans : Enemy
             Stage = 1;
         }
 
-        if (Stage == 1 && IsBelowHP(0.5f))
+        if (Stage == 1 && !pepperSprayed && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, "ANGEL, remember our training! Make weakness your strength!");
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "Yes, Master![br]I won't let you down!");
@@ -59,19 +66,22 @@ internal sealed class TheHooligans : Enemy
             Stage = 2;
         }
         
-        if (Stage == 2 && IsBelowHP(0.25f))
+        if (Stage == 2 && !pepperSprayed && IsBelowHP(0.25f))
         {
             DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, "KIM... are you okay?");
             DialogueManager.Instance.QueueMessage("KIM", CenterPoint, @"Huff...\! Huff...\! Heh!\! Don't worry, VANCE... I'm not done yet!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
     
     public override async Task OnDefeat()
     {
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();
-        if (command.Action is Item item && item.Name == "PEPPER SPRAY")
+        if (command?.Action is Item item && item.Name == "PEPPER SPRAY")
         {
             DialogueManager.Instance.QueueMessage("CHARLIE", CenterPoint, "!!!");
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"[shake rate=20]AUGH!! MY EYES!\! MASTER! I CAN'T SEE!!");

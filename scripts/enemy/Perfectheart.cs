@@ -76,7 +76,7 @@ internal sealed class Perfectheart : Enemy
             Variable1001 = 1;
         }
         
-        if (CurrentHP > 0 && IsBelowHP(0.25f) && !HasSpoken)
+        if (IsBelowHP(0.25f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, @"Hm?\! W-What's this?\! A drop of sweat?");
             DialogueManager.Instance.QueueMessage(this, @"My, my...\! I cannot believe this.");

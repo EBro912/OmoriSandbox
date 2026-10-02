@@ -70,17 +70,18 @@ internal sealed class SirMaximusIAlt : Enemy
 
     public override Task OnStartOfBattle()
     {
-        AddStatModifier("Immortal");
+        AddImmortal();
         return base.OnStartOfBattle();
     }
 
     public override async Task ProcessBattleConditions()
     {
-        if (ImmortalTriggered && !UltimateAttack)
+        if (CurrentHP == 0 && !UltimateAttack)
         {
             DialogueManager.Instance.QueueMessage(this, @"No... \!I...\![br]I cannot fail now.");
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMUltimateAttack"]);
+            RemoveImmortal(afterForcedCommands: true);
             UltimateAttack = true;
         }
     }

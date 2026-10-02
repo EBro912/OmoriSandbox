@@ -38,14 +38,15 @@ internal sealed class Kim : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (!HasSpoken && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage(this, "Your face annoys me!");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
 
     public override async Task OnDefeat()
@@ -56,6 +57,7 @@ internal sealed class Kim : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        AddImmortal();
         DialogueManager.Instance.QueueMessage(this, @"I'll show you that size isn't everything!\! I'm not about to lose to nerds like you!");
         await DialogueManager.Instance.WaitForDialogue();
     }

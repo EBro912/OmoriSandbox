@@ -54,7 +54,7 @@ internal sealed class KingCrawler : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP > 0 && IsBelowHP(0.5f) && !HasSpoken)
+        if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=20]Ssssssssssssssssssss...");
             await DialogueManager.Instance.WaitForDialogue();
@@ -68,7 +68,7 @@ internal sealed class KingCrawler : Enemy
     private readonly List<int> MoleSlots = [];   // reinforcement slot used by each summon
 
     private static bool Alive(Enemy e) =>
-        e?.Component != null && !e.IsToast && e.CurrentHP > 0;
+        e?.Component != null && !e.IsToast;
 
     public override async Task ProcessEndOfTurn()
     {

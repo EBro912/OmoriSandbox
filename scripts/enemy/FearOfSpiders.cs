@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
@@ -17,6 +18,19 @@ internal sealed class FearOfSpiders : Enemy
     public override bool IsEmotionValid(Emotion emotion)
     {
         return emotion.Id == "neutral";
+    }
+
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
+    public override Task ProcessBattleConditions()
+    {
+        if (CurrentHP == 0)
+            RemoveImmortal();
+        return Task.CompletedTask;
     }
 
     public override BattleCommand ProcessAI()

@@ -110,8 +110,6 @@ internal sealed class SweetheartAlt : Enemy
 
 	public override async Task ProcessBattleConditions()
 	{
-		if (CurrentHP <= 0) return;
-		
 		BattleCommand current = BattleManager.Instance.GetCurrentCommand();
 		if (!CharmDone && current.Actor is Hero hero &&
 		    current.Action.Name is "CHARM" or "CAPTIVATE" or "MESMERIZE" or "SMILE")

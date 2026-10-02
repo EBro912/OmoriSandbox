@@ -27,6 +27,12 @@ internal sealed class HumphreyGrandeAlt : Enemy
         return new BattleCommand(this, SelectTarget(), Skills["HUGAttack"]);
     }
 
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.1f))

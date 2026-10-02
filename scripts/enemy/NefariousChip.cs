@@ -72,8 +72,6 @@ internal sealed class NefariousChip : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "Mamma-mia...");

@@ -74,8 +74,6 @@ internal sealed class Roboheart : Enemy
     private int Stage = 0;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (Stage > 1)
             return;
 

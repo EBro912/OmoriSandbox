@@ -39,7 +39,7 @@ public class SnaleyThree : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        AddStatModifier("Immortal", silent: true);
+        AddImmortal();
         DialogueManager.Instance.QueueMessage(this, @"I'd bet I'm almost as strong as you now!\! You'd better take this seriously!");
         await DialogueManager.Instance.WaitForDialogue();
     }
@@ -52,9 +52,8 @@ public class SnaleyThree : Enemy
         if (PendingRelease)
         {
             PendingRelease = false;
-            CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 1);
-            RemoveStatModifier("Immortal", true);
-            ClearResult();
+            CurrentHP = Math.Min(CurrentStats.MaxHP, CurrentHP + 1);
+            RemoveImmortal();
         }
         await Task.CompletedTask;
     }

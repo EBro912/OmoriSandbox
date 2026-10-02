@@ -606,12 +606,6 @@ public abstract class Actor
 	}
 
 	/// <summary>
-	/// Whether this actor's IMMORTAL modifier has already absorbed a lethal hit. See <see cref="ImmortalStatModifier.Triggered"/>.
-	/// </summary>
-	internal bool ImmortalTriggered =>
-		StatModifiers.TryGetValue("Immortal", out StatModifier m) && m is ImmortalStatModifier { Triggered: true };
-
-	/// <summary>
 	/// Returns the current tier of a stat modifier.
 	/// </summary>
 	/// <remarks>

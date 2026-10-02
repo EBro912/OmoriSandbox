@@ -50,6 +50,12 @@ internal sealed class AubreyEnemy : Enemy
         return new BattleCommand(this, SelectTarget(), Skills["AEHeadbutt"]);
     }
 
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
     private int Stage = 0;
     private int Turn = 0;
     
@@ -78,6 +84,9 @@ internal sealed class AubreyEnemy : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
 
     public override async Task ProcessEndOfTurn()

@@ -35,6 +35,19 @@ internal sealed class AngelAlt : Enemy
         return taunting.MaxBy(x => x.CurrentStats.SPD);
     }
     
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
+    public override Task ProcessBattleConditions()
+    {
+        if (CurrentHP == 0)
+            RemoveImmortal();
+        return Task.CompletedTask;
+    }
+
     public override BattleCommand ProcessAI()
     {
         if (Roll() < 76)

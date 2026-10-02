@@ -68,7 +68,7 @@ internal sealed class KingCrawlerAlt : Enemy
     private readonly List<int> MoleSlots = [];   // reinforcement slot used by each summon
 
     private static bool Alive(Enemy e) =>
-        e?.Component != null && !e.IsToast && e.CurrentHP > 0;
+        e?.Component != null && !e.IsToast;
 
     public override async Task ProcessEndOfTurn()
     {

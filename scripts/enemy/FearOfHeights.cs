@@ -62,8 +62,16 @@ internal sealed class FearOfHeights : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
+    public override Task ProcessBattleConditions()
+    {
+        if (CurrentHP == 0)
+            RemoveImmortal();
+        return Task.CompletedTask;
+    }
+
     public override async Task OnStartOfBattle()
     {
+        AddImmortal();
         DialogueManager.Instance.QueueMessage("You are falling.");
         await DialogueManager.Instance.WaitForDialogue();
     }

@@ -52,9 +52,6 @@ internal sealed class KiteKid : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0)
-            return;
-
         if (IsBelowHP(0.25f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "No... This can't be...");

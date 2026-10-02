@@ -328,9 +328,42 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public virtual async Task ProcessEndOfTurn() { await Task.CompletedTask; }
 	/// <summary>
-	/// Called when the enemy is defeated (HP reaches 0 and stays 0 after <see cref="ProcessBattleConditions"/>).
+	/// Called when the enemy is defeated, right before it becomes toast.
 	/// </summary>
 	public virtual async Task OnDefeat() { await Task.CompletedTask; }
+
+	/// <summary>
+	/// Gives this enemy IMMORTAL. It can drop to 0 HP, but it doesn't die until <see cref="RemoveImmortal"/> is called.
+	/// </summary>
+	public void AddImmortal()
+	{
+		ImmortalReleasePending = false;
+		AddStatModifier("Immortal", silent: true);
+		ClearResult();
+	}
+
+	/// <summary>
+	/// Removes this enemy's IMMORTAL status. If it's at 0 HP, it then dies.
+	/// </summary>
+	/// <param name="afterForcedCommands">Whether to wait until this enemy's queued forced commands have run.</param>
+	public void RemoveImmortal(bool afterForcedCommands = false)
+	{
+		if (afterForcedCommands)
+		{
+			ImmortalReleasePending = true;
+			return;
+		}
+		ImmortalReleasePending = false;
+		RemoveStatModifier("Immortal", true);
+		ClearResult();
+	}
+
+	/// <summary>
+	/// Whether this enemy is currently IMMORTAL. See <see cref="AddImmortal"/>.
+	/// </summary>
+	public bool IsImmortal => HasStatModifier("Immortal");
+
+	internal bool ImmortalReleasePending { get; private set; }
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;

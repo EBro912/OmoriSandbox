@@ -83,9 +83,6 @@ internal sealed class UnbreadTwins : Enemy
 
 	public override async Task ProcessBattleConditions()
 	{
-		if (CurrentHP <= 0)
-			return;
-
 		if (Stage > 3)
 			return;
 

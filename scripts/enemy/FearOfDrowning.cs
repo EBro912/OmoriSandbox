@@ -37,6 +37,7 @@ internal sealed class FearOfDrowning : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        AddImmortal();
         DialogueManager.Instance.QueueMessage("The room fills with water.");
         await DialogueManager.Instance.WaitForDialogue();
     }
@@ -67,6 +68,9 @@ internal sealed class FearOfDrowning : Enemy
             UpdateSprite();
             await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
 
     private void UpdateSprite()

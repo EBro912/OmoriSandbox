@@ -49,6 +49,7 @@ public partial class BattleManager : Node
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private readonly List<BattleCommand> ForcedCommands = [];
 	private int ForcedCountAtCommandStart = 0;
+	private IReadOnlyList<Actor> CommandTargets = [];
 	private PendingFollowupData PendingFollowup = null;
 	private readonly HashSet<BattleMenuOption> DisabledMenuOptions = [];
 
@@ -200,6 +201,7 @@ public partial class BattleManager : Node
 	private bool ProcessedStartOfCommands = false;
 	private bool ProcessedEndOfTurn = false;
 	private bool InEndOfTurnHooks = false;
+	private bool ResumingStartOfTurn = false;
 	private bool BattleStartForcesOnly = false;
 
 	public static BattleManager Instance { get; private set; }
@@ -474,7 +476,7 @@ public partial class BattleManager : Node
 				if (CurrentPartyMemberTarget > -1)
 				{
 					CurrentPartyMemberTarget = -1;
-					CurrentEnemyTarget = Enemies.FindIndex(x => x.Actor.CurrentHP > 0);
+					CurrentEnemyTarget = Enemies.FindIndex(x => !x.Actor.IsToast);
 					Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 					MenuManager.Instance.MoveDownOpenMenus(false);
 				}
@@ -551,7 +553,7 @@ public partial class BattleManager : Node
 		{
 			if (SelectedAction.Target is SkillTarget.Enemy or SkillTarget.AllyOrEnemy
 			    && CurrentEnemyTarget > -1
-			    && Enemies.Count(x => x.Actor.CurrentHP > 0) > 1
+			    && Enemies.Count(x => !x.Actor.IsToast) > 1
 			    && direction is InputDirection.Left or InputDirection.Right)
 			{
 				int old = CurrentEnemyTarget;
@@ -589,7 +591,7 @@ public partial class BattleManager : Node
 
 		var sortedEnemies = Enemies
 			.Select((enemy, index) => new { Enemy = enemy, Index = index })
-			.Where(e => e.Enemy.Actor.CurrentHP > 0)
+			.Where(e => !e.Enemy.Actor.IsToast)
 			.OrderBy(e => e.Enemy.Actor.CenterPoint.X)
 			.ThenBy(e => e.Index)
 			.ToList();
@@ -659,6 +661,7 @@ public partial class BattleManager : Node
 			FallTween.Kill();
 		FallTween = null;
 		CurrentCommand = null;
+		CommandTargets = [];
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
@@ -679,6 +682,7 @@ public partial class BattleManager : Node
 		ProcessedStartOfCommands = false;
 		ProcessedEndOfTurn = false;
 		InEndOfTurnHooks = false;
+		ResumingStartOfTurn = false;
 		BattleStartForcesOnly = false;
 		RestartLabel.Visible = false;
 		RestartQueued = false;
@@ -913,6 +917,9 @@ public partial class BattleManager : Node
 				FollowupSelected = false;
 				FollowupActive = false;
 
+				if (CurrentCommand.Forced)
+					await ResolveForcedCommandDeaths();
+
 				foreach (PartyMemberComponent member in CurrentParty.ToList())
 				{
 					if (member.Actor.IsToast)
@@ -928,61 +935,9 @@ public partial class BattleManager : Node
 					enemy.Actor.SetHurt(false);
 					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
 						$"{enemy.Actor.Name}.ProcessBattleConditions");
-					// enemy may have been removed during ProcessBattleConditions
-					if (!Enemies.Contains(enemy))
-						continue;
-					if (enemy.Actor.CurrentHP == 0)
-					{
-						if (ForcedCommands.Any(f => f.Actor == enemy.Actor))
-						{
-							// defer death until all forced commands for this enemy have executed
-							DeferredDeathEnemies.Add(enemy);
-						}
-						else
-						{
-							if (enemy.Actor.GrayscaleOnDefeat)
-							{
-								AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
-								AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
-								GameManager.Instance.SetBattlebackGrayscale(true);
-								await Wait.Milliseconds(750);
-							}
-							await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
-							enemy.Actor.SetToast();
-							enemy.Actor.ClearStatModifiersOnDeath();
-							if (enemy.Actor.FallsOffScreen)
-								DyingEnemies.Add(enemy.GetParent<Node2D>());
-							// its forced commands are gone, so don't let the deferred pass below process it a second time
-							DeferredDeathEnemies.Remove(enemy);
-						}
-					}
+					await ResolveEnemyDeath(enemy);
 				}
-				// resolve deferred deaths whose forced commands have all been consumed
-				foreach (EnemyComponent enemy in DeferredDeathEnemies.ToList())
-				{
-					// revived while waiting on its forced commands, no longer dying
-					if (enemy.Actor.IsToast || enemy.Actor.CurrentHP > 0)
-					{
-						DeferredDeathEnemies.Remove(enemy);
-						continue;
-					}
-					if (ForcedCommands.All(f => f.Actor != enemy.Actor) && enemy.Actor.CurrentHP == 0)
-					{
-						if (enemy.Actor.GrayscaleOnDefeat)
-						{
-							AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
-							AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
-							GameManager.Instance.SetBattlebackGrayscale(true);
-							await Wait.Milliseconds(750);
-						}
-						await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
-						enemy.Actor.SetToast();
-						enemy.Actor.ClearStatModifiersOnDeath();
-						if (enemy.Actor.FallsOffScreen)
-							DyingEnemies.Add(enemy.GetParent<Node2D>());
-						DeferredDeathEnemies.Remove(enemy);
-					}
-				}
+				await ResolveEnemyDeaths();
 
 				// enemy ProcessBattleConditions/OnDefeat hooks above may have zeroed party members
 				// convert them before they get a turn at 0 HP
@@ -1027,6 +982,84 @@ public partial class BattleManager : Node
 				pa.HasAnnounced = true;
 			}
 		}
+	}
+
+	private async Task<bool> ResolveEnemyDeath(EnemyComponent enemy)
+	{
+		// enemy may have been removed during ProcessBattleConditions
+		if (!Enemies.Contains(enemy) || enemy.Actor.IsToast)
+		{
+			DeferredDeathEnemies.Remove(enemy);
+			return false;
+		}
+		bool hasForced = ForcedCommands.Any(f => f.Actor == enemy.Actor);
+		if (enemy.Actor.ImmortalReleasePending && !hasForced)
+			enemy.Actor.RemoveImmortal();
+		if (enemy.Actor.CurrentHP > 0 || enemy.Actor.IsImmortal)
+		{
+			DeferredDeathEnemies.Remove(enemy);
+			return false;
+		}
+		bool keepsWindow = DeferredDeathEnemies.Contains(enemy)
+			? hasForced
+			: CurrentCommand is { Forced: false } && ForcedCommands.Skip(ForcedCountAtCommandStart).Any(f => f.Actor == enemy.Actor);
+		if (keepsWindow)
+		{
+			// defer death until all forced commands for this enemy have executed
+			DeferredDeathEnemies.Add(enemy);
+			return false;
+		}
+		await DefeatEnemy(enemy);
+		return true;
+	}
+
+	private async Task ResolveForcedCommandDeaths()
+	{
+		foreach (EnemyComponent enemy in Enemies.ToList())
+		{
+			if (!Enemies.Contains(enemy) || enemy.Actor.IsToast || enemy.Actor.CurrentHP > 0 || enemy.Actor.IsImmortal)
+				continue;
+			if (DeferredDeathEnemies.Contains(enemy) && !CommandTargets.Contains(enemy.Actor))
+				continue;
+			await DefeatEnemy(enemy);
+		}
+	}
+
+	private async Task ResolveEnemyDeaths()
+	{
+		HashSet<EnemyComponent> defeatedThisPass = [];
+		bool defeated = true;
+		while (defeated)
+		{
+			defeated = false;
+			foreach (EnemyComponent enemy in Enemies.ToList())
+			{
+				if (defeatedThisPass.Contains(enemy))
+					continue;
+				if (await ResolveEnemyDeath(enemy))
+				{
+					defeatedThisPass.Add(enemy);
+					defeated = true;
+				}
+			}
+		}
+	}
+
+	private async Task DefeatEnemy(EnemyComponent enemy)
+	{
+		if (enemy.Actor.GrayscaleOnDefeat)
+		{
+			AudioManager.Instance.PlaySFX("BA_explosion_2", volume: 0.9f);
+			AnimationManager.Instance.InitShake(new Shake(9, 5, 40));
+			GameManager.Instance.SetBattlebackGrayscale(true);
+			await Wait.Milliseconds(750);
+		}
+		await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
+		enemy.Actor.SetToast();
+		enemy.Actor.ClearStatModifiersOnDeath();
+		if (enemy.Actor.FallsOffScreen)
+			DyingEnemies.Add(enemy.GetParent<Node2D>());
+		DeferredDeathEnemies.Remove(enemy);
 	}
 
 	private BattleCommand GetNextAction()
@@ -1168,25 +1201,30 @@ public partial class BattleManager : Node
 			return;
 		}
 
-		CurrentPartyMember = -1;
-		CurrentEnemyTarget = -1;
-		CurrentPartyMemberTarget = -1;
-		PlayerCommands.Clear();
-		ActedThisTurn.Clear();
-		ForcedCommands.Clear();
-		ForcedCountAtCommandStart = 0;
-		// a followup discarded here never spent its energy, so there is nothing to refund
-		PendingFollowup = null;
-		ForceHideFollowup = false;
-		PriorityActors.Clear();
-		DeferredDeathEnemies.Clear();
-		CurrentCommand = null;
-		ProcessedEndOfTurn = false;
-		ProcessedStartOfCommands = false;
-		BattleStartForcesOnly = false;
-		foreach (EnemyComponent enemy in Enemies)
-			enemy.Actor.HasPreRolledAction = false;
-		GameManager.Instance.FadeOutBattlebackGrayscale();
+		if (ResumingStartOfTurn)
+			ResumingStartOfTurn = false;
+		else
+		{
+			CurrentPartyMember = -1;
+			CurrentEnemyTarget = -1;
+			CurrentPartyMemberTarget = -1;
+			PlayerCommands.Clear();
+			ActedThisTurn.Clear();
+			ForcedCommands.Clear();
+			ForcedCountAtCommandStart = 0;
+			// a followup discarded here never spent its energy, so there is nothing to refund
+			PendingFollowup = null;
+			ForceHideFollowup = false;
+			PriorityActors.Clear();
+			DeferredDeathEnemies.Clear();
+			CurrentCommand = null;
+			ProcessedEndOfTurn = false;
+			ProcessedStartOfCommands = false;
+			BattleStartForcesOnly = false;
+			foreach (EnemyComponent enemy in Enemies)
+				enemy.Actor.HasPreRolledAction = false;
+			GameManager.Instance.FadeOutBattlebackGrayscale();
+		}
 		if (!ProcessedStartOfTurn)
 		{
 			foreach (PartyMemberComponent member in CurrentParty.Where(x => !x.Actor.IsToast))
@@ -1218,6 +1256,8 @@ public partial class BattleManager : Node
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
 			}
 
+			if (Phase == BattlePhase.FightRun)
+				await ResolveEnemyDeaths();
 			RaiseGuarded(TurnStarted, "TurnStarted");
 			ProcessedStartOfTurn = true;
 		}
@@ -1226,6 +1266,17 @@ public partial class BattleManager : Node
 
 		// a start-of-turn hook may have ended the battle or changed phase
 		// don't show the fight menu over it
+		if (Phase != BattlePhase.FightRun)
+			return;
+
+		if (DyingEnemies.Count > 0)
+		{
+			ResumingStartOfTurn = true;
+			SetPhase(BattlePhase.EnemyDying);
+			return;
+		}
+
+		CheckBattleOver();
 		if (Phase != BattlePhase.FightRun)
 			return;
 
@@ -1296,7 +1347,7 @@ public partial class BattleManager : Node
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				return;
 			case SkillTarget.Enemy:
-				CurrentEnemyTarget = Enemies.FindIndex(x => x.Actor.CurrentHP > 0);
+				CurrentEnemyTarget = Enemies.FindIndex(x => !x.Actor.IsToast);
 				Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				MenuManager.Instance.MoveDownOpenMenus(false);
@@ -1314,7 +1365,7 @@ public partial class BattleManager : Node
 
 	private void SelectTarget()
 	{
-		if (!Enemies.Any(x => x.Actor.CurrentHP > 0))
+		if (Enemies.All(x => x.Actor.IsToast))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
@@ -1416,6 +1467,7 @@ public partial class BattleManager : Node
 	{
 		BattleCommand currentAction = CurrentCommand;
 		ForcedCountAtCommandStart = ForcedCommands.Count;
+		CommandTargets = [];
 
 		if (currentAction.Action is EmptyAction)
 		{
@@ -1592,6 +1644,7 @@ public partial class BattleManager : Node
 			}
 		}
 
+		CommandTargets = resolvedTargets;
 		ActionEventArgs actionArgs = new(currentAction.Actor, currentAction.Action, resolvedTargets);
 		RaiseGuarded(ActionStarted, actionArgs, "ActionStarted");
 
@@ -1851,6 +1904,7 @@ public partial class BattleManager : Node
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
+			await ResolveEnemyDeaths();
 			InEndOfTurnHooks = false;
 
 			// expire observe predictions the enemy never consumed during its turn
@@ -1876,6 +1930,12 @@ public partial class BattleManager : Node
 		{
 			Reset();
 			ReloadPreset();
+			return;
+		}
+
+		if (DyingEnemies.Count > 0)
+		{
+			SetPhase(BattlePhase.EnemyDying);
 			return;
 		}
 
@@ -1922,7 +1982,7 @@ public partial class BattleManager : Node
 		DyingEnemies.ForEach(x => x.Visible = false);
 		DyingEnemies.Clear();
 		FallTween = null;
-		SetPhase(BattlePhase.PreCommand);
+		SetPhase(ProcessedStartOfCommands ? BattlePhase.PreCommand : BattlePhase.FightRun);
 	}
 
 	// restores an enemy's on-screen state when it is revived after falling (or while falling)
@@ -1970,10 +2030,7 @@ public partial class BattleManager : Node
 			return;
 		}
 		
-		if (DeferredDeathEnemies.Count > 0)
-			return;
-		
-		if (!Enemies.Any(x => x.Actor.CurrentHP > 0))
+		if (Enemies.All(x => x.Actor.IsToast))
 		{
 			SetPhase(BattlePhase.BattleOver);
 			await EndOfBattle(true);
@@ -2041,6 +2098,7 @@ public partial class BattleManager : Node
 					CurrentCommand = null;
 					TurnCount = 0;
 					ProcessedStartOfTurn = false;
+					ResumingStartOfTurn = false;
 					// leave BattleOver so a restart during the next stage's intro dialogue
 					// queues (like the first stage's) instead of resetting mid-hook
 					SetPhase(BattlePhase.PreBattle);
@@ -2942,23 +3000,29 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/>, or null if none is found.</returns>
+	/// <remarks>Immortal enemies at 0 HP are included until they're truly defeated. See <see cref="GetAllAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveEnemy()
 	{
-		List<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0).ToList();
+		List<EnemyComponent> alive = Enemies.Where(x => !x.Actor.IsToast).ToList();
 		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/> that's not the provided actor, or null if none is found.</returns>
+	/// <remarks>Immortal enemies at 0 HP are included until they're truly defeated. See <see cref="GetAllAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveUniqueEnemy(Actor not)
 	{
-		List<EnemyComponent> alive = Enemies.Where(x => x.Actor.CurrentHP > 0 && x.Actor != not).ToList();
+		List<EnemyComponent> alive = Enemies.Where(x => !x.Actor.IsToast && x.Actor != not).ToList();
 		return alive.Count == 0 ? null :  alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
 	/// <returns>All currently alive <see cref="Enemy"/>s.</returns>
+	/// <remarks>
+	/// An enemy is alive until it's defeated and becomes toast, so this includes enemies at 0 HP that are waiting on forced
+	/// commands queued during the action that knocked them out, or that hold IMMORTAL (see <see cref="Enemy.AddImmortal"/>).
+	/// </remarks>
 	public List<Enemy> GetAllAliveEnemies()
 	{
-		return Enemies.Select(x => x.Actor).Where(x => x.CurrentHP > 0).ToList();
+		return Enemies.Select(x => x.Actor).Where(x => !x.IsToast).ToList();
 	}
 
 	/// <returns>All current <see cref="Enemy"/>s, including both alive and dead enemies. See <see cref="GetAllAliveEnemies"/> to only select alive enemies.</returns>
@@ -3069,7 +3133,7 @@ public partial class BattleManager : Node
 	internal Enemy SmoothEnemyTarget(int index)
 	{
 		Enemy enemy = GetEnemy(index);
-		return enemy != null && enemy.CurrentHP > 0 && !enemy.IsToast ? enemy : GetAllAliveEnemies().FirstOrDefault();
+		return enemy != null && !enemy.IsToast ? enemy : GetAllAliveEnemies().FirstOrDefault();
 	}
 
 	internal PartyMember SmoothPartyTarget(int index)

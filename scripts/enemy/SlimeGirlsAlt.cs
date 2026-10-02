@@ -92,9 +92,6 @@ internal sealed class SlimeGirlsAlt : Enemy
 
 	public override async Task ProcessBattleConditions()
 	{
-		if (CurrentHP <= 0)
-			return;
-
 		if (Stage > 2)
 			return;
 

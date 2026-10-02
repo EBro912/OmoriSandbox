@@ -41,11 +41,15 @@ internal sealed class Angel : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (!HasSpoken && IsBelowHP(0.5f))
         {
             PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
@@ -54,6 +58,9 @@ internal sealed class Angel : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
 
     public override async Task OnEndOfBattle(bool victory)

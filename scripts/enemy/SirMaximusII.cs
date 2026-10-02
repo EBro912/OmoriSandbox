@@ -76,6 +76,12 @@ internal sealed class SirMaximusII : Enemy
         return new BattleCommand(this, SelectAllTargets(), Skills["SMIISpin"]);
     }
 
+    public override Task OnStartOfBattle()
+    {
+        AddImmortal();
+        return Task.CompletedTask;
+    }
+
     private bool FirstDialogue = false;
     private bool UltimateAttack = false;
     
@@ -113,6 +119,9 @@ internal sealed class SirMaximusII : Enemy
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIUltimateAttack"]);
             UltimateAttack = true;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal(afterForcedCommands: true);
     }
 
     public override async Task OnDefeat()

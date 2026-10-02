@@ -38,8 +38,6 @@ internal sealed class Vance : Enemy
     private bool HasSpoken = false;
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (!HasSpoken && IsBelowHP(0.5f))
         {
             DialogueManager.Instance.QueueMessage(this, @"Ouch...\! That hurts.");

@@ -44,7 +44,7 @@ internal sealed class Boss : Enemy
 
     public override async Task OnStartOfBattle()
     {
-        AddStatModifier("Immortal", silent: true);
+        AddImmortal();
         await Task.CompletedTask;
     }
 
@@ -53,9 +53,8 @@ internal sealed class Boss : Enemy
         if (Stage == 3)
         {
             Stage = 4;
-            CurrentHP = Math.Min(CurrentStats.MaxHP, (ImmortalTriggered ? 0 : CurrentHP) + 2);
-            RemoveStatModifier("Immortal", true);
-            ClearResult();
+            CurrentHP = Math.Min(CurrentStats.MaxHP, CurrentHP + 2);
+            RemoveImmortal();
             DialogueManager.Instance.QueueMessage(this, @"HUH!?\! HOW ARE YOU STILL MOVING!?");
             await DialogueManager.Instance.WaitForDialogue();
             return;

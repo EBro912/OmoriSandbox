@@ -59,8 +59,6 @@ internal sealed class Mutantheart : Enemy
 
     public override async Task ProcessBattleConditions()
     {
-        if (CurrentHP <= 0) return;
-
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage(this, "[font_size=22][wave freq=10.0]Bluh...?");

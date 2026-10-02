@@ -48,8 +48,16 @@ internal sealed class SnaleyTwo : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        AddImmortal();
         DialogueManager.Instance.QueueMessage(this, @"I taught myself some [color=#6095ff]SKILLS[/color] since our last battle!\! You'd better watch out!");
         await DialogueManager.Instance.WaitForDialogue();
+    }
+
+    public override Task ProcessBattleConditions()
+    {
+        if (CurrentHP == 0)
+            RemoveImmortal();
+        return Task.CompletedTask;
     }
 
     public override async Task OnDefeat()

@@ -101,6 +101,9 @@ internal sealed class TheMaverick : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 7;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
 
     public override async Task OnDefeat()
@@ -113,6 +116,7 @@ internal sealed class TheMaverick : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        AddImmortal();
         PartyMember target = BattleManager.Instance.GetPartyMemberAtPosition(2) ?? BattleManager.Instance.GetPartyMember(0);
         DialogueManager.Instance.QueueMessage(this, $@"Oh {target.Name.ToUpper()}, you pitiful fool...\! You don't stand a chance against THE MAVERICK!");
         await DialogueManager.Instance.WaitForDialogue();

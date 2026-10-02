@@ -63,6 +63,9 @@ internal sealed class Recyclepath : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+
+        if (CurrentHP == 0)
+            RemoveImmortal();
     }
 
     public override async Task OnDefeat()
@@ -74,6 +77,7 @@ internal sealed class Recyclepath : Enemy
 
     public override Task OnStartOfBattle()
     {
+        AddImmortal();
         LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
             fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
         RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
