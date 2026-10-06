@@ -334,10 +334,11 @@ public partial class BattleManager : Node
 			}
 		}
 
-		// summoned enemies append to the end of the enemy list and transforms replace in place, so a regular for loop works
-		for (int i = 0; i < Enemies.Count; i++)
+		foreach (EnemyComponent component in Enemies.ToList())
 		{
-			Actor enemy = Enemies[i].Actor;
+			if (!Enemies.Contains(component))
+				continue;
+			Actor enemy = component.Actor;
 			await RunGuarded(enemy.OnStartOfBattle, $"{enemy.Name}.OnStartOfBattle");
 			if (RestartQueued)
 			{
@@ -866,7 +867,7 @@ public partial class BattleManager : Node
 					TurnCount++;
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
-						if (enemy.Actor.IsToast)
+						if (enemy.Actor.IsToast || !Enemies.Contains(enemy))
 							continue;
 						await RunGuarded(() => enemy.Actor.ProcessStartOfCommands(),
 							$"{enemy.Actor.Name}.ProcessStartOfCommands");
@@ -937,7 +938,7 @@ public partial class BattleManager : Node
 
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
-					if (enemy.Actor.IsToast)
+					if (enemy.Actor.IsToast || !Enemies.Contains(enemy))
 						continue;
 					enemy.Actor.SetHurt(false);
 					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
@@ -1252,7 +1253,7 @@ public partial class BattleManager : Node
 
 			foreach (EnemyComponent e in Enemies.ToList())
 			{
-				if (e.Actor.IsToast)
+				if (e.Actor.IsToast || !Enemies.Contains(e))
 					continue;
 				foreach (StatModifier modifier in e.Actor.StatModifiers.Values)
 				{
@@ -1487,6 +1488,7 @@ public partial class BattleManager : Node
 			GD.Print("Processing action " + currentAction.Action.Name);
 		List<Actor> resolvedTargets = [];
 		bool noTarget = false;
+		currentAction.Targets = currentAction.Targets?.Select(ResolveTransformed).ToList();
 		switch (currentAction.Action.Target)
 		{
 			case SkillTarget.AllAllies:
@@ -1909,7 +1911,7 @@ public partial class BattleManager : Node
 			InEndOfTurnHooks = true;
 			foreach (EnemyComponent enemy in Enemies.ToList())
 			{
-				if (enemy.Actor.IsToast)
+				if (enemy.Actor.IsToast || !Enemies.Contains(enemy))
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
@@ -2141,10 +2143,10 @@ public partial class BattleManager : Node
 			PartyMember member = CurrentParty[i].Actor;
 			await RunGuarded(() => member.OnEndOfBattle(victory), $"{member.Name}.OnEndOfBattle");
 		}
-		for (int i = 0; i < Enemies.Count; i++)
+		foreach (EnemyComponent component in Enemies.ToList())
 		{
-			Enemy enemy = Enemies[i].Actor;
-			if (enemy.IsToast)
+			Enemy enemy = component.Actor;
+			if (!Enemies.Contains(component) || enemy.IsToast)
 				continue;
 			await RunGuarded(() => enemy.OnEndOfBattle(victory), $"{enemy.Name}.OnEndOfBattle");
 		}
@@ -2217,6 +2219,7 @@ public partial class BattleManager : Node
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
 		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
+		target = ResolveTransformed(target);
 		if (!neverMiss && RollMissOrEvade(self, target, silent))
 			return -1;
 
@@ -2421,6 +2424,7 @@ public partial class BattleManager : Node
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
 		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
+		target = ResolveTransformed(target);
 		if (!neverMiss && RollMissOrEvade(self, target, silent))
 			return -1;
 
@@ -2504,6 +2508,7 @@ public partial class BattleManager : Node
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
 	public int Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f, bool silent = false)
 	{
+		target = ResolveTransformed(target);
 		float baseHealing = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
@@ -2528,6 +2533,7 @@ public partial class BattleManager : Node
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
 	public void HealJuice(Actor self, Actor target, Func<float> healFunc, bool silent = false)
 	{
+		target = ResolveTransformed(target);
 		float baseJuice = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		float finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
@@ -2616,6 +2622,7 @@ public partial class BattleManager : Node
 	/// <param name="silent">If true, no battle log messages will be shown.</param>
 	public void RandomEmotion(Actor who, bool silent = false)
 	{
+		who = ResolveTransformed(who);
 		IReadOnlyList<EmotionGroup> pool = Database.GetRandomEmotionGroups();
 		if (pool.Count == 0)
 			return;
@@ -2673,6 +2680,7 @@ public partial class BattleManager : Node
 		if (DamageNumbersDisabled)
 			return;
 
+		target = ResolveTransformed(target);
 		ActorComponent component = target.Component;
 		if (component != null)
 		{
@@ -2832,13 +2840,20 @@ public partial class BattleManager : Node
 	/// Transforms an enemy into another enemy, despawning the original and spawning the replacement
 	/// at the same position and index (see <see cref="GetEnemy"/>). The original enemy is immediately removed from the battle.
 	/// </summary>
-	/// <remarks>Special care must be used when using this method, as the old enemy will immediately become invalid.</remarks>
+	/// <remarks>
+	/// Special care must be used when using this method, as the old enemy will immediately become invalid.<br/>
+	/// Damage, healing, emotion changes and damage numbers that go through <see cref="BattleManager"/> to the old enemy
+	/// reach the new one instead, so the rest of a running action still lands. Commands later in the turn that are aimed
+	/// at the old enemy also go to the new one. Methods called directly on the old enemy are safe, but they don't reach
+	/// the new one. An emotion change on it can still show its battle log message.
+	/// </remarks>
 	/// <param name="original">The enemy to transform from.</param>
 	/// <param name="who">The database name of the enemy to transform into.</param>
 	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
 	/// <param name="offset">The position offset relative to the old enemy's position.</param>
+	/// <param name="adjustedStats">Stat adjustments for the new enemy. Defaults to the original's <see cref="Enemy.AdjustedStats"/>.</param>
 	/// <returns>The new <see cref="Enemy"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
-	public Enemy TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default)
+	public Enemy TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default, Stats? adjustedStats = null)
 	{
 		EnemyComponent target = original?.Component;
 		if (target == null) return null;
@@ -2847,13 +2862,21 @@ public partial class BattleManager : Node
 		Enemies.Remove(target);
 		target.GetParent().QueueFree();
 		
-		Enemy transformed = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer);
+		Enemy transformed = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer, adjustedStats ?? original.AdjustedStats);
 		if (transformed != null && index >= 0)
 		{
 			Enemies.Remove(transformed.Component);
 			Enemies.Insert(index, transformed.Component);
 		}
+		original.TransformedInto = transformed;
 		return transformed;
+	}
+
+	internal Actor ResolveTransformed(Actor actor)
+	{
+		while (actor is Enemy { TransformedInto: { } next })
+			actor = next;
+		return actor;
 	}
 
 	/// <summary>
@@ -2915,6 +2938,7 @@ public partial class BattleManager : Node
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
 	public void MakeEmotion(Actor who, string groupId, bool silent = false)
 	{
+		who = ResolveTransformed(who);
 		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group))
 		{
 			GD.PrintErr("Unknown emotion group: " + groupId);

@@ -852,10 +852,10 @@ public abstract class Actor
 	/// <param name="hurt">Whether this actor should appear hurt.</param>
 	public virtual void SetHurt(bool hurt)
 	{
-		if (CurrentAnimation != null)
+		if (CurrentAnimation != null || !GodotObject.IsInstanceValid(Sprite))
 			return;
 
-		Sprite.Animation = hurt ? "hurt" : CurrentEmotion.AnimationName;
+		Sprite.Animation = hurt ? "hurt" : EmotionAnimation(CurrentEmotion);
 	}
 
 	/// <summary>
@@ -866,7 +866,7 @@ public abstract class Actor
 	/// <param name="animationName">The animation to play. Must exist in the actor's SpriteFrames.</param>
 	public virtual void PlayAnimation(string animationName)
 	{
-		if (Sprite?.SpriteFrames == null || !Sprite.SpriteFrames.HasAnimation(animationName))
+		if (!GodotObject.IsInstanceValid(Sprite) || Sprite.SpriteFrames == null || !Sprite.SpriteFrames.HasAnimation(animationName))
 		{
 			GD.PushWarning(Name + " cannot play unknown animation: " + animationName);
 			return;
@@ -887,7 +887,8 @@ public abstract class Actor
 			return;
 
 		CurrentAnimation = null;
-		Sprite.Animation = IsToast ? "toast" : CurrentEmotion.AnimationName;
+		if (GodotObject.IsInstanceValid(Sprite))
+			Sprite.Animation = IsToast ? "toast" : EmotionAnimation(CurrentEmotion);
 		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -902,7 +903,7 @@ public abstract class Actor
 	/// e.g. <c>new Vector2(width / 2f, height)</c> for the bottom center.</param>
 	public void SetSpritePivot(Vector2 pivot)
 	{
-		if (Sprite?.SpriteFrames == null)
+		if (!GodotObject.IsInstanceValid(Sprite) || Sprite.SpriteFrames == null)
 		{
 			GD.PushWarning(Name + " has no sprite to set a pivot on.");
 			return;
@@ -1003,8 +1004,8 @@ public abstract class Actor
 
 			OnEmotionChanged?.Invoke(this, EventArgs.Empty);
 			// only update the sprite if no animation override is active
-			if (CurrentAnimation == null) {
-				Sprite.Animation = emotion.AnimationName;
+			if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite)) {
+				Sprite.Animation = EmotionAnimation(emotion);
 			}
 			NotifyEmotionTransform(previous, emotion);
 			return true;
@@ -1036,13 +1037,23 @@ public abstract class Actor
 		CurrentEmotion = emotion;
 		ClampHealthJuiceToMax();
 		OnEmotionChanged?.Invoke(this, EventArgs.Empty);
-		if (CurrentAnimation == null)
+		if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
 		{
-			Sprite.Animation = emotion.AnimationName;
+			Sprite.Animation = EmotionAnimation(emotion);
 		}
 		NotifyEmotionTransform(previous, emotion);
 	}
 	
+	internal string EmotionAnimation(Emotion emotion)
+	{
+		if (this is not Enemy || Sprite?.SpriteFrames == null || Sprite.SpriteFrames.HasAnimation(emotion.AnimationName))
+			return emotion.AnimationName;
+		if (emotion.Group != null && Database.TryGetEmotionByGroupTier(emotion.Group.Id, 1, out Emotion groupBase)
+		    && Sprite.SpriteFrames.HasAnimation(groupBase.AnimationName))
+			return groupBase.AnimationName;
+		return "neutral";
+	}
+
 	private void NotifyEmotionTransform(Emotion previous, Emotion current)
 	{
 		if (this is Enemy enemy)

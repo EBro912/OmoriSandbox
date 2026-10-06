@@ -67,6 +67,8 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public Stats AdjustedStats { get; private set; }
 
+	internal Enemy TransformedInto { get; set; }
+
 	/// <inheritdoc/>
 	public sealed override EnemyComponent Component => (EnemyComponent)base.Component;
 
@@ -120,6 +122,8 @@ public abstract class Enemy : Actor
 	/// <param name="duration">The duration of the change, in seconds.</param>
 	public void SetOpacity(float opacity, float duration = 0f)
 	{
+		if (!GodotObject.IsInstanceValid(Sprite))
+			return;
 		opacity = Math.Clamp(opacity, 0f, 1f);
 		if (duration == 0f)
 		{

@@ -105,6 +105,17 @@ public partial class EnemyComponent : ActorComponent
 		Actor.SetBlendColor(color);
 	}
 
+	/// <inheritdoc/>
+	public override void _ExitTree()
+	{
+		if (Enemy != null)
+		{
+			Enemy.OnDamaged -= Damaged;
+			Enemy.OnRevived -= Revived;
+		}
+		base._ExitTree();
+	}
+
 	private void Damaged(object sender, EventArgs e)
 	{
 		Actor.SetHurt(true);
