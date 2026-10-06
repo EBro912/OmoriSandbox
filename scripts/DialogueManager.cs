@@ -569,7 +569,7 @@ public partial class DialogueManager : Node2D
 	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
 	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
-	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
 	public void QueueMessage(string message, string[] choices = null, FontType font = FontType.Normal)
 	{
 		QueueMessage(null, Vector2.Zero, message, choices, font);
@@ -583,7 +583,7 @@ public partial class DialogueManager : Node2D
 	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
 	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
-	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
 	public void QueueMessage(Enemy speaker, string message, string[] choices = null, FontType font = FontType.Normal)
 	{
 		QueueMessage(speaker.Name, speaker.CenterPoint, message, choices, font);
@@ -597,7 +597,7 @@ public partial class DialogueManager : Node2D
 	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
 	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
-	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
 	public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null,
 		FontType font = FontType.Normal)
 	{
@@ -626,7 +626,7 @@ public partial class DialogueManager : Node2D
 	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
 	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
 	/// <param name="choices">A list of choices this dialogue box has.</param>
-	/// <param name="font">The Omori font to use, either Normal or Jagged.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
 	public void QueueMessage(string speaker, string message, string[] choices = null, FontType font = FontType.Normal)
 	{
 		QueueMessage(speaker, default, message, choices, font);

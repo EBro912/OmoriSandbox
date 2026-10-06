@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Extensions;
 using OmoriSandbox.Modding;
 using System;
 using System.Collections.Generic;
@@ -47,6 +48,7 @@ public partial class AnimationManager : Node
 	private float FrameTimer = 0f;
 	private List<PlayingAnimation> PlayingAnimations = [];
 	private readonly List<VideoStreamPlayer> PlayingVideos = [];
+	private Tween ScreenTintTween;
 
 	private float Shake = 0f;
 	private float ShakePwr = 0f;
@@ -944,12 +946,12 @@ public partial class AnimationManager : Node
 	{
 		ScreenTint.ZIndex = layer;
 		if (duration == 0f)
-			ScreenTint.Color = color;
-		else
 		{
-			Tween tween = GetTree().CreateTween();
-			tween.TweenProperty(ScreenTint, "color", color, duration);
+			ScreenTintTween?.Kill();
+			ScreenTint.Color = color;
 		}
+		else
+			StartScreenTint(color, duration);
 	}
 
 	/// <summary>
@@ -962,9 +964,25 @@ public partial class AnimationManager : Node
 	public async Task WaitForTintScreen(Color color, float duration, int layer = -4)
 	{
 		ScreenTint.ZIndex = layer;
-		Tween tween = GetTree().CreateTween();
-		tween.TweenProperty(ScreenTint, "color", color, duration);
-		await ToSignal(tween, Tween.SignalName.Finished);
+		Tween tween = StartScreenTint(color, duration);
+		while (tween.IsValid() && tween.IsRunning())
+			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+	}
+
+	private Tween StartScreenTint(Color color, float duration)
+	{
+		ScreenTintTween?.Kill();
+		ScreenTintTween = GetTree().CreateTween();
+		ScreenTintTween.TweenProperty(ScreenTint, "color", color, duration);
+		return ScreenTintTween;
+	}
+
+	internal void ResetScreenEffects()
+	{
+		ScreenTintTween?.Kill();
+		ScreenTintTween = null;
+		ScreenTint.ZIndex = -4;
+		ScreenTint.Color = ColorsExtension.TransparentBlack;
 	}
 
 	internal Sprite2D SpawnPerfectheartOverlay(Vector2 position)

@@ -663,7 +663,7 @@ public partial class BattleManager : Node
 		CurrentCommand = null;
 		CommandTargets = [];
 		GameManager.Instance.SetBattlebackGrayscale(false);
-		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
+		AnimationManager.Instance.ResetScreenEffects();
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
 		MenuManager.Instance.ClearLastSelected();
 		EnergyBar.Visible = false;
@@ -715,6 +715,13 @@ public partial class BattleManager : Node
 		if (SelectedAction == null)
 		{
 			// the preset gave this actor no skills at all
+			AudioManager.Instance.PlaySFX("sys_buzzer");
+			return;
+		}
+		PartyMember attacker = CurrentParty[CurrentPartyMember].Actor;
+		if (SelectedAction is Skill attack &&
+		    (!attack.MeetsRequirements(attacker) || attacker.CurrentJuice - attack.Cost(attacker) < 0))
+		{
 			AudioManager.Instance.PlaySFX("sys_buzzer");
 			return;
 		}
@@ -1567,13 +1574,15 @@ public partial class BattleManager : Node
 		{
 			if (!currentAction.Forced && !skill.MeetsRequirements(currentAction.Actor))
 			{
-				if (currentAction.Actor.CurrentEmotion.BlocksActions
-				    || skill.RequirementFailureMessage == null)
+				if (currentAction.Actor.CurrentEmotion.BlocksActions)
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
 					                                       " is too AFRAID to move!");
-				else
+				else if (skill.RequirementFailureMessage != null)
 					BattleLogManager.Instance.QueueMessage(currentAction.Actor, skill.RequirementFailureMessage);
-				SetPhase(BattlePhase.WaitForBattleLog);
+				if (BattleLogManager.Instance.IsProcessingMessage)
+					SetPhase(BattlePhase.WaitForBattleLog);
+				else
+					SetPhase(BattlePhase.PostCommand);
 				return;
 			}
 			

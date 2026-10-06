@@ -115,6 +115,8 @@ internal partial class MainMenuManager : Node
 			}
 
 			LastLoadedPreset = presetName;
+			SettingsMenuManager.Instance.LastSelectedPreset = presetName;
+			SettingsMenuManager.Instance.SaveSettings();
 			if (GameManager.Instance.LoadBattlePreset(preset, (int)StageSelectorSpinBox.Value))
 				MainMenu.Visible = false;
 		};

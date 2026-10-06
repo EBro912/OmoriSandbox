@@ -423,7 +423,7 @@ public abstract class Actor
 	public void RemoveAllStatModifiers(bool force = false)
 	{
 		foreach (string modifier in StatModifiers.Keys.ToList())
-			RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Cleared, force);
+			RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Cleared, force, false);
 	}
 
 	/// <summary>

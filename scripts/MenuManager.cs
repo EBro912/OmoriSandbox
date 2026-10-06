@@ -190,13 +190,13 @@ internal partial class MenuManager : Node
 
 	private void MoveEnergyBarDown(bool immediate)
 	{
+		EnergyBarTween?.Kill();
 		if (immediate)
 		{
 			EnergyBar.Position = new Vector2(140f, 424f);
 		}
 		else
 		{
-			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
 			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(140f, 424f), Menu.MoveDuration).SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.In).SetDelay(Menu.MoveDelay);
 		}
@@ -204,13 +204,13 @@ internal partial class MenuManager : Node
 
 	private void MoveEnergyBarUp(bool immediate)
 	{
+		EnergyBarTween?.Kill();
 		if (immediate)
 		{
 			EnergyBar.Position = new Vector2(140f, 340f);
 		}
 		else
 		{
-			EnergyBarTween?.Kill();
 			EnergyBarTween = CreateTween();
 			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(140f, 340f), Menu.MoveDuration).SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.Out).SetDelay(Menu.MoveDelay);
 		}

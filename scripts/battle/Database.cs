@@ -51,6 +51,16 @@ public class Database
 	}
 
 	/// <summary>
+	/// Whether an enemy with the given id is registered, built in or from a mod.
+	/// </summary>
+	/// <param name="name">The enemy id, as used in presets and by <c>BattleManager.SummonEnemy</c>.</param>
+	/// <returns>True if an enemy is registered under that id.</returns>
+	public static bool HasEnemy(string name)
+	{
+		return name != null && Enemies.ContainsKey(name);
+	}
+
+	/// <summary>
 	/// Tries to get an <see cref="Item"/> of the given <paramref name="name"/> from the database.
 	/// </summary>
 	/// <param name="name">The name of the item to search for.</param>

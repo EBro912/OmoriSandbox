@@ -203,6 +203,23 @@ public partial class GameManager : Node
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];
 
+		if (preset.Type is GameModeType.BossRush)
+		{
+			if (preset.Stages.Count == 0)
+			{
+				GD.PrintErr($"Preset {preset.Name} has no Boss Rush stages, not starting the battle.");
+				ShowCannotStartDialog("This Boss Rush preset has no stages.\nAdd a stage in the editor.");
+				return false;
+			}
+			int badStage = preset.Stages.FindIndex(stage => !stage.Enemies.Any(x => Database.HasEnemy(x.Name)));
+			if (badStage >= 0)
+			{
+				GD.PrintErr($"Preset {preset.Name}: Boss Rush stage {badStage + 1} has no enemies that could be spawned, not starting the battle.");
+				ShowCannotStartDialog($"Boss Rush stage {badStage + 1} has no enemies that could be spawned.\nAdd an enemy to it in the editor, or check the console for errors.");
+				return false;
+			}
+		}
+
 		foreach (BattlePresetActor entry in preset.Actors)
 		{
 			if (party.Count >= 4)
@@ -235,17 +252,7 @@ public partial class GameManager : Node
 		if (party.Count == 0)
 		{
 			GD.PrintErr($"Preset {preset.Name} has no party members that could be spawned, not starting the battle.");
-			AcceptDialog dialog = new()
-			{
-				Title = "Cannot Start Battle",
-				DialogText = "This preset has no party members that could be spawned.\nAdd a party member in the editor, or check the console for errors.",
-				Unresizable = true
-			};
-			AddChild(dialog);
-			dialog.Confirmed += dialog.QueueFree;
-			dialog.Canceled += dialog.QueueFree;
-			dialog.PopupCentered();
-			dialog.Show();
+			ShowCannotStartDialog("This preset has no party members that could be spawned.\nAdd a party member in the editor, or check the console for errors.");
 			return false;
 		}
 
@@ -280,10 +287,33 @@ public partial class GameManager : Node
 			enemy.Add(en);
 		}
 
+		if (preset.Type is GameModeType.Normal && enemy.Count == 0)
+		{
+			GD.PrintErr($"Preset {preset.Name} has no enemies that could be spawned, not starting the battle.");
+			DespawnAll();
+			ShowCannotStartDialog("This preset has no enemies that could be spawned.\nAdd an enemy in the editor, or check the console for errors.");
+			return false;
+		}
+
 		DialogueManager.Instance.DialogueDisabled = preset.DisableDialogue;
 		DiscordManager.SetBattling(enemy.Count);
 		BattleManager.Instance.Init(party, enemy, preset.Stages, preset, startingStage);
 		return true;
+	}
+
+	private void ShowCannotStartDialog(string text)
+	{
+		AcceptDialog dialog = new()
+		{
+			Title = "Cannot Start Battle",
+			DialogText = text,
+			Unresizable = true
+		};
+		AddChild(dialog);
+		dialog.Confirmed += dialog.QueueFree;
+		dialog.Canceled += dialog.QueueFree;
+		dialog.PopupCentered();
+		dialog.Show();
 	}
 
 	internal void DespawnAll()
@@ -314,6 +344,11 @@ public partial class GameManager : Node
 		Enemy instance = Database.CreateEnemy(enemy.Name);
 		if (instance == null)
 			return null;
+		if (instance.Animation == null)
+		{
+			GD.PrintErr("Failed to load Sprite animations for Enemy: " + instance.Name);
+			return null;
+		}
 		Node2D node = EnemyNode.Instantiate<Node2D>();
 		node.AddToGroup(EnemyNodeGroup);
 		BattlebackRoot.AddChild(node);

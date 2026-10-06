@@ -159,6 +159,8 @@ internal partial class ModManager : Node
 
 		foreach (string dirName in DirAccess.GetDirectoriesAt("user://mods"))
 		{
+			if (FileAccess.FileExists($"user://mods/{dirName}/mod.json"))
+				total++;
 			try
 			{
 				if (LoadMod(dirName))
@@ -172,7 +174,6 @@ internal partial class ModManager : Node
 			{
 				CurrentModName = null;
 			}
-			total++;
 		}
 
 		sw.Stop();
