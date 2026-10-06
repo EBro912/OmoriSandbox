@@ -91,7 +91,7 @@ internal sealed class NefariousChip : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage("[font_size=40][wave freq=10.0]YAHOO! WAA-HAA!!");
+            DialogueManager.Instance.QueueMessage(CenterPoint, "[font_size=40][wave freq=10.0]YAHOO! WAA-HAA!!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

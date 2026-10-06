@@ -1923,6 +1923,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(35, false);
 				await AnimationManager.Instance.WaitForAnimation(28, target);
 				BattleLogManager.Instance.QueueMessage(self, other,
@@ -1943,6 +1944,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(36, false);
 				await AnimationManager.Instance.WaitForAnimation(28, target);
 				BattleLogManager.Instance.QueueMessage(self, other,
@@ -1963,6 +1965,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(37, false);
 				await AnimationManager.Instance.WaitForAnimation(44, target);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] finally notices [actor]!");
@@ -1983,6 +1986,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(2);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(38, false);
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
@@ -2001,6 +2005,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(2);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(39, false);
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
@@ -2024,6 +2029,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(2);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(40, false);
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
@@ -2047,6 +2053,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(3);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(41, false);
 				await Wait.Milliseconds(2000);
 				AnimationManager.Instance.PlayAnimation(214, self);
@@ -2068,6 +2075,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(3);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(42, false);
 				await Wait.Milliseconds(2000);
 				AnimationManager.Instance.PlayAnimation(214, self);
@@ -2092,6 +2100,7 @@ public class Database
 				PartyMember other = BattleManager.Instance.GetPartyMemberAtPosition(3);
 				BattleLogManager.Instance.QueueMessage(self, other, "[actor] looks at [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(43, false);
 				await Wait.Milliseconds(2000);
 				AnimationManager.Instance.PlayAnimation(214, self);
@@ -2464,6 +2473,7 @@ public class Database
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(62, false);
 				await Wait.Milliseconds(1000);
 				BattleLogManager.Instance.QueueMessage(self, first, "[target] wasn't looking and gets bopped!");
@@ -2485,6 +2495,7 @@ public class Database
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(63, false);
 				BattleLogManager.Instance.QueueMessage(self, first, "[target] catches [actor]'s ball!");
 				BattleLogManager.Instance.QueueMessage(first, target, "[actor] throws the ball at\n[target]!");
@@ -2505,6 +2516,7 @@ public class Database
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(64, false);
 				BattleLogManager.Instance.QueueMessage(self, first, "[target] catches [actor]'s ball!");
 				BattleLogManager.Instance.QueueMessage(first, target, "[actor] throws the ball at\n[target]!");
@@ -2525,6 +2537,7 @@ public class Database
 				PartyMember second = BattleManager.Instance.GetPartyMemberAtPosition(1);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(65, true);
 				await Wait.Milliseconds(2000);
 				await AnimationManager.Instance.WaitForAnimation(66, target);
@@ -2544,6 +2557,7 @@ public class Database
 				PartyMember second = BattleManager.Instance.GetPartyMemberAtPosition(1);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(65, true);
 				await Wait.Milliseconds(2000);
 				await AnimationManager.Instance.WaitForAnimation(67, target);
@@ -2563,6 +2577,7 @@ public class Database
 				PartyMember second = BattleManager.Instance.GetPartyMemberAtPosition(1);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				AnimationManager.Instance.PlayScreenAnimation(79, true);
 				await Wait.Milliseconds(2000);
 				await AnimationManager.Instance.WaitForAnimation(68, target);
@@ -2583,6 +2598,7 @@ public class Database
 				PartyMember third = BattleManager.Instance.GetPartyMemberAtPosition(3);
 				BattleLogManager.Instance.QueueMessage(self, third, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(69, true);
 				BattleLogManager.Instance.QueueMessage(self, third, "[actor] dunks on the foes!");
 				foreach (Actor enemy in targets)
@@ -2605,6 +2621,7 @@ public class Database
 				PartyMember third = BattleManager.Instance.GetPartyMemberAtPosition(3);
 				BattleLogManager.Instance.QueueMessage(self, third, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(70, true);
 				BattleLogManager.Instance.QueueMessage(self, third, "[actor] dunks on the foes!");
 				foreach (Actor enemy in targets)
@@ -2627,6 +2644,7 @@ public class Database
 				PartyMember third = BattleManager.Instance.GetPartyMemberAtPosition(3);
 				BattleLogManager.Instance.QueueMessage(self, third, "[actor] passes to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(71, true);
 				BattleLogManager.Instance.QueueMessage(self, third, "[actor] dunks on the foes with style!");
 				foreach (Actor enemy in targets)
@@ -2972,6 +2990,7 @@ public class Database
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				int heal = (int)Math.Round(first.CurrentStats.MaxHP * 0.15f, MidpointRounding.AwayFromZero);
@@ -2993,6 +3012,7 @@ public class Database
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				int heal = (int)Math.Round(first.CurrentStats.MaxHP * 0.25f, MidpointRounding.AwayFromZero);
@@ -3017,6 +3037,7 @@ public class Database
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				int heal = (int)Math.Round(first.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
@@ -3042,6 +3063,7 @@ public class Database
 				PartyMember second = BattleManager.Instance.GetPartyMemberAtPosition(1);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				int heal = (int)Math.Round(second.CurrentStats.MaxHP * 0.15f, MidpointRounding.AwayFromZero);
@@ -3064,6 +3086,7 @@ public class Database
 				PartyMember second = BattleManager.Instance.GetPartyMemberAtPosition(1);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				int heal = (int)Math.Round(second.CurrentStats.MaxHP * 0.25f, MidpointRounding.AwayFromZero);
@@ -3089,6 +3112,7 @@ public class Database
 				PartyMember second = BattleManager.Instance.GetPartyMemberAtPosition(1);
 				BattleLogManager.Instance.QueueMessage(self, second, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				int heal = (int)Math.Round(second.CurrentStats.MaxHP * 0.40f, MidpointRounding.AwayFromZero);
@@ -3114,6 +3138,7 @@ public class Database
 				PartyMember fourth = BattleManager.Instance.GetPartyMemberAtPosition(2);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				int heal = (int)Math.Round(fourth.CurrentStats.MaxHP * 0.15f, MidpointRounding.AwayFromZero);
@@ -3138,6 +3163,7 @@ public class Database
 				PartyMember fourth = BattleManager.Instance.GetPartyMemberAtPosition(2);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				int heal = (int)Math.Round(fourth.CurrentStats.MaxHP * 0.25f, MidpointRounding.AwayFromZero);
@@ -3165,6 +3191,7 @@ public class Database
 				PartyMember fourth = BattleManager.Instance.GetPartyMemberAtPosition(2);
 				BattleLogManager.Instance.QueueMessage(self, fourth, "[actor] calls out to [target].");
 				await Wait.Milliseconds(1000);
+				BattleLogManager.Instance.ClearBattleLog();
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				int heal = (int)Math.Round(fourth.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
@@ -7029,9 +7056,12 @@ public class Database
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
 				await Wait.Milliseconds(500);
+				AudioManager.Instance.PlaySFX("GEN_Bite", 0.5f, 0.9f);
 				// Damage returns -1 on a miss/evade, which must not count against the steal
 				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true)));
 				self.Heal((int)Math.Floor(totalDamage * 0.25d), applyDebugScale: false);
+				await Wait.Frames(8);
+				AudioManager.Instance.PlaySFX("BA_Bite", 0.5f, 0.9f);
 				await BattleLogManager.Instance.WaitForBattleLog();
 				await Wait.Milliseconds(750);
 				if (self is Enemy stillAnEnemy)
@@ -7060,9 +7090,12 @@ public class Database
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
 				await Wait.Milliseconds(500);
+				AudioManager.Instance.PlaySFX("GEN_Bite", 0.5f, 0.9f);
 				// Damage returns -1 on a miss/evade, which must not count against the steal
 				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.35f, false, 0.5f, neverCrit: true)));
 				self.Heal((int)Math.Floor(totalDamage * 0.5d), applyDebugScale: false);
+				await Wait.Frames(8);
+				AudioManager.Instance.PlaySFX("BA_Bite", 0.5f, 0.9f);
 				await BattleLogManager.Instance.WaitForBattleLog();
 				await Wait.Milliseconds(750);
 				if (self is Enemy stillAnEnemy)
@@ -8574,6 +8607,7 @@ public class Database
 				heal = target.Heal(heal);
 				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(heal, target, DamageType.Heal);
+				BattleManager.Instance.SpawnDamageNumber(total, target, DamageType.JuiceGain);
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {heal} HEART!");
 				BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {total} JUICE!");
 				await Task.CompletedTask;

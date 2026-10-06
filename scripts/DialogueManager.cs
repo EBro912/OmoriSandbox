@@ -288,22 +288,25 @@ public partial class DialogueManager : Node2D
 		AutoClose = false;
 		TextFinished = false;
 		ShowFast = false;
+		if (current.SpeakerPos != default)
+		{
+			SpeakerSprite.Visible = true;
+			Vector2 local = ToLocal(current.SpeakerPos);
+			SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
+		}
+		else if (current.Speaker == null)
+		{
+			SpeakerSprite.Visible = false;
+		}
+
 		if (current.Speaker != null)
 		{
-			if (current.SpeakerPos != default)
-			{
-				SpeakerSprite.Visible = true;
-				Vector2 local = ToLocal(current.SpeakerPos);
-				SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
-			}
-
 			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " + BuildHeader(current.Font) + current.Message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = current.Speaker.Length + 2;
 		}
 		else
 		{
-			SpeakerSprite.Visible = false;
 			// in Godot 4.7+, a paragraph tag after any inline tag starts a second paragraph,
 			// leaving an empty full-height first line, so alignment tags stay ahead of the header
 			// so we need to fix that here
@@ -573,6 +576,22 @@ public partial class DialogueManager : Node2D
 	public void QueueMessage(string message, string[] choices = null, FontType font = FontType.Normal)
 	{
 		QueueMessage(null, Vector2.Zero, message, choices, font);
+	}
+
+	/// <summary>
+	/// Queues a message to be displayed in the dialogue box with no speaker name, with the speaker arrow pointing at a position on screen.
+	/// </summary>
+	/// <remarks>
+	/// Pass an enemy's <see cref="Actor.CenterPoint"/> to point at it. A position of <see cref="Vector2.Zero"/> hides the arrow.
+	/// </remarks>
+	/// <param name="speakerPos">The position on screen to use as the speaker target.</param>
+	/// <param name="message">The message to display. Supports the following pause markers: <c>\.</c> pauses for 15 frames (0.25s), <c>\|</c> pauses for 60 frames (1s),
+	/// <c>\W[n]</c> pauses for n frames, <c>\!</c> waits for input, and <c>\^</c> closes (or advances) the box automatically once it finishes, unless it has choices.</param>
+	/// <param name="choices">A list of choices this dialogue box has.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
+	public void QueueMessage(Vector2 speakerPos, string message, string[] choices = null, FontType font = FontType.Normal)
+	{
+		QueueMessage(null, speakerPos, message, choices, font);
 	}
 
 	/// <summary>

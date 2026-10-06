@@ -41,7 +41,6 @@
 [ext_resource type="Script" uid="uid://brg8pn4xipyww" path="res://scripts/EnergyDots.cs" id="24_tel4y"]
 [ext_resource type="SpriteFrames" uid="uid://d0wkdk25n7b1w" path="res://animations/humphrey_face_swallow.tres" id="25_chjal"]
 [ext_resource type="Texture2D" uid="uid://bi2tnggbr827o" path="res://assets/pictures/player_skill_cherish.png" id="25_vchkt"]
-[ext_resource type="Material" uid="uid://duiu3jck554il" path="res://assets/mask_shader.tres" id="30_fv21b"]
 [ext_resource type="Texture2D" uid="uid://b2nt2i2gilu5a" path="res://assets/system/Window.png" id="36_bjg73"]
 [ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="37_c6pm6"]
 [ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="38_5he1u"]
@@ -572,7 +571,6 @@ text = "00"
 horizontal_alignment = 1
 
 [node name="EnergyDots" type="Sprite2D" parent="BattleCanvas/UI/Energy" unique_id=1439514488]
-material = ExtResource("30_fv21b")
 position = Vector2(20, 8)
 texture = ExtResource("39_bjg73")
 centered = false

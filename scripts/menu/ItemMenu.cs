@@ -98,13 +98,11 @@ internal partial class ItemMenu : PagedMenu
 		if (Empty) return;
 		(Item, int) i = DisplayedItems[CursorIndex];
 		CostText.Text = "x" + i.Item2;
-		if (i.Item1.SpriteIndex > -1)
-			BattleLogManager.Instance.ClearAndShowMessageWithIcon(
-				$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}", i.Item1.SpritesheetPath,
-				i.Item1.SpriteIndex);
-		else
-			BattleLogManager.Instance.ClearAndShowDescription(
-				$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}");
+		bool hasIcon = i.Item1.SpriteIndex > -1;
+		BattleLogManager.Instance.ClearAndShowMessageWithIcon(
+			$"[font_size=28]{i.Item1.Name}\n[font_size=20]{i.Item1.Description}",
+			hasIcon ? i.Item1.SpritesheetPath : "res://assets/system/itemConsumables.png",
+			hasIcon ? i.Item1.SpriteIndex : 0);
 	}
 
 	protected override void OnSelect()

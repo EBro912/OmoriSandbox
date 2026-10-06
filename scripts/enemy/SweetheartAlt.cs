@@ -163,7 +163,7 @@ internal sealed class SweetheartAlt : Enemy
 			UnlockEmotion();
 			DialogueManager.Instance.QueueMessage(this, "Hmph! I see you are still standing.");
 			DialogueManager.Instance.QueueMessage(this, "Cockroaches are resilient, I suppose!");
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
+			DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
 			await DialogueManager.Instance.WaitForDialogue();
 			SetEmotionForced("manic");
 			DialogueManager.Instance.QueueMessage("SWEETHEART became MANIC!");
@@ -178,9 +178,9 @@ internal sealed class SweetheartAlt : Enemy
 	{
 		if (CharmPending)
 		{
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OH HERO![font_size=52]MY HERO!!");
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]YOUR SMILE CHARMS MY HEART!");
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]I WILL MAKE IT MINE!!");
+			DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=10.0][font_size=40]OH HERO![font_size=52]MY HERO!!");
+			DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=10.0][font_size=40]YOUR SMILE CHARMS MY HEART!");
+			DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=10.0][font_size=40]I WILL MAKE IT MINE!!");
 			await DialogueManager.Instance.WaitForDialogue();
 			if (!CharmingHero.IsToast)
 				CharmingHero.Heal(100);
@@ -192,7 +192,7 @@ internal sealed class SweetheartAlt : Enemy
 		}
 		if (DonutPending)
 		{
-			DialogueManager.Instance.QueueMessage("How dare you eat a [color=#5bd863]DONUT[/color] in my presence!");
+			DialogueManager.Instance.QueueMessage(CenterPoint, "How dare you eat a [color=#5bd863]DONUT[/color] in my presence!");
 			await DialogueManager.Instance.WaitForDialogue();
 			DonutPending = false;
 			DonutDone = true;
@@ -204,7 +204,7 @@ internal sealed class SweetheartAlt : Enemy
     {
         if (!victory)
 		{
-			DialogueManager.Instance.QueueMessage("[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
+			DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=10.0][font_size=40]OHOHOH[font_size=52]OHOHOHO!!");
 			DialogueManager.Instance.QueueMessage(this, @"This was child's play!\! You're all nothing but a bunch of lowly peasants!");
 			DialogueManager.Instance.QueueMessage(this, "[br]To [color=#64f7ed]THE DUNGEON[/color] with you!");
             await DialogueManager.Instance.WaitForDialogue();

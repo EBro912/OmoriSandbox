@@ -34,7 +34,7 @@ public partial class StateAnimator : Node
 	}
 
 	/// <summary>
-	/// Shows the label and portrait of the emotion with the given id, fading the portrait in.
+	/// Shows the label and portrait of the emotion with the given id, fading the previous portrait out.
 	/// Unknown ids show neutral and log a warning.
 	/// </summary>
 	/// <param name="state">The id of the emotion to show.</param>
@@ -104,25 +104,15 @@ public partial class StateAnimator : Node
 		if (FaceStateSprite == null)
 			return;
 
-		// emotions in the original game have a "fade in" effect here
-		// so we do that by making a copy of the back sprite and fading in the new one
-		FaceStateSprite.ZIndex = -4;
-		Sprite2D newFaceSprite = (Sprite2D)FaceStateSprite.Duplicate();
-		GetParent().AddChild(newFaceSprite);
-		newFaceSprite.ZIndex = -3;
-		newFaceSprite.Modulate = Colors.Transparent;
-		newFaceSprite.Texture = texture;
-		newFaceSprite.RegionEnabled = region.HasValue;
+		Sprite2D oldFaceSprite = (Sprite2D)FaceStateSprite.Duplicate();
+		FaceStateSprite.AddSibling(oldFaceSprite);
+		FaceStateSprite.Texture = texture;
+		FaceStateSprite.RegionEnabled = region.HasValue;
 		if (region.HasValue)
-			newFaceSprite.RegionRect = region.Value;
-		Tween tween = newFaceSprite.CreateTween();
-		tween.TweenProperty(newFaceSprite, "modulate:a", 1f, 0.25f);
-		tween.TweenCallback(Callable.From(() =>
-		{
-			// after we fade in the new sprite, remove the old one
-			FaceStateSprite.Free();
-			FaceStateSprite = newFaceSprite;
-		}));
+			FaceStateSprite.RegionRect = region.Value;
+		Tween tween = oldFaceSprite.CreateTween();
+		tween.TweenProperty(oldFaceSprite, "modulate:a", 0f, 26f / 60f);
+		tween.TweenCallback(Callable.From(oldFaceSprite.QueueFree));
 	}
 
 	private Rect2 StateAtlas(int y)
