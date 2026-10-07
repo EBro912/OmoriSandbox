@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Godot;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Editor;
 
@@ -43,6 +45,27 @@ public partial class SettingsMenuManager : Control
 		};
 
 		PixelSnappingCheckbox.Toggled += ApplyPixelSnapping;
+
+		TitleMusicDropdown.ItemSelected += index =>
+		{
+			string picked = TitleMusicDropdown.GetItemText((int)index);
+			if (picked != TitleBGM)
+				TitleBGMLoopPoint = 0;
+			TitleBGM = picked;
+			PlayTitleBGM();
+			RefreshTitleLoopPoint(TitleBGM);
+		};
+
+		TitleLoopPointSpinBox.ValueChanged += value =>
+		{
+			TitleBGMLoopPoint = value == TitleTrackLoopPoint ? 0 : value;
+			AudioManager.Instance.ForceSetBGMLoopOffset(TitleBGMLoopPoint);
+		};
+
+		TitleLoopSetCurrentButton.Pressed += () =>
+		{
+			TitleLoopPointSpinBox.Value = AudioManager.Instance.GetBGMPosition();
+		};
 
 		DisplayLayout.Instance.WindowResized += OnWindowSizeChanged;
 		
@@ -146,6 +169,8 @@ public partial class SettingsMenuManager : Control
 		TextSkipCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "TextSkip", true);
 
 		LastSelectedPreset = (string)config.GetValue("Settings", "LastSelectedPreset", "");
+		TitleBGM = (string)config.GetValue("Settings", "TitleBGM", DefaultTitleBGM);
+		TitleBGMLoopPoint = (double)config.GetValue("Settings", "TitleBGMLoopPoint", 0d);
 
 		RestartHoldTimeSlider.Value = (double)config.GetValue("Keybinds", "RestartHoldTime", 1d);
 		SpeedUpSlider.Value = (double)config.GetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
@@ -282,6 +307,8 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox.ButtonPressed);
 		config.SetValue("Settings", "LastSelectedPreset", LastSelectedPreset ?? "");
+		config.SetValue("Settings", "TitleBGM", TitleBGM);
+		config.SetValue("Settings", "TitleBGMLoopPoint", TitleBGMLoopPoint);
 
 		config.SetValue("Keybinds", "RestartHoldTime", RestartHoldTimeSlider.Value);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", SpeedUpSlider.Value);
@@ -359,6 +386,8 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "CombinedAccuracy", false);
 		config.SetValue("Settings", "AllowStateReapplyOnRemoval", false);
 		config.SetValue("Settings", "LastSelectedPreset", "");
+		config.SetValue("Settings", "TitleBGM", DefaultTitleBGM);
+		config.SetValue("Settings", "TitleBGMLoopPoint", 0d);
 		config.SetValue("Keybinds", "RestartHoldTime", 1d);
 		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
 		foreach (Node node in KeybindGrid.GetChildren())
@@ -422,28 +451,94 @@ public partial class SettingsMenuManager : Control
 
 	public static SettingsMenuManager Instance { get; private set; }
 
+	internal IReadOnlyList<(string Key, CheckBox Box)> RuleSettings =>
+	[
+		("DisableDamageLimit", DisableDamageLimitCheckbox),
+		("DisableStatLimit", DisableStatLimitCheckbox),
+		("UseConsoleDef", UseConsoleDefCheckbox),
+		("UseConsoleSpd", UseConsoleSpdCheckbox),
+		("InfiniteBuffsDebuffs", InfiniteBuffsDebuffsCheckbox),
+		("VertigoUsesAtk", VertigoUsesAtkCheckbox),
+		("CombinedAccuracy", CombinedAccuracyCheckbox),
+		("AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox),
+		("ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox),
+		("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox),
+		("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox),
+		("PerTargetBuffTiers", PerTargetBuffTiersCheckbox)
+	];
+
+	internal IReadOnlyDictionary<string, bool> ActiveRuleOverrides { get; set; }
+
+	private bool Rule(string key, CheckBox box)
+	{
+		return ActiveRuleOverrides != null && ActiveRuleOverrides.TryGetValue(key, out bool value) ? value : box.ButtonPressed;
+	}
 
 	// fake "setting" that tracks the last selected preset across restarts
 	public string LastSelectedPreset { get; internal set; } = "";
 
+	internal const string DefaultTitleBGM = "ow_cattail_fields";
+
+	internal string TitleBGM { get; private set; } = DefaultTitleBGM;
+
+	internal double TitleBGMLoopPoint { get; private set; }
+
+	private double TitleTrackLoopPoint;
+
+	internal string ResolvedTitleBGM
+	{
+		get
+		{
+			if (AudioManager.Instance.TryGetBGM(TitleBGM, out _))
+				return TitleBGM;
+			GD.PushWarning($"Unknown title music \"{TitleBGM}\", using {DefaultTitleBGM}");
+			return DefaultTitleBGM;
+		}
+	}
+
+	internal void PopulateTitleMusic()
+	{
+		TitleMusicDropdown.Clear();
+		foreach (string bgm in AudioManager.Instance.GetAllBGM())
+			TitleMusicDropdown.AddItem(bgm);
+		string resolved = ResolvedTitleBGM;
+		TitleMusicDropdown.Selected = TitleMusicDropdown.GetItemIndex(resolved);
+		RefreshTitleLoopPoint(resolved);
+	}
+
+	internal void PlayTitleBGM()
+	{
+		string bgm = ResolvedTitleBGM;
+		AudioManager.Instance.PlayBGM(bgm);
+		if (bgm == TitleBGM && TitleBGMLoopPoint > 0)
+			AudioManager.Instance.ForceSetBGMLoopOffset(TitleBGMLoopPoint);
+	}
+
+	private void RefreshTitleLoopPoint(string bgm)
+	{
+		TitleTrackLoopPoint = AudioManager.Instance.GetDefaultBGMLoopOffset(bgm);
+		TitleLoopPointSpinBox.MaxValue = AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis stream) ? stream.GetLength() : 0;
+		TitleLoopPointSpinBox.SetValueNoSignal(bgm == TitleBGM && TitleBGMLoopPoint > 0 ? TitleBGMLoopPoint : TitleTrackLoopPoint);
+	}
+
 	public bool ShowFPS => ShowFPSCheckbox.ButtonPressed;
 	public bool LogDebug => LogDebugCheckbox.ButtonPressed;
 	public bool PreventAccidentalRun => PreventRunCheckbox.ButtonPressed;
-	public bool DisableDamageLimit => DisableDamageLimitCheckbox.ButtonPressed;
-	public bool DisableStatLimit => DisableStatLimitCheckbox.ButtonPressed;
+	public bool DisableDamageLimit => Rule("DisableDamageLimit", DisableDamageLimitCheckbox);
+	public bool DisableStatLimit => Rule("DisableStatLimit", DisableStatLimitCheckbox);
 	public bool ShowMoreInfo => ShowMoreInfoCheckbox.ButtonPressed;
 	public bool ShowStateIcons => ShowStateIconsCheckbox.ButtonPressed;
-	public bool UseConsoleSpeed => UseConsoleSpdCheckbox.ButtonPressed;
-	public bool UseConsoleDefense => UseConsoleDefCheckbox.ButtonPressed;
-	public bool InfiniteBuffsDebuffs => InfiniteBuffsDebuffsCheckbox.ButtonPressed;
-	public bool VertigoUsesAtk => VertigoUsesAtkCheckbox.ButtonPressed;
-	public bool ToysUseEmotionDamage => ToysUseEmotionDamageCheckbox.ButtonPressed;
-	public bool SpaceExHusbandReleaseEnergy => SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
-	public bool ReleaseEnergyAnyParty => ReleaseEnergyAnyPartyCheckbox.ButtonPressed;
-	public bool PerTargetBuffTiers => PerTargetBuffTiersCheckbox.ButtonPressed;
+	public bool UseConsoleSpeed => Rule("UseConsoleSpd", UseConsoleSpdCheckbox);
+	public bool UseConsoleDefense => Rule("UseConsoleDef", UseConsoleDefCheckbox);
+	public bool InfiniteBuffsDebuffs => Rule("InfiniteBuffsDebuffs", InfiniteBuffsDebuffsCheckbox);
+	public bool VertigoUsesAtk => Rule("VertigoUsesAtk", VertigoUsesAtkCheckbox);
+	public bool ToysUseEmotionDamage => Rule("ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox);
+	public bool SpaceExHusbandReleaseEnergy => Rule("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox);
+	public bool ReleaseEnergyAnyParty => Rule("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox);
+	public bool PerTargetBuffTiers => Rule("PerTargetBuffTiers", PerTargetBuffTiersCheckbox);
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
-	public bool CombinedAccuracy => CombinedAccuracyCheckbox.ButtonPressed;
-	public bool AllowStateReapplyOnRemoval => AllowStateReapplyOnRemovalCheckbox.ButtonPressed;
+	public bool CombinedAccuracy => Rule("CombinedAccuracy", CombinedAccuracyCheckbox);
+	public bool AllowStateReapplyOnRemoval => Rule("AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox);
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
 	public int ActionDelay => (int)ActionDelaySlider.Value;
 	public double DialogueSpeed => DialogueSpeedSlider.Value;
@@ -502,4 +597,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private Button BackButton;
 	[Export] private VBoxContainer MainControls;
 	[Export] private TabContainer SettingsTabs;
+	[Export] private OptionButton TitleMusicDropdown;
+	[Export] private SpinBox TitleLoopPointSpinBox;
+	[Export] private Button TitleLoopSetCurrentButton;
 }

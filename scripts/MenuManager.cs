@@ -3,6 +3,7 @@ using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Menu;
@@ -35,7 +36,7 @@ internal partial class MenuManager : Node
 	private Dictionary<PartyMember, SelectionMemory> LastSelected = [];
 	private readonly HashSet<Menu> LoweredMenus = [];
 	private readonly MenuRepeat Repeat = new();
-	private MenuSkinMode? SkinOverride;
+	private MenuSkin ActiveSkin;
 
 	public override void _EnterTree()
 	{
@@ -56,7 +57,7 @@ internal partial class MenuManager : Node
 	{
 		int energy = BattleManager.Instance.Energy;
 		EnergyText.Text = $"{energy:00}";
-		if (SkinOverride == MenuSkinMode.Blackspace)
+		if (ActiveSkin?.BlackspaceEnergyBar == true)
 			EnergyBar.RegionRect = new Rect2(292f, 340f + (energy > 6 ? 2 : energy > 3 ? 1 : 0) * 45f, 360f, 45f);
 		else
 			EnergyBar.RegionRect = new Rect2(1f, 1f + Math.Min(energy / 2, 4) * 45f, 360f, 45f);
@@ -64,22 +65,15 @@ internal partial class MenuManager : Node
 
 	internal void SetPresetSkin(string menuSkin, bool itemless)
 	{
-		SkinOverride = menuSkin?.ToLowerInvariant() switch
-		{
-			"dreamworld" => MenuSkinMode.Dreamworld,
-			"faraway" => MenuSkinMode.Faraway,
-			"blackspace" => MenuSkinMode.Blackspace,
-			_ => null
-		};
+		ActiveSkin = Database.GetMenuSkin(Database.ResolveMenuSkinId(menuSkin));
 		BattleMenu.Itemless = itemless;
-		EnergyDots.Origin = SkinOverride == MenuSkinMode.Blackspace ? new Vector2(1, 229) : new Vector2(363, 1);
+		EnergyDots.Origin = ActiveSkin.BlackspaceEnergyBar ? new Vector2(1, 229) : new Vector2(363, 1);
 	}
 
-	public void ShowButtons(bool realWorld)
+	public void ShowButtons()
 	{
-		MenuSkinMode mode = SkinOverride ?? (realWorld ? MenuSkinMode.Faraway : MenuSkinMode.Dreamworld);
-		PartyMenu.SetSkinMode(mode);
-		BattleMenu.SetSkinMode(mode);
+		PartyMenu.ApplySkin(ActiveSkin);
+		BattleMenu.ApplySkin(ActiveSkin);
 	}
 
 	public void ShowMenu(MenuState state, bool immediate = false, bool ignoreMemory = false)

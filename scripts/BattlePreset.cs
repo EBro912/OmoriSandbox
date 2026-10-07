@@ -25,7 +25,10 @@ internal class BattlePreset
     public bool CombinedBuffsDebuffs { get; set; } = false;
     public bool LockBGMAndBattleback { get; set; } = false;
     public bool ItemlessMode { get; set; } = false;
-    public string MenuSkin { get; set; } = "Auto";
+    public string MenuSkin { get; set; } = "Dreamworld";
+    public bool Toastless { get; set; } = false;
+    public string WindowSkin { get; set; } = "Default";
+    public Dictionary<string, bool> RuleOverrides { get; set; } = [];
     public Dictionary<string, int> Items { get; set; } = [];
 
     [JsonRequired] public List<BattlePresetActor> Actors { get; set; } = [];

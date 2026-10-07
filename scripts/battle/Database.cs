@@ -9,6 +9,7 @@ using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Extensions;
+using OmoriSandbox.Menu;
 using OmoriSandbox.Modding;
 
 namespace OmoriSandbox.Battle;
@@ -33,6 +34,10 @@ public class Database
 	// keep a separate list of emotion ids to easily display in menus
 	private static readonly List<string> EmotionOrder = [];
 	private static readonly Dictionary<(string Group, int Tier), Emotion> EmotionTiers = [];
+	private static readonly Dictionary<string, MenuSkin> MenuSkins = new(StringComparer.OrdinalIgnoreCase);
+	private static readonly List<string> MenuSkinOrder = [];
+	private static readonly Dictionary<string, WindowSkin> WindowSkins = new(StringComparer.OrdinalIgnoreCase);
+	private static readonly List<string> WindowSkinOrder = [];
 
 	static Database()
 	{
@@ -405,6 +410,81 @@ public class Database
 		return Skills.Keys;
 	}
 
+	internal const string DefaultMenuSkin = "Dreamworld";
+
+	internal static bool RegisterMenuSkin(string id, MenuSkin skin)
+	{
+		if (string.IsNullOrWhiteSpace(id) || skin?.CommandsTexture == null || skin.PartyCommandsTexture == null)
+		{
+			string mod = ModManager.CurrentModName != null ? $" from mod \"{ModManager.CurrentModName}\"" : "";
+			GD.PrintErr($"Invalid menu skin \"{id}\"{mod}, skipping!");
+			return false;
+		}
+		if (!TryRegister(MenuSkins, "Menu Skin", id, skin))
+			return false;
+		MenuSkinOrder.Add(id);
+		return true;
+	}
+
+	internal static MenuSkin GetMenuSkin(string id)
+	{
+		return MenuSkins.GetValueOrDefault(id ?? "");
+	}
+
+	internal static IReadOnlyList<string> GetAllMenuSkinIds()
+	{
+		return MenuSkinOrder;
+	}
+
+	internal static string ResolveMenuSkinId(string id)
+	{
+		if (string.IsNullOrEmpty(id))
+			return DefaultMenuSkin;
+		string known = MenuSkinOrder.FirstOrDefault(x => x.Equals(id, StringComparison.OrdinalIgnoreCase));
+		if (known != null)
+			return known;
+		if (!id.Equals("Auto", StringComparison.OrdinalIgnoreCase))
+			GD.PushWarning($"Unknown menu skin \"{id}\", using {DefaultMenuSkin}");
+		return DefaultMenuSkin;
+	}
+
+	internal const string DefaultWindowSkin = "Default";
+
+	internal static bool RegisterWindowSkin(string id, Texture2D texture)
+	{
+		if (string.IsNullOrWhiteSpace(id) || texture == null || texture.GetWidth() != 192 || texture.GetHeight() != 192 || texture.GetImage() == null)
+		{
+			string mod = ModManager.CurrentModName != null ? $" from mod \"{ModManager.CurrentModName}\"" : "";
+			GD.PrintErr($"Invalid window skin \"{id}\"{mod}: it must be a 192x192 texture, skipping!");
+			return false;
+		}
+		if (!TryRegister(WindowSkins, "Window Skin", id, new WindowSkin(texture, true)))
+			return false;
+		WindowSkinOrder.Add(id);
+		return true;
+	}
+
+	internal static WindowSkin GetWindowSkin(string id)
+	{
+		return WindowSkins.GetValueOrDefault(id ?? "");
+	}
+
+	internal static IReadOnlyList<string> GetAllWindowSkinIds()
+	{
+		return WindowSkinOrder;
+	}
+
+	internal static string ResolveWindowSkinId(string id)
+	{
+		if (string.IsNullOrEmpty(id))
+			return DefaultWindowSkin;
+		string known = WindowSkinOrder.FirstOrDefault(x => x.Equals(id, StringComparison.OrdinalIgnoreCase));
+		if (known != null)
+			return known;
+		GD.PushWarning($"Unknown window skin \"{id}\", using {DefaultWindowSkin}");
+		return DefaultWindowSkin;
+	}
+
 	private static void Init()
 	{
 		#region STATE ICONS
@@ -413,6 +493,29 @@ public class Database
 			Texture2D texture = ResourceLoader.Load<Texture2D>("res://assets/stateicons/" + stateIcon);
 			AddStateIcon(stateIcon.GetBaseName(), texture);
 		}
+		#endregion
+
+		#region MENU SKINS
+		Texture2D battleAtlas = ResourceLoader.Load<Texture2D>("res://assets/atlases/battleATLAS.png");
+		Texture2D oneColumnArt = ResourceLoader.Load<Texture2D>("res://assets/system/BattleCommands_DW_ATK_SKILL.png");
+		AddBuiltInMenuSkin("Dreamworld", new MenuSkin(battleAtlas,
+				new Rect2(654, 131, 179, 39), new Rect2(835, 131, 179, 39), new Rect2(654, 172, 179, 39), new Rect2(835, 172, 179, 39),
+				battleAtlas, new Rect2(654, 377, 360, 39), new Rect2(654, 418, 360, 39))
+			.WithOneColumnCommands(oneColumnArt, new Rect2(1, 1, 360, 40), new Rect2(1, 41, 360, 40)));
+		AddBuiltInMenuSkin("Faraway", new MenuSkin(battleAtlas,
+				new Rect2(654, 213, 179, 39), new Rect2(835, 213, 179, 39), new Rect2(654, 254, 179, 39), new Rect2(835, 254, 179, 39),
+				battleAtlas, new Rect2(654, 458, 360, 41), new Rect2(654, 499, 360, 40))
+			.WithOneColumnCommands(oneColumnArt, new Rect2(1, 1, 360, 40), new Rect2(1, 41, 360, 40)));
+		AddBuiltInMenuSkin("Blackspace", new MenuSkin(battleAtlas,
+				new Rect2(654, 131, 179, 39), new Rect2(835, 131, 179, 39), new Rect2(654, 172, 179, 39), new Rect2(835, 172, 179, 39),
+				battleAtlas, new Rect2(654, 295, 360, 39), new Rect2(654, 335, 360, 40))
+			{ ForcesItemless = true, BlackspaceEnergyBar = true }
+			.WithOneColumnCommands(battleAtlas, new Rect2(292, 480, 360, 40), new Rect2(292, 520, 360, 40)));
+		#endregion
+
+		#region WINDOW SKINS
+		WindowSkins.Add(DefaultWindowSkin, new WindowSkin(ResourceLoader.Load<Texture2D>("res://assets/system/Window.png"), false));
+		WindowSkinOrder.Add(DefaultWindowSkin);
 		#endregion
 		
 		#region PARTY MEMBERS
@@ -8347,6 +8450,12 @@ public class Database
 		// instead of having to go by name, which causes issues
 		foreach (KeyValuePair<string, Item> entry in Items)
 			entry.Value.Id = entry.Key;
+	}
+
+	private static void AddBuiltInMenuSkin(string id, MenuSkin skin)
+	{
+		MenuSkins.Add(id, skin);
+		MenuSkinOrder.Add(id);
 	}
 
 	private static bool TryMakeHappy(Actor who)

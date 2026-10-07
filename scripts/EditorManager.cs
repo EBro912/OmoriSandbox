@@ -17,15 +17,25 @@ internal partial class EditorManager : Node
 	private GameModeType EditorMode = GameModeType.Normal;
 	private const int EnemiesTabIdx = 3;
 	private const int BossRushTabIdx = 4;
-	private static readonly string[] MenuSkins = ["Auto", "Dreamworld", "Faraway", "Blackspace"];
 	private bool ItemlessBeforeBlackspace;
+	private static readonly string[] RuleChoices = ["Use Global", "On", "Off"];
+	private readonly Dictionary<string, OptionButton> RuleDropdowns = [];
 
 	public void Init()
 	{
 		BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
-		foreach (string skin in MenuSkins)
+		foreach (string skin in Database.GetAllMenuSkinIds())
 			MenuSkinDropdown.AddItem(skin);
-		MenuSkinDropdown.ItemSelected += _ => ApplyMenuSkinToItemless();
+		MenuSkinDropdown.ItemSelected += _ =>
+		{
+			ApplyMenuSkinToItemless();
+			WarnIfNoOneColumnArt();
+		};
+		ItemlessMode.Pressed += WarnIfNoOneColumnArt;
+		foreach (string skin in Database.GetAllWindowSkinIds())
+			WindowSkinDropdown.AddItem(skin);
+		foreach ((string key, CheckBox box) in SettingsMenuManager.Instance.RuleSettings)
+			AddRuleOverrideRow(key, box);
 		
 		PresetFolderButton.Pressed += () =>
 		{
@@ -328,7 +338,10 @@ internal partial class EditorManager : Node
 			CombinedBuffsDebuffs = CombinedBuffsDebuffs.ButtonPressed,
 			LockBGMAndBattleback = LockBGMAndBattleback.ButtonPressed,
 			ItemlessMode = ItemlessMode.ButtonPressed,
-			MenuSkin = MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected)
+			MenuSkin = MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected),
+			Toastless = Toastless.ButtonPressed,
+			WindowSkin = WindowSkinDropdown.GetItemText(WindowSkinDropdown.Selected),
+			RuleOverrides = GetRuleOverrides()
 		};
 
 		if (EditorMode is GameModeType.Normal)
@@ -493,8 +506,12 @@ internal partial class EditorManager : Node
 		LockBGMAndBattleback.ButtonPressed = preset.LockBGMAndBattleback;
 		ItemlessMode.Disabled = false;
 		ItemlessMode.ButtonPressed = preset.ItemlessMode;
-		MenuSkinDropdown.Selected = Math.Max(0, Array.FindIndex(MenuSkins, skin => skin.Equals(preset.MenuSkin, StringComparison.OrdinalIgnoreCase)));
+		MenuSkinDropdown.Selected = Math.Max(0, Database.GetAllMenuSkinIds().ToList().IndexOf(Database.ResolveMenuSkinId(preset.MenuSkin)));
 		ApplyMenuSkinToItemless();
+		Toastless.ButtonPressed = preset.Toastless;
+		WindowSkinDropdown.Selected = Math.Max(0, Database.GetAllWindowSkinIds().ToList().IndexOf(Database.ResolveWindowSkinId(preset.WindowSkin)));
+		foreach ((string key, OptionButton dropdown) in RuleDropdowns)
+			dropdown.Selected = preset.RuleOverrides != null && preset.RuleOverrides.TryGetValue(key, out bool value) ? (value ? 1 : 2) : 0;
 
 		foreach (KeyValuePair<string, int> entry in preset.Items)
 		{
@@ -625,7 +642,7 @@ internal partial class EditorManager : Node
 
 	private void ApplyMenuSkinToItemless()
 	{
-		if (MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected) == "Blackspace")
+		if (Database.GetMenuSkin(MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected)).ForcesItemless)
 		{
 			if (!ItemlessMode.Disabled)
 				ItemlessBeforeBlackspace = ItemlessMode.ButtonPressed;
@@ -638,6 +655,49 @@ internal partial class EditorManager : Node
 			// only update the checkbox if it wasn't already checked manually
 			ItemlessMode.ButtonPressed = ItemlessBeforeBlackspace;
 		}
+	}
+
+	private void AddRuleOverrideRow(string key, CheckBox box)
+	{
+		Label label = new()
+		{
+			Text = box.Text,
+			TooltipText = box.TooltipText,
+			CustomMinimumSize = new Vector2(280, 0),
+			ClipText = true,
+			TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis,
+			MouseFilter = Control.MouseFilterEnum.Pass
+		};
+		label.AddThemeFontOverride("font", ItemlessMode.GetThemeFont("font"));
+		label.AddThemeFontSizeOverride("font_size", ItemlessMode.GetThemeFontSize("font_size"));
+		OptionButton dropdown = new();
+		foreach (string choice in RuleChoices)
+			dropdown.AddItem(choice);
+		dropdown.AddThemeFontOverride("font", MenuSkinDropdown.GetThemeFont("font"));
+		dropdown.AddThemeFontSizeOverride("font_size", MenuSkinDropdown.GetThemeFontSize("font_size"));
+		foreach (string style in new[] { "normal", "pressed", "hover" })
+			dropdown.AddThemeStyleboxOverride(style, MenuSkinDropdown.GetThemeStylebox(style));
+		RuleOverridesGrid.AddChild(label);
+		RuleOverridesGrid.AddChild(dropdown);
+		RuleDropdowns[key] = dropdown;
+	}
+
+	private Dictionary<string, bool> GetRuleOverrides()
+	{
+		Dictionary<string, bool> overrides = [];
+		foreach ((string key, OptionButton dropdown) in RuleDropdowns)
+		{
+			if (dropdown.Selected > 0)
+				overrides[key] = dropdown.Selected == 1;
+		}
+		return overrides;
+	}
+
+	private void WarnIfNoOneColumnArt()
+	{
+		string id = MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected);
+		if (ItemlessMode.ButtonPressed && !Database.GetMenuSkin(id).HasOneColumnCommands)
+			ShowWindow("Warning", $"The {id} menu skin has no one-column ATTACK/SKILL art.\nItemless Mode will use the Dreamworld art instead.");
 	}
 
 	private void PreDelete()
@@ -768,6 +828,10 @@ internal partial class EditorManager : Node
 		ItemlessMode.Disabled = false;
 		ItemlessMode.ButtonPressed = false;
 		MenuSkinDropdown.Selected = 0;
+		Toastless.ButtonPressed = false;
+		WindowSkinDropdown.Selected = 0;
+		foreach (OptionButton dropdown in RuleDropdowns.Values)
+			dropdown.Selected = 0;
 
 		BGMPreview.Stop();
 		BattlebackBGMEditor.Reset();
@@ -814,6 +878,9 @@ internal partial class EditorManager : Node
 	[Export] private CheckBox LockBGMAndBattleback;
 	[Export] private CheckBox ItemlessMode;
 	[Export] private OptionButton MenuSkinDropdown;
+	[Export] private OptionButton WindowSkinDropdown;
+	[Export] private CheckBox Toastless;
+	[Export] private GridContainer RuleOverridesGrid;
 	[Export] private Button AddItemButton;
 	[Export] private GridContainer ItemContainer;
 	[Export] private LineEdit SearchInput;

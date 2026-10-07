@@ -1,6 +1,7 @@
 using Godot;
 using Newtonsoft.Json;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Menu;
 using OmoriSandbox.Editor;
 using System;
 using System.Collections.Generic;
@@ -248,6 +249,8 @@ internal partial class ModManager : Node
 				case "animations":  Run("animations", () => LoadAnimations(dirName, modDir, report)); break;
 				case "stateicons":  Run("stateicons", () => LoadStateIcons(dirName, modDir, report)); break;
 				case "presets":     Run("presets", () => LoadPresets(dirName, modDir, report)); break;
+				case "menuskins":   Run("menuskins", () => LoadMenuSkins(dirName, modDir, report)); break;
+				case "windowskins": Run("windowskins", () => LoadWindowSkins(dirName, modDir, report)); break;
 			}
 		}
 
@@ -614,6 +617,60 @@ internal partial class ModManager : Node
 			AnimationManager.Instance.LoadModded(root, dir, report);
 		if (FileAccess.FileExists(path + "/Animations.jsond"))
 			AnimationManager.Instance.LoadDeltaPatch(root, dir, report);
+	}
+
+	private void LoadMenuSkins(string root, string dir, ModLoadReport report)
+	{
+		string path = $"user://mods/{root}/{dir}";
+		foreach (string file in DirAccess.GetFilesAt(path))
+		{
+			if (!file.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+				continue;
+			Image image = Image.LoadFromFile(path + "/" + file);
+			if (image == null)
+			{
+				report.Warn("menuskins", file, "Failed to load image");
+				report.CountSkipped();
+				continue;
+			}
+			MenuSkin skin = MenuSkin.FromSheet(ImageTexture.CreateFromImage(image));
+			if (skin == null)
+			{
+				report.Error("menuskins", file, "A menu skin sheet must be 360x160 or 360x240");
+				report.CountSkipped();
+			}
+			else if (Database.RegisterMenuSkin(file.GetBaseName(), skin))
+				report.CountLoaded();
+			else
+			{
+				report.Error("menuskins", file, "A menu skin with this name already exists");
+				report.CountSkipped();
+			}
+		}
+	}
+
+	private void LoadWindowSkins(string root, string dir, ModLoadReport report)
+	{
+		string path = $"user://mods/{root}/{dir}";
+		foreach (string file in DirAccess.GetFilesAt(path))
+		{
+			if (!file.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+				continue;
+			Image image = Image.LoadFromFile(path + "/" + file);
+			if (image == null)
+			{
+				report.Warn("windowskins", file, "Failed to load image");
+				report.CountSkipped();
+				continue;
+			}
+			if (Database.RegisterWindowSkin(file.GetBaseName(), ImageTexture.CreateFromImage(image)))
+				report.CountLoaded();
+			else
+			{
+				report.Error("windowskins", file, "Invalid or duplicate window skin (it must be 192x192 with a unique name)");
+				report.CountSkipped();
+			}
+		}
 	}
 
 	private void LoadStateIcons(string root, string dir, ModLoadReport report)

@@ -55,7 +55,7 @@ TitlePresetDropdown = NodePath("../Main/MainControls/PresetSelector/PresetDropdo
 StageSelectorParent = NodePath("../Main/MainControls/StageSelector")
 StageSelectorSpinBox = NodePath("../Main/MainControls/StageSelector/StageSpinBox")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "LockBGMAndBattleback", "ItemlessMode", "MenuSkinDropdown", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "LockBGMAndBattleback", "ItemlessMode", "MenuSkinDropdown", "WindowSkinDropdown", "Toastless", "RuleOverridesGrid", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -78,6 +78,9 @@ CombinedBuffsDebuffs = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/O
 LockBGMAndBattleback = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/LockBGMAndBattleback")
 ItemlessMode = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/ItemlessMode")
 MenuSkinDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin/OptionButton")
+WindowSkinDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin/WindowSkinOptionButton")
+Toastless = NodePath("../Editor/SettingsTabs/Rules/VBoxContainer/Toastless")
+RuleOverridesGrid = NodePath("../Editor/SettingsTabs/Rules/VBoxContainer/RuleOverrides")
 AddItemButton = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/AddItemButton")
 ItemContainer = NodePath("../Editor/SettingsTabs/Items/VBoxContainer/ScrollContainer/ItemsContainer")
 SearchInput = NodePath("../Editor/SettingsTabs/Tools/Skill Search/VBoxContainer/HBoxContainer/SearchInput")
@@ -355,7 +358,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -412,6 +415,9 @@ ResetKeybindsButton = NodePath("Tabs/Controls/VBoxContainer/ResetBindsButton")
 BackButton = NodePath("BackButton")
 MainControls = NodePath("../MainControls")
 SettingsTabs = NodePath("Tabs")
+TitleMusicDropdown = NodePath("Tabs/Audio/VBoxContainer/TitleMusic/OptionButton")
+TitleLoopPointSpinBox = NodePath("Tabs/Audio/VBoxContainer/TitleLoopPoint/SpinBox")
+TitleLoopSetCurrentButton = NodePath("Tabs/Audio/VBoxContainer/TitleLoopPoint/SetCurrent")
 
 [node name="Settings" type="Label" parent="Main/Settings" unique_id=1197686200]
 layout_mode = 1
@@ -645,6 +651,54 @@ theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Test SFX"
+
+[node name="TitleMusic" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleMusic"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Title Music"
+
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleMusic"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+fit_to_longest_item = false
+allow_reselect = true
+
+[node name="TitleLoopPoint" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Loop Point"
+
+[node name="SpinBox" type="SpinBox" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint"]
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 0.0
+step = 0.001
+
+[node name="SetCurrent" type="Button" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Set Current"
 
 [node name="Battle" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=1014327348]
 visible = false
@@ -1740,12 +1794,32 @@ theme_override_font_sizes/font_size = 20
 text = "Menu Skin"
 
 [node name="OptionButton" type="OptionButton" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin" unique_id=1535937014]
+custom_minimum_size = Vector2(137, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+fit_to_longest_item = false
+
+[node name="WindowSkinLabel" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Window Skin"
+
+[node name="WindowSkinOptionButton" type="OptionButton" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+fit_to_longest_item = false
 
 [node name="Save" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1068584530]
 layout_mode = 2
@@ -2173,3 +2247,40 @@ text = "Common Layers: 11: Party Layer (default)
                    -5: Enemy Layer"
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
+
+[node name="Rules" type="MarginContainer" parent="Editor/SettingsTabs"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 2
+metadata/_tab_index = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Editor/SettingsTabs/Rules"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 30
+text = "Rules"
+horizontal_alignment = 1
+
+[node name="Toastless" type="CheckBox" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+layout_mode = 2
+tooltip_text = "The battle is lost as soon as any party member becomes toast"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Toastless"
+
+[node name="RuleOverridesLabel" type="Label" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 22
+text = "Rule Overrides"
+
+[node name="RuleOverrides" type="GridContainer" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+layout_mode = 2
+columns = 2

@@ -2,7 +2,7 @@ namespace OmoriSandbox.Menu;
 
 internal interface ISkinnableMenu
 {
-    void SetSkinMode(MenuSkinMode mode);
+    void ApplySkin(MenuSkin skin);
 }
 
 /// <summary>

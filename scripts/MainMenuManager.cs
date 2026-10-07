@@ -94,7 +94,7 @@ internal partial class MainMenuManager : Node
 	{
 		VersionLabel.Text = GameManager.Version;
 		
-		AudioManager.Instance.PlayBGM("ow_cattail_fields");
+		SettingsMenuManager.Instance.PlayTitleBGM();
 		PlayButton.GrabFocus(hideFocus: !UsingController);
 		Settings.VisibilityChanged += () =>
 		{
@@ -297,7 +297,7 @@ internal partial class MainMenuManager : Node
 		}
 
 		AnimationManager.Instance.StopAllAnimations();
-		AudioManager.Instance.PlayBGM("ow_cattail_fields");
+		SettingsMenuManager.Instance.PlayTitleBGM();
 		PlayButton.Visible = true;
 		EditorSettingsContainer.Visible = true;
 		LoadExistingButton.Visible = false;

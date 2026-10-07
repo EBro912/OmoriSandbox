@@ -29,6 +29,8 @@ public partial class GameManager : Node
 	[Export] private Node Party;
 	[Export] private ShaderMaterial GreyscaleMaterial;
 	[Export] private PackedScene[] Followups;
+	[Export] private Control[] WindowFrames;
+	[Export] private Sprite2D[] WindowArrows;
 	
 	private const float GrayscaleFadeDuration = 0.5f;
 	private readonly List<CanvasItem> GrayscaleSprites = [];
@@ -110,6 +112,7 @@ public partial class GameManager : Node
 		AnimationManager.Instance.Init();
 		AudioManager.Instance.Init();
 		ModManager.Instance.LoadMods();
+		SettingsMenuManager.Instance.PopulateTitleMusic();
 		MainMenuManager.Instance.Init();
 		EditorManager.Instance.Init();
 		// the dropdowns are populated by EditorManager.Init, restore the remembered selection after
@@ -151,6 +154,71 @@ public partial class GameManager : Node
 	internal void ForceSetBattleback(string name)
 	{
 		BattlebackParent.SetBattleback(name);
+	}
+
+	/// <summary>
+	/// Changes the skin of the battle windows: the battle log, the dialogue and choice boxes, and the skill and item menus.
+	/// </summary>
+	/// <remarks>
+	/// Use <c>"Default"</c> for the game's own skin, or the ID of a skin from a mod (its file name in the mod's <c>windowskins</c> folder, or the ID passed to <c>Mod.RegisterWindowSkin</c>).
+	/// The preset's skin comes back when the battle restarts or ends.
+	/// </remarks>
+	/// <param name="id">The ID of the window skin.</param>
+	public void SetWindowSkin(string id)
+	{
+		WindowSkin skin = Database.GetWindowSkin(id);
+		if (skin == null)
+		{
+			GD.PushWarning($"Unknown window skin \"{id}\"");
+			return;
+		}
+		ApplyWindowSkin(skin);
+	}
+
+	internal void ApplyPresetWindowSkin(string id)
+	{
+		ApplyWindowSkin(Database.GetWindowSkin(Database.ResolveWindowSkinId(id)));
+	}
+
+	private void ApplyWindowSkin(WindowSkin skin)
+	{
+		foreach (Control frame in WindowFrames)
+		{
+			frame.Set(NinePatchRect.PropertyName.Texture, skin.Texture);
+			frame.GetNode<ColorRect>("ColorRect").Visible = !skin.UseBackground;
+			SetWindowBackground(frame, "SkinBackground", skin.Background, TextureRect.StretchModeEnum.Scale, skin.UseBackground);
+			SetWindowBackground(frame, "SkinBackgroundTile", skin.BackgroundTile, TextureRect.StretchModeEnum.Tile, skin.UseBackground);
+		}
+		foreach (Sprite2D arrow in WindowArrows)
+			arrow.Texture = skin.Texture;
+	}
+
+	private static void SetWindowBackground(Control frame, string name, Texture2D texture, TextureRect.StretchModeEnum stretch, bool visible)
+	{
+		TextureRect background = frame.GetNodeOrNull<TextureRect>(name);
+		if (background == null)
+		{
+			if (!visible)
+				return;
+			Rect2 region = frame.Get(NinePatchRect.PropertyName.RegionRect).AsRect2();
+			background = new TextureRect
+			{
+				Name = name,
+				ZIndex = -1,
+				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+				StretchMode = stretch,
+				TextureFilter = stretch == TextureRect.StretchModeEnum.Scale ? CanvasItem.TextureFilterEnum.Linear : CanvasItem.TextureFilterEnum.ParentNode,
+				MouseFilter = Control.MouseFilterEnum.Ignore
+			};
+			frame.AddChild(background);
+			background.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+			background.OffsetLeft = 4;
+			background.OffsetRight = -4;
+			background.OffsetTop = Mathf.Max(0, 4 - region.Position.Y);
+			background.OffsetBottom = -Mathf.Max(0, 4 - (96 - region.End.Y));
+		}
+		background.Texture = texture;
+		background.Visible = visible;
 	}
 
 	/// <summary>
@@ -199,6 +267,18 @@ public partial class GameManager : Node
 	}
 
 	internal bool LoadBattlePreset(BattlePreset preset, int startingStage)
+	{
+		preset.RuleOverrides ??= [];
+		foreach (string key in preset.RuleOverrides.Keys.Where(key => SettingsMenuManager.Instance.RuleSettings.All(rule => rule.Key != key)))
+			GD.PushWarning($"Preset {preset.Name} overrides an unknown rule \"{key}\", ignoring it");
+		SettingsMenuManager.Instance.ActiveRuleOverrides = preset.RuleOverrides;
+		if (SpawnBattle(preset, startingStage))
+			return true;
+		SettingsMenuManager.Instance.ActiveRuleOverrides = null;
+		return false;
+	}
+
+	private bool SpawnBattle(BattlePreset preset, int startingStage)
 	{
 		List<PartyMemberComponent> party = [];
 		List<EnemyComponent> enemy = [];

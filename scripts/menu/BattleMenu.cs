@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using OmoriSandbox.Battle;
 
 namespace OmoriSandbox.Menu;
 
@@ -17,50 +18,35 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 	private Vector2I GridSize = new(2, 2);
 
 	private bool OneColumn;
-	private Texture2D GridTexture;
-
-	private static readonly Dictionary<MenuSkinMode, BattleCommandArt> OneColumnCommandArt = new()
-	{
-		[MenuSkinMode.Dreamworld] = new("res://assets/system/BattleCommands_DW_ATK_SKILL.png", new Rect2(1, 1, 360, 40), new Rect2(1, 41, 360, 40)),
-		[MenuSkinMode.Faraway] = new("res://assets/system/BattleCommands_DW_ATK_SKILL.png", new Rect2(1, 1, 360, 40), new Rect2(1, 41, 360, 40)),
-		[MenuSkinMode.Blackspace] = new("res://assets/atlases/battleATLAS.png", new Rect2(292, 480, 360, 40), new Rect2(292, 520, 360, 40))
-	};
 
 	internal bool Itemless { get; set; }
 
 	public void SetSkinMode(MenuSkinMode mode)
 	{
-		if (Itemless || mode is MenuSkinMode.Blackspace)
-		{
-			SetColumnLayout(mode);
-			return;
-		}
-		switch (mode)
-		{
-			case MenuSkinMode.Dreamworld:
-				AttackSprite.RegionRect = new Rect2(654, 131, 179, 39);
-				SkillSprite.RegionRect = new Rect2(835, 131, 179, 39);
-				SnackSprite.RegionRect = new Rect2(654, 172, 179, 39);
-				ToySprite.RegionRect = new Rect2(835, 172, 179, 39);
-				break;
-			case MenuSkinMode.Faraway:
-				AttackSprite.RegionRect = new Rect2(654, 213, 179, 39);
-				SkillSprite.RegionRect = new Rect2(835, 213, 179, 39);
-				SnackSprite.RegionRect = new Rect2(654, 254, 179, 39);
-				ToySprite.RegionRect = new Rect2(835, 254, 179, 39);
-				break;
-			default:
-				GD.PrintErr("Unknown MenuSkinMode: " + mode);
-				return;
-		}
-		SetGridLayout();
+		ApplySkin(Database.GetMenuSkin(mode.ToString()));
 	}
 
-	private void SetGridLayout()
+	public void ApplySkin(MenuSkin skin)
+	{
+		if (Itemless || skin.ForcesItemless)
+		{
+			SetColumnLayout(skin.HasOneColumnCommands ? skin : Database.GetMenuSkin(Database.DefaultMenuSkin));
+			return;
+		}
+		SetGridLayout(skin);
+	}
+
+	private void SetGridLayout(MenuSkin skin)
 	{
 		OneColumn = false;
-		AttackSprite.Texture = GridTexture;
-		SkillSprite.Texture = GridTexture;
+		AttackSprite.Texture = skin.CommandsTexture;
+		SkillSprite.Texture = skin.CommandsTexture;
+		SnackSprite.Texture = skin.CommandsTexture;
+		ToySprite.Texture = skin.CommandsTexture;
+		AttackSprite.RegionRect = skin.Attack;
+		SkillSprite.RegionRect = skin.Skill;
+		SnackSprite.RegionRect = skin.Snack;
+		ToySprite.RegionRect = skin.Toy;
 		AttackSprite.Centered = true;
 		SkillSprite.Centered = true;
 		AttackSprite.Position = new Vector2(-91, -73);
@@ -71,15 +57,13 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 		CursorPositions = [new Vector2I(-154, -72), new Vector2I(28, -72), new Vector2I(-154, -30), new Vector2I(28, -30)];
 	}
 
-	private void SetColumnLayout(MenuSkinMode mode)
+	private void SetColumnLayout(MenuSkin skin)
 	{
-		BattleCommandArt art = OneColumnCommandArt[mode];
-		Texture2D texture = GD.Load<Texture2D>(art.Texture);
 		OneColumn = true;
-		AttackSprite.Texture = texture;
-		SkillSprite.Texture = texture;
-		AttackSprite.RegionRect = art.Attack;
-		SkillSprite.RegionRect = art.Skill;
+		AttackSprite.Texture = skin.OneColumnTexture;
+		SkillSprite.Texture = skin.OneColumnTexture;
+		AttackSprite.RegionRect = skin.OneColumnAttack;
+		SkillSprite.RegionRect = skin.OneColumnSkill;
 		AttackSprite.Centered = false;
 		SkillSprite.Centered = false;
 		AttackSprite.Position = new Vector2(-180, -92);
@@ -92,8 +76,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 
 	public override void _Ready()
 	{
-		GridTexture = AttackSprite.Texture;
-		SetGridLayout();
+		SetGridLayout(Database.GetMenuSkin(Database.DefaultMenuSkin));
 	}
 
 	public override void OnOpen(SelectionMemory memory)
@@ -179,6 +162,4 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 	{
 		return newState is MenuState.Battle or MenuState.None or MenuState.Party;
 	}
-
-	private readonly record struct BattleCommandArt(string Texture, Rect2 Attack, Rect2 Skill);
 }

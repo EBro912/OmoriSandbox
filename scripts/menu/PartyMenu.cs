@@ -1,4 +1,5 @@
 using Godot;
+using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Menu;
@@ -18,24 +19,15 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 
 	public void SetSkinMode(MenuSkinMode mode)
 	{
-		switch (mode)
-		{
-			case MenuSkinMode.Dreamworld:
-				FightSprite.RegionRect = new Rect2(654, 377, 360, 39);
-				RunSprite.RegionRect = new Rect2(654, 418, 360, 39);
-				break;
-			case MenuSkinMode.Faraway:
-				FightSprite.RegionRect = new Rect2(654, 458, 360, 41);
-				RunSprite.RegionRect = new Rect2(654, 499, 360, 40);
-				break;
-			case MenuSkinMode.Blackspace:
-				FightSprite.RegionRect = new Rect2(654, 295, 360, 39);
-				RunSprite.RegionRect = new Rect2(654, 335, 360, 40);
-				break;
-			default:
-				GD.PrintErr("Unknown MenuSkinMode:	" + mode);
-				break;
-		}
+		ApplySkin(Database.GetMenuSkin(mode.ToString()));
+	}
+
+	public void ApplySkin(MenuSkin skin)
+	{
+		FightSprite.Texture = skin.PartyCommandsTexture;
+		FightSprite.RegionRect = skin.Fight;
+		RunSprite.Texture = skin.PartyCommandsTexture;
+		RunSprite.RegionRect = skin.Run;
 	}
 
 	protected override void MoveCursor(Vector2I direction, bool wrap)

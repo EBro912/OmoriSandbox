@@ -180,6 +180,11 @@ public partial class BattleManager : Node
 
 	internal bool CombinedBuffsDebuffs { get; private set; }
 
+	/// <summary>
+	/// Whether the current preset is in Toastless mode, where the battle is lost as soon as any party member becomes toast.
+	/// </summary>
+	public bool ToastlessMode { get; private set; }
+
 	private bool RestartQueued = false;
 	private double RestartTimer;
 
@@ -274,6 +279,8 @@ public partial class BattleManager : Node
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		CombinedBuffsDebuffs = preset.CombinedBuffsDebuffs;
+		ToastlessMode = preset.Toastless;
+		GameManager.Instance.ApplyPresetWindowSkin(preset.WindowSkin);
 		AudioManager.Instance.BGMLocked = preset.LockBGMAndBattleback;
 		GameManager.Instance.BattlebackLocked = preset.LockBGMAndBattleback;
 		EndOfBattleOptionsContainer.Visible = false;
@@ -679,6 +686,9 @@ public partial class BattleManager : Node
 		AudioManager.Instance.Reset();
 		AudioManager.Instance.BGMLocked = false;
 		GameManager.Instance.BattlebackLocked = false;
+		SettingsMenuManager.Instance.ActiveRuleOverrides = null;
+		ToastlessMode = false;
+		GameManager.Instance.ApplyPresetWindowSkin(Database.DefaultWindowSkin);
 		Phase = BattlePhase.PreBattle;
 		TurnCount = 0;
 		ProcessedStartOfTurn = false;
@@ -1307,7 +1317,7 @@ public partial class BattleManager : Node
 				break;
 		}
 
-		MenuManager.Instance.ShowButtons(CurrentParty[0].Actor.IsRealWorld);
+		MenuManager.Instance.ShowButtons();
 		MenuManager.Instance.ShowMenu(MenuState.Party);
 	}
 
@@ -1342,7 +1352,7 @@ public partial class BattleManager : Node
 			                                              CurrentParty[CurrentPartyMember].Actor.Name.ToUpper() +
 			                                              " do?");
 
-		MenuManager.Instance.ShowButtons(CurrentParty[CurrentPartyMember].Actor.IsRealWorld);
+		MenuManager.Instance.ShowButtons();
 	}
 
 	private void HandleTargetSelection()
@@ -2023,7 +2033,7 @@ public partial class BattleManager : Node
 			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.IsToast);
 		// if any omori is toast, the battle is over
 		// this may change in the future
-		if (omori != null)
+		if (omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast)))
 		{
 			SetPhase(BattlePhase.BattleOver);
 			await EndOfBattle(false);

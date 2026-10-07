@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OmoriSandbox.Extensions;
+using OmoriSandbox.Menu;
 
 namespace OmoriSandbox.Modding;
 
@@ -188,5 +189,36 @@ public abstract partial class Mod : Node
     protected static void RegisterBattleback(IBattleback battleback)
     {
         BattlebackManager.Instance.AddBattleback(battleback);
+    }
+
+    /// <summary>
+    /// Registers new button art for the battle menus. It is listed in the editor's Menu Skin dropdown.
+    /// </summary>
+    /// <remarks>
+    /// Sheets in the mod's <c>menuskins</c> folder are registered automatically, so only skins built in code need this.
+    /// See <see cref="MenuSkin"/> for the button sizes.
+    /// </remarks>
+    /// <param name="id">The ID of the skin. This is how it appears in the editor dropdown and in presets.</param>
+    /// <param name="skin">The skin to add.</param>
+    protected static void RegisterMenuSkin(string id, MenuSkin skin)
+    {
+        Database.RegisterMenuSkin(id, skin);
+    }
+
+    /// <summary>
+    /// Registers a new skin for the battle windows. It is listed in the editor's Window Skin dropdown
+    /// and can be switched to with <see cref="GameManager.SetWindowSkin"/>.
+    /// </summary>
+    /// <remarks>
+    /// The texture must be a 192x192 RPG Maker windowskin. The windows draw its frame, page arrows and background, as the base game does:
+    /// the top-left 96x96 area is stretched over the window and the 96x96 area below it is tiled on top.
+    /// The game's own skin has a solid black background and an empty tile area, so keep those for the usual look.<br/>
+    /// Images in the mod's <c>windowskins</c> folder are registered automatically, so only skins built in code need this.
+    /// </remarks>
+    /// <param name="id">The ID of the skin. This is how it appears in the editor dropdown and in presets.</param>
+    /// <param name="texture">The windowskin texture.</param>
+    protected static void RegisterWindowSkin(string id, Texture2D texture)
+    {
+        Database.RegisterWindowSkin(id, texture);
     }
 }

@@ -89,7 +89,7 @@ script = ExtResource("18_txyw0")
 [node name="ModManager" type="Node" parent="BattleCanvas" unique_id=1949733735]
 script = ExtResource("2_j8jky")
 
-[node name="GameManager" type="Node" parent="BattleCanvas" unique_id=980653838 node_paths=PackedStringArray("BattlebackParent", "BattlebackRoot", "FPSLabel", "Party")]
+[node name="GameManager" type="Node" parent="BattleCanvas" unique_id=980653838 node_paths=PackedStringArray("BattlebackParent", "BattlebackRoot", "FPSLabel", "Party", "WindowFrames", "WindowArrows")]
 script = ExtResource("14_a8y0u")
 BattlecardUI = ExtResource("5_tefeu")
 EnemyNode = ExtResource("8_choun")
@@ -99,6 +99,8 @@ FPSLabel = NodePath("../UI/HBoxContainer/FPS")
 Party = NodePath("../UI/Party")
 GreyscaleMaterial = ExtResource("7_ty1g6")
 Followups = Array[PackedScene]([ExtResource("4_muem4"), ExtResource("5_dp3eg"), ExtResource("7_gqmmt"), ExtResource("6_0ld40")])
+WindowFrames = [NodePath("../UI/BattleLog"), NodePath("../UI/DialogueBox/Box"), NodePath("../UI/DialogueBox/ChoiceBox"), NodePath("../UI/SkillMenu"), NodePath("../UI/SnackMenu"), NodePath("../UI/ToyMenu")]
+WindowArrows = [NodePath("../UI/SkillMenu/PageUp"), NodePath("../UI/SkillMenu/PageDown"), NodePath("../UI/SnackMenu/PageUp"), NodePath("../UI/SnackMenu/PageDown"), NodePath("../UI/ToyMenu/PageUp"), NodePath("../UI/ToyMenu/PageDown")]
 
 [node name="BattleManager" type="Node" parent="BattleCanvas" unique_id=2138218027 node_paths=PackedStringArray("EnergyText", "EnergyBar", "EnergyDots", "EndOfBattleOptionsContainer", "StageSelectorContainer", "StageSelectorSpinBox", "RestartLabel")]
 script = ExtResource("9_y6deb")
