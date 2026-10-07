@@ -14,7 +14,7 @@ internal sealed class ForestBunnyQuestion : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
     }
 
     protected override string[] EquippedSkills => ["FBQAttack", "FBQDoNothing", "FBQBeCute", "FBQSadEyes"];

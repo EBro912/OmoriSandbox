@@ -21,7 +21,7 @@ internal sealed class SirMaximusIII : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
     }
 
     public override BattleCommand ProcessAI()

@@ -113,9 +113,10 @@ public partial class ExampleFollowupsMod : Mod
         {
             // theoretical custom texture entry (leave commented)
             // { FollowupInput.Up, FollowupEntry.FromModTexture(0, "ExAttackAgain", "MyMod/sprites/bubble_up.png")},
-            { FollowupInput.Up, FollowupEntry.FromTexture(0, "ExAttackAgain", bubbles, new Rect2(0, -1, 127, 99)) },
-            { FollowupInput.Horizontal, FollowupEntry.FromTexture(0, "ExTrip", bubbles, new Rect2(127, 0, 127, 99)) },
-            { FollowupInput.Down, FollowupEntry.FromTexture(0, "ReleaseEnergyEx", bubbles, new Rect2(258, 0, 127, 99)) },
+            { FollowupInput.Up, FollowupEntry.FromTexture(FollowupEntry.User, "ExAttackAgain", bubbles, new Rect2(0, -1, 127, 99)) },
+            { FollowupInput.Horizontal, FollowupEntry.FromTexture(FollowupEntry.User, "ExTrip", bubbles, new Rect2(127, 0, 127, 99)) },
+            { FollowupInput.Down, FollowupEntry.FromTexture(FollowupEntry.User, "ReleaseEnergyEx", bubbles, new Rect2(258, 0, 127, 99))
+                .WithEnergyCost(10).WithMinPartySize(2).WithAllAlive().WithReleaseEnergy() },
         }, tiered: false);
 
         GD.Print("ExampleFollowupsMod loaded!");

@@ -31,7 +31,7 @@ internal sealed class UnbreadTwins : Enemy
 		if (IsEmotionLocked)
 			return false;
 
-		return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+		return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
 	}
 
 	public override BattleCommand ProcessAI()

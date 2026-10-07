@@ -165,8 +165,8 @@ public abstract partial class Mod : Node
     /// bubbles, omitted directions are hidden in battle.
     /// </summary>
     /// <remarks>
-    /// Entries whose skill name starts with <c>ReleaseEnergy</c> are considered Release Energy skills and will
-    /// cost 10 energy to use, as well as requiring the entire party being alive.
+    /// Each entry's energy cost, party requirements and Release Energy behavior come from its own settings,
+    /// see <see cref="FollowupEntry.WithEnergyCost"/> and <see cref="FollowupEntry.WithReleaseEnergy"/>.
     /// </remarks>
     /// <param name="id">The ID of the set. This is how it appears in the editor dropdown and in presets.</param>
     /// <param name="entries">The bubbles by role. <see cref="FollowupInput.Horizontal"/> faces the enemies from the member's slot.</param>

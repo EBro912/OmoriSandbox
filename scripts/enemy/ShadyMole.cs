@@ -12,7 +12,7 @@ public class ShadyMole : Enemy
     protected override Stats Stats => new(1200, 600, 45, 17, 65, 15, 95);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
     protected override string[] EquippedSkills => ["SMAttack", "SMB.E.D.", "SMDynamite"];
 

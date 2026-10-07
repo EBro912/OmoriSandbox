@@ -18,7 +18,7 @@ internal sealed class Mutantheart : Enemy
     protected override string[] EquippedSkills => ["MHWink", "MHCry", "MHInsult", "MHInstakill"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
     }
 
     private static readonly string[] DesireableStates = ["happy", "sad", "angry"];

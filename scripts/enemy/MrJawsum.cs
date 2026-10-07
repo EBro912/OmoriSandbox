@@ -21,7 +21,7 @@ internal sealed class MrJawsum : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry" or "afraid";
     }
 
     private readonly Enemy[] Gators = new Enemy[2];

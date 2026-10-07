@@ -16,7 +16,7 @@ internal sealed class NefariousChip : Enemy
     protected override string[] EquippedSkills => ["NCAttack", "NCDoNothing", "NCLaugh", "NCCookies", "NCCookiesHappy"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry" or "afraid";
     }
 
     public override BattleCommand ProcessAI()

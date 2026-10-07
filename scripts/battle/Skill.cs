@@ -137,4 +137,16 @@ public class Skill : BattleAction
 		LastTargetRecord = record;
 		return this;
 	}
+
+	/// <summary>
+	/// Makes tier step-ups on this skill's targets follow the first target's next tier, like many of the base game's party-wide skills.
+	/// </summary>
+	/// <remarks>
+	/// The "Per-Target Buff Tiers" setting turns this off.
+	/// </remarks>
+	public Skill WithTiersFromFirstTarget()
+	{
+		TiersFromFirstTarget = true;
+		return this;
+	}
 }

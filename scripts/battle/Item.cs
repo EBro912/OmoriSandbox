@@ -113,4 +113,13 @@ public class Item : BattleAction
 		LastTargetRecord = record;
 		return this;
 	}
+
+	/// <summary>
+	/// Makes tier step-ups on this item's targets follow the first target's next tier. See <see cref="Skill.WithTiersFromFirstTarget"/>.
+	/// </summary>
+	public Item WithTiersFromFirstTarget()
+	{
+		TiersFromFirstTarget = true;
+		return this;
+	}
 }

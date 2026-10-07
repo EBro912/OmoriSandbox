@@ -13,7 +13,7 @@ internal sealed class DownloadWindowAlt : Enemy
     protected override string[] EquippedSkills => ["Crash", "DWDoNothing1", "DWDoNothing2"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "happy" or "sad" or "angry";
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry" or "afraid";
     }
 
     public override BattleCommand ProcessAI()

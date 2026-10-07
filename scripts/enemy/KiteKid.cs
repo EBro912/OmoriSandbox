@@ -16,7 +16,7 @@ internal sealed class KiteKid : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 
     public override BattleCommand ProcessAI()

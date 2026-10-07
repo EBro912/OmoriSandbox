@@ -13,7 +13,7 @@ internal sealed class Sesame : Enemy
     protected override Stats Stats => new(288, 197, 51, 43, 91, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
     protected override string[] EquippedSkills => ["SESAttack", "SESDoNothing", "SESBreadRoll"];
     protected internal override bool ObserveHasMulti => true;

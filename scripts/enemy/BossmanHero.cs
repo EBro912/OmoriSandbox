@@ -69,7 +69,7 @@ internal sealed class BossmanHero : Enemy
     
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral";
+        return emotion.Id is "neutral" or "afraid";
     }
 
     private readonly Enemy[] GatorGuys = new Enemy[2];

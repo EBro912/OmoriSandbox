@@ -135,6 +135,8 @@ public partial class SettingsMenuManager : Control
 		VertigoUsesAtkCheckbox.ButtonPressed =  (bool)config.GetValue("Settings", "VertigoUsesAtk", false);
 		ToysUseEmotionDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ToysUseEmotionDamage", false);
 		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
+		ReleaseEnergyAnyPartyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ReleaseEnergyAnyParty", false);
+		PerTargetBuffTiersCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PerTargetBuffTiers", false);
 		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
 		CombinedAccuracyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "CombinedAccuracy", false);
 		AllowStateReapplyOnRemovalCheckbox.ButtonPressed = ReadAllowStateReapplyOnRemoval(config);
@@ -274,6 +276,8 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "VertigoUsesAtk", VertigoUsesAtkCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
+		config.SetValue("Settings", "ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox.ButtonPressed);
+		config.SetValue("Settings", "PerTargetBuffTiers", PerTargetBuffTiersCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox.ButtonPressed);
@@ -349,6 +353,8 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "VertigoUsesAtk", false);
 		config.SetValue("Settings", "ToysUseEmotionDamage", false);
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
+		config.SetValue("Settings", "ReleaseEnergyAnyParty", false);
+		config.SetValue("Settings", "PerTargetBuffTiers", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
 		config.SetValue("Settings", "CombinedAccuracy", false);
 		config.SetValue("Settings", "AllowStateReapplyOnRemoval", false);
@@ -433,6 +439,8 @@ public partial class SettingsMenuManager : Control
 	public bool VertigoUsesAtk => VertigoUsesAtkCheckbox.ButtonPressed;
 	public bool ToysUseEmotionDamage => ToysUseEmotionDamageCheckbox.ButtonPressed;
 	public bool SpaceExHusbandReleaseEnergy => SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed;
+	public bool ReleaseEnergyAnyParty => ReleaseEnergyAnyPartyCheckbox.ButtonPressed;
+	public bool PerTargetBuffTiers => PerTargetBuffTiersCheckbox.ButtonPressed;
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public bool CombinedAccuracy => CombinedAccuracyCheckbox.ButtonPressed;
 	public bool AllowStateReapplyOnRemoval => AllowStateReapplyOnRemovalCheckbox.ButtonPressed;
@@ -480,6 +488,8 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox VertigoUsesAtkCheckbox;
 	[Export] private CheckBox ToysUseEmotionDamageCheckbox;
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
+	[Export] private CheckBox ReleaseEnergyAnyPartyCheckbox;
+	[Export] private CheckBox PerTargetBuffTiersCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
 	[Export] private CheckBox CombinedAccuracyCheckbox;
 	[Export] private CheckBox AllowStateReapplyOnRemovalCheckbox;

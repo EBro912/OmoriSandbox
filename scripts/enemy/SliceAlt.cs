@@ -13,7 +13,7 @@ internal sealed class SliceAlt : Enemy
     protected override Stats Stats => new(1500, 1500, 88, 65, 95, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
     }
     protected override string[] EquippedSkills => ["SLAttack", "SLDoNothing", "SLRile"];
   

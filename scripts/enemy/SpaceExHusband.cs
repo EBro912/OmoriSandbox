@@ -29,7 +29,7 @@ internal sealed class SpaceExHusband : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || (emotion.Group != null && emotion.Group.Id == Memory);
+        return emotion.Id == "neutral" || emotion.Id == "afraid" || (emotion.Group != null && emotion.Group.Id == Memory);
     }
 
     public override void SetHurt(bool hurt)
@@ -41,7 +41,7 @@ internal sealed class SpaceExHusband : Enemy
         if (hurt && CurrentEmotion.Id == "neutral")
             Sprite.Animation = "hurt";
         else
-            Sprite.Animation = CurrentEmotion.AnimationName;
+            Sprite.Animation = EmotionAnimation(CurrentEmotion);
     }
 
     public override BattleCommand ProcessAI()

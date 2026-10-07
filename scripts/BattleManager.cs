@@ -50,15 +50,16 @@ public partial class BattleManager : Node
 	private readonly List<BattleCommand> ForcedCommands = [];
 	private int ForcedCountAtCommandStart = 0;
 	private IReadOnlyList<Actor> CommandTargets = [];
+	private IReadOnlyList<Actor> TierTargets = [];
+	private readonly Dictionary<string, List<int>> TierLandings = [];
+	private readonly Dictionary<(string, Actor), int> TierSteps = [];
+	private int TierReactionDepth;
 	private PendingFollowupData PendingFollowup = null;
 	private readonly HashSet<BattleMenuOption> DisabledMenuOptions = [];
 
 	// vanilla only spends followup energy when the followup is actually used, so the
 	// selection records everything needed to re-validate and pay at use time
-	private sealed record PendingFollowupData(BattleCommand Command, int TargetPosition, string BaseSkillName)
-	{
-		public bool IsReleaseEnergy => BaseSkillName.StartsWith("ReleaseEnergy");
-	}
+	private sealed record PendingFollowupData(BattleCommand Command, PartyMemberComponent User, FollowupEntry Entry);
 	private readonly List<Actor> PriorityActors = [];
 	private readonly HashSet<EnemyComponent> DeferredDeathEnemies = [];
 	private BattleCommand CurrentCommand = null;
@@ -82,7 +83,7 @@ public partial class BattleManager : Node
 		internal set
 		{
 			_Energy = value;
-			EnergyChanged?.Invoke(this, EventArgs.Empty);
+			RunAsReaction(() => EnergyChanged?.Invoke(this, EventArgs.Empty));
 		}
 	}
 
@@ -663,6 +664,7 @@ public partial class BattleManager : Node
 		FallTween = null;
 		CurrentCommand = null;
 		CommandTargets = [];
+		EndTiersFromFirstTarget();
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.ResetScreenEffects();
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
@@ -1094,7 +1096,7 @@ public partial class BattleManager : Node
 			// an invalid followup is silently skipped and costs nothing
 			if (IsFollowupValid(followup))
 			{
-				Energy = followup.IsReleaseEnergy ? 0 : Energy - 3;
+				Energy -= followup.Entry.EnergyCost;
 				return followup.Command;
 			}
 			if (followup.Command.Action is Skill followupSkill && followupSkill.ShowFollowups)
@@ -1193,7 +1195,7 @@ public partial class BattleManager : Node
 		// skip if the enemy cannot act
 		if (!enemy.HasPreRolledAction || ActedThisTurn.Contains(enemy) || enemy.IsToast || enemy.Stunned)
 			return;
-		RunGuarded(() => enemy.PreRollTurnPriority(emotionReroll: true), $"{enemy.Name}.PreRollTurnPriority");
+		RunGuarded(() => RunAsReaction(() => enemy.PreRollTurnPriority(emotionReroll: true)), $"{enemy.Name}.PreRollTurnPriority");
 		if (SettingsMenuManager.Instance.LogDebug)
 			GD.Print($"{enemy.Name} changed emotion group to {current.Id} before acting, re-rolled turn priority: {enemy.TurnPriority}");
 	}
@@ -1624,8 +1626,7 @@ public partial class BattleManager : Node
 						foreach (var entry in component.FollowupSet.Entries)
 						{
 							// each bubble already grays itself on energy via its own cost
-							if (afraid || !IsFollowupEntryUsable(entry.Value.TargetPosition, entry.Value.BaseSkillName,
-								    includeEnergy: false))
+							if (afraid || !IsFollowupEntryUsable(component, entry.Value, includeEnergy: false))
 								disabledDirections.Add(FollowupSets.DirectionFor(entry.Key, component.Position));
 						}
 
@@ -1659,6 +1660,7 @@ public partial class BattleManager : Node
 		ActionEventArgs actionArgs = new(currentAction.Actor, currentAction.Action, resolvedTargets);
 		RaiseGuarded(ActionStarted, actionArgs, "ActionStarted");
 
+		BeginTiersFromFirstTarget(currentAction.Action, resolvedTargets);
 		if (currentAction.Action.Setup != null)
 			await RunGuarded(() => currentAction.Action.Setup(currentAction.Actor, resolvedTargets),
 				$"setup of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
@@ -1672,6 +1674,7 @@ public partial class BattleManager : Node
 
 		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
 			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
+		EndTiersFromFirstTarget();
 
 		RaiseGuarded(ActionEnded, actionArgs, "ActionEnded");
 
@@ -1702,7 +1705,7 @@ public partial class BattleManager : Node
 
 	private bool HandleFollowup(InputDirection direction)
 	{
-		if (Energy < 3 || !FollowupActive || ForceHideFollowup || !EnergyBar.Visible || FollowupSelected)
+		if (!FollowupActive || ForceHideFollowup || !EnergyBar.Visible || FollowupSelected)
 			return false;
 
 		PartyMemberComponent current = ((PartyMember)CurrentCommand.Actor).Component;
@@ -1711,16 +1714,10 @@ public partial class BattleManager : Node
 		    !current.FollowupSet.Entries.TryGetValue(role.Value, out FollowupEntry pair))
 			return false;
 
-		if (!IsFollowupEntryUsable(pair.TargetPosition, pair.BaseSkillName, includeEnergy: true))
+		if (!IsFollowupEntryUsable(current, pair, includeEnergy: true))
 			return false;
 
-		string name = pair.BaseSkillName;
-		
-		// certain followups like Basil's Release Energy have no tier
-		if (name == "ReleaseEnergy")
-			name += FollowupTier.ToString();
-		else if (name != "ReleaseEnergyBasil" && current.FollowupSet.Tiered)
-			name += FollowupTier;
+		string name = FollowupSets.SkillNameFor(pair, current.FollowupSet, FollowupTier);
 
 		if (!Database.TryGetSkill(name, out Skill skill))
 			return false;
@@ -1738,7 +1735,7 @@ public partial class BattleManager : Node
 			SkillTarget.Self => new BattleCommand(current.Actor, current.Actor, skill),
 			_ => new BattleCommand(current.Actor, CurrentCommand.Targets, skill)
 		};
-		PendingFollowup = new PendingFollowupData(command, pair.TargetPosition, pair.BaseSkillName);
+		PendingFollowup = new PendingFollowupData(command, current, pair);
 
 		// prevent followup bubbles from showing again if the followup itself is an attack
 		if (skill.ShowFollowups)
@@ -1853,27 +1850,22 @@ public partial class BattleManager : Node
 		((PartyMember)CurrentCommand.Actor).Component.FadeOutFollowupsExcept(direction);
 	}
 	
-	private bool IsFollowupEntryUsable(int targetPosition, string baseSkillName, bool includeEnergy)
+	private bool IsFollowupEntryUsable(PartyMemberComponent user, FollowupEntry entry, bool includeEnergy)
 	{
-		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == targetPosition);
+		int position = entry.TargetPosition == FollowupEntry.User ? user.Position : entry.TargetPosition;
+		PartyMemberComponent target = CurrentParty.FirstOrDefault(x => x.Position == position);
 		if (target == null || target.Actor.IsToast)
 			return false;
 
-		if (baseSkillName.StartsWith("ReleaseEnergy"))
-		{
-			if (CurrentParty.Any(x => x.Actor.IsToast))
-				return false;
-			if (includeEnergy && Energy != 10)
-				return false;
-		}
-		else if (includeEnergy && Energy < 3)
+		bool anyParty = entry.IsReleaseEnergy && SettingsMenuManager.Instance.ReleaseEnergyAnyParty;
+		if (!anyParty && CurrentParty.Count < entry.MinPartySize)
+			return false;
+		if (entry.RequiresAllAlive && CurrentParty.Any(x => x.Actor.IsToast))
+			return false;
+		if (includeEnergy && Energy < entry.EnergyCost)
 			return false;
 
-		// PassToHero reads the position 1 member's ATK (vanilla bug), so that slot must be filled
-		if (baseSkillName == "PassToHero" && GetPartyMemberAtPosition(1) == null)
-			return false;
-
-		return true;
+		return entry.Requirement == null || entry.Requirement(user.Actor);
 	}
 
 	private bool IsFollowupValid(PendingFollowupData followup)
@@ -1881,7 +1873,7 @@ public partial class BattleManager : Node
 		if (IsInvalidTarget(followup.Command.Actor) || followup.Command.Actor.Stunned)
 			return false;
 
-		return IsFollowupEntryUsable(followup.TargetPosition, followup.BaseSkillName, includeEnergy: true);
+		return IsFollowupEntryUsable(followup.User, followup.Entry, includeEnergy: true);
 	}
 
 	private async void EndOfTurn()
@@ -2185,7 +2177,7 @@ public partial class BattleManager : Node
 		if (handler == null)
 			return;
 		foreach (EventHandler subscriber in handler.GetInvocationList().Cast<EventHandler>())
-			RunGuarded(() => subscriber(this, EventArgs.Empty), $"{context} event handler");
+			RunGuarded(() => RunAsReaction(() => subscriber(this, EventArgs.Empty)), $"{context} event handler");
 	}
 
 	private void RaiseGuarded<T>(EventHandler<T> handler, T args, string context)
@@ -2193,7 +2185,7 @@ public partial class BattleManager : Node
 		if (handler == null)
 			return;
 		foreach (EventHandler<T> subscriber in handler.GetInvocationList().Cast<EventHandler<T>>())
-			RunGuarded(() => subscriber(this, args), $"{context} event handler");
+			RunGuarded(() => RunAsReaction(() => subscriber(this, args)), $"{context} event handler");
 	}
 
 	/// <summary>
@@ -2395,12 +2387,20 @@ public partial class BattleManager : Node
 
 	private void ApplyOverrides(DamagePhase phase, ref float damage, DamageContext context)
 	{
-		context.IsAttacking = true;
-		foreach (StatModifier mod in context.Attacker.StatModifiers.Values)
-			mod.OverrideDamage(phase, ref damage, context);
-		context.IsAttacking = false;
-		foreach (StatModifier mod in context.Defender.StatModifiers.Values)
-			mod.OverrideDamage(phase, ref damage, context);
+		TierReactionDepth++;
+		try
+		{
+			context.IsAttacking = true;
+			foreach (StatModifier mod in context.Attacker.StatModifiers.Values)
+				mod.OverrideDamage(phase, ref damage, context);
+			context.IsAttacking = false;
+			foreach (StatModifier mod in context.Defender.StatModifiers.Values)
+				mod.OverrideDamage(phase, ref damage, context);
+		}
+		finally
+		{
+			TierReactionDepth--;
+		}
 	}
 
 	/// <summary>
@@ -2879,6 +2879,83 @@ public partial class BattleManager : Node
 		return actor;
 	}
 
+	internal void BeginTiersFromFirstTarget(BattleAction action, IReadOnlyList<Actor> targets)
+	{
+		EndTiersFromFirstTarget();
+		if (action.TiersFromFirstTarget && targets.Count > 1 && !SettingsMenuManager.Instance.PerTargetBuffTiers)
+			TierTargets = targets.ToList();
+	}
+
+	internal void EndTiersFromFirstTarget()
+	{
+		TierTargets = [];
+		TierLandings.Clear();
+		TierSteps.Clear();
+	}
+
+	internal void RunAsReaction(Action reaction)
+	{
+		TierReactionDepth++;
+		try
+		{
+			reaction();
+		}
+		finally
+		{
+			TierReactionDepth--;
+		}
+	}
+
+	internal bool TryGetModifierLanding(Actor actor, string modifier, out int landing)
+	{
+		landing = 0;
+		if (!IsTierTarget(actor) || Database.CreateModifier(modifier) is not TierStatModifier template)
+			return false;
+		landing = NextLanding("modifier:" + modifier, actor, first => first.GetStatModifierTier(modifier), template.MaxTier);
+		return true;
+	}
+
+	internal bool TryGetEmotionLanding(Actor actor, string groupId, out int landing)
+	{
+		landing = 0;
+		if (!IsTierTarget(actor))
+			return false;
+		int max = 0;
+		while (Database.TryGetEmotionByGroupTier(groupId, max + 1, out _))
+			max++;
+		if (max == 0)
+			return false;
+		landing = NextLanding("emotion:" + groupId, actor,
+			first => first.CurrentEmotion.Group?.Id == groupId ? first.CurrentEmotion.Tier : 0, max);
+		return true;
+	}
+
+	private bool IsTierTarget(Actor actor)
+	{
+		if (TierTargets.Count == 0 || TierReactionDepth > 0)
+			return false;
+		Actor resolved = ResolveTransformed(actor);
+		return TierTargets.Any(target => ResolveTransformed(target) == resolved);
+	}
+
+	private int NextLanding(string key, Actor actor, Func<Actor, int> heldTier, int maxTier)
+	{
+		Actor resolved = ResolveTransformed(actor);
+		TierSteps.TryGetValue((key, resolved), out int step);
+		TierSteps[(key, resolved)] = step + 1;
+		if (!TierLandings.TryGetValue(key, out List<int> landings))
+		{
+			landings = [];
+			TierLandings[key] = landings;
+		}
+		if (step == landings.Count)
+		{
+			int held = heldTier(ResolveTransformed(TierTargets[0]));
+			landings.Add(held <= 0 || held >= maxTier ? 1 : held + 1);
+		}
+		return landings[step];
+	}
+
 	/// <summary>
 	/// Adds the given <paramref name="amount"/> to the energy bar, up to a maximum of 10.
 	/// </summary>
@@ -2933,6 +3010,9 @@ public partial class BattleManager : Node
 	/// Makes the given <see cref="Actor"/> feel an emotion of the given group, if possible.
 	/// Increases the tier if the actor already feels an emotion of the group.
 	/// </summary>
+	/// <remarks>
+	/// Inside a skill or item marked with <see cref="Skill.WithTiersFromFirstTarget"/>, the tier for one of its targets can follow the first target instead.
+	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
@@ -2942,6 +3022,12 @@ public partial class BattleManager : Node
 		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group))
 		{
 			GD.PrintErr("Unknown emotion group: " + groupId);
+			return;
+		}
+
+		if (TryGetEmotionLanding(who, groupId, out int landing))
+		{
+			MakeEmotionTier(who, groupId, landing, silent);
 			return;
 		}
 
@@ -2958,6 +3044,36 @@ public partial class BattleManager : Node
 			ShowMaxTierMessage(who, group);
 	}
 	
+	/// <summary>
+	/// Makes the given <see cref="Actor"/> feel an emotion of the given group and tier, if possible.
+	/// </summary>
+	/// <param name="who">The <see cref="Actor"/> to change.</param>
+	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
+	/// <param name="tier">The tier of the emotion to give, if possible.</param>
+	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
+	public void MakeEmotionTier(Actor who, string groupId, int tier, bool silent)
+	{
+		who = ResolveTransformed(who);
+		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group)
+		    || !Database.TryGetEmotionByGroupTier(groupId, tier, out Emotion next))
+		{
+			GD.PrintErr("Unknown emotion group tier: " + groupId + " " + tier);
+			return;
+		}
+
+		int held = who.CurrentEmotion.Group == group ? who.CurrentEmotion.Tier : 0;
+		if (held == tier)
+		{
+			if (!silent && who is Enemy)
+				ShowMaxTierMessage(who, group);
+			return;
+		}
+		if (held < tier && who.IsEmotionValid(next))
+			who.SetEmotion(next.Id, silent);
+		else if (!silent)
+			ShowMaxTierMessage(who, group);
+	}
+
 	private bool TryGetNextEmotionInGroup(Actor who, EmotionGroup group, out Emotion next)
 	{
 		Emotion current = who.CurrentEmotion;

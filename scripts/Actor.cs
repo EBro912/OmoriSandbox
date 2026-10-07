@@ -151,7 +151,7 @@ public abstract class Actor
 		set
 		{
 			_CurrentHP = value;
-			OnHPChanged?.Invoke(this, EventArgs.Empty);
+			BattleManager.Instance.RunAsReaction(() => OnHPChanged?.Invoke(this, EventArgs.Empty));
 		}
 	} 
 
@@ -166,7 +166,7 @@ public abstract class Actor
 		set
 		{
 			_CurrentJuice = value;
-			OnJuiceChanged?.Invoke(this, EventArgs.Empty);
+			BattleManager.Instance.RunAsReaction(() => OnJuiceChanged?.Invoke(this, EventArgs.Empty));
 		}
 	}
 
@@ -306,7 +306,7 @@ public abstract class Actor
 
 		StatModifiers.Add(modifier, mod);
 		GrantFreeActionTick(mod);
-		mod.OnAdd(this);
+		BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		NotifyModifierAdded(modifier, mod);
 	}
@@ -319,6 +319,20 @@ public abstract class Actor
     /// <param name="turns">The number of turns left the modifier will start at. If unchanged (-1), the modifier's registered duration is kept.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
     public void AddTierStatModifier(string modifier, int tier = 1, int turns = -1, bool silent = false)
+	{
+		if (tier <= 1 && BattleManager.Instance != null && BattleManager.Instance.TryGetModifierLanding(this, modifier, out int landing))
+		{
+			int held = GetStatModifierTier(modifier);
+			if (held >= landing)
+				RefreshTierStatModifier(modifier, held == landing, silent);
+			else
+				AddTierStatModifierCore(modifier, landing, turns, silent);
+			return;
+		}
+		AddTierStatModifierCore(modifier, tier, turns, silent);
+	}
+
+	private void AddTierStatModifierCore(string modifier, int tier, int turns, bool silent)
 	{
 		StatModifier mod = Database.CreateModifier(modifier);
 		if (mod is not TierStatModifier t)
@@ -341,7 +355,7 @@ public abstract class Actor
 			if (turns > -1)
 				mod.SetTurnsLeft(turns);
 			StatModifiers.Add(modifier, mod);
-			mod.OnAdd(this);
+			BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
 			GD.Print("Added modifier " + modifier + " to " + Name);
 			NotifyModifierAdded(modifier, mod);
 			return;
@@ -399,11 +413,23 @@ public abstract class Actor
 		if (turns > -1)
 			t.SetTurnsLeft(turns);
 		StatModifiers.Add(modifier, t);
-		t.OnAdd(this);
+		BattleManager.Instance.RunAsReaction(() => t.OnAdd(this));
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		if (!silent && t.SuccessMessage != null)
 			ShowStatMessage(t.SuccessMessage);
 		NotifyModifierAdded(modifier, t);
+	}
+
+	private void RefreshTierStatModifier(string modifier, bool refreshTurns, bool silent)
+	{
+		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod) || mod is not TierStatModifier tier)
+			return;
+		if (IsReapplyBlocked(modifier, tier.CurrentTier))
+			return;
+		if (refreshTurns)
+			tier.RefreshTurns();
+		if (!silent && tier.SuccessMessage != null)
+			ShowStatMessage(tier.FailureMessage);
 	}
 
 	/// <summary>
@@ -496,10 +522,10 @@ public abstract class Actor
 		StatModifiers.Remove(modifier);
 		if (record && !mod.ReapplyAllowed)
 			RemovedSinceResultClear.Add(ResultKey(modifier, (mod as TierStatModifier)?.CurrentTier ?? 0));
-		mod.OnRemove(this);
+		BattleManager.Instance.RunAsReaction(() => mod.OnRemove(this));
 		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
 		ClampHealthJuiceToMax();
-		OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason));
+		BattleManager.Instance.RunAsReaction(() => OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason)));
 	}
 
 	// RPGMaker keeps track of removed states whenever they expire
@@ -542,7 +568,7 @@ public abstract class Actor
 	private void NotifyModifierAdded(string modifier, StatModifier mod)
 	{
 		ClampHealthJuiceToMax();
-		OnStatModifierAdded?.Invoke(this, new StatModifierEventArgs(modifier, mod));
+		BattleManager.Instance.RunAsReaction(() => OnStatModifierAdded?.Invoke(this, new StatModifierEventArgs(modifier, mod)));
 	}
 
 	private static bool CombineEnabled => BattleManager.Instance != null && BattleManager.Instance.CombinedBuffsDebuffs;
@@ -759,7 +785,7 @@ public abstract class Actor
 			return damage;
 		}
 
-		OnDamaged?.Invoke(this, EventArgs.Empty);
+		BattleManager.Instance.RunAsReaction(() => OnDamaged?.Invoke(this, EventArgs.Empty));
 		return damage;
 	}
 
@@ -874,7 +900,7 @@ public abstract class Actor
 
 		CurrentAnimation = animationName;
 		Sprite.Animation = animationName;
-		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
+		BattleManager.Instance.RunAsReaction(() => OnAnimationChanged?.Invoke(this, EventArgs.Empty));
 	}
 
 	/// <summary>
@@ -889,7 +915,7 @@ public abstract class Actor
 		CurrentAnimation = null;
 		if (GodotObject.IsInstanceValid(Sprite))
 			Sprite.Animation = IsToast ? "toast" : EmotionAnimation(CurrentEmotion);
-		OnAnimationChanged?.Invoke(this, EventArgs.Empty);
+		BattleManager.Instance.RunAsReaction(() => OnAnimationChanged?.Invoke(this, EventArgs.Empty));
 	}
 
 	/// <summary>
@@ -955,7 +981,7 @@ public abstract class Actor
 		IsToast = false;
 		ClearAnimation();
 		CurrentHP = hp;
-		OnRevived?.Invoke(this, EventArgs.Empty);
+		BattleManager.Instance.RunAsReaction(() => OnRevived?.Invoke(this, EventArgs.Empty));
 	}
 
 	/// <summary>
@@ -1002,7 +1028,7 @@ public abstract class Actor
 				BattleLogManager.Instance.QueueMessage(emotion.FeelsMessage(Name));
 			}
 
-			OnEmotionChanged?.Invoke(this, EventArgs.Empty);
+			BattleManager.Instance.RunAsReaction(() => OnEmotionChanged?.Invoke(this, EventArgs.Empty));
 			// only update the sprite if no animation override is active
 			if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite)) {
 				Sprite.Animation = EmotionAnimation(emotion);
@@ -1036,7 +1062,7 @@ public abstract class Actor
 		Emotion previous = CurrentEmotion;
 		CurrentEmotion = emotion;
 		ClampHealthJuiceToMax();
-		OnEmotionChanged?.Invoke(this, EventArgs.Empty);
+		BattleManager.Instance.RunAsReaction(() => OnEmotionChanged?.Invoke(this, EventArgs.Empty));
 		if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
 		{
 			Sprite.Animation = EmotionAnimation(emotion);

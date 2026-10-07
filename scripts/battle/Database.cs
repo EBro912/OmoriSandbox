@@ -301,7 +301,7 @@ public class Database
 		}
 		foreach ((FollowupInput input, FollowupEntry entry) in entries)
 		{
-			if (entry.TargetPosition is < 0 or > 3)
+			if (entry.TargetPosition != FollowupEntry.User && entry.TargetPosition is < 0 or > 3)
 			{
 				GD.PrintErr($"Followup set {id}{mod}: {input} entry has invalid target position {entry.TargetPosition}, skipping!");
 				return false;
@@ -316,6 +316,13 @@ public class Database
 				GD.PrintErr($"Followup set {id}{mod}: {input} entry has no usable bubble texture, skipping!");
 				return false;
 			}
+			if (entry.EnergyCost is < 0 or > 10 || entry.MinPartySize is < 0 or > 4)
+			{
+				GD.PrintErr($"Followup set {id}{mod}: {input} entry has an energy cost outside 0-10 or a party size outside 0-4, skipping!");
+				return false;
+			}
+			if (entry.BaseSkillName.StartsWith("ReleaseEnergy") && !entry.IsReleaseEnergy)
+				GD.PushWarning($"Followup set {id}{mod}: {input} entry is named \"{entry.BaseSkillName}\" and costs {entry.EnergyCost} energy and is not a Release Energy! Use WithReleaseEnergy() to mark it as a Release Energy follow-up.");
 		}
 
 		if (FollowupSetsById.Count == 0)
@@ -1495,7 +1502,10 @@ public class Database
 				foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
 				{
 					AnimationManager.Instance.PlayAnimation(212, member);
-					int heal = (int)Math.Round(member.CurrentStats.MaxHP * 0.4f, MidpointRounding.AwayFromZero);
+					// rose only heals omori (slot 0) and basil
+					if (member.Component.Position != 0 && member != self)
+						continue;
+					int heal = (int)(member.CurrentStats.MaxHP * 0.4f);
 					heal = member.Heal(heal);
 					BattleManager.Instance.SpawnDamageNumber(heal, member, DamageType.Heal);
 				}
@@ -1504,10 +1514,10 @@ public class Database
 				foreach (Actor enemy in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(219, enemy);
-					enemy.AddStatModifier("AttackDown", silent: true);
+					enemy.AddTierStatModifier("AttackDown", silent: true);
 				}
 			}
-		);
+		).WithTiersFromFirstTarget();
 
 		Skills["FlowerCrown"] = new Skill(
 			name: "FLOWER CROWN",
@@ -1538,11 +1548,11 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(3, target);
 				PartyMember first = BattleManager.Instance.GetPartyMemberAtPosition(0);
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] and [target] vent their ANGER!");
+				BattleManager.Instance.MakeAngry(first);
+				BattleManager.Instance.MakeAngry(self);
 				BattleManager.Instance.Damage(self, target,
 					() => (first.CurrentStats.ATK * 1.5f) + (self.CurrentStats.ATK * 1.5f) - target.CurrentStats.DEF,
 					true, 0.1f);
-				BattleManager.Instance.MakeAngry(first);
-				BattleManager.Instance.MakeAngry(self);
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
@@ -1562,13 +1572,12 @@ public class Database
 					BattleManager.Instance.HealJuice(self, member, () => member.CurrentStats.MaxJuice * 0.25f);
 				}
 
-				// only character 1 and basil become sad
-				BattleManager.Instance.MakeSad(first);
-				BattleManager.Instance.MakeSad(self);
+				foreach (Actor member in targets)
+					BattleManager.Instance.MakeSad(member);
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithTiersFromFirstTarget().WithCustomRequirement((_) => true);
 
 		Skills["Comfort"] = new Skill(
 			name: "Comfort",
@@ -1585,13 +1594,12 @@ public class Database
 				}
 
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] and [target] comfort each other.");
-				// only character 1 and basil become happy
-				BattleManager.Instance.MakeHappy(first);
-				BattleManager.Instance.MakeHappy(self);
+				foreach (Actor member in targets)
+					BattleManager.Instance.MakeHappy(member);
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithTiersFromFirstTarget().WithCustomRequirement((_) => true);
 
 		Skills["ReleaseEnergyBasil"] = new Skill(
 			name: "Release Energy Basil",
@@ -2654,11 +2662,11 @@ public class Database
 						() => (second.CurrentStats.ATK * 1.5f) + (self.CurrentStats.ATK * 1.5f) -
 							  enemy.CurrentStats.DEF, false);
 					AnimationManager.Instance.PlayAnimation(219, enemy);
-					enemy.AddStatModifier("AttackDown");
+					enemy.AddTierStatModifier("AttackDown");
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithTiersFromFirstTarget().WithCustomRequirement((_) => true);
 
 		// HERO //
 		Skills["HAttack"] = new Skill(
@@ -2820,12 +2828,12 @@ public class Database
 				{
 					BattleLogManager.Instance.QueueMessage(self, enemy, "[actor] smiles at [target]!");
 					AnimationManager.Instance.PlayAnimation(276, enemy);
-					enemy.AddStatModifier("AttackDown");
+					enemy.AddTierStatModifier("AttackDown");
 					BattleManager.Instance.MakeHappy(enemy);
 					AnimationManager.Instance.PlayAnimation(219, enemy);
 				}
 			}
-		);
+		).WithTiersFromFirstTarget();
 		Skills["FastFood"] = new Skill(
 			name: "FAST FOOD",
 			description: "Acts first, healing a friend for 40% of\ntheir HEART. Cost: 15",
@@ -2896,11 +2904,11 @@ public class Database
 				BattleLogManager.Instance.QueueMessage("Everyone's DEFENSE rose!");
 				foreach (Actor member in targets)
 				{
-					member.AddStatModifier("DefenseUp", silent: true);
+					member.AddTierStatModifier("DefenseUp", silent: true);
 					AnimationManager.Instance.PlayAnimation(214, member);
 				}
 			}
-		);
+		).WithTiersFromFirstTarget();
 		Skills["TeaTime"] = new Skill(
 			name: "TEA TIME",
 			description: "Heals some of a friend's HEART and JUICE.\nCost: 25",
@@ -3877,7 +3885,7 @@ public class Database
 				await Wait.Milliseconds(250);
 				foreach (Actor enemy in targets)
 				{
-					BattleManager.Instance.MakeAngry(enemy, silent: true);
+					BattleManager.Instance.MakeEmotionTier(enemy, "angry", 1, true);
 				}
 			},
 			hidden: true
@@ -4155,20 +4163,16 @@ public class Database
 		   cost: 0,
 		   effect: async (self, targets) =>
 		   {
-			   int tier = Math.Min(3, targets[0].GetStatModifierTier("AttackUp") + 1);
 			   BattleLogManager.Instance.QueueMessage(self, "[actor] gives a controversial speech!\nEveryone feels ANGRY!");
 			   foreach (Actor enemy in targets)
 			   {
-				   BattleManager.Instance.MakeAngry(enemy, silent: true);
-				   // remove then add to avoid the readd-on-expiry rule
-				   if (enemy.GetStatModifierTier("AttackUp") != tier)
-					   enemy.RemoveStatModifier("AttackUp");
-				   enemy.AddTierStatModifier("AttackUp", tier, silent: true);
+				   BattleManager.Instance.MakeEmotionTier(enemy, "angry", 1, true);
+				   enemy.AddTierStatModifier("AttackUp", silent: true);
 			   }
 			   await Task.CompletedTask;
 		   },
 		   hidden: true
-		);
+		).WithTiersFromFirstTarget();
 
 		// Sourdough //
 		Skills["SDAttack"] = new Skill(
@@ -4599,7 +4603,7 @@ public class Database
 					BattleManager.Instance.MakeSad(target, silent: true);
 				BattleLogManager.Instance.QueueMessage("Everyone feels SAD.");
 			}
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["TEAProtect"] = new Skill(
 			name: "TEAProtect",
@@ -4838,7 +4842,7 @@ public class Database
 			  }
 			  await Wait.Milliseconds(1000);
 		  }
-		);
+		).WithTiersFromFirstTarget();
 
 		Skills["FOHHands"] = new Skill(
 		  name: "FOHHands",
@@ -5274,7 +5278,7 @@ public class Database
 					BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.1f, false,  neverCrit: true);
 				}
 			}
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["FODDrowning1"] = new Skill(
 			name: "FODDrowning1",
@@ -5787,13 +5791,13 @@ public class Database
 				BattleLogManager.Instance.QueueMessage("Everyone feels ANGRY!");
 				foreach (Actor enemy in targets)
 				{
-					BattleManager.Instance.MakeAngry(enemy, silent: true);
+					BattleManager.Instance.MakeEmotionTier(enemy, "angry", 1, true);
 					enemy.AddTierStatModifier("AttackUp", silent: true);
 				}
 				await Task.CompletedTask;
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["AbbiSummon"] = new Skill(
 			name: "AbbiSummon",
@@ -6141,7 +6145,7 @@ public class Database
 					BattleManager.Instance.MakeSad(enemy);
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		// Hero Boss //
 		Skills["HBossCallAubreyAttack"] = new Skill(
@@ -6255,6 +6259,8 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(219, member);
+					if (member is not PartyMember partyMember || partyMember.Component.Position is not (0 or 2))
+						continue;
 					BattleLogManager.Instance.QueueMessage(self, member, "[actor] smiles at [target]!");
 					member.AddTierStatModifier("AttackDown");
 					BattleManager.Instance.MakeHappy(member);
@@ -6306,7 +6312,7 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
-		);
+		).WithCustomRequirement((_) => true);
 		
 		Skills["BMHThrowMoney"] = new Skill(
 			name: "BMHThrowMoney",
@@ -6406,7 +6412,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHBuffFoes"] = new Skill(
 			name: "BMHBuffFoes",
@@ -6475,14 +6481,13 @@ public class Database
 				foreach (Actor member in targets)
 				{
 					AnimationManager.Instance.PlayAnimation(219, member);
-					// intentionally tier 1 (unlike BMHDebuffFriends' tier 3)
 					member.AddTierStatModifier("AttackDown", silent: true);
 					member.AddTierStatModifier("DefenseDown", silent: true);
 					member.AddTierStatModifier("SpeedDown", silent: true);
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHHappyFriends"] = new Skill(
 			name: "BMHHappyFriends",
@@ -6503,7 +6508,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHHappyFoes"] = new Skill(
 			name: "BMHHappyFoes",
@@ -6526,7 +6531,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHSadFriends"] = new Skill(
 			name: "BMHSadFriends",
@@ -6547,7 +6552,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHSadFoes"] = new Skill(
 			name: "BMHSadFoes",
@@ -6570,7 +6575,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHAngryFriends"] = new Skill(
 			name: "BMHAngryFriends",
@@ -6591,7 +6596,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHAngryFoes"] = new Skill(
 			name: "BMHAngryFoes",
@@ -6614,7 +6619,7 @@ public class Database
 				}
 			},
 			hidden: true
-		);
+		).WithTiersFromFirstTarget();
 		
 		Skills["BMHCritFriends"] = new Skill(
 			name: "BMHCritFriends",
@@ -7955,7 +7960,7 @@ public class Database
 				{
 					BattleManager.Instance.Damage(self, enemy, () => 25, true, 0, neverCrit: true, ignoreEmotion: !SettingsMenuManager.Instance.ToysUseEmotionDamage);
 					AnimationManager.Instance.PlayAnimation(219, enemy);
-					enemy.AddStatModifier("SpeedDown", silent: true);
+					enemy.AddTierStatModifier("SpeedDown", silent: true);
 				}
 				BattleLogManager.Instance.QueueMessage("All foes' SPEED fell.");
 				await Wait.Milliseconds(500);
@@ -7963,7 +7968,7 @@ public class Database
 			isToy: true,
 			spritesheetPath: "res://assets/system/itemConsumables.png",
 			spriteIndex: 61
-		);
+		).WithTiersFromFirstTarget();
 
 		Items["Dynamite"] = new Item(
 			name: "DYNAMITE",

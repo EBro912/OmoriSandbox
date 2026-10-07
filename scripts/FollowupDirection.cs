@@ -27,7 +27,7 @@ internal partial class FollowupDirection : Sprite2D
         RegionEnabled = entry.TextureRegion.HasValue;
         if (entry.TextureRegion.HasValue)
             RegionRect = entry.TextureRegion.Value;
-        Cost = entry.Cost;
+        Cost = entry.EnergyCost;
         if (entry.IsReleaseEnergy)
         {
             FollowupFreakOutComponent freakOut = new();

@@ -14,7 +14,7 @@ public class SnaleyThree : Enemy
     protected override Stats Stats => new(2000, 1000, 40, 30, 40, 15, 200);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id != "afraid" && emotion.Id != "stressed";
+        return emotion.Id != "stressed";
     }
     protected override string[] EquippedSkills => ["RabbitAttack", "SNAttack", "SNBeatdown", "SNAttackFollowup", "SNFollowup", "SNReleaseEnergy", "SNMegaphone"];
 

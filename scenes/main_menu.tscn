@@ -355,7 +355,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -398,6 +398,8 @@ InfiniteBuffsDebuffsCheckbox = NodePath("Tabs/Rules/VBoxContainer/InfiniteBuffsD
 VertigoUsesAtkCheckbox = NodePath("Tabs/Rules/VBoxContainer/VertigoUsesAtk")
 ToysUseEmotionDamageCheckbox = NodePath("Tabs/Rules/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("Tabs/Rules/VBoxContainer/SpaceExHusbandReleaseEnergy")
+ReleaseEnergyAnyPartyCheckbox = NodePath("Tabs/Rules/VBoxContainer/ReleaseEnergyAnyParty")
+PerTargetBuffTiersCheckbox = NodePath("Tabs/Rules/VBoxContainer/PerTargetBuffTiers")
 EnableDebugDamageCheckbox = NodePath("Tabs/Debug/VBoxContainer/EnableDebugDamage")
 CombinedAccuracyCheckbox = NodePath("Tabs/Rules/VBoxContainer/CombinedAccuracy")
 AllowStateReapplyOnRemovalCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowStateReapplyOnRemoval")
@@ -1006,6 +1008,26 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Space Ex-Husband Vulnerable to Release Energy"
+
+[node name="ReleaseEnergyAnyParty" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512647]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Lets RELEASE ENERGY be used by any party with nobody toast,
+instead of needing a full party of four"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Release Energy with Any Living Party"
+
+[node name="PerTargetBuffTiers" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512648]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Party-wide buffs, debuffs and emotions raise each target from its own tier,
+instead of every target getting the first target's next tier"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Per-Target Buff Tiers"
 
 [node name="Debug" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=67187411]
 visible = false

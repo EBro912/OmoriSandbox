@@ -13,7 +13,7 @@ internal sealed class SnaleyTwo : Enemy
     protected override Stats Stats => new(1500, 750, 35, 25, 35, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id != "afraid" && emotion.Id != "stressed";
+        return emotion.Id != "stressed";
     }
     protected override string[] EquippedSkills => ["SNAttack", "SNDoNothing", "SNBeatdown", "SNAttackFollowup", "SNFollowup"];
 

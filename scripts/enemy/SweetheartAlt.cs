@@ -24,7 +24,7 @@ internal sealed class SweetheartAlt : Enemy
 		if (IsEmotionLocked)
 			return false;
 
-		return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+		return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
 	}
 
 

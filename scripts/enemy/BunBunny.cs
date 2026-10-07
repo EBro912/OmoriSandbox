@@ -12,7 +12,7 @@ internal sealed class BunBunny : Enemy
     protected override Stats Stats => new(400, 200, 35, 35, 30, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry";
+        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
     }
     protected override string[] EquippedSkills => ["BBAttack", "BBDoNothing", "BBHide"];
   

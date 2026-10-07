@@ -39,6 +39,10 @@ public class BattleAction
 	/// What this action records in <see cref="Actor.LastTarget"/> when it starts. Defaults to <see cref="LastTargetRecord.Target"/>.
 	/// </summary>
 	public LastTargetRecord LastTargetRecord { get; protected set; }
+	/// <summary>
+	/// Whether tier step-ups on this action's targets follow the first target. Set with <see cref="Skill.WithTiersFromFirstTarget"/> or <see cref="Item.WithTiersFromFirstTarget"/>.
+	/// </summary>
+	public bool TiersFromFirstTarget { get; protected set; }
 
 	protected BattleAction(string name, string description, SkillTarget target, int priority, Func<Actor, IReadOnlyList<Actor>, Task> effect,
 		Func<Actor, IReadOnlyList<Actor>, Task> setup = null)

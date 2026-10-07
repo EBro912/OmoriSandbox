@@ -14,7 +14,7 @@ internal sealed class Tentacle : Enemy
     protected override string[] EquippedSkills => ["TENAttack", "TENWeaken", "TENGrab", "TENGoop"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 
     public override BattleCommand ProcessAI()

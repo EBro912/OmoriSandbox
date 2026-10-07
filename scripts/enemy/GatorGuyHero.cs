@@ -16,7 +16,7 @@ internal sealed class GatorGuyHero : Enemy
     protected override string[] EquippedSkills => ["GGAttack", "GGDoNothing", "GGRoughUp"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "happy" || emotion.Id == "sad" || emotion.Id == "angry";
+        return emotion.Id == "neutral" || emotion.Id == "happy" || emotion.Id == "sad" || emotion.Id == "angry" || emotion.Id == "afraid";
     }
     public override BattleCommand ProcessAI()
     {

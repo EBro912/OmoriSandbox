@@ -22,7 +22,7 @@ internal sealed class KingCrawler : Enemy
     
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "angry" or "happy";
+        return emotion.Id is "neutral" or "sad" or "angry" or "happy" or "afraid";
     }
 
     public override BattleCommand ProcessAI()

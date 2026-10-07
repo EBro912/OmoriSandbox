@@ -16,7 +16,7 @@ internal sealed class Abbi : Enemy
     protected override string[] EquippedSkills => ["AbbiAttack", "AbbiAttackOrder", "AbbiSummon"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 
     private readonly Enemy[] Tentacles = new Enemy[4];

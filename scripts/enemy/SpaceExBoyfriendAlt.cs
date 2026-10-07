@@ -18,7 +18,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         if (IsEmotionLocked)
             return false;
 
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 
     // Space Ex-Boyfriend's locked emotions use slightly different stats than the generic angry line
