@@ -433,13 +433,35 @@ public abstract class Actor
 	}
 
 	/// <summary>
+	/// Stuns this actor for the given number of turns, so its actions are skipped. Forced commands still run.
+	/// </summary>
+	/// <remarks>
+	/// The stun is the <c>"Stunned"</c> stat modifier, which counts down at the end of each turn. A stun of 1 ends after the current turn,
+	/// so it only skips an action the actor hasn't taken yet. Stunning a stunned actor again keeps the longer of the two durations.
+	/// Remove the modifier to end the stun early.
+	/// </remarks>
+	/// <param name="turns">The number of turns, at least 1.</param>
+	public void Stun(int turns)
+	{
+		if (turns < 1)
+			return;
+		if (StatModifiers.TryGetValue("Stunned", out StatModifier stun))
+		{
+			stun.SetTurnsLeft(Math.Max(stun.TurnsLeft, turns));
+			return;
+		}
+		AddStatModifier("Stunned", turns, silent: true);
+	}
+
+	/// <summary>
 	/// Removes a <see cref="StatModifier"/> of the given name from this actor.
 	/// </summary>
 	/// <param name="modifier">The name of the modifier to remove.</param>
 	/// <param name="force">If true, removes the modifier even if it bypasses removal. See <see cref="StatModifier.WithBypassRecoverAllRemoval"/>.</param>
-	public void RemoveStatModifier(string modifier, bool force = false)
+	/// <param name="blockReapply">If false, the modifier can be added again right away, even while "Allow State Reapply on Removal" is off.</param>
+	public void RemoveStatModifier(string modifier, bool force = false, bool blockReapply = true)
 	{
-		RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Manual, force);
+		RemoveStatModifierInternal(modifier, StatModifierRemovalReason.Manual, force, blockReapply);
 	}
 
 	/// <summary>
@@ -567,6 +589,8 @@ public abstract class Actor
 
 	private void NotifyModifierAdded(string modifier, StatModifier mod)
 	{
+		if (CurrentEmotion.Id != "neutral" && mod.BlocksEmotion(CurrentEmotion))
+			SetEmotionForced("neutral");
 		ClampHealthJuiceToMax();
 		BattleManager.Instance.RunAsReaction(() => OnStatModifierAdded?.Invoke(this, new StatModifierEventArgs(modifier, mod)));
 	}
@@ -987,9 +1011,36 @@ public abstract class Actor
 	/// <summary>
 	/// Checks if this actor can feel the given emotion.
 	/// </summary>
+	/// <remarks>
+	/// By default, this only checks <see cref="IsImmuneToEmotion"/>. An override adds the actor's own rules and doesn't need to call <c>base</c>:
+	/// <see cref="SetEmotion"/> and <see cref="BattleManager.MakeEmotion"/> also check <see cref="IsImmuneToEmotion"/>.
+	/// </remarks>
 	/// <param name="emotion">The emotion to check.</param>
 	/// <returns>True if this actor can feel the given <paramref name="emotion"/>.</returns>
-	public virtual bool IsEmotionValid(Emotion emotion) { return true; }
+	public virtual bool IsEmotionValid(Emotion emotion) { return !IsImmuneToEmotion(emotion); }
+
+	/// <summary>
+	/// Whether something this actor wears or has applied blocks the given emotion.
+	/// See <see cref="Equipment.WithEmotionImmunity"/> and <see cref="StatModifier.WithEmotionImmunity"/>.
+	/// </summary>
+	/// <param name="emotion">The emotion to check.</param>
+	/// <returns>True if an equipped item or an active stat modifier blocks the emotion. Neutral is never blocked.</returns>
+	public bool IsImmuneToEmotion(Emotion emotion)
+	{
+		if (emotion == null || emotion.Id == "neutral")
+			return false;
+		foreach (Equipment item in EquippedItems)
+		{
+			if (item != null && item.BlocksEmotion(emotion))
+				return true;
+		}
+		return StatModifiers.Values.Any(x => x.BlocksEmotion(emotion));
+	}
+
+	/// <summary>
+	/// The equipment this actor wears, checked by <see cref="IsImmuneToEmotion"/>. Empty by default.
+	/// </summary>
+	protected virtual IEnumerable<Equipment> EquippedItems => [];
 
 	/// <summary>
 	/// Checks if this actor can feel the emotion with the given id. See <see cref="IsEmotionValid(Emotion)"/>.
@@ -998,7 +1049,7 @@ public abstract class Actor
 	/// <returns>True if the emotion exists and this actor can feel it, false for unknown ids.</returns>
 	public bool IsEmotionValid(string id)
 	{
-		return Database.TryGetEmotion(id, out Emotion emotion) && IsEmotionValid(emotion);
+		return Database.TryGetEmotion(id, out Emotion emotion) && IsEmotionValid(emotion) && !IsImmuneToEmotion(emotion);
 	}
 
     /// <summary>
@@ -1017,7 +1068,7 @@ public abstract class Actor
 			return false;
 		}
 
-		if (!IsEmotionLocked && IsEmotionValid(emotion))
+		if (!IsEmotionLocked && IsEmotionValid(emotion) && !IsImmuneToEmotion(emotion))
 		{
 			Emotion previous = CurrentEmotion;
 			CurrentEmotion = emotion;

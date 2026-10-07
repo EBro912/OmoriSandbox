@@ -177,6 +177,64 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
+	/// Selects the living party member with the lowest value of the given stat.
+	/// </summary>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <param name="stat">The stat to compare, read from <see cref="Actor.CurrentStats"/>.</param>
+	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
+	protected PartyMember SelectTargetWithLowest(StatType stat)
+	{
+		return SelectTargetWithLowest(member => member.CurrentStats.GetStat(stat));
+	}
+
+	/// <summary>
+	/// Selects the living party member with the lowest <paramref name="value"/>, such as current HP.
+	/// </summary>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <param name="value">Reads the value to compare from a party member. If null, a random living member is picked.</param>
+	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
+	protected PartyMember SelectTargetWithLowest(Func<PartyMember, float> value)
+	{
+		return SelectTargetBy(value ?? (_ => 0f), false);
+	}
+
+	/// <summary>
+	/// Selects the living party member with the highest value of the given stat.
+	/// </summary>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <param name="stat">The stat to compare, read from <see cref="Actor.CurrentStats"/>.</param>
+	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
+	protected PartyMember SelectTargetWithHighest(StatType stat)
+	{
+		return SelectTargetWithHighest(member => member.CurrentStats.GetStat(stat));
+	}
+
+	/// <summary>
+	/// Selects the living party member with the highest <paramref name="value"/>, such as current HP.
+	/// </summary>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <param name="value">Reads the value to compare from a party member. If null, a random living member is picked.</param>
+	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
+	protected PartyMember SelectTargetWithHighest(Func<PartyMember, float> value)
+	{
+		return SelectTargetBy(value ?? (_ => 0f), true);
+	}
+
+	private static PartyMember SelectTargetBy(Func<PartyMember, float> value, bool highest)
+	{
+		List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
+		if (members.Count == 0)
+			return null;
+		PartyMember target = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)];
+		foreach (PartyMember member in members)
+		{
+			if (highest ? value(member) > value(target) : value(member) < value(target))
+				target = member;
+		}
+		return target;
+	}
+
+	/// <summary>
 	/// Selects all targets. Mainly used in <see cref="ProcessAI"/> for multi-target skills. Can be overriden for custom targeting behavior.
 	/// </summary>
 	/// <remarks>This only includes alive party members by default.</remarks>

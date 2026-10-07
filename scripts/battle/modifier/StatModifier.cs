@@ -1,4 +1,5 @@
 using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Emotions;
 using System;
 using System.Collections.Generic;
 
@@ -146,6 +147,41 @@ public class StatModifier
     public bool HasCategory(string category)
     {
         return !string.IsNullOrWhiteSpace(category) && Categories.Contains(category.Trim());
+    }
+
+    private readonly EmotionImmunity Immunity = new();
+
+    /// <summary>
+    /// Makes the holder unable to feel the given emotions while this modifier is applied.
+    /// </summary>
+    /// <remarks>
+    /// Each id blocks only that emotion, so list every tier you want to block, e.g. <c>"happy", "ecstatic", "manic"</c>.
+    /// Neutral can't be blocked. An actor already feeling a blocked emotion returns to neutral.
+    /// </remarks>
+    /// <param name="emotionIds">The ids of the emotions to block.</param>
+    public StatModifier WithEmotionImmunity(params string[] emotionIds)
+    {
+        Immunity.Add(emotionIds);
+        return this;
+    }
+
+    /// <summary>
+    /// Makes the actor unable to feel any emotion except neutral and the ones listed while this modifier is applied. This includes emotions added by mods.
+    /// </summary>
+    /// <remarks>
+    /// For example, <c>WithImmunityToAllEmotions("stressed")</c> still lets the actor become STRESSED OUT.
+    /// An actor already feeling a blocked emotion returns to neutral.
+    /// </remarks>
+    /// <param name="exceptEmotionIds">The ids of emotions that stay allowed.</param>
+    public StatModifier WithImmunityToAllEmotions(params string[] exceptEmotionIds)
+    {
+        Immunity.AddAllExcept(exceptEmotionIds);
+        return this;
+    }
+
+    internal bool BlocksEmotion(Emotion emotion)
+    {
+        return Immunity.Blocks(emotion);
     }
 
     internal virtual StateIcon[] GetStateIcons()

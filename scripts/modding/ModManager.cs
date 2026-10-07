@@ -182,6 +182,8 @@ internal partial class ModManager : Node
 		MainMenuManager.Instance.UpdateModsLoaded(processed, total);
 	}
 
+	internal bool IsLoaded(string id) => !string.IsNullOrEmpty(id) && LoadedMods.Any(x => x.Id == id);
+
 	private bool LoadMod(string dirName)
 	{
 		if (!FileAccess.FileExists($"user://mods/{dirName}/mod.json"))

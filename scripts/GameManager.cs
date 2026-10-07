@@ -137,6 +137,11 @@ public partial class GameManager : Node
 	}
 
 	/// <summary>
+	/// The name of the battleback currently shown, or an empty string while the default battleback is shown.
+	/// </summary>
+	public string CurrentBattleback => BattlebackParent.CurrentName;
+
+	/// <summary>
 	/// Sets the battleback.
 	/// </summary>
 	/// <param name="name">The name of the battleback to set.</param>

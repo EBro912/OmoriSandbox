@@ -53,6 +53,16 @@ public abstract partial class Mod : Node
     internal void UnpatchAll() => _harmony?.UnpatchAll(_harmony.Id);
 
     /// <summary>
+    /// Whether the mod with the given id has finished loading.
+    /// </summary>
+    /// <remarks>
+    /// Mods load one at a time. While your own <see cref="OnLoad"/> runs, only mods that loaded before yours count, and yours doesn't yet.
+    /// From the title screen on, every loaded mod counts.
+    /// </remarks>
+    /// <param name="id">The mod's id, as declared in its mod.json.</param>
+    public static bool IsModLoaded(string id) => ModManager.Instance != null && ModManager.Instance.IsLoaded(id);
+
+    /// <summary>
     /// Called after the mod has been loaded and added to the scene tree.
     /// </summary>
     public virtual void OnLoad() { }

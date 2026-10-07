@@ -95,4 +95,5 @@ internal struct JsonEnemyAIEntry
     public int Chance { get; set; }
     public string Skill { get; set; }
     public int? NumTargets { get; set; }
+    public bool TargetAllies { get; set; }
 }

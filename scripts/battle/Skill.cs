@@ -129,6 +129,21 @@ public class Skill : BattleAction
 	}
 
 	/// <summary>
+	/// How many random targets a <see cref="SkillTarget.XRandomEnemies"/> skill hits. Defaults to 1. See <see cref="WithRandomTargets"/>.
+	/// </summary>
+	public int RandomTargetCount { get; private set; } = 1;
+
+	/// <summary>
+	/// Sets how many random targets a <see cref="SkillTarget.XRandomEnemies"/> skill hits. The same target can be picked more than once.
+	/// </summary>
+	/// <param name="count">The number of targets, at least 1.</param>
+	public Skill WithRandomTargets(int count)
+	{
+		RandomTargetCount = Math.Max(1, count);
+		return this;
+	}
+
+	/// <summary>
 	/// Sets what this skill records in <see cref="Actor.LastTarget"/> when it starts.
 	/// </summary>
 	/// <param name="record">What to record. Defaults to <see cref="LastTargetRecord.Target"/>.</param>

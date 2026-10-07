@@ -66,6 +66,29 @@ public class Database
 	}
 
 	/// <summary>
+	/// Whether a party member with the given id is registered, built in or from a mod.
+	/// </summary>
+	/// <param name="name">The party member id, as used in presets and by <c>BattleManager.SummonPartyMember</c>.</param>
+	/// <returns>True if a party member is registered under that id.</returns>
+	public static bool HasPartyMember(string name)
+	{
+		return name != null && PartyMembers.ContainsKey(name);
+	}
+
+	/// <summary>
+	/// Whether a stat modifier with the given id is registered, built in or from a mod.
+	/// </summary>
+	/// <remarks>
+	/// This checks the registry. To check whether an actor has a modifier, use <see cref="Actor.HasStatModifier"/>.
+	/// </remarks>
+	/// <param name="name">The stat modifier id, as used by <c>Actor.AddStatModifier</c>.</param>
+	/// <returns>True if a stat modifier is registered under that id.</returns>
+	public static bool HasStatModifier(string name)
+	{
+		return name != null && Modifiers.ContainsKey(name);
+	}
+
+	/// <summary>
 	/// Tries to get an <see cref="Item"/> of the given <paramref name="name"/> from the database.
 	/// </summary>
 	/// <param name="name">The name of the item to search for.</param>
@@ -151,7 +174,10 @@ public class Database
 
 	internal static Emotion NeutralEmotion => Emotions["neutral"];
 
-	internal static IEnumerable<string> GetAllEmotionIds()
+	/// <summary>
+	/// The ids of every registered emotion, in registration order.
+	/// </summary>
+	public static IEnumerable<string> GetAllEmotionIds()
 	{
 		return EmotionOrder;
 	}
@@ -380,32 +406,50 @@ public class Database
 		return TryRegister(StateIcons, "State Icon", name, texture);
 	}
 
-	internal static IEnumerable<string> GetAllWeaponNames()
+	/// <summary>
+	/// The ids of every registered weapon.
+	/// </summary>
+	public static IEnumerable<string> GetAllWeaponNames()
 	{
 		return Equipment.Where(x => !x.Value.IsCharm).Select(x => x.Key);
 	}
 
-	internal static IEnumerable<string> GetAllCharmNames()
+	/// <summary>
+	/// The ids of every registered charm.
+	/// </summary>
+	public static IEnumerable<string> GetAllCharmNames()
 	{
 		return Equipment.Where(x => x.Value.IsCharm).Select(x => x.Key);
 	}
 
-	internal static IEnumerable<string> GetAllItemNames()
+	/// <summary>
+	/// The ids of every registered item.
+	/// </summary>
+	public static IEnumerable<string> GetAllItemNames()
 	{
 		return Items.Keys;
 	}
 
-	internal static IEnumerable<string> GetAllPartyMemberNames()
+	/// <summary>
+	/// The ids of every registered party member.
+	/// </summary>
+	public static IEnumerable<string> GetAllPartyMemberNames()
 	{
 		return PartyMembers.Keys;
 	}
 
-	internal static IEnumerable<string> GetAllEnemyNames()
+	/// <summary>
+	/// The ids of every registered enemy.
+	/// </summary>
+	public static IEnumerable<string> GetAllEnemyNames()
 	{
 		return Enemies.Keys;
 	}
 
-	internal static IEnumerable<string> GetAllSkillNames()
+	/// <summary>
+	/// The ids of every registered skill.
+	/// </summary>
+	public static IEnumerable<string> GetAllSkillNames()
 	{
 		return Skills.Keys;
 	}
@@ -7758,6 +7802,7 @@ public class Database
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
 		Modifiers.Add("Immortal", () => new ImmortalStatModifier());
 		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
+		Modifiers.Add("Stunned", () => new StunnedModifier());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
@@ -8361,7 +8406,7 @@ public class Database
 			return Task.CompletedTask;
 		});
 		Equipment["Onion Ring"] = new Equipment("Onion Ring", [new StatBonus(StatType.MaxHP, 20), new StatBonus(StatType.MaxJuice, 20)], true);
-		Equipment["Paper Bag"] = new Equipment("Paper Bag", [new StatBonus(StatType.MaxHP, 40), new StatBonus(StatType.DEF, 13)], true);
+		Equipment["Paper Bag"] = new Equipment("Paper Bag", [new StatBonus(StatType.MaxHP, 40), new StatBonus(StatType.DEF, 13)], true).WithImmunityToAllEmotions("stressed");
 		Equipment["Hector"] = new Equipment("Hector", true);
 		Equipment["Pretty Bow"] = new Equipment("Pretty Bow", [new StatBonus(StatType.MaxHP, 50), new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, 3)], true);
 		Equipment["Punching Bag"] = new Equipment("Punching Bag", true).WithStartOfBattleEffect((actor) =>

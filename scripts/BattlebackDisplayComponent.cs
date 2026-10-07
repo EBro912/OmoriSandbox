@@ -11,6 +11,7 @@ internal partial class BattlebackDisplayComponent : TextureRect
     private const float ScreenHeight = 480f;
 
     private IBattleback CurrentBattleback;
+    internal string CurrentName => CurrentBattleback?.Name ?? "";
     private int CurrentFrame;
     private double Elapsed;
     private Texture2D DefaultTexture;

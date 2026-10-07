@@ -1415,13 +1415,6 @@ public partial class BattleManager : Node
 			return;
 		}
 
-		if (SelectedAction.Target == SkillTarget.XRandomEnemies)
-		{
-			GD.PrintErr("XRandomEnemies skills are currently unsupported on party members.");
-			AudioManager.Instance.PlaySFX("sys_buzzer");
-			return;
-		}
-		
 		Actor actor = CurrentParty[CurrentPartyMember].Actor;
 		switch (SelectedAction.Target)
 		{
@@ -1458,6 +1451,10 @@ public partial class BattleManager : Node
 				break;
 			case SkillTarget.AllEnemies:
 				PlayerCommands[actor] = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
+				break;
+			case SkillTarget.XRandomEnemies:
+				PlayerCommands[actor] = new BattleCommand(actor,
+					PickRandomAliveEnemies(SelectedAction is Skill randomSkill ? randomSkill.RandomTargetCount : 1), SelectedAction);
 				break;
 			default:
 				GD.PrintErr("Unhandled SelectTarget case: " + SelectedAction.Target);
@@ -1736,8 +1733,8 @@ public partial class BattleManager : Node
 		BattleCommand command = skill.Target switch
 		{
 			SkillTarget.AllEnemies => new BattleCommand(current.Actor, GetAllAliveEnemies(), skill),
-			SkillTarget.XRandomEnemies when GetRandomAliveEnemy() is Enemy random
-				=> new BattleCommand(current.Actor, random, skill),
+			SkillTarget.XRandomEnemies when GetAllAliveEnemies().Count > 0
+				=> new BattleCommand(current.Actor, PickRandomAliveEnemies(skill.RandomTargetCount), skill),
 			SkillTarget.Enemy when SmoothEnemyTarget(current.Actor.LastTargetIndex) is Enemy enemy
 				=> new BattleCommand(current.Actor, enemy, skill),
 			SkillTarget.Ally when SmoothPartyTarget(current.Actor.LastTargetIndex) is PartyMember member
@@ -2642,7 +2639,7 @@ public partial class BattleManager : Node
 			return; // already at the group's highest tier
 
 		// unlike MakeEmotion, capped and invalid targets fail silently
-		if (who.IsEmotionValid(next))
+		if (who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			who.SetEmotion(next.Id, silent);
 	}
 
@@ -3048,7 +3045,7 @@ public partial class BattleManager : Node
 			return;
 		}
 
-		if (who.IsEmotionValid(next))
+		if (who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			who.SetEmotion(next.Id, silent);
 		else if (!silent)
 			ShowMaxTierMessage(who, group);
@@ -3078,7 +3075,7 @@ public partial class BattleManager : Node
 				ShowMaxTierMessage(who, group);
 			return;
 		}
-		if (held < tier && who.IsEmotionValid(next))
+		if (held < tier && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			who.SetEmotion(next.Id, silent);
 		else if (!silent)
 			ShowMaxTierMessage(who, group);
@@ -3156,6 +3153,18 @@ public partial class BattleManager : Node
 	{
 		PartyMemberComponent result = CurrentParty.FirstOrDefault(x => x.Actor.CurrentHP <= 0);
 		return result?.Actor;
+	}
+
+	private List<Actor> PickRandomAliveEnemies(int count)
+	{
+		List<Actor> targets = [];
+		for (int i = 0; i < count; i++)
+		{
+			Enemy enemy = GetRandomAliveEnemy();
+			if (enemy != null)
+				targets.Add(enemy);
+		}
+		return targets;
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/>, or null if none is found.</returns>

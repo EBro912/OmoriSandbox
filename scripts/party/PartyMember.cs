@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
@@ -66,6 +67,16 @@ public abstract class PartyMember : Actor
 			Charm = c;
 		}
 
+		if (!actor.Weapon.Equals("none", StringComparison.CurrentCultureIgnoreCase))
+		{
+			if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
+			{
+				GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
+				return false;
+			}
+			Weapon = w;
+		}
+
         // if the party member starts toast, they technically start neutral
         bool startToast = actor.Emotion == "toast";
         string emotion = startToast ? "neutral" : actor.Emotion;
@@ -86,15 +97,6 @@ public abstract class PartyMember : Actor
         Level = actor.Level;
         int idx = Math.Clamp(actor.Level, 1, HPTree.Length) - 1;
 		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
-		if (!actor.Weapon.Equals("none", StringComparison.CurrentCultureIgnoreCase))
-		{
-			if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
-			{
-				GD.PrintErr("Failed to find Weapon: " + actor.Weapon);
-				return false;
-			}
-			Weapon = w;
-		}
 
 		if (startToast)
 		{
@@ -143,10 +145,13 @@ public abstract class PartyMember : Actor
 	{
 		if (emotion.Id == "neutral")
 			return true;
-		if (Charm?.Name == "Paper Bag")
+		if (IsImmuneToEmotion(emotion))
 			return false;
 		return !InvalidStates.Contains(emotion.Id);
 	}
+
+	/// <inheritdoc/>
+	protected override IEnumerable<Equipment> EquippedItems => [Weapon, Charm];
 
     /// <inheritdoc/>
     public override async Task OnStartOfBattle()
@@ -162,8 +167,7 @@ public abstract class PartyMember : Actor
 	/// Not called if the party member is toast.
 	/// </summary>
 	public virtual async Task ProcessBattleConditions() { await Task.CompletedTask; }
-
-    /// <inheritdoc/>
+	
     public abstract SpriteFrames Animation { get; }
 	/// <summary>
 	/// The party member's HP scaling, stat by level.

@@ -849,8 +849,23 @@ public partial class AnimationManager : Node
 	}
 
 
-	internal async Task WaitForOmoriSpecialAnimation(string overlay, string effect)
+	/// <summary>
+	/// Plays the full-screen effect of OMORI's special skills and waits for it to finish. The overlay fades in and out
+	/// while the effect image zooms in over the battle.
+	/// </summary>
+	/// <param name="overlay">The <c>res://</c> path of the full-screen overlay texture.</param>
+	/// <param name="effect">The <c>res://</c> path of the effect texture shown in the middle of the screen.</param>
+	/// <remarks>
+	/// If <paramref name="overlay"/> or <paramref name="effect"/> is null, an error is logged and nothing plays.
+	/// </remarks>
+	public async Task WaitForOmoriSpecialAnimation(string overlay, string effect)
 	{
+		if (overlay == null || effect == null)
+		{
+			GD.PushError("WaitForOmoriSpecialAnimation needs an overlay and an effect path.");
+			return;
+		}
+
 		Sprite2D effectTex = new()
 		{
 			Texture = ResourceLoader.Load<Texture2D>(effect),

@@ -1,4 +1,5 @@
 using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Emotions;
 using System;
 using System.Threading.Tasks;
 
@@ -106,8 +107,39 @@ public class Equipment
         return this;
     }
 
+    private readonly EmotionImmunity Immunity = new();
+
     /// <summary>
-    /// Applies this equipment's statbonuses to the provided <see cref="Stats"/>.
+    /// Makes the wearer unable to feel the given emotions.
+    /// </summary>
+    /// <remarks>
+    /// Each id blocks only that emotion, so list every tier to block, e.g. <c>"happy", "ecstatic", "manic"</c>.
+    /// Neutral can't be blocked.
+    /// </remarks>
+    /// <param name="emotionIds">The ids of the emotions to block.</param>
+    public Equipment WithEmotionImmunity(params string[] emotionIds)
+    {
+        Immunity.Add(emotionIds);
+        return this;
+    }
+
+    /// <summary>
+    /// Makes the wearer unable to feel any emotion except neutral and the ones listed. This includes emotions added by mods.
+    /// </summary>
+    /// <param name="exceptEmotionIds">The ids of emotions that stay allowed.</param>
+    public Equipment WithImmunityToAllEmotions(params string[] exceptEmotionIds)
+    {
+        Immunity.AddAllExcept(exceptEmotionIds);
+        return this;
+    }
+
+    internal bool BlocksEmotion(Emotion emotion)
+    {
+        return Immunity.Blocks(emotion);
+    }
+
+    /// <summary>
+    /// Applies this equipment's stat bonuses to the provided <see cref="Stats"/>.
     /// </summary>
     /// <param name="stats">A reference to the <see cref="Stats"/> to modify.</param>
     public void Apply(ref Stats stats)

@@ -21,7 +21,15 @@ public partial class AudioManager : Node
 	private readonly Dictionary<string, AudioStreamOggVorbis> SFXDictionary = [];
 	private readonly SortedDictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
 	private readonly Dictionary<string, double> BGMLoopOffsets = [];
-	private string CurrentBGM = "";
+	/// <summary>
+	/// The name of the BGM that was started last, or an empty string if none has played yet.
+	/// </summary>
+	public string CurrentBGM { get; private set; } = "";
+
+	/// <summary>
+	/// The current pitch of the BGM, including a pitch fade in progress.
+	/// </summary>
+	public float CurrentBGMPitch => BGM.PitchScale;
 
 	public static AudioManager Instance { get; private set; }
 
@@ -185,8 +193,23 @@ public partial class AudioManager : Node
 		BGM.Play();
 	}
 
-	internal bool TryGetBGM(string name, out AudioStreamOggVorbis stream)
+	/// <summary>
+	/// Tries to get the BGM with the given <paramref name="name"/>, built in or from a mod.
+	/// </summary>
+	/// <remarks>
+	/// The returned stream is the one the game plays, not a copy, so changing it changes how that BGM plays.
+	/// </remarks>
+	/// <param name="name">The name of the BGM, as used by <c>PlayBGM</c>.</param>
+	/// <param name="stream">The BGM's audio stream, if it exists.</param>
+	/// <returns>Whether a BGM with that name exists. False, with a null stream, if <paramref name="name"/> is null.</returns>
+	public bool TryGetBGM(string name, out AudioStreamOggVorbis stream)
 	{
+		if (name == null)
+		{
+			stream = null;
+			return false;
+		}
+
 		if (BGMDictionary.TryGetValue(name, out stream))
 			return true;
 		
@@ -265,14 +288,26 @@ public partial class AudioManager : Node
 		}
 	}
 
-	internal float GetBGMPosition()
+	/// <summary>
+	/// The current playback position of the BGM, in seconds.
+	/// </summary>
+	public float GetBGMPosition()
 	{
 		return BGM.GetPlaybackPosition() + (float)AudioServer.GetTimeSinceLastMix();
 	}
 
-	internal double GetDefaultBGMLoopOffset(string name)
+	/// <summary>
+	/// The point the given BGM loops back to by default, in seconds, or 0 if it has none.
+	/// </summary>
+	/// <remarks>
+	/// This is the track's own loop point, read from its <c>LOOPSTART</c> tag. <see cref="SetBGMLoopOffset"/> changes the loop point of the BGM that's playing.
+	/// A LoopOffset of 0 will fall back to the <c>LOOPSTART</c> tag, if one exists.
+	/// </remarks>
+	/// <param name="name">The name of the BGM, as used by <c>PlayBGM</c>.</param>
+	/// <returns>The loop point in seconds, or 0 if the BGM has none, doesn't exist or <paramref name="name"/> is null.</returns>
+	public double GetDefaultBGMLoopOffset(string name)
 	{
-		return BGMLoopOffsets.GetValueOrDefault(name);
+		return name != null ? BGMLoopOffsets.GetValueOrDefault(name) : 0;
 	}
 
 	internal bool LoadCustomBGM(string path)
@@ -451,7 +486,10 @@ public partial class AudioManager : Node
 		}
 	}
 
-	internal IEnumerable<string> GetAllBGM()
+	/// <summary>
+	/// The names of every BGM, built in and from mods.
+	/// </summary>
+	public IEnumerable<string> GetAllBGM()
 	{
 		return BGMDictionary.Keys;
 	}
