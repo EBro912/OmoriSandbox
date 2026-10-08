@@ -11,6 +11,7 @@ internal partial class DamageNumber : Node2D
     private int[] Digits;
     private DamageType DamageType;
     private bool Critical;
+    internal readonly bool Party;
     private static Texture2D Texture;
 
     private const int WIDTH = 30;
@@ -18,11 +19,12 @@ internal partial class DamageNumber : Node2D
     private const float SPACING = 25f;
     private const float SCALE = 1f;
 
-    public DamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage, bool critical = false)
+    public DamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage, bool critical = false, bool party = false)
     {
         Digits = damage.ToString().Select(digit => (int)char.GetNumericValue(digit)).ToArray();
         DamageType = type;
         Critical = critical;
+        Party = party;
         ZAsRelative = false;
         ZIndex = 10;
         Position = position;
@@ -64,7 +66,8 @@ internal partial class DamageNumber : Node2D
             {
                 Texture = Texture,
                 RegionEnabled = true,
-                RegionRect = new Rect2(0, 182, 62, HEIGHT)
+                RegionRect = new Rect2(0, 182, 62, HEIGHT),
+                UseParentMaterial = true
             };
             AddChild(sprite);
             tween.TweenProperty(sprite, "position:y", 20, 0.1f)
@@ -84,7 +87,8 @@ internal partial class DamageNumber : Node2D
                 Texture = Texture,
                 Modulate = Critical ? new Color(1f, 0f, 0f, 0f) : Colors.Transparent,
                 RegionEnabled = true,
-                RegionRect = new Rect2(32 * Digits[i], 48 * (int)DamageType, WIDTH, HEIGHT)
+                RegionRect = new Rect2(32 * Digits[i], 48 * (int)DamageType, WIDTH, HEIGHT),
+                UseParentMaterial = true
             };
             AddChild(sprite);
 

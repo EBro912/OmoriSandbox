@@ -55,18 +55,18 @@ internal sealed class FearOfDrowning : Enemy
         {
             Phase = 2;
             ClearResult();
-            await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
+            await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 1f);
             UpdateSprite();
-            await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
+            await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 1f);
         }
 
         if (IsBelowHP(0.3f) && Phase == 2)
         {
             Phase = 3;
             ClearResult();
-            await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 1f);
+            await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 1f);
             UpdateSprite();
-            await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 1f);
+            await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 1f);
         }
 
         if (CurrentHP == 0)

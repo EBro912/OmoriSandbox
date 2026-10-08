@@ -60,7 +60,26 @@ public sealed class DamageContext
     /// </summary>
     public bool IsJuice { get; }
 
-    internal DamageContext(Actor attacker, Actor defender, bool neverMiss, bool ignoreEmotion, string attackElement, bool isJuice)
+    /// <summary>
+    /// What happens to the hit. See <see cref="DamageOutcome"/>.
+    /// </summary>
+    /// <remarks>
+    /// Change it in <see cref="StatModifier.OverrideDamage(DamagePhase, ref float, DamageContext)"/> during any phase up to and including
+    /// <see cref="DamagePhase.PreJuice"/>; later changes are ignored. It starts as <see cref="DamageOutcome.Absorb"/> or
+    /// <see cref="DamageOutcome.Reflect"/> when one of the defender's modifiers was built with <see cref="StatModifier.WithAbsorb"/>
+    /// or <see cref="StatModifier.WithReflect"/>.
+    /// </remarks>
+    public DamageOutcome Outcome { get; set; }
+
+    /// <summary>
+    /// Whether this hit was reflected from another hit. A reflected hit can't be reflected again.
+    /// </summary>
+    public bool IsReflected { get; }
+
+    internal string Element { get; }
+
+    internal DamageContext(Actor attacker, Actor defender, bool neverMiss, bool ignoreEmotion, string attackElement, bool isJuice,
+        string element, bool isReflected)
     {
         Attacker = attacker;
         Defender = defender;
@@ -68,5 +87,7 @@ public sealed class DamageContext
         IgnoreEmotion = ignoreEmotion;
         AttackElement = attackElement;
         IsJuice = isJuice;
+        Element = element;
+        IsReflected = isReflected;
     }
 }

@@ -77,8 +77,8 @@ internal sealed class MrJawsum : Enemy
             AudioManager.Instance.PlaySFX("se_thunder_bolt", volume: 0.9f);
             AudioManager.Instance.PlaySFX("se_fire_whoosh", pitch: 0.7f, volume: 0.9f);
             AnimationManager.Instance.InitShake(new Shake(1, 8, 15));
-            await AnimationManager.Instance.WaitForTintScreen(new Color(1, 0, 0, 0.5f), 0.25f);
-            AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack, 0.25f);
+            await AnimationManager.Instance.WaitForTintOverlay(new Color(1, 0, 0, 0.5f), 0.25f);
+            AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack, 0.25f);
             SetEmotion("angry", true);
             ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"What do you mean we're running low on henchmen!?\! That's impossible!");

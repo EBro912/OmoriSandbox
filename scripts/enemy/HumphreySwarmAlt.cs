@@ -92,6 +92,6 @@ internal sealed class HumphreySwarmAlt : Enemy
         await AnimationManager.Instance.WaitForHumphreySwarm();
         BattleManager.Instance.TransformEnemy(this, "HumphreyGrande (Boss Rush)")?.AddImmortal();
         await Wait.Milliseconds(2500);
-        await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
+        await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
     }
 }

@@ -22,6 +22,7 @@ internal partial class MenuManager : Node
 
 	// the energy bar node, tinted by the DialogueManager while dialogue is on screen
 	internal Sprite2D EnergyDisplay => EnergyBar;
+	internal IEnumerable<Menu> AllMenus => Menus.Values;
 
 	public static MenuManager Instance { get; private set; }
 

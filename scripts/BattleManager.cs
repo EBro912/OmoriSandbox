@@ -289,7 +289,9 @@ public partial class BattleManager : Node
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
 
 		BattleLogManager.Instance.Visible = true;
-		AnimationManager.Instance.TintScreen(ColorsExtension.TransparentBlack);
+		AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack);
+		AnimationManager.Instance.ToneBelowUI = false;
+		AnimationManager.Instance.TintScreen(0, 0, 0, 0);
 
 		Delay = new Timer
 		{
@@ -940,6 +942,8 @@ public partial class BattleManager : Node
 				if (CurrentCommand.Forced)
 					await ResolveForcedCommandDeaths();
 
+				await RunDamagedAfterActionHooks();
+
 				foreach (PartyMemberComponent member in CurrentParty.ToList())
 				{
 					if (member.Actor.IsToast)
@@ -972,6 +976,20 @@ public partial class BattleManager : Node
 		}
 	}
 	
+	private async Task RunDamagedAfterActionHooks()
+	{
+		List<Actor> damaged = [];
+		damaged.AddRange(CurrentParty.Select(x => x.Actor).Where(x => !x.IsToast && x.DamageTakenThisAction > 0));
+		damaged.AddRange(Enemies.Select(x => x.Actor).Where(x => !x.IsToast && x.DamageTakenThisAction > 0));
+		foreach (Actor actor in damaged)
+		{
+			if (actor.IsToast || actor.Component == null)
+				continue;
+			await RunGuarded(() => actor.OnDamagedAfterAction(actor.DamageTakenThisAction),
+				$"{actor.Name}.OnDamagedAfterAction");
+		}
+	}
+
 	private async Task ConvertDeadPartyMembers()
 	{
 		foreach (PartyMemberComponent member in CurrentParty)
@@ -1485,6 +1503,10 @@ public partial class BattleManager : Node
 		BattleCommand currentAction = CurrentCommand;
 		ForcedCountAtCommandStart = ForcedCommands.Count;
 		CommandTargets = [];
+		foreach (PartyMemberComponent member in CurrentParty)
+			member.Actor.DamageTakenThisAction = 0;
+		foreach (EnemyComponent enemy in Enemies)
+			enemy.Actor.DamageTakenThisAction = 0;
 
 		if (currentAction.Action is EmptyAction)
 		{
@@ -2061,7 +2083,7 @@ public partial class BattleManager : Node
 				if (CurrentStage < Stages.Count)
 				{
 					await Wait.Milliseconds(3000);
-					await AnimationManager.Instance.WaitForTintScreen(Colors.Black, 0.5f);
+					await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
 					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
 					GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
 					GameManager.Instance.SetBattlebackGrayscale(false);
@@ -2099,7 +2121,7 @@ public partial class BattleManager : Node
 						AudioManager.Instance.SeekBGM(currentPosition);
 					AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
-					await AnimationManager.Instance.WaitForTintScreen(ColorsExtension.TransparentBlack, 0.5f);
+					await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
 					ForcedCommands.Clear();
 					ForcedCountAtCommandStart = 0;
 					PendingFollowup = null;
@@ -2199,7 +2221,8 @@ public partial class BattleManager : Node
 	/// Calculates damage. Misses, critical hits, emotion effectiveness, sad juice loss, and stat modifiers are all taken into account.
 	/// </summary>
 	/// <remarks>
-	/// On top of calculating damage, this function also handles displaying damage numbers, playing sound effects, and queuing battle log messages for misses and critical hits.
+	/// On top of calculating damage, this function also handles displaying damage numbers, playing sound effects, and queuing battle log messages for misses and critical hits.<br/>
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -2218,6 +2241,12 @@ public partial class BattleManager : Node
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
 		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
+		return DamageCore(self, target, damageFunc, neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent, null);
+	}
+
+	private int DamageCore(Actor self, Actor target, Func<float> damageFunc, bool neverMiss, float variance,
+		bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting)
+	{
 		target = ResolveTransformed(target);
 		if (!neverMiss && RollMissOrEvade(self, target, silent))
 			return -1;
@@ -2226,7 +2255,9 @@ public partial class BattleManager : Node
 		// locked bosses resolve advantage as their locked emotion
 		Emotion selfEmotion = self.EffectiveEmotion;
 		Emotion targetEmotion = target.EffectiveEmotion;
-		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, false);
+		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, false,
+			reflecting != null ? reflecting.Element : (attackElement ?? selfEmotion.Group?.Id), reflecting != null);
+		ApplyOutcomeRules(context);
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
 
@@ -2266,7 +2297,7 @@ public partial class BattleManager : Node
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 
 		// scale before the sad bleed so the juice loss follows the multiplied damage
-		if (ShouldDoDebugDamage())
+		if (ShouldDoDebugDamage() && reflecting == null)
 			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
@@ -2274,6 +2305,9 @@ public partial class BattleManager : Node
 			rounded = 9999;
 
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
+
+		if (IsDiverted(context))
+			return DivertDamage(context, (int)Math.Round(rounded, MidpointRounding.AwayFromZero), silent);
 
 		// sadness converts part of the damage to juice loss. emotion-locked states keep tier-1
 		// element rates but bleed 0.5/1.0, so the bleed follows the displayed emotion, not the lock's advantage emotion
@@ -2392,6 +2426,50 @@ public partial class BattleManager : Node
 		return true;
 	}
 
+	private static void ApplyOutcomeRules(DamageContext context)
+	{
+		if (context.Defender.StatModifiers.Values.Any(x => x.Absorbs(context.Element)))
+			context.Outcome = DamageOutcome.Absorb;
+		else if (!context.IsReflected && context.Defender.StatModifiers.Values.Any(x => x.Reflects(context.Element)))
+			context.Outcome = DamageOutcome.Reflect;
+	}
+
+	private static bool IsDiverted(DamageContext context)
+	{
+		return context.Outcome == DamageOutcome.Absorb || (context.Outcome == DamageOutcome.Reflect && !context.IsReflected);
+	}
+
+	private int DivertDamage(DamageContext context, int amount, bool silent)
+	{
+		Actor self = context.Attacker;
+		Actor target = context.Defender;
+		amount = Math.Max(0, amount);
+		if (context.Outcome == DamageOutcome.Absorb)
+		{
+			int recovered = context.IsJuice ? target.HealJuice(amount, applyDebugScale: false) : target.Heal(amount, applyDebugScale: false);
+			SpawnDamageNumber(recovered, target, context.IsJuice ? DamageType.JuiceGain : DamageType.Heal);
+			if (!silent)
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[target] absorbed the attack!");
+				BattleLogManager.Instance.QueueMessage(self, target,
+					context.IsJuice ? $"[target] recovered {recovered} JUICE!" : $"[target] recovered {recovered} HEART!");
+			}
+			RaiseGuarded(Healed, new HealedEventArgs(self, target, recovered, context.IsJuice), "Healed");
+		}
+		else
+		{
+			if (!silent)
+				BattleLogManager.Instance.QueueMessage(self, target, "[target] reflected the attack!");
+			if (context.IsJuice)
+				DamageJuiceCore(target, self, () => amount, true, 0f, false, true, true, context.AttackElement, silent, context);
+			else
+				DamageCore(target, self, () => amount, true, 0f, false, true, true, context.AttackElement, silent, context);
+		}
+		float none = 0f;
+		ApplyOverrides(DamagePhase.PostApply, ref none, context);
+		return 0;
+	}
+
 	private void ApplyOverrides(DamagePhase phase, ref float damage, DamageContext context)
 	{
 		TierReactionDepth++;
@@ -2414,7 +2492,8 @@ public partial class BattleManager : Node
 	/// Calculates juice damage. Misses, critical hits, emotion effectiveness, and stat modifiers are all taken into account. Sadness damage reduction, however, is not.
 	/// </summary>
 	/// /// <remarks>
-	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool, string, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.
+	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool, string, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.<br/>
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -2431,12 +2510,20 @@ public partial class BattleManager : Node
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
 		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
+		return DamageJuiceCore(self, target, damageFunc, neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent, null);
+	}
+
+	private int DamageJuiceCore(Actor self, Actor target, Func<float> damageFunc, bool neverMiss,
+		float variance, bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting)
+	{
 		target = ResolveTransformed(target);
 		if (!neverMiss && RollMissOrEvade(self, target, silent))
 			return -1;
 
 		float damage = damageFunc();
-		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, true);
+		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, true,
+			reflecting != null ? reflecting.Element : (attackElement ?? self.EffectiveEmotion.Group?.Id), reflecting != null);
+		ApplyOutcomeRules(context);
 		// locked bosses resolve advantage as their locked emotion
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
 
@@ -2473,7 +2560,7 @@ public partial class BattleManager : Node
 
 		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
 
-		if (ShouldDoDebugDamage())
+		if (ShouldDoDebugDamage() && reflecting == null)
 			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
@@ -2481,6 +2568,8 @@ public partial class BattleManager : Node
 			rounded = 9999;
 
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
+		if (IsDiverted(context))
+			return DivertDamage(context, (int)Math.Round(rounded, MidpointRounding.AwayFromZero), silent);
 		ApplyOverrides(DamagePhase.PreApply, ref rounded, context);
 
 		int roundedInt = (int)rounded;
@@ -2625,22 +2714,25 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Gives the provided <see cref="Actor"/> a random emotion.<br/>If the actor already has that emotion, it will be upgraded.
 	/// </summary>
+	/// <remarks>
+	/// If the rolled emotion has no effect, such as at the group's highest tier, the group's no-effect line is shown, see <see cref="ShowEmotionNoEffect"/>.
+	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="silent">If true, no battle log messages will be shown.</param>
-	public void RandomEmotion(Actor who, bool silent = false)
+	/// <returns>False if the rolled emotion had no effect, otherwise true.</returns>
+	public bool RandomEmotion(Actor who, bool silent = false)
 	{
 		who = ResolveTransformed(who);
 		IReadOnlyList<EmotionGroup> pool = Database.GetRandomEmotionGroups();
 		if (pool.Count == 0)
-			return;
+			return false;
 
 		EmotionGroup group = pool[GameManager.Instance.Random.RandiRange(0, pool.Count - 1)];
-		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
-			return; // already at the group's highest tier
-
-		// unlike MakeEmotion, capped and invalid targets fail silently
-		if (who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
-			who.SetEmotion(next.Id, silent);
+		if (TryGetNextEmotionInGroup(who, group, out Emotion next) && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
+			return who.SetEmotion(next.Id, silent);
+		if (!silent)
+			ShowEmotionNoEffect(who, group.Id);
+		return false;
 	}
 
 	/// <summary>
@@ -2657,11 +2749,18 @@ public partial class BattleManager : Node
 	public void SpawnDamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage,
 		bool critical = false)
 	{
+		SpawnDamageNumber(damage, position, type, critical, false);
+	}
+
+	internal void SpawnDamageNumber(int damage, Vector2 position, DamageType type, bool critical, bool party)
+	{
 		if (DamageNumbersDisabled)
 			return;
 
-		DamageNumber dmg = new(damage, position, type, critical);
+		DamageNumber dmg = new(damage, position, type, critical, party);
 		AddChild(dmg);
+		if (party)
+			AnimationManager.Instance.ApplyUITone(dmg, dims: true);
 
 		GetTree().CreateTimer(1.5f).Timeout += () =>
 		{
@@ -3019,66 +3118,65 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Inside a skill or item marked with <see cref="Skill.WithTiersFromFirstTarget"/>, the tier for one of its targets can follow the first target instead.
+	/// If the emotion has no effect, the group's no-effect line is shown, see <see cref="ShowEmotionNoEffect"/>.
 	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
-	public void MakeEmotion(Actor who, string groupId, bool silent = false)
+	/// <returns>False if the emotion had no effect, such as at the group's highest tier or when the actor can't feel the next tier, otherwise true. Also true, with no change, when the action uses <see cref="Skill.WithTiersFromFirstTarget"/> and the landing tier is already held by a party member.</returns>
+	public bool MakeEmotion(Actor who, string groupId, bool silent = false)
 	{
 		who = ResolveTransformed(who);
 		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group))
 		{
 			GD.PrintErr("Unknown emotion group: " + groupId);
-			return;
+			return false;
 		}
 
 		if (TryGetEmotionLanding(who, groupId, out int landing))
-		{
-			MakeEmotionTier(who, groupId, landing, silent);
-			return;
-		}
+			return MakeEmotionTier(who, groupId, landing, silent);
 
-		if (!TryGetNextEmotionInGroup(who, group, out Emotion next))
-		{
-			if (!silent)
-				ShowMaxTierMessage(who, group);
-			return;
-		}
-
-		if (who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
-			who.SetEmotion(next.Id, silent);
-		else if (!silent)
-			ShowMaxTierMessage(who, group);
+		if (TryGetNextEmotionInGroup(who, group, out Emotion next) && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
+			return who.SetEmotion(next.Id, silent);
+		if (!silent)
+			ShowEmotionNoEffect(who, group.Id);
+		return false;
 	}
 	
 	/// <summary>
 	/// Makes the given <see cref="Actor"/> feel an emotion of the given group and tier, if possible.
 	/// </summary>
+	/// <remarks>
+	/// A higher tier of the same group is kept. A party member that already feels this exact tier still gets the usual "feels" line,
+	/// while every other case where nothing changes shows the no-effect line, see <see cref="ShowEmotionNoEffect"/>.
+	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
 	/// <param name="tier">The tier of the emotion to give, if possible.</param>
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
-	public void MakeEmotionTier(Actor who, string groupId, int tier, bool silent)
+	/// <returns>False if the emotion had no effect, true if the actor now feels it, including a party member that already felt this tier.</returns>
+	public bool MakeEmotionTier(Actor who, string groupId, int tier, bool silent)
 	{
 		who = ResolveTransformed(who);
 		if (!Database.TryGetEmotionGroup(groupId, out EmotionGroup group)
 		    || !Database.TryGetEmotionByGroupTier(groupId, tier, out Emotion next))
 		{
 			GD.PrintErr("Unknown emotion group tier: " + groupId + " " + tier);
-			return;
+			return false;
 		}
 
 		int held = who.CurrentEmotion.Group == group ? who.CurrentEmotion.Tier : 0;
-		if (held == tier)
+		if (held == tier && who is not Enemy && !who.IsImmuneToEmotion(next))
 		{
-			if (!silent && who is Enemy)
-				ShowMaxTierMessage(who, group);
-			return;
+			if (!silent)
+				BattleLogManager.Instance.QueueMessage(next.FeelsMessage(who.Name));
+			return true;
 		}
 		if (held < tier && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
-			who.SetEmotion(next.Id, silent);
-		else if (!silent)
-			ShowMaxTierMessage(who, group);
+			return who.SetEmotion(next.Id, silent);
+		if (!silent)
+			ShowEmotionNoEffect(who, group.Id);
+		return false;
 	}
 
 	private bool TryGetNextEmotionInGroup(Actor who, EmotionGroup group, out Emotion next)
@@ -3088,10 +3186,36 @@ public partial class BattleManager : Node
 		return Database.TryGetEmotionByGroupTier(group.Id, tier, out next);
 	}
 
-	private void ShowMaxTierMessage(Actor who, EmotionGroup group)
+	/// <summary>
+	/// Shows the battle log line for an emotion that had no effect on <paramref name="who"/>.
+	/// </summary>
+	/// <remarks>
+	/// Useful after a silent emotion change that returned false. A group id, or the id of an emotion in a group, shows the group's
+	/// <see cref="EmotionGroup.MaxTierMessage"/>. A group without one, or an emotion without a group such as afraid, shows "NAME cannot be AFRAID!".
+	/// Nothing is shown for a null actor or id.
+	/// </remarks>
+	/// <param name="who">The <see cref="Actor"/> the emotion had no effect on.</param>
+	/// <param name="groupOrEmotionId">The id of an <see cref="EmotionGroup"/> or of an <see cref="Emotion"/>.</param>
+	public void ShowEmotionNoEffect(Actor who, string groupOrEmotionId)
 	{
-		if (group.MaxTierMessage != null)
-			BattleLogManager.Instance.QueueMessage(null, who, group.MaxTierMessage);
+		if (who == null || groupOrEmotionId == null)
+			return;
+		who = ResolveTransformed(who);
+		if (Database.TryGetEmotionGroup(groupOrEmotionId, out EmotionGroup group))
+		{
+			if (group.MaxTierMessage != null)
+				BattleLogManager.Instance.QueueMessage(null, who, group.MaxTierMessage);
+			return;
+		}
+		if (!Database.TryGetEmotion(groupOrEmotionId, out Emotion emotion))
+		{
+			GD.PrintErr("Unknown emotion: " + groupOrEmotionId);
+			return;
+		}
+		if (emotion.Group?.MaxTierMessage != null)
+			BattleLogManager.Instance.QueueMessage(null, who, emotion.Group.MaxTierMessage);
+		else
+			BattleLogManager.Instance.QueueMessage(who.Name.ToUpper() + " cannot be " + emotion.DisplayName + "!");
 	}
 
 	/// <summary>
@@ -3099,9 +3223,10 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make sad.</param>
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
-	public void MakeSad(Actor who, bool silent = false)
+	/// <returns>False if it had no effect, such as at the highest tier; otherwise true.</returns>
+	public bool MakeSad(Actor who, bool silent = false)
 	{
-		MakeEmotion(who, "sad", silent);
+		return MakeEmotion(who, "sad", silent);
 	}
 
 	/// <summary>
@@ -3109,9 +3234,10 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make happy.</param>
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
-	public void MakeHappy(Actor who, bool silent = false)
+	/// <returns>False if it had no effect, such as at the highest tier, otherwise true.</returns>
+	public bool MakeHappy(Actor who, bool silent = false)
 	{
-		MakeEmotion(who, "happy", silent);
+		return MakeEmotion(who, "happy", silent);
 	}
 
 	/// <summary>
@@ -3119,9 +3245,10 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <param name="who">The <see cref="Actor"/> to make angry.</param>
 	/// <param name="silent">If true, no battle log messages will be shown, including failure and max tier messages.</param>
-	public void MakeAngry(Actor who, bool silent = false)
+	/// <returns>False if it had no effect, such as at the highest tier, otherwise true.</returns>
+	public bool MakeAngry(Actor who, bool silent = false)
 	{
-		MakeEmotion(who, "angry", silent);
+		return MakeEmotion(who, "angry", silent);
 	}
 
 	/// <summary>

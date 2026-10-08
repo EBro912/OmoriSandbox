@@ -191,7 +191,7 @@ public partial class PartyMemberComponent : ActorComponent
 		{
 			int queued = PendingDamageNumbers.Count;
 			PendingDamageNumber number = PendingDamageNumbers.Dequeue();
-			BattleManager.Instance.SpawnDamageNumber(number.Damage, DamageNumberPosition(queued, PopupCount), number.Type, number.Critical);
+			BattleManager.Instance.SpawnDamageNumber(number.Damage, DamageNumberPosition(queued, PopupCount), number.Type, number.Critical, party: true);
 			PopupCount++;
 		}
 		else

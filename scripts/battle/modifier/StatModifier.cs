@@ -184,6 +184,49 @@ public class StatModifier
         return Immunity.Blocks(emotion);
     }
 
+    private HashSet<string> AbsorbElements;
+    private HashSet<string> ReflectElements;
+
+    /// <summary>
+    /// Makes the defender recover HP (or JUICE) from hits instead of taking them.
+    /// </summary>
+    /// <remarks>
+    /// Attack elements are emotion group ids (<c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's group) and <c>"exploit"</c>.
+    /// With no elements, every hit is absorbed. Hits from a neutral attacker have no element.
+    /// When one modifier absorbs a hit and another reflects it, absorbing wins.
+    /// An absorbed hit triggers <see cref="BattleManager.Healed"/>, with the attacker as the healer, and not <see cref="BattleManager.DamageDealt"/>.
+    /// </remarks>
+    /// <param name="attackElements">The attack elements to absorb. Null or empty means every hit.</param>
+    public StatModifier WithAbsorb(params string[] attackElements)
+    {
+        AbsorbElements = new HashSet<string>(attackElements ?? [], StringComparer.OrdinalIgnoreCase);
+        return this;
+    }
+
+    /// <summary>
+    /// Makes the attacker take hits instead of the defender.
+    /// </summary>
+    /// <remarks>
+    /// The attacker takes the hit's final amount, which goes through the attacker's own modifiers but can't be reflected again.
+    /// Attack elements work as in <see cref="WithAbsorb"/>. With no elements, every hit is reflected.
+    /// </remarks>
+    /// <param name="attackElements">The attack elements to reflect. Null or empty means every hit.</param>
+    public StatModifier WithReflect(params string[] attackElements)
+    {
+        ReflectElements = new HashSet<string>(attackElements ?? [], StringComparer.OrdinalIgnoreCase);
+        return this;
+    }
+
+    internal bool Absorbs(string element)
+    {
+        return AbsorbElements != null && (AbsorbElements.Count == 0 || (element != null && AbsorbElements.Contains(element)));
+    }
+
+    internal bool Reflects(string element)
+    {
+        return ReflectElements != null && (ReflectElements.Count == 0 || (element != null && ReflectElements.Contains(element)));
+    }
+
     internal virtual StateIcon[] GetStateIcons()
     {
         return StateIcons;

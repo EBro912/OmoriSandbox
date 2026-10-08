@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Extensions;
+using OmoriSandbox.Menu;
 using OmoriSandbox.Modding;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,16 @@ public partial class AnimationManager : Node
 	[Export] private Node2D PerfectheartOverlayParent;
 	[Export] private Node2D FullScreenEffectNode;
 	[Export] private ColorRect ScreenTint;
+	private ColorRect ScreenTone;
+	private ShaderMaterial ScreenToneMaterial;
+	private Tween ScreenToneTween;
+	private int ScreenToneRequests;
+	private Vector4 CurrentTone;
+	private ShaderMaterial UIToneMaterial;
+	private ShaderMaterial UIToneAddMaterial;
+	private bool BelowUI;
+	private bool UIToneDimmed;
+	internal ShaderMaterial UIToneGrayMaterial { get; private set; }
 
 	private Dictionary<int, RPGMAnimatedSprite> Animations = [];
 	
@@ -65,6 +76,8 @@ public partial class AnimationManager : Node
 
 	internal void Init()
 	{
+		CreateScreenTone();
+		CreateUITone();
 		string data = FileAccess.GetFileAsString("res://animations/animations.json");
 		List<AnimationInfo> animationData = JsonConvert.DeserializeObject<List<AnimationInfo>>(data);
 		foreach (AnimationInfo info in animationData)
@@ -132,6 +145,11 @@ public partial class AnimationManager : Node
 		int attempted = 0;
 		foreach (RPGMakerAnimation animation in animationData)
 		{
+			if (animation == null)
+			{
+				report.Warn("animations", "Animations.json", "Skipping a null entry");
+				continue;
+			}
 			try
 			{
 				bool missingTexture = string.IsNullOrEmpty(animation.Animation1Name);
@@ -949,15 +967,16 @@ public partial class AnimationManager : Node
 	}
 
 	/// <summary>
-	/// Applies a screen tint above the enemies. Can be applied over a duration, in seconds.
+	/// Covers the battle with a color overlay above the enemies. Can be applied over a duration, in seconds.
 	/// </summary>
 	/// <remarks>
-	/// If you would like to wait for the screen tint to finish, use <see cref="WaitForTintScreen"/>.
+	/// If you would like to wait for the overlay to finish, use <see cref="WaitForTintOverlay"/>.
+	/// To change the battle's colors like RPG Maker's Tint Screen instead of covering them, use <see cref="TintScreen"/>.
 	/// </remarks>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint. If left as 0, the tint will be instant.</param>
 	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
-	public void TintScreen(Color color, float duration = 0f, int layer = -4)
+	public void TintOverlay(Color color, float duration = 0f, int layer = -4)
 	{
 		ScreenTint.ZIndex = layer;
 		if (duration == 0f)
@@ -970,13 +989,13 @@ public partial class AnimationManager : Node
 	}
 
 	/// <summary>
-	/// Applies a screen tint above the enemies and waits for it to finish.
+	/// Covers the battle with a color overlay above the enemies and waits for it to finish.
 	/// </summary>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint.</param>
 	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
 	/// <returns></returns>
-	public async Task WaitForTintScreen(Color color, float duration, int layer = -4)
+	public async Task WaitForTintOverlay(Color color, float duration, int layer = -4)
 	{
 		ScreenTint.ZIndex = layer;
 		Tween tween = StartScreenTint(color, duration);
@@ -992,8 +1011,211 @@ public partial class AnimationManager : Node
 		return ScreenTintTween;
 	}
 
+	/// <summary>
+	/// Whether <see cref="TintScreen"/> only changes the battlefield.
+	/// </summary>
+	/// <remarks>
+	/// While this is false, the default, a tint also changes the menus, the battle log, the energy bar, the portraits and the party's animations and damage numbers.
+	/// While it's true, they keep their colors and only the battleback, the enemies and their animations change. It turns off again when a battle starts or resets.
+	/// </remarks>
+	public bool ToneBelowUI
+	{
+		get => BelowUI;
+		set
+		{
+			BelowUI = value;
+			RefreshUITone();
+		}
+	}
+
+	/// <summary>
+	/// Changes the colors of the battle, including the party's menus, portraits and battle log. Can be applied over a duration, in seconds.
+	/// </summary>
+	/// <remarks>
+	/// Works like RPG Maker's Tint Screen.
+	/// To change only the battlefield, set <see cref="ToneBelowUI"/>. <c>TintScreen(0, 0, 0, 0)</c> restores the normal colors.
+	/// If you would like to wait for the change to finish, use <see cref="WaitForTintScreen"/>.
+	/// To cover the battle with a color instead, use <see cref="TintOverlay"/>.
+	/// </remarks>
+	/// <param name="red">How much red to add, from -255 to 255.</param>
+	/// <param name="green">How much green to add, from -255 to 255.</param>
+	/// <param name="blue">How much blue to add, from -255 to 255.</param>
+	/// <param name="gray">How much color to remove, from 0 (none) to 255 (fully gray).</param>
+	/// <param name="duration">The duration of the change. If left as 0, the change will be instant.</param>
+	public void TintScreen(int red, int green, int blue, int gray, float duration = 0f)
+	{
+		int request = ++ScreenToneRequests;
+		StopScreenToneTween();
+		if (request != ScreenToneRequests)
+			return;
+		Vector4 target = new(Math.Clamp(red, -255, 255) / 255f, Math.Clamp(green, -255, 255) / 255f,
+			Math.Clamp(blue, -255, 255) / 255f, Math.Clamp(gray, 0, 255) / 255f);
+		if (duration <= 0f)
+		{
+			SetScreenTone(target);
+			return;
+		}
+		ScreenToneTween = CreateTween();
+		ScreenToneTween.TweenMethod(Callable.From<Vector4>(SetScreenTone), CurrentTone, target, duration);
+	}
+
+	/// <summary>
+	/// Changes the colors of the battle, including the party's menus, portraits and battle log, and waits for the change to finish.
+	/// </summary>
+	/// <remarks>
+	/// See <see cref="TintScreen"/>. If another tint starts before this one finishes, the wait ends early.
+	/// </remarks>
+	/// <param name="red">How much red to add, from -255 to 255.</param>
+	/// <param name="green">How much green to add, from -255 to 255.</param>
+	/// <param name="blue">How much blue to add, from -255 to 255.</param>
+	/// <param name="gray">How much color to remove, from 0 (none) to 255 (fully gray).</param>
+	/// <param name="duration">The duration of the change.</param>
+	public async Task WaitForTintScreen(int red, int green, int blue, int gray, float duration)
+	{
+		TintScreen(red, green, blue, gray, duration);
+		Tween tween = ScreenToneTween;
+		if (tween != null)
+			await ToSignal(tween, Tween.SignalName.Finished);
+	}
+
+	private void StopScreenToneTween()
+	{
+		Tween tween = ScreenToneTween;
+		if (tween == null)
+			return;
+		ScreenToneTween = null;
+		tween.Kill();
+		tween.EmitSignal(Tween.SignalName.Finished);
+	}
+
+	private void SetScreenTone(Vector4 tone)
+	{
+		bool wasToned = CurrentTone != Vector4.Zero;
+		CurrentTone = tone;
+		ScreenToneMaterial.SetShaderParameter("tone", tone);
+		UIToneMaterial.SetShaderParameter("tone", tone);
+		UIToneAddMaterial.SetShaderParameter("tone", tone);
+		UIToneGrayMaterial.SetShaderParameter("tone", tone);
+		ScreenTone.Visible = tone != Vector4.Zero;
+		if (ScreenTone.Visible != wasToned)
+			RefreshUITone();
+	}
+
+	private void CreateScreenTone()
+	{
+		ScreenToneMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/screen_tone_shader.gdshader") };
+		ScreenTone = new ColorRect
+		{
+			Name = "ScreenTone",
+			Material = ScreenToneMaterial,
+			ZIndex = -4,
+			Visible = false,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+			Position = new Vector2(-1280f, -64f),
+			Size = new Vector2(3200f, 608f)
+		};
+		FullScreenEffectNode.AddChild(ScreenTone);
+		FullScreenEffectNode.MoveChild(ScreenTone, 0);
+	}
+
+	private void CreateUITone()
+	{
+		UIToneMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_shader.gdshader") };
+		UIToneAddMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_add_shader.gdshader") };
+		UIToneGrayMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_gray_shader.gdshader") };
+		foreach ((CanvasItem root, bool _) in GetUIToneRoots())
+			InheritUITone(root);
+	}
+
+	internal static void InheritUITone(Node root)
+	{
+		foreach (Node child in root.GetChildren())
+		{
+			if (child is CanvasItem item && item.Material == null && child is not CursorBounce)
+				item.UseParentMaterial = true;
+			InheritUITone(child);
+		}
+	}
+
+	private bool IsUIToned(bool dims)
+	{
+		return CurrentTone != Vector4.Zero && !BelowUI && !(dims && UIToneDimmed);
+	}
+
+	internal void ApplyUITone(CanvasItem root, bool dims = false)
+	{
+		root.Material = IsUIToned(dims) ? UIToneMaterial : null;
+		RefreshGrayCursors(root);
+	}
+
+	private void ApplyAnimationTone(PlayingAnimation playing)
+	{
+		bool toned = IsUIToned(true) && playing.ZIndex > -4;
+		playing.SetTone(toned ? UIToneMaterial : null, toned ? UIToneAddMaterial : null);
+	}
+
+	internal void SetUIToneDimmed(bool dimmed)
+	{
+		if (UIToneDimmed == dimmed)
+			return;
+		UIToneDimmed = dimmed;
+		RefreshUITone();
+	}
+
+	private void RefreshUITone()
+	{
+		foreach ((CanvasItem root, bool dims) in GetUIToneRoots())
+			ApplyUITone(root, dims);
+		foreach (PlayingAnimation playing in PlayingAnimations)
+		{
+			if (playing.GetParent() == this)
+				ApplyAnimationTone(playing);
+		}
+		if (BattleManager.Instance == null)
+			return;
+		foreach (Node child in BattleManager.Instance.GetChildren())
+		{
+			if (child is DamageNumber { Party: true } number)
+				ApplyUITone(number, dims: true);
+		}
+	}
+
+	private static IEnumerable<(CanvasItem Root, bool Dims)> GetUIToneRoots()
+	{
+		if (MenuManager.Instance != null)
+		{
+			foreach (CanvasItem menu in MenuManager.Instance.AllMenus)
+				yield return (menu, false);
+			yield return (MenuManager.Instance.EnergyDisplay, true);
+		}
+		if (BattleLogManager.Instance != null)
+			yield return (BattleLogManager.Instance, true);
+		if (BattleManager.Instance == null)
+			yield break;
+		foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
+		{
+			if (member.Component?.GetParent() is CanvasItem card)
+				yield return (card, true);
+		}
+	}
+
+	private static void RefreshGrayCursors(Node node)
+	{
+		foreach (Node child in node.GetChildren())
+		{
+			if (child is CursorBounce cursor)
+				cursor.RefreshGray();
+			RefreshGrayCursors(child);
+		}
+	}
+
 	internal void ResetScreenEffects()
 	{
+		StopScreenToneTween();
+		BelowUI = false;
+		UIToneDimmed = false;
+		SetScreenTone(Vector4.Zero);
+		RefreshUITone();
 		ScreenTintTween?.Kill();
 		ScreenTintTween = null;
 		ScreenTint.ZIndex = -4;
@@ -1034,7 +1256,7 @@ public partial class AnimationManager : Node
 		Tween tween = GetTree().CreateTween();
 		tween.TweenCallback(Callable.From(() => AudioManager.Instance.PlaySFX("ba_goop", 0.9f, 0.9f))).SetDelay(0.33f);
 		tween.TweenProperty(HumphreySwarm, "position:y", -450f, 0.5f);
-		tween.TweenCallback(Callable.From(() => TintScreen(Colors.Black)));
+		tween.TweenCallback(Callable.From(() => TintOverlay(Colors.Black)));
 		tween.TweenInterval(0.5f);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		HumphreySwarm.Visible = false;
@@ -1165,7 +1387,10 @@ public partial class AnimationManager : Node
 		if (targetsEnemy)
 			EnemyAnimations.AddChild(playing);
 		else
+		{
 			AddChild(playing);
+			ApplyAnimationTone(playing);
+		}
 		PlayingAnimations.Add(playing);
 		if (animation.TryGetFrameFlash(0, out List<Flash> flashes))
 		{

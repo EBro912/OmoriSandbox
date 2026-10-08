@@ -24,7 +24,7 @@ internal sealed class Hero : PartyMember
     public override async Task OnStartOfBattle()
     {
         if (BattleManager.Instance.PartyHasLivingWeapon("Hero's Trophy")) {
-            SetEmotion("sad", true);
+            BattleManager.Instance.MakeEmotionTier(this, "sad", 1, true);
         }
         await base.OnStartOfBattle();
     }

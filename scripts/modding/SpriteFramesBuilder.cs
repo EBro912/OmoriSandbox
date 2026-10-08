@@ -17,33 +17,54 @@ public class SpriteFramesBuilder
     /// <summary>
     /// Creates a new SpriteFramesBuilder.<br/>You can call <see cref="AddAnimation"/> to different emotions to the list of animations.
     /// </summary>
-    /// <param name="atlasPath">The path to the atlas file. Must be a full path from the root mods folder.<br/>
-    /// Example: <c>MyMod/actors/MyActor/atlas.png</c></param>
+    /// <param name="atlasPath">The path to the atlas file. Either a full path from the root mods folder, or a <c>res://</c> path to one of the game's own textures.<br/>
+    /// Examples: <c>MyMod/actors/MyActor/atlas.png</c>, <c>res://assets/system/Window.png</c></param>
     /// <param name="width">The width of a single sprite in the atlas.</param>
     /// <param name="height">The height of a single sprite in the atlas.</param>
     public SpriteFramesBuilder(string atlasPath, int width, int height)
     {
-        if (string.IsNullOrWhiteSpace(atlasPath) || atlasPath.Contains("..") || atlasPath.Contains("://") ||
-            Path.IsPathRooted(atlasPath))
-        {
-            GD.PushError($"Invalid atlas path '{atlasPath}' (path traversal not allowed)");
+        Texture = LoadAtlas(atlasPath);
+        if (Texture == null)
             return;
-        }
-        if (!FileAccess.FileExists("user://mods/" + atlasPath))
-        {
-            GD.PushError("Failed to find atlas at path: user://mods/" + atlasPath);
-            return;
-        }
         SpriteFrames = new();
-        Texture = ImageTexture.CreateFromImage(Image.LoadFromFile("user://mods/" + atlasPath));
         Width = width;
         Height = height;
         Columns = Texture.GetWidth() / Width;
         if (Columns == 0)
         {
-            GD.PushError("Loaded atlas with zero columns! Double check the width and height!\nuser://mods/" + atlasPath);
+            GD.PushError("Loaded atlas with zero columns! Double check the width and height!\n" +
+                         (atlasPath.StartsWith("res://") ? atlasPath : "user://mods/" + atlasPath));
             SpriteFrames = null;
         }
+    }
+
+    private static Texture2D LoadAtlas(string atlasPath)
+    {
+        if (string.IsNullOrWhiteSpace(atlasPath) || atlasPath.Contains(".."))
+        {
+            GD.PushError($"Invalid atlas path '{atlasPath}' (path traversal not allowed)");
+            return null;
+        }
+        if (atlasPath.StartsWith("res://"))
+        {
+            if (!ResourceLoader.Exists(atlasPath))
+            {
+                GD.PushError("Failed to find atlas at path: " + atlasPath);
+                return null;
+            }
+            return ResourceLoader.Load<Texture2D>(atlasPath);
+        }
+        if (atlasPath.Contains("://") || Path.IsPathRooted(atlasPath))
+        {
+            GD.PushError($"Invalid atlas path '{atlasPath}' (path traversal not allowed)");
+            return null;
+        }
+        if (!FileAccess.FileExists("user://mods/" + atlasPath))
+        {
+            GD.PushError("Failed to find atlas at path: user://mods/" + atlasPath);
+            return null;
+        }
+        return ImageTexture.CreateFromImage(Image.LoadFromFile("user://mods/" + atlasPath));
     }
 
     /// <summary>
@@ -52,8 +73,8 @@ public class SpriteFramesBuilder
     /// The given frames are duplicated first, so the original is never modified.
     /// </summary>
     /// <param name="frames">The SpriteFrames to build on, such as a vanilla actor's <c>ResourceLoader.Load</c>.</param>
-    /// <param name="atlasPath">The path to the atlas file for the new animations. Must be a full path from the root mods folder.<br/>
-    /// Example: <c>MyMod/actors/MyActor/atlas.png</c></param>
+    /// <param name="atlasPath">The path to the atlas file for the new animations. Either a full path from the root mods folder, or a <c>res://</c> path to one of the game's own textures.<br/>
+    /// Examples: <c>MyMod/actors/MyActor/atlas.png</c>, <c>res://assets/system/Window.png</c></param>
     /// <param name="width">The width of a single sprite in the atlas.</param>
     /// <param name="height">The height of a single sprite in the atlas.</param>
     public SpriteFramesBuilder(SpriteFrames frames, string atlasPath, int width, int height) : this(atlasPath, width, height)

@@ -136,6 +136,12 @@ internal partial class PlayingAnimation : Node2D
 			SetTargetVisible(true);
 	}
 
+	internal void SetTone(Material tone, Material additiveTone)
+	{
+		Material = tone;
+		Additive.SetTone(additiveTone);
+	}
+
 	private void UpdateTargetFlash()
 	{
 		if (TargetFlashDuration <= 0)
@@ -176,11 +182,17 @@ internal partial class PlayingAnimation : Node2D
 	private sealed partial class AdditiveLayer : Node2D
 	{
 		private readonly PlayingAnimation Owner;
+		private readonly Material Blend = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add };
 
 		public AdditiveLayer(PlayingAnimation owner)
 		{
 			Owner = owner;
-			Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add };
+			Material = Blend;
+		}
+
+		public void SetTone(Material tone)
+		{
+			Material = tone ?? Blend;
 		}
 
 		public override void _Draw()
@@ -196,6 +208,7 @@ internal partial class PlayingAnimation : Node2D
 		public ScreenFlashLayer(PlayingAnimation playing)
 		{
 			Playing = playing;
+			UseParentMaterial = true;
 		}
 
 		public override void _Draw()

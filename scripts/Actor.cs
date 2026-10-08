@@ -420,7 +420,7 @@ public abstract class Actor
 		NotifyModifierAdded(modifier, t);
 	}
 
-	private void RefreshTierStatModifier(string modifier, bool refreshTurns, bool silent)
+	internal void RefreshTierStatModifier(string modifier, bool refreshTurns, bool silent)
 	{
 		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod) || mod is not TierStatModifier tier)
 			return;
@@ -796,6 +796,7 @@ public abstract class Actor
 		if (damage <= 0)
 			return 0;
 
+		DamageTakenThisAction += damage;
 		CurrentHP -= damage;
 		if (CurrentHP < 0)
 			CurrentHP = 0;
@@ -1146,4 +1147,22 @@ public abstract class Actor
 	/// </summary>
 	/// <param name="victory">Whether the battle was won by the player.</param>
 	public virtual async Task OnEndOfBattle(bool victory) { await Task.CompletedTask; }
+
+	/// <summary>
+	/// The HP damage this actor has taken during the current action. It goes back to 0 when the next action starts.
+	/// Damage taken between actions, such as at the start or end of a turn or from battle conditions, keeps adding up until then.
+	/// </summary>
+	public int DamageTakenThisAction { get; internal set; }
+
+	/// <summary>
+	/// Called once after an action in which this actor took HP damage, before the battle conditions are checked.
+	/// Unlike <see cref="OnDamaged"/>, the battle waits for it, so it can play animations or transform the actor.
+	/// </summary>
+	/// <remarks>
+	/// <paramref name="total"/> covers the whole action, so every hit of a multi-hit skill counts. It isn't called for an actor that is toast by then,
+	/// or for damage taken outside an action, such as at the start or end of a turn. An enemy brought to 0 HP is still called, because enemy
+	/// deaths are resolved after the battle conditions, unless a forced command defeated it.
+	/// </remarks>
+	/// <param name="total">The HP damage this actor took during the action. See <see cref="DamageTakenThisAction"/>.</param>
+	public virtual async Task OnDamagedAfterAction(int total) { await Task.CompletedTask; }
 }

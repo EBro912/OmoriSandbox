@@ -16,11 +16,8 @@ public sealed class FlexStatModifier : StatModifier
         if (phase is DamagePhase.PreJuice && isAttacking && !neverMiss)
         {
             damage *= 2.5f;
-        }
-        
-        if (phase is DamagePhase.PreApply && isAttacking && damage > 0 && !neverMiss)
-        {
-            attacker.RemoveStatModifier("Flex");
+            if (damage > 0)
+                attacker.RemoveStatModifier("Flex");
         }
     }
 }

@@ -65,6 +65,18 @@ public partial class GameManager : Node
 	public static Node2D ModLayer { get; private set; }
 
 	/// <summary>
+	/// A node for mod visuals that are part of the battle scene, like extra background layers.
+	/// Anything under it shakes and takes the <see cref="AnimationManager.TintScreen"/> tone together with the battleback.
+	/// </summary>
+	/// <remarks>
+	/// It draws above the battleback and below the enemies: keep its children's <see cref="CanvasItem.ZIndex"/> between -49 and 44.
+	/// Children turn gray on defeat only if they turn on <see cref="CanvasItem.UseParentMaterial"/>.
+	/// Nodes based on <see cref="CanvasLayer"/>, such as ParallaxBackground, ignore their parent's position and don't shake: use plain Node2D children instead.
+	/// Warning: The game never clears this node automatically. Its children can only be freed by your mod.
+	/// </remarks>
+	public static Node2D BattlebackLayer { get; private set; }
+
+	/// <summary>
 	/// Keeps your own <see cref="CanvasLayer"/> aligned with the battle in widescreen.
 	/// </summary>
 	/// <remarks>
@@ -104,6 +116,8 @@ public partial class GameManager : Node
 		Instance = this;
 		ModLayer = new Node2D { Name = "ModLayer" };
 		GetParent().CallDeferred(Node.MethodName.AddChild, ModLayer);
+		BattlebackLayer = new Node2D { Name = "BattlebackLayer", ZIndex = -50, UseParentMaterial = true };
+		BattlebackRoot.CallDeferred(Node.MethodName.AddChild, BattlebackLayer);
 		
 		GD.Print("Version: " + Version);
 
@@ -213,7 +227,8 @@ public partial class GameManager : Node
 				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
 				StretchMode = stretch,
 				TextureFilter = stretch == TextureRect.StretchModeEnum.Scale ? CanvasItem.TextureFilterEnum.Linear : CanvasItem.TextureFilterEnum.ParentNode,
-				MouseFilter = Control.MouseFilterEnum.Ignore
+				MouseFilter = Control.MouseFilterEnum.Ignore,
+				UseParentMaterial = true
 			};
 			frame.AddChild(background);
 			background.SetAnchorsPreset(Control.LayoutPreset.FullRect);
@@ -473,6 +488,8 @@ public partial class GameManager : Node
 			card.QueueFree();
 			return null;
 		}
+		AnimationManager.InheritUITone(card);
+		AnimationManager.Instance.ApplyUITone(card, dims: true);
 		return component;
 	}
 }

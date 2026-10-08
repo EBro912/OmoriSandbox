@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -27,13 +25,7 @@ internal sealed class TheHooligans : Enemy
     {
         if (HasStatModifier("Charm"))
             return (StatModifiers["Charm"] as CharmStatModifier).CharmedBy;
-        List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
-        List<PartyMember> taunting = members.FindAll(x => x.HasStatModifier("Taunt"));
-        if (taunting.Count == 0)
-        {
-            return members.MaxBy(x => x.CurrentStats.SPD);
-        }
-        return taunting.MaxBy(x => x.CurrentStats.SPD);
+        return SelectTargetWithHighest(StatType.SPD);
     }
 
     public override Task OnStartOfBattle()

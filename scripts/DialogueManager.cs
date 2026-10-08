@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Menu;
 
@@ -334,13 +335,7 @@ public partial class DialogueManager : Node2D
 			ChoiceIndex = 0;
 			ClearChoiceLabels();
 			foreach (string choice in current.Choices)
-			{
-				Label label = new();
-				label.AddThemeFontOverride("font", ResourceLoader.Load<Font>("res://fonts/OMORI_GAME2.ttf"));
-				label.AddThemeFontSizeOverride("font_size", 30);
-				label.Text = choice;
-				ChoiceTextParent.AddChild(label);
-			}
+				ChoiceTextParent.AddChild(CreateChoiceLabel(choice));
 		}
 
 		IsTyping = true;
@@ -667,7 +662,7 @@ public partial class DialogueManager : Node2D
 		float maxTextWidth = 0f;
 		foreach (string choice in CurrentChoices)
 		{
-			float w = font.GetStringSize(choice, fontSize: 30).X;
+			float w = font.GetStringSize(ParsedChoiceText(choice), fontSize: 30).X;
 			maxTextWidth = Mathf.Max(maxTextWidth, w);
 		}
 		float targetWidth = Mathf.Max(110f, maxTextWidth + 34f + CURSOR_LEFT_PADDING);
@@ -686,6 +681,31 @@ public partial class DialogueManager : Node2D
 			Cursor.Visible = true;
 			Cursor.Position = GetCursorPosition(0);
 		}));
+	}
+
+	internal RichTextLabel CreateChoiceLabel(string choice)
+	{
+		RichTextLabel label = new()
+		{
+			BbcodeEnabled = true,
+			FitContent = true,
+			AutowrapMode = TextServer.AutowrapMode.Off,
+			ScrollActive = false,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+			Text = choice
+		};
+		label.AddThemeFontOverride("normal_font", ResourceLoader.Load<Font>("res://fonts/OMORI_GAME2.ttf"));
+		label.AddThemeFontSizeOverride("normal_font_size", 30);
+		label.AddThemeColorOverride("default_color", ChoiceTextParent.GetThemeColor("font_color", "Label"));
+		return label;
+	}
+
+	internal string ParsedChoiceText(string choice)
+	{
+		RichTextLabel parser = new() { BbcodeEnabled = true, Text = choice };
+		string parsed = parser.GetParsedText();
+		parser.Free();
+		return parsed;
 	}
 
 	private Vector2 GetCursorPosition(int index)
@@ -745,6 +765,10 @@ public partial class DialogueManager : Node2D
 		DimTween = CreateTween().SetParallel();
 		foreach (CanvasItem item in GetDimTargets())
 			DimTween.TweenProperty(item, "modulate", target, UIDimDuration).SetTrans(Tween.TransitionType.Sine);
+		if (dimmed)
+			AnimationManager.Instance.SetUIToneDimmed(true);
+		else
+			DimTween.Chain().TweenCallback(Callable.From(() => AnimationManager.Instance.SetUIToneDimmed(false)));
 	}
 
 	public void Reset()
@@ -756,6 +780,7 @@ public partial class DialogueManager : Node2D
 		UIDimmed = false;
 		foreach (CanvasItem item in GetDimTargets())
 			item.Modulate = Colors.White;
+		AnimationManager.Instance.SetUIToneDimmed(false);
 		PauseGeneration++;
 		HasChoice = false;
 		AutoClose = false;
