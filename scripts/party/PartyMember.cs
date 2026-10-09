@@ -57,7 +57,7 @@ public abstract class PartyMember : Actor
             return false;
         }
 
-		if (!actor.Charm.Equals("none", StringComparison.CurrentCultureIgnoreCase))
+		if (actor.Charm != null && !actor.Charm.Equals("none", StringComparison.CurrentCultureIgnoreCase))
 		{
 			if (!Database.TryGetEquipment(actor.Charm, out Equipment c))
 			{
@@ -67,7 +67,7 @@ public abstract class PartyMember : Actor
 			Charm = c;
 		}
 
-		if (!actor.Weapon.Equals("none", StringComparison.CurrentCultureIgnoreCase))
+		if (actor.Weapon != null && !actor.Weapon.Equals("none", StringComparison.CurrentCultureIgnoreCase))
 		{
 			if (!Database.TryGetEquipment(actor.Weapon, out Equipment w))
 			{
@@ -81,7 +81,7 @@ public abstract class PartyMember : Actor
         bool startToast = actor.Emotion == "toast";
         string emotion = startToast ? "neutral" : actor.Emotion;
         // fall back to neutral on unknown or invalid preset emotions
-        if (!Database.TryGetEmotion(emotion, out Emotion preset) || !animation.HasAnimation(preset.AnimationName) || !IsEmotionValid(preset))
+        if (!Database.TryGetEmotion(emotion, out Emotion preset) || !animation.HasAnimation(preset.AnimationName) || !IsEmotionValid(preset.Id))
         {
             GD.PushWarning($"Invalid emotion '{emotion}' for PartyMember {Name}, defaulting to neutral.");
             actor.Emotion = "neutral";

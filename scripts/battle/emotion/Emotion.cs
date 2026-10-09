@@ -66,6 +66,11 @@ public sealed class Emotion
 	/// The label/portrait assets shown for this emotion.
 	/// </summary>
 	public EmotionAsset Asset { get; private set; }
+
+	/// <summary>
+	/// Whether this emotion can be felt again right after it is removed. See <see cref="WithReapplyAllowed"/>.
+	/// </summary>
+	public bool ReapplyAllowed { get; private set; }
 	
 	internal bool Registered;
 
@@ -188,6 +193,17 @@ public sealed class Emotion
 		if (Frozen())
 			return this;
 		Asset = asset;
+		return this;
+	}
+
+	/// <summary>
+	/// Lets this emotion be felt again right after it is removed, even while "Allow State Reapply on Removal" is off.
+	/// </summary>
+	public Emotion WithReapplyAllowed()
+	{
+		if (Frozen())
+			return this;
+		ReapplyAllowed = true;
 		return this;
 	}
 }

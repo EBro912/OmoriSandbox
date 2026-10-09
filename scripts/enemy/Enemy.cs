@@ -33,10 +33,10 @@ public abstract class Enemy : Actor
 		Sprite = sprite;
 		Sprite.SpriteFrames = animation;
 
-		if (!SetEmotion(initialState, true))
+		if (!SetEmotionUnrecorded(initialState))
 		{
 			GD.PushWarning($"Invalid emotion '{initialState}' for Enemy {Name}, defaulting to neutral.");
-			SetEmotion("neutral", true);
+			SetEmotionUnrecorded("neutral");
 		}
 		Sprite.Play();
 		AdjustedStats = adjustedStats;
@@ -68,6 +68,7 @@ public abstract class Enemy : Actor
 	public Stats AdjustedStats { get; private set; }
 
 	internal Enemy TransformedInto { get; set; }
+	internal bool KeepsBattler { get; set; }
 
 	/// <inheritdoc/>
 	public sealed override EnemyComponent Component => (EnemyComponent)base.Component;
@@ -152,7 +153,7 @@ public abstract class Enemy : Actor
 		if (HasStatModifier("Charm"))
 			return (StatModifiers["Charm"] as CharmStatModifier).CharmedBy;
 		List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
-		List<PartyMember> taunting = members.FindAll(x => x.HasStatModifier("Taunt"));
+		List<PartyMember> taunting = HasStatModifier("ObserveIgnoreTaunt") ? [] : members.FindAll(x => x.HasStatModifier("Taunt"));
 		if (taunting.Count == 0)
 		{
 			// if nobody is taunting, pick a random target

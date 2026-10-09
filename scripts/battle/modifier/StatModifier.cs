@@ -29,6 +29,10 @@ public class StatModifier
     /// A list of state icons this stat modifier uses.
     /// </summary>
     protected StateIcon[] StateIcons = [];
+    
+    private HashSet<string> AbsorbElements;
+    
+    private HashSet<string> ReflectElements;
 
     /// <summary>
     /// A generic stat modifier that has no turn counter
@@ -132,7 +136,7 @@ public class StatModifier
     /// <param name="categories">The category names to add.</param>
     public StatModifier WithCategories(params string[] categories)
     {
-        foreach (string category in categories)
+        foreach (string category in categories ?? [])
         {
             if (!string.IsNullOrWhiteSpace(category))
                 Categories.Add(category.Trim());
@@ -183,9 +187,6 @@ public class StatModifier
     {
         return Immunity.Blocks(emotion);
     }
-
-    private HashSet<string> AbsorbElements;
-    private HashSet<string> ReflectElements;
 
     /// <summary>
     /// Makes the defender recover HP (or JUICE) from hits instead of taking them.

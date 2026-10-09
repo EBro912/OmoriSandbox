@@ -207,8 +207,12 @@ public partial class BattleManager : Node
 	private bool ProcessedStartOfCommands = false;
 	private bool ProcessedEndOfTurn = false;
 	private bool InEndOfTurnHooks = false;
+	private bool InStartOfTurnHooks = false;
+	private bool InEndOfBattle = false;
 	private bool ResumingStartOfTurn = false;
 	private bool BattleStartForcesOnly = false;
+	private bool SpawnHooksArmed = false;
+	private readonly HashSet<Actor> SpawnedActors = [];
 
 	public static BattleManager Instance { get; private set; }
 
@@ -325,6 +329,30 @@ public partial class BattleManager : Node
 
 	private async void PreBattle()
 	{
+		SpawnHooksArmed = true;
+		foreach (PartyMemberComponent member in CurrentParty.ToList())
+		{
+			await RunSpawnHook(member.Actor);
+			if (RestartQueued)
+			{
+				Reset();
+				ReloadPreset();
+				return;
+			}
+		}
+		foreach (EnemyComponent component in Enemies.ToList())
+		{
+			if (!Enemies.Contains(component))
+				continue;
+			await RunSpawnHook(component.Actor);
+			if (RestartQueued)
+			{
+				Reset();
+				ReloadPreset();
+				return;
+			}
+		}
+
 		// since a party member's start of battle hook could spawn another party member,
 		// run while party members have not been processed instead of indexing the party directly
 		HashSet<Actor> processed = [];
@@ -359,7 +387,7 @@ public partial class BattleManager : Node
 		}
 		RaiseGuarded(BattleStarted, new BattleStartedEventArgs(CurrentPresetName, CurrentStage), "BattleStarted");
 		CurrentParty.ForEach(x => x.UpdateStateIcons());
-		if (ForcedCommands.Count > 0)
+		if (ForcedCommands.Any(x => !IsInvalidTarget(x.Actor)))
 		{
 			foreach (PartyMemberComponent member in CurrentParty)
 				ActedThisTurn.Add(member.Actor);
@@ -372,6 +400,13 @@ public partial class BattleManager : Node
 			return;
 		}
 		SetPhase(BattlePhase.FightRun);
+	}
+
+	private Task RunSpawnHook(Actor actor)
+	{
+		if (!SpawnedActors.Add(actor))
+			return Task.CompletedTask;
+		return RunGuarded(actor.OnSpawned, $"{actor.Name}.OnSpawned");
 	}
 
 	public override void _Process(double delta)
@@ -534,7 +569,8 @@ public partial class BattleManager : Node
 					    BattlePhase.CommandExecute or
 					    BattlePhase.WaitForBattleLog or
 					    BattlePhase.PostCommand or
-					    BattlePhase.EnemyDying)
+					    BattlePhase.EnemyDying
+					    || InStartOfTurnHooks || InEndOfBattle)
 					{
 						RestartQueued = true;
 						RestartLabel.Text = "Restart Queued";
@@ -697,8 +733,12 @@ public partial class BattleManager : Node
 		ProcessedStartOfCommands = false;
 		ProcessedEndOfTurn = false;
 		InEndOfTurnHooks = false;
+		InStartOfTurnHooks = false;
+		InEndOfBattle = false;
 		ResumingStartOfTurn = false;
 		BattleStartForcesOnly = false;
+		SpawnHooksArmed = false;
+		SpawnedActors.Clear();
 		RestartLabel.Visible = false;
 		RestartQueued = false;
 		RestartTimer = 1;
@@ -916,11 +956,12 @@ public partial class BattleManager : Node
 			case BattlePhase.PostCommand:
 			{
 				// handle any stat modifiers that tick at the end of an action
-				if (!CurrentCommand.Actor.IsToast)
+				Actor ended = ResolveKeptBattler(CurrentCommand.Actor);
+				if (!ended.IsToast)
 				{
 					// vanilla clears the actor's result before action-end states tick
-					CurrentCommand.Actor.ClearResult();
-					CurrentCommand.Actor.DecreaseActionStatTurnCounter();
+					ended.ClearResult();
+					ended.DecreaseActionStatTurnCounter();
 				}
 
 				await ConvertDeadPartyMembers();
@@ -1093,6 +1134,11 @@ public partial class BattleManager : Node
 			await Wait.Milliseconds(750);
 		}
 		await RunGuarded(() => enemy.Actor.OnDefeat(), $"{enemy.Actor.Name}.OnDefeat");
+		if (!Enemies.Contains(enemy))
+		{
+			DeferredDeathEnemies.Remove(enemy);
+			return;
+		}
 		enemy.Actor.SetToast();
 		enemy.Actor.ClearStatModifiersOnDeath();
 		if (enemy.Actor.FallsOffScreen)
@@ -1144,6 +1190,7 @@ public partial class BattleManager : Node
 			BattleCommand cmd = ResolveCommandForActor(actor);
 			if (cmd != null)
 				return cmd;
+			SkipIdleEnemy(actor);
 		}
 
 		// regular turn order
@@ -1195,7 +1242,19 @@ public partial class BattleManager : Node
 			})
 			.First();
 
-		return ResolveCommandForActor(next);
+		BattleCommand command = ResolveCommandForActor(next);
+		if (command != null)
+			return command;
+		SkipIdleEnemy(next);
+		return GetNextAction();
+	}
+
+	private static void SkipIdleEnemy(Actor actor)
+	{
+		if (actor is not Enemy idle)
+			return;
+		idle.HasPreRolledAction = false;
+		idle.ClearResult();
 	}
 
 	private BattleCommand ResolveCommandForActor(Actor actor)
@@ -1226,6 +1285,32 @@ public partial class BattleManager : Node
 		RunGuarded(() => RunAsReaction(() => enemy.PreRollTurnPriority(emotionReroll: true)), $"{enemy.Name}.PreRollTurnPriority");
 		if (SettingsMenuManager.Instance.LogDebug)
 			GD.Print($"{enemy.Name} changed emotion group to {current.Id} before acting, re-rolled turn priority: {enemy.TurnPriority}");
+	}
+
+	private bool StopStartOfTurnForRestart()
+	{
+		if (!RestartQueued)
+			return false;
+		InStartOfTurnHooks = false;
+		if (!InEndOfBattle)
+		{
+			Reset();
+			ReloadPreset();
+		}
+		return true;
+	}
+
+	private bool StopEndOfBattleForRestart()
+	{
+		if (!RestartQueued)
+			return false;
+		InEndOfBattle = false;
+		if (!InStartOfTurnHooks)
+		{
+			Reset();
+			ReloadPreset();
+		}
+		return true;
 	}
 
 	private async void HandleFightRun()
@@ -1265,9 +1350,12 @@ public partial class BattleManager : Node
 		}
 		if (!ProcessedStartOfTurn)
 		{
-			foreach (PartyMemberComponent member in CurrentParty.Where(x => !x.Actor.IsToast))
+			InStartOfTurnHooks = true;
+			foreach (PartyMemberComponent member in CurrentParty.ToList())
 			{
-				foreach (StatModifier modifier in member.Actor.StatModifiers.Values)
+				if (member.Actor.IsToast)
+					continue;
+				foreach (StatModifier modifier in member.Actor.StatModifiers.Values.ToList())
 				{
 					RunGuarded(() => modifier.OnStartOfTurn(member.Actor),
 						$"{modifier.GetType().Name}.OnStartOfTurn ({member.Actor.Name})");
@@ -1276,28 +1364,42 @@ public partial class BattleManager : Node
 				if (member.Actor.Weapon != null)
 					await RunGuarded(() => member.Actor.Weapon.StartOfTurn(member.Actor),
 						$"weapon {member.Actor.Weapon.Name}.StartOfTurn ({member.Actor.Name})");
+				if (StopStartOfTurnForRestart())
+					return;
 				if (member.Actor.Charm != null)
 					await RunGuarded(() => member.Actor.Charm.StartOfTurn(member.Actor),
 						$"charm {member.Actor.Charm.Name}.StartOfTurn ({member.Actor.Name})");
+				if (StopStartOfTurnForRestart())
+					return;
 			}
 
 			foreach (EnemyComponent e in Enemies.ToList())
 			{
 				if (e.Actor.IsToast || !Enemies.Contains(e))
 					continue;
-				foreach (StatModifier modifier in e.Actor.StatModifiers.Values)
+				foreach (StatModifier modifier in e.Actor.StatModifiers.Values.ToList())
 				{
 					RunGuarded(() => modifier.OnStartOfTurn(e.Actor),
 						$"{modifier.GetType().Name}.OnStartOfTurn ({e.Actor.Name})");
 				}
 				
 				await RunGuarded(() => e.Actor.ProcessStartOfTurn(), $"{e.Actor.Name}.ProcessStartOfTurn");
+				if (StopStartOfTurnForRestart())
+					return;
 			}
 
 			if (Phase == BattlePhase.FightRun)
+			{
 				await ResolveEnemyDeaths();
+				if (StopStartOfTurnForRestart())
+					return;
+				await ConvertDeadPartyMembers();
+				if (StopStartOfTurnForRestart())
+					return;
+			}
 			RaiseGuarded(TurnStarted, "TurnStarted");
 			ProcessedStartOfTurn = true;
+			InStartOfTurnHooks = false;
 		}
 
 		CurrentParty.ForEach(x => x.UpdateStateIcons());
@@ -1937,6 +2039,7 @@ public partial class BattleManager : Node
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
 			await ResolveEnemyDeaths();
+			await ConvertDeadPartyMembers();
 			InEndOfTurnHooks = false;
 
 			// expire observe predictions the enemy never consumed during its turn
@@ -2041,9 +2144,13 @@ public partial class BattleManager : Node
 		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
 		{
 			SetPhase(BattlePhase.BattleOver);
+			InEndOfBattle = true;
 			await EndOfBattle(false);
+			if (StopEndOfBattleForRestart())
+				return;
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 			                                              "'s party was defeated...");
+			InEndOfBattle = false;
 			ShowEndOfBattleOptions();
 			return;
 		}
@@ -2055,9 +2162,13 @@ public partial class BattleManager : Node
 		if (omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast)))
 		{
 			SetPhase(BattlePhase.BattleOver);
+			InEndOfBattle = true;
 			await EndOfBattle(false);
+			if (StopEndOfBattleForRestart())
+				return;
 			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
 			                                              "'s party was defeated...");
+			InEndOfBattle = false;
 			ShowEndOfBattleOptions();
 			return;
 		}
@@ -2065,7 +2176,10 @@ public partial class BattleManager : Node
 		if (Enemies.All(x => x.Actor.IsToast))
 		{
 			SetPhase(BattlePhase.BattleOver);
+			InEndOfBattle = true;
 			await EndOfBattle(true);
+			if (StopEndOfBattleForRestart())
+				return;
 			CurrentParty.ForEach(x =>
 			{
 				x.Actor.RemoveStatModifier("PlotArmor");
@@ -2083,13 +2197,20 @@ public partial class BattleManager : Node
 				if (CurrentStage < Stages.Count)
 				{
 					await Wait.Milliseconds(3000);
+					if (StopEndOfBattleForRestart())
+						return;
 					await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
+					if (StopEndOfBattleForRestart())
+						return;
+					SpawnHooksArmed = false;
 					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
 					GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
 					GameManager.Instance.SetBattlebackGrayscale(false);
 					BattleLogManager.Instance.ClearBattleLog();
 					MenuManager.Instance.ClearLastSelected();
 					await Wait.Milliseconds(1000);
+					if (StopEndOfBattleForRestart())
+						return;
 					CurrentParty.ForEach(x =>
 					{
 						x.Actor.HasUsedPlotArmor = false;
@@ -2104,15 +2225,16 @@ public partial class BattleManager : Node
 						else if (x.Actor.CurrentHP == 0)
 						{
 							x.Actor.Revive(1);
-							x.Actor.SetEmotion("neutral", true);
+							x.Actor.SetEmotionUnrecorded("neutral");
 						}
 
 						// drop the victory override, the emotion kept underneath shows again
 						x.Actor.ClearAnimation();
 						if (!Stages[CurrentStage].KeepEmotion)
-							x.Actor.SetEmotion("neutral", true);
+							x.Actor.SetEmotionUnrecorded("neutral");
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.ClearStatModifiersOnRecoverAll();
+						x.Actor.ClearResult();
 						x.UpdateStateIcons();
 					});
 					AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
@@ -2122,6 +2244,8 @@ public partial class BattleManager : Node
 					AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
 					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
 					await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
+					if (StopEndOfBattleForRestart())
+						return;
 					ForcedCommands.Clear();
 					ForcedCountAtCommandStart = 0;
 					PendingFollowup = null;
@@ -2133,6 +2257,7 @@ public partial class BattleManager : Node
 					ResumingStartOfTurn = false;
 					// leave BattleOver so a restart during the next stage's intro dialogue
 					// queues (like the first stage's) instead of resetting mid-hook
+					InEndOfBattle = false;
 					SetPhase(BattlePhase.PreBattle);
 					CallDeferred(MethodName.PreBattle);
 					return;
@@ -2145,6 +2270,7 @@ public partial class BattleManager : Node
 				                                              "'s party was victorious!");
 			}
 
+			InEndOfBattle = false;
 			ShowEndOfBattleOptions();
 		}
 	}
@@ -2163,6 +2289,8 @@ public partial class BattleManager : Node
 		{
 			PartyMember member = CurrentParty[i].Actor;
 			await RunGuarded(() => member.OnEndOfBattle(victory), $"{member.Name}.OnEndOfBattle");
+			if (RestartQueued)
+				return;
 		}
 		foreach (EnemyComponent component in Enemies.ToList())
 		{
@@ -2170,6 +2298,8 @@ public partial class BattleManager : Node
 			if (!Enemies.Contains(component) || enemy.IsToast)
 				continue;
 			await RunGuarded(() => enemy.OnEndOfBattle(victory), $"{enemy.Name}.OnEndOfBattle");
+			if (RestartQueued)
+				return;
 		}
 		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(victory), "BattleEnded");
 	}
@@ -2848,6 +2978,10 @@ public partial class BattleManager : Node
 			if (!PriorityActors.Contains(enemy.Actor))
 				PriorityActors.Add(enemy.Actor);
 		}
+		else if (InEndOfTurnHooks)
+			ActedThisTurn.Add(enemy.Actor);
+		if (SpawnHooksArmed)
+			_ = RunSpawnHook(enemy.Actor);
 
 		return enemy;
 	}
@@ -2939,6 +3073,8 @@ public partial class BattleManager : Node
 
 		// a summoned member with followups may need to reveal the energy bar
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
+		if (SpawnHooksArmed)
+			_ = RunSpawnHook(component.Actor);
 		return component.Actor;
 	}
 
@@ -2961,7 +3097,62 @@ public partial class BattleManager : Node
 	/// <returns>The new <see cref="Enemy"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
 	public Enemy TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default, Stats? adjustedStats = null)
 	{
-		EnemyComponent target = original?.Component;
+		bool acted = ActedThisTurn.Contains(original);
+		int priority = PriorityActors.IndexOf(original);
+		bool preRolled = original?.HasPreRolledAction == true;
+		Enemy transformed = ReplaceEnemy(original, who, startingEmotion, offset, adjustedStats);
+		if (transformed == null)
+			return null;
+		transformed.KeepsBattler = true;
+		if (transformed.CurrentEmotion != original.CurrentEmotion)
+			transformed.SetEmotionUnrecorded(original.CurrentEmotion.Id);
+		foreach (KeyValuePair<string, StatModifier> entry in original.StatModifiers)
+			transformed.StatModifiers[entry.Key] = entry.Value;
+		transformed.Stunned = original.Stunned;
+		transformed.ObserveTarget = original.ObserveTarget;
+		transformed.ObserveMultiTarget = original.ObserveMultiTarget;
+		transformed.ObserveSetThisTurn = original.ObserveSetThisTurn;
+		Stats stats = transformed.CurrentStats;
+		transformed.CurrentHP = Math.Min(original.CurrentHP, stats.MaxHP);
+		transformed.CurrentJuice = Math.Min(original.CurrentJuice, stats.MaxJuice);
+		for (int i = 0; i < ForcedCommands.Count; i++)
+		{
+			if (ForcedCommands[i].Actor == original)
+				ForcedCommands[i] = new BattleCommand(transformed, ForcedCommands[i].Targets, ForcedCommands[i].Action) { Forced = true };
+		}
+		PriorityActors.Remove(transformed);
+		if (priority >= 0)
+			PriorityActors[priority] = transformed;
+		if (acted)
+			ActedThisTurn.Add(transformed);
+		else if (preRolled && !transformed.Stunned && !transformed.IsToast)
+			RunGuarded(() => RunAsReaction(() => transformed.PreRollTurnPriority(emotionReroll: true)), $"{transformed.Name}.PreRollTurnPriority");
+		return transformed;
+	}
+
+	/// <summary>
+	/// Replaces an enemy with a new one, despawning the original and spawning the replacement
+	/// at the same position and index (see <see cref="GetEnemy"/>). The original enemy is immediately removed from the battle.
+	/// </summary>
+	/// <remarks>
+	/// Unlike <see cref="TransformEnemy"/>, the replacement is a new enemy. Tt starts with full HP and none of the original's
+	/// stat modifiers or forced commands, and when it's spawned in the middle of a turn, it acts right after the current action.<br/>
+	/// Special care must be used when using this method, as the old enemy will immediately become invalid.
+	/// </remarks>
+	/// <param name="original">The enemy to replace.</param>
+	/// <param name="who">The database name of the enemy to replace it with.</param>
+	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
+	/// <param name="offset">The position offset relative to the old enemy's position.</param>
+	/// <param name="adjustedStats">Stat adjustments for the new enemy. Defaults to the original's <see cref="Enemy.AdjustedStats"/>.</param>
+	/// <returns>The new <see cref="Enemy"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
+	public Enemy ReplaceEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default, Stats? adjustedStats = null)
+	{
+		if (original == null || who == null)
+		{
+			GD.PushWarning("ReplaceEnemy needs an enemy to replace and the name of the enemy to replace it with.");
+			return null;
+		}
+		EnemyComponent target = original.Component;
 		if (target == null) return null;
 		
 		int index = Enemies.IndexOf(target);
@@ -2981,6 +3172,13 @@ public partial class BattleManager : Node
 	internal Actor ResolveTransformed(Actor actor)
 	{
 		while (actor is Enemy { TransformedInto: { } next })
+			actor = next;
+		return actor;
+	}
+
+	private static Actor ResolveKeptBattler(Actor actor)
+	{
+		while (actor is Enemy { TransformedInto: { KeepsBattler: true } next })
 			actor = next;
 		return actor;
 	}

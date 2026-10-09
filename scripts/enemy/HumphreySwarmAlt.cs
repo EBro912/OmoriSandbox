@@ -90,7 +90,7 @@ internal sealed class HumphreySwarmAlt : Enemy
         DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]The final fight has just begun!\| But can you win if we work as one?[/wave]");
         await DialogueManager.Instance.WaitForDialogue();
         await AnimationManager.Instance.WaitForHumphreySwarm();
-        BattleManager.Instance.TransformEnemy(this, "HumphreyGrande (Boss Rush)")?.AddImmortal();
+        BattleManager.Instance.ReplaceEnemy(this, "HumphreyGrande (Boss Rush)")?.AddImmortal();
         await Wait.Milliseconds(2500);
         await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
     }

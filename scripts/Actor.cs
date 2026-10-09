@@ -505,7 +505,7 @@ public abstract class Actor
 	public void RecoverAll()
 	{
 		ClearStatModifiersOnRecoverAll();
-		SetEmotion("neutral", true);
+		SetEmotionUnrecorded("neutral");
 		if (IsToast)
 			Revive(CurrentStats.MaxHP);
 		else
@@ -533,7 +533,7 @@ public abstract class Actor
 
 	private void RemoveStatModifierInternal(string modifier, StatModifierRemovalReason reason, bool force = false, bool record = true)
 	{
-		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod))
+		if (modifier == null || !StatModifiers.TryGetValue(modifier, out StatModifier mod))
 			return;
 		// removal-guarded modifiers only get removed via force or their own turn counter
 		if (!force && mod.BypassesRecoverAllRemoval && reason != StatModifierRemovalReason.Expired)
@@ -1063,16 +1063,27 @@ public abstract class Actor
     /// <returns>Whether the emotion was applied.</returns>
     public bool SetEmotion(string id, bool silent = false)
 	{
+		return SetEmotionCore(id, silent, true);
+	}
+
+	internal bool SetEmotionUnrecorded(string id)
+	{
+		return SetEmotionCore(id, true, false);
+	}
+
+	private bool SetEmotionCore(string id, bool silent, bool record)
+	{
 		if (!Database.TryGetEmotion(id, out Emotion emotion))
 		{
 			GD.PrintErr("Unknown emotion: " + id);
 			return false;
 		}
 
-		if (!IsEmotionLocked && IsEmotionValid(emotion) && !IsImmuneToEmotion(emotion))
+		if (!IsEmotionLocked && IsEmotionValid(emotion) && !IsImmuneToEmotion(emotion) && !IsReapplyBlocked(EmotionResultKey(emotion.Id)))
 		{
 			Emotion previous = CurrentEmotion;
 			CurrentEmotion = emotion;
+			RecordEmotionChange(previous, emotion, record);
 			// vanilla refreshes the battler after an emotion state is added, which clamps HP/JUICE to the new maximums
 			ClampHealthJuiceToMax();
 			if (!silent)
@@ -1113,6 +1124,7 @@ public abstract class Actor
 
 		Emotion previous = CurrentEmotion;
 		CurrentEmotion = emotion;
+		RecordEmotionChange(previous, emotion, false);
 		ClampHealthJuiceToMax();
 		BattleManager.Instance.RunAsReaction(() => OnEmotionChanged?.Invoke(this, EventArgs.Empty));
 		if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
@@ -1132,12 +1144,55 @@ public abstract class Actor
 		return "neutral";
 	}
 
+	private const string EmotionKeyPrefix = "emotion:";
+
+	private static string EmotionResultKey(string emotionId)
+	{
+		return EmotionKeyPrefix + emotionId;
+	}
+
+	private static bool IsEmotionalGroup(Emotion emotion)
+	{
+		return emotion.GroupId is "happy" or "sad" or "angry";
+	}
+
+	private static bool IsEmotionalRecord(string key)
+	{
+		return key.StartsWith(EmotionKeyPrefix, StringComparison.Ordinal)
+			&& Database.TryGetEmotion(key[EmotionKeyPrefix.Length..], out Emotion emotion)
+			&& (IsEmotionalGroup(emotion) || emotion.Id == "afraid");
+	}
+
+	private void RecordEmotionChange(Emotion previous, Emotion next, bool record)
+	{
+		if (previous == next)
+			return;
+		if (IsEmotionalGroup(next))
+		{
+			RemovedSinceResultClear.RemoveWhere(IsEmotionalRecord);
+			return;
+		}
+		if (!record || previous.Id == "neutral" || previous.ReapplyAllowed)
+			return;
+		if (next.Id == "neutral" || (next.Id == "afraid" && IsEmotionalGroup(previous)))
+			RemovedSinceResultClear.Add(EmotionResultKey(previous.Id));
+	}
+
 	private void NotifyEmotionTransform(Emotion previous, Emotion current)
 	{
 		if (this is Enemy enemy)
 			BattleManager.Instance.OnEnemyEmotionChanged(enemy, previous, current);
 	}
 	
+	/// <summary>
+	/// Called once when this actor enters a battle, before any start-of-battle hook. Use it to set up extra sprites or nodes.
+	/// </summary>
+	/// <remarks>
+	/// The battle waits for it for the party members and enemies a battle, or a Boss Rush stage, starts with.
+	/// For an actor that joins later, such as a summon or an enemy made by <see cref="BattleManager.TransformEnemy"/> or
+	/// <see cref="BattleManager.ReplaceEnemy"/>, it runs right away and the battle doesn't wait for it.
+	/// </remarks>
+	public virtual async Task OnSpawned() { await Task.CompletedTask; }
 	/// <summary>
 	/// Called at the very start of the battle.
 	/// </summary>

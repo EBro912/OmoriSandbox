@@ -52,7 +52,12 @@ public class SpriteFramesBuilder
                 GD.PushError("Failed to find atlas at path: " + atlasPath);
                 return null;
             }
-            return ResourceLoader.Load<Texture2D>(atlasPath);
+            if (ResourceLoader.Load(atlasPath) is not Texture2D texture)
+            {
+                GD.PushError("Atlas is not a texture: " + atlasPath);
+                return null;
+            }
+            return texture;
         }
         if (atlasPath.Contains("://") || Path.IsPathRooted(atlasPath))
         {

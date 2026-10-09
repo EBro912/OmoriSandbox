@@ -106,7 +106,7 @@ public struct Stats
     /// <param name="value">The value to set the stat to.</param>
     public void SetStat(StatType stat, int value)
     {
-        if (stat is StatType.MaxJuice or StatType.EVA)
+        if (stat is StatType.MaxJuice or StatType.EVA or StatType.HIT)
             value = Math.Max(0, value);
         else
             value = Math.Max(1, value);
@@ -144,7 +144,7 @@ public struct Stats
         MaxHP = Math.Max(1, MaxHP);
         MaxJuice = Math.Max(0, MaxJuice);
         EVA = Math.Max(0, EVA);
-        HIT = Math.Max(1, HIT);
+        HIT = Math.Max(0, HIT);
         ATK = disableLimit ? Math.Max(1, ATK) : Math.Clamp(ATK, 1, 999);
         DEF = disableLimit ? Math.Max(1, DEF) : Math.Clamp(DEF, 1, 999);
         SPD = disableLimit ? Math.Max(1, SPD) : Math.Clamp(SPD, 1, 999);

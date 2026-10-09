@@ -179,7 +179,7 @@ public class Database
 	/// </summary>
 	public static IEnumerable<string> GetAllEmotionIds()
 	{
-		return EmotionOrder;
+		return EmotionOrder.ToList();
 	}
 
 	// groups that opt into random emotion rolls, in registration order
@@ -2462,7 +2462,7 @@ public class Database
 			description: "Makes all friends ANGRY.\nCost: 45",
 			target: SkillTarget.AllAllies,
 			cost: 45,
-			effect: async (self, targets) =>
+			setup: async (self, targets) =>
 			{
 				AnimationManager.Instance.PlayScreenAnimation(74, targets[0] is Enemy);
 				await Wait.Milliseconds(1000);
@@ -2472,7 +2472,8 @@ public class Database
 				{
 					BattleManager.Instance.MakeAngry(member);
 				}
-			}
+			},
+			effect: (_, _) => Task.CompletedTask
 		);
 
 		Skills["Rally"] = new Skill(
@@ -5022,10 +5023,9 @@ public class Database
 			  await AnimationManager.Instance.WaitForAnimation(209, target);
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoves [target].");
 			  BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK, neverCrit: true);
-			  // the skill removes emotion before applying afraid, so if an afraid-immune actor is targeted they still lose their emotion
-			  if (target.CurrentEmotion.Group != null)
+			  // the skill applies afraid before removing emotion, so if an afraid-immune actor is targeted they still lose their emotion
+			  if (!target.SetEmotion("afraid") && target.CurrentEmotion.Group != null)
 				  target.SetEmotion("neutral", true);
-			  target.SetEmotion("afraid");
 		  }
 		);
 
@@ -7810,7 +7810,7 @@ public class Database
 		Modifiers.Add("PlotArmor", () => new PlotArmorStatModifier());
 		Modifiers.Add("Immortal", () => new ImmortalStatModifier());
 		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
-		Modifiers.Add("Stunned", () => new StunnedModifier());
+		Modifiers.Add("Stunned", () => new StunnedModifier().WithReapplyAllowed());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));

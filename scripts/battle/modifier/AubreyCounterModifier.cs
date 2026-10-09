@@ -10,9 +10,11 @@ public sealed class AubreyCounterModifier : StatModifier
 {
     public AubreyCounterModifier(int turns) : base(turns) { }
 
-    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, DamageContext context)
     {
-        if (phase is not DamagePhase.PostApply || isAttacking || attacker is not Enemy)
+        Actor attacker = context.Attacker;
+        Actor defender = context.Defender;
+        if (phase is not DamagePhase.PostApply || context.IsAttacking || attacker is not Enemy || context.Outcome != DamageOutcome.Normal)
             return;
 
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();
