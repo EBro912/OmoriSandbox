@@ -19,11 +19,13 @@ internal sealed class Recyclepath : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
+        return emotion.Id is "neutral" or "happy" or "ecstatic" or "manic" or "sad" or "depressed" or "miserable" or "angry" or "enraged" or "furious" or "afraid";
     }
 
     private Enemy LeftRecycultist;
     private Enemy RightRecycultist;
+    private Enemy SummonedLeft;
+    private Enemy SummonedRight;
 
     public override BattleCommand ProcessAI()
     {
@@ -32,24 +34,34 @@ internal sealed class Recyclepath : Enemy
         // fling trash can only be used with at least 1 Stockpile stack
         if (HasStatModifier("Stockpile") && Roll() < 31)
             return new BattleCommand(this, SelectTarget(), Skills["RPathFlingTrash"]);
-        // we need to check these separately due to the sprite flipping behavior
-        if (LeftRecycultist == null || LeftRecycultist.IsToast)
-        {
-            if (!PreRolling)
-                LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
-                    fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
+        if (SelectAllEnemies().Count <= 2)
             return new BattleCommand(this, this, Skills["RPathSummon"]);
-        }
-
-        if (RightRecycultist == null || RightRecycultist.IsToast)
-        {
-            if (!PreRolling)
-                RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
-                    fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
-            return new BattleCommand(this, this, Skills["RPathSummon"]);
-        }
-
         return new BattleCommand(this, this, Skills["RPathGatherTrash"]);
+    }
+
+    internal void SummonRecycultist()
+    {
+        // VANILLA BUG: the starting RECYCULTISTS never count as summons, so the one on the left is always summoned first, and the delay hits the starting RECYCULTIST on that side instead of the new one
+        Enemy delayed;
+        if (SummonedRight?.Component == null || SummonedRight.IsToast)
+        {
+            SummonedRight = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
+                fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
+            delayed = RightRecycultist;
+        }
+        else if (SummonedLeft?.Component == null || SummonedLeft.IsToast)
+        {
+            SummonedLeft = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
+                fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
+            delayed = LeftRecycultist;
+        }
+        else
+            return;
+        if (delayed?.Component != null && !delayed.IsToast)
+        {
+            delayed.AddStatModifier("CallForFriendDelay", silent: true);
+            delayed.ClearResult();
+        }
     }
     
     private bool HasSpoken = false;

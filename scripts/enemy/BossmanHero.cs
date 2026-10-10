@@ -49,14 +49,15 @@ internal sealed class BossmanHero : Enemy
     
     private readonly Dictionary<int, int[]> Compatibility = new()
     {
-        { 0, [0, 1, 2, 7] },
-        { 1, [6, 1, 7] },
-        { 2, [0, 6, 2] },
+        { 0, [0, 1, 2, 2, 7] },
+        { 1, [6, 1, 1, 7] },
+        { 2, [0, 6, 2, 2] },
         { 3, [4] },
         { 4, [5] },
         { 5, [3] },
-        { 6, [0, 6, 1, 2, 7] },
-        { 7, [6, 1, 7] }
+        { 6, [0, 6, 1, 2, 6, 7] },
+        { 7, [6, 1, 1, 7] },
+        { 8, [0, 6, 1, 2, 7] }
     };
     
     /* RULES
@@ -83,14 +84,16 @@ internal sealed class BossmanHero : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (HasObserveTarget(out PartyMember observe))
+        if (CanUse("BMHFlingMoney") && HasMultiTargetObserve())
+            return new BattleCommand(this, SelectAllTargets(), Skills["BMHFlingMoney"]);
+        if (CanUse("BMHThrowMoney") && HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["BMHThrowMoney"]);
-        
-        if (Roll() < 41)
-            return new BattleCommand(this, SelectTarget(), Skills["BMHAttack"]);
-        if (Roll() < 36)
+
+        if (CanUse("BMHAttack") && Roll() < 41)
+            return new BattleCommand(this, SelectTargetWithHighest(StatType.ATK), Skills["BMHAttack"]);
+        if (CanUse("BMHThrowMoney") && Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["BMHThrowMoney"]);
-        return new BattleCommand(this, SelectAllTargets(), Skills["BMHFlingMoney"]);
+        return CanUse("BMHFlingMoney") ? new BattleCommand(this, SelectAllTargets(), Skills["BMHFlingMoney"]) : null;
     }
 
     public override async Task OnDefeat()
@@ -105,7 +108,7 @@ internal sealed class BossmanHero : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Sorry friends...\| You should have taken my offer when you had the chance!");
+            DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Sorry, friends...\| You should have taken my offer when you had the chance!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }
@@ -114,7 +117,7 @@ internal sealed class BossmanHero : Enemy
     {
         BattleLogManager.Instance.ClearBattleLog();
         DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Friends! Let's make a deal...");
-        int buff = GameManager.Instance.Random.RandiRange(0, 7);
+        int buff = GameManager.Instance.Random.RandiRange(0, 8);
         QueueBuffMessage(buff);
         await DialogueManager.Instance.WaitForDialogue();
         int[] options = Compatibility[buff];
@@ -128,9 +131,9 @@ internal sealed class BossmanHero : Enemy
             await Wait.Frames(20);
             DialogueManager.Instance.QueueMessage("HERO", CenterPoint, "Attaboy! It's a deal!");
             await DialogueManager.Instance.WaitForDialogue();
-            string buffSkill = Buffs[buff];
             string debuffSkill = Debuffs[debuff];
-            BattleManager.Instance.ForceCommand(this, buffSkill.EndsWith("Friends") ? SelectAllTargets() : SelectAllEnemies(), Skills[buffSkill]);
+            if (Buffs.TryGetValue(buff, out string buffSkill))
+                BattleManager.Instance.ForceCommand(this, buffSkill.EndsWith("Friends") ? SelectAllTargets() : SelectAllEnemies(), Skills[buffSkill]);
             BattleManager.Instance.ForceCommand(this, debuffSkill.EndsWith("Friends") ? SelectAllTargets() : SelectAllEnemies(), Skills[debuffSkill]);
         }
         else
@@ -154,11 +157,18 @@ internal sealed class BossmanHero : Enemy
                 
                 // when a Gator Guy takes the deal, the buff needs to be swapped to the debuff version
                 string gatorBuffSkill = Buffs[debuff];
-                string debuffSkill = Debuffs[buff];
-                if (buff == 6)
+                if (buff == 8)
+                {
+                    DialogueManager.Instance.QueueMessage("GATOR GUY gained 100,000 CLAMS!");
+                    await DialogueManager.Instance.WaitForDialogue();
+                }
+                else if (buff == 6)
                     BattleManager.Instance.ForceCommand(this, SelectAllEnemies(), Skills["GGPizzaParty"]);
                 else
+                {
+                    string debuffSkill = Debuffs[buff];
                     BattleManager.Instance.ForceCommand(this, debuffSkill.EndsWith("Friends") ? SelectAllTargets() : SelectAllEnemies(), Skills[debuffSkill]);
+                }
                 if (debuff == 6) 
                     BattleManager.Instance.ForceCommand(this, SelectAllEnemies(), Skills["BMHDamageFoes"]);
                 else
@@ -171,7 +181,7 @@ internal sealed class BossmanHero : Enemy
     {
         string message = roll switch
         {
-            0 => "I will heal your HEART, but...",
+            0 => "I will heal all your HEART, but...",
             1 => "I will increase your STATS, but...",
             2 => "I will reduce your foes' STATS, but...",
             3 => "I will make you HAPPY, but...",
@@ -179,6 +189,7 @@ internal sealed class BossmanHero : Enemy
             5 => "I will make you ANGRY, but...",
             6 => "I will give you 10 WHOLE PIZZAS, but...",
             7 => "Your attacks will hit right in the HEART this turn, but...",
+            8 => "I will give you 100,000 CLAMS, but...",
             _ => "If you're reading this, Toast messed up badly."
         };
         DialogueManager.Instance.QueueMessage("HERO", CenterPoint, message);
@@ -194,7 +205,7 @@ internal sealed class BossmanHero : Enemy
             3 => "I will make your foes HAPPY!",
             4 => "I will make your foes SAD!",
             5 => "I will make your foes ANGRY!",
-            6 => "I will reduce your HEART and JUICE to 50% of your max HEART and JUICE!",
+            6 => "I will reduce your HEART and JUICE by 50% of your max HEART and JUICE!",
             7 => "Your foes' attacks will hit right in the HEART this turn!",
             _ => "If you're reading this, Toast messed up badly."
         };

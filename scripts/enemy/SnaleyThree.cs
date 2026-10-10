@@ -28,12 +28,7 @@ public class SnaleyThree : Enemy
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["SNAttack"]);
         if (Roll() < 36)
-        {
-            PartyMember target = SelectTarget();
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, target, Skills["SNFollowup"]);
-            return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["SNAttackFollowup"]);
         return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
     }
 

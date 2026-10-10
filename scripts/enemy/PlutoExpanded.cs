@@ -50,14 +50,8 @@ internal sealed class PlutoExpanded : Enemy
 
     private bool HasSpoken = false;
     private bool HasMentionedFlex = false;
-    private string WhoFlexed;
     public override async Task ProcessBattleConditions()
     {
-        if (!HasMentionedFlex && WhoFlexed is null)
-        {
-            WhoFlexed = SelectAllTargets().FirstOrDefault(x => x is Kel && x.HasStatModifier("Flex"))?.Name;
-        }
-        
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"...\! Ah.\! I see.");
@@ -78,10 +72,10 @@ internal sealed class PlutoExpanded : Enemy
 
     public override async Task ProcessEndOfTurn()
     {
-        if (!HasMentionedFlex && WhoFlexed != null)
+        if (!HasMentionedFlex && SelectAllTargets().Any(x => x is Kel && x.HasStatModifier("Flex")))
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint,
-                $"Impressive progress, young {WhoFlexed.ToUpper()}! Your [color=#6095ff]FLEX[/color] has improved greatly!");
+                @"Impressive progress, young KEL!\! Your [color=#6095ff]FLEX[/color] has improved greatly!");
             await DialogueManager.Instance.WaitForDialogue();
             HasMentionedFlex = true;
             ClearResult();

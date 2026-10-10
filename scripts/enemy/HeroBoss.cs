@@ -14,8 +14,8 @@ internal sealed class HeroBoss : Enemy
 	public override Vector2 DamageNumberOffset => new(0, -150);
 	public override bool InfoBoxCursorAboveBox => true;
 	protected override Stats Stats => new(10000, 7000, 90, 100, 45, 10, 95);
-	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubreyAttack", "HBossCallAubrey", "HBossCallKelAttack", "HBossCallKel"];
-	protected internal override bool ObserveHasMulti => true;
+	protected override string[] EquippedSkills => ["HBossDazzle", "HBossCoffee", "SpicyFood", "HBossCook", "HAttack", "HBossSmile", "HBossCallAubreyAttack", "HBossCallAubrey", "HBossCallKelAttack", "HBossCallKel", "Massage"];
+	protected internal override bool ObserveHasMulti => false;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
@@ -24,52 +24,70 @@ internal sealed class HeroBoss : Enemy
 	
 	public override BattleCommand ProcessAI()
 	{
-		if (HasMultiTargetObserve())
+		if (CanUse("HBossDazzle") && HasMultiTargetObserve())
 			return new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]);
-		
-		if (HasObserveTarget(out PartyMember observe))
+		if (CanUse("SpicyFood") && HasObserveTarget(out PartyMember observe))
 			return new BattleCommand(this, observe, Skills["SpicyFood"]);
-		
-		if (TrueTurnCount == 1)
+
+		if (CanUse("HBossDazzle") && TrueTurnCount == 1)
 			return new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]);
-		if (TrueTurnCount == 3)
+		if (CanUse("HBossCoffee") && TrueTurnCount == 3)
+			return new BattleCommand(this, SelectEnemyWithHighest(x => x.CurrentStats.SPD), Skills["HBossCoffee"]);
+
+		if (CanUse("SpicyFood"))
 		{
-			Enemy kel = SelectAllEnemies().MaxBy(x => x.CurrentStats.SPD);
-			return new BattleCommand(this, kel, Skills["HBossCoffee"]);
+			List<PartyMember> tickled = SelectAllTargets().Where(x => x.HasStatModifier("Tickle")).ToList();
+			if (tickled.Count > 0)
+				return new BattleCommand(this, tickled[GameManager.Instance.Random.RandiRange(0, tickled.Count - 1)], Skills["SpicyFood"]);
 		}
 
-		if (Roll() < 46)
+		foreach (string tier in (string[])["manic", "miserable", "furious"])
 		{
-			Enemy target = SelectAllEnemies().FirstOrDefault(x => x.CurrentHP < x.CurrentStats.MaxHP * 0.3);
-			if (target != null)
-				return new BattleCommand(this, target, Skills["HBossCook"]);
+			if (!CanUse("Massage"))
+				break;
+			List<Enemy> holders = SelectAllEnemies().Where(x => x.CurrentEmotion.Id == tier).ToList();
+			if (holders.Count > 0 && Roll() < 76)
+				return new BattleCommand(this, holders[GameManager.Instance.Random.RandiRange(0, holders.Count - 1)], Skills["Massage"]);
 		}
 
-		if (Roll() < 21)
+		if (CanUse("HBossCook"))
+		{
+			Enemy hurt = SelectEnemyWithLowest(x => (float)x.CurrentHP / x.CurrentStats.MaxHP,
+				x => (double)x.CurrentHP / x.CurrentStats.MaxHP <= 0.3);
+			if (hurt != null && Roll() < 46)
+				return new BattleCommand(this, hurt, Skills["HBossCook"]);
+		}
+
+		if (CanUse("HAttack") && Roll() < 21)
 			return new BattleCommand(this, SelectTarget(), Skills["HAttack"]);
-		
 		IReadOnlyList<Enemy> aliveEnemies = SelectAllEnemies();
-		if (aliveEnemies.Count > 2 && Roll() < 26)
+		if (CanUse("HBossCallAubreyAttack") && aliveEnemies.Count > 2 && Roll() < 26)
 			return new BattleCommand(this, SelectTarget(), Skills["HBossCallAubreyAttack"]);
-		
-		if (aliveEnemies.Count > 2 && Roll() < 26)
+		if (CanUse("HBossCallKelAttack") && aliveEnemies.Count > 2 && Roll() < 26)
 			return new BattleCommand(this, SelectTarget(), Skills["HBossCallKelAttack"]);
 
-		if (CurrentEmotion.Id is "neutral" or "sad")
+		if (CurrentEmotion.Id == "happy")
 		{
-			if (Roll() < 31)
-				return new BattleCommand(this, SelectTarget(), Skills["HBossSmile"]);
-			if (Roll() < 36)
+			if (CanUse("SpicyFood") && Roll() < 46)
+				return new BattleCommand(this, SelectTarget(), Skills["SpicyFood"]);
+			if (CanUse("HBossSmile") && Roll() < 36)
+				return new BattleCommand(this, SelectTargetWithHighest(StatType.ATK), Skills["HBossSmile"]);
+		}
+		else if (CurrentEmotion.Id == "angry")
+		{
+			if (CanUse("HBossSmile") && Roll() < 31)
+				return new BattleCommand(this, SelectTargetWithHighest(StatType.ATK), Skills["HBossSmile"]);
+			if (CanUse("SpicyFood") && Roll() < 46)
 				return new BattleCommand(this, SelectTarget(), Skills["SpicyFood"]);
 		}
-		else if (CurrentEmotion.Id is "angry" or "happy")
+		else
 		{
-			if (Roll() < 36)
-				return new BattleCommand(this, SelectTarget(), Skills["HBossSmile"]);
-			if (Roll() < 46)
+			if (CanUse("HBossSmile") && Roll() < 31)
+				return new BattleCommand(this, SelectTargetWithHighest(StatType.ATK), Skills["HBossSmile"]);
+			if (CanUse("SpicyFood") && Roll() < 36)
 				return new BattleCommand(this, SelectTarget(), Skills["SpicyFood"]);
 		}
-		
-		return new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]);
+
+		return CanUse("HBossDazzle") ? new BattleCommand(this, SelectAllTargets(), Skills["HBossDazzle"]) : null;
 	}
 }

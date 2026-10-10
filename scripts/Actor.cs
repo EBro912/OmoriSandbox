@@ -1136,10 +1136,17 @@ public abstract class Actor
 	
 	internal string EmotionAnimation(Emotion emotion)
 	{
-		if (this is not Enemy || Sprite?.SpriteFrames == null || Sprite.SpriteFrames.HasAnimation(emotion.AnimationName))
+		if (this is not Enemy)
+			return emotion.AnimationName;
+		return EnemyEmotionAnimation(Sprite?.SpriteFrames, emotion);
+	}
+
+	internal static string EnemyEmotionAnimation(SpriteFrames frames, Emotion emotion)
+	{
+		if (frames == null || frames.HasAnimation(emotion.AnimationName))
 			return emotion.AnimationName;
 		if (emotion.Group != null && Database.TryGetEmotionByGroupTier(emotion.Group.Id, 1, out Emotion groupBase)
-		    && Sprite.SpriteFrames.HasAnimation(groupBase.AnimationName))
+		    && frames.HasAnimation(groupBase.AnimationName))
 			return groupBase.AnimationName;
 		return "neutral";
 	}

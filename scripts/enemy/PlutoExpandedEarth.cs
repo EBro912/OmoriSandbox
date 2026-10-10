@@ -52,7 +52,7 @@ internal sealed class PlutoExpandedEarth : Enemy
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["PESubmissionHold"]);
         if (Roll() < 31)
-            return new BattleCommand(this, SelectTarget(), Skills["PEDoNothing"]);
+            return new BattleCommand(this, this, Skills["PEDoNothing"]);
         if (!canHeadbutt)
             return new BattleCommand(this, this, Skills["Idle"]);
         return new BattleCommand(this, SelectTarget(), Skills["PEHeadbutt"]);
@@ -134,7 +134,7 @@ internal sealed class PlutoExpandedEarth : Enemy
     public override async Task OnDefeat()
     {
         DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"Unbelievable...\! Even at full power...\! I have been bested.");
-        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"It has been an honor to do battle with you.\! Your victory is well deserved.");
+        DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"It has been an honor to do battle with you.\! Your victory is well-deserved.");
         await DialogueManager.Instance.WaitForDialogue();
         KillEarth();
     }

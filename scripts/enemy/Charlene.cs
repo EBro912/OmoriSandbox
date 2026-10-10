@@ -17,7 +17,7 @@ internal sealed class Charlene : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
+        return emotion.Id is "neutral" or "happy" or "ecstatic" or "manic" or "sad" or "depressed" or "miserable" or "angry" or "enraged" or "furious" or "afraid";
     }
 
     protected override PartyMember SelectTarget()
@@ -38,15 +38,15 @@ internal sealed class Charlene : Enemy
         if (SelectAllEnemies().Count == 1)
         {
             DialogueManager.Instance.QueueMessage("CHARLIE", CenterPoint, "...");
-            DialogueManager.Instance.QueueMessage("CHARLIE stopped fighting.");
             await DialogueManager.Instance.WaitForDialogue();
+            BattleLogManager.Instance.QueueMessage(this, "[actor] stops fighting.");
             CurrentHP = 0;
         }
     }
 
     public override BattleCommand ProcessAI()
     {
-        int chance = CurrentEmotion.Id switch
+        int chance = CurrentEmotion.Group?.Id switch
         {
             "sad" => 6,
             "angry" => 36,

@@ -9,7 +9,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class KingCarnivore : Enemy
 {
     public override string Name => "KING CARNIVORE";
-    public override Vector2 InfoBoxOffset => new(25, -295);
+    // VANILLA BUG: KING CARNIVORE's emotion entries have StatusXOffset 0 instead of 25, so its info box shifts left while it feels an emotion
+    public override Vector2 InfoBoxOffset => CurrentEmotion.Group == null ? new(25, -295) : new(0, -295);
     public override Vector2 DamageNumberOffset => new(0, -200);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/king_carnivore.tres");

@@ -1622,6 +1622,10 @@ public partial class BattleManager : Node
 		List<Actor> resolvedTargets = [];
 		bool noTarget = false;
 		currentAction.Targets = currentAction.Targets?.Select(ResolveTransformed).ToList();
+		if (currentAction.Action.Target == SkillTarget.Enemy && currentAction.Targets is { Count: > 0 }
+		    && currentAction.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charm)
+		    && charm is CharmStatModifier { CharmedBy: { } charmer } && currentAction.Actor is Enemy)
+			currentAction.Targets = [charmer, .. currentAction.Targets.Skip(1)];
 		switch (currentAction.Action.Target)
 		{
 			case SkillTarget.AllAllies:
@@ -2710,8 +2714,11 @@ public partial class BattleManager : Node
 			SpawnDamageNumber(-1, target, DamageType.Miss);
 			return -1;
 		}
+		roundedInt = Math.Min(roundedInt, target.CurrentJuice);
+		rounded = roundedInt;
 		target.DamageJuice(roundedInt, applyDebugScale: false);
-		SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
+		if (roundedInt > 0)
+			SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
 		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),

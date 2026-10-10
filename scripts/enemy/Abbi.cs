@@ -37,23 +37,26 @@ internal sealed class Abbi : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["AbbiAttack"]);
         
-        if (Roll() < 71)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (Tentacles[i]?.Component == null || Tentacles[i].IsToast)
-                {
-                    if (!PreRolling)
-                        Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
-                            layer: Layer + 1);
-                    return new BattleCommand(this, this, Skills["AbbiSummon"]);
-                }
-            }
-        }
+        if (Roll() < 71 && Tentacles.Any(x => x?.Component == null || x.IsToast))
+            return new BattleCommand(this, this, Skills["AbbiSummon"]);
 
         if (Roll() < 36 && SelectAllEnemies().Count > 1)
             return new BattleCommand(this, SelectAllEnemies(), Skills["AbbiAttackOrder"]);
         return new BattleCommand(this, SelectTarget(), Skills["AbbiAttack"]);
+    }
+
+    internal void ReviveTentacle()
+    {
+        // VANILLA BUG: the delay state is added to the slot's first, already-dead tentacle, so a revived tentacle can act right away
+        for (int i = 0; i < 4; i++)
+        {
+            if (Tentacles[i]?.Component == null || Tentacles[i].IsToast)
+            {
+                Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
+                    layer: Layer + 1);
+                return;
+            }
+        }
     }
 
     private bool HasSpoken = false;

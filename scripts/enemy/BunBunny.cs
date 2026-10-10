@@ -6,13 +6,14 @@ namespace OmoriSandbox.Actors;
 internal sealed class BunBunny : Enemy
 {
     public override string Name => "BUN BUNNY";
-    public override Vector2 InfoBoxOffset => new(0, -120);
+    // VANILLA BUG: BUN BUNNY's emotion entries have StatusYOffset -175 instead of -120, so its info box rises while it feels an emotion
+    public override Vector2 InfoBoxOffset => CurrentEmotion.Group == null ? new(0, -120) : new(0, -175);
     public override Vector2 DamageNumberOffset => new(0, 40);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/bun_bunny.tres");
     protected override Stats Stats => new(400, 200, 35, 35, 30, 10, 95);
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
     protected override string[] EquippedSkills => ["BBAttack", "BBDoNothing", "BBHide"];
   

@@ -17,7 +17,7 @@ internal sealed class Kim : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
+        return emotion.Id is "neutral" or "happy" or "ecstatic" or "manic" or "sad" or "depressed" or "miserable" or "angry" or "enraged" or "furious" or "afraid";
     }
 
     protected override PartyMember SelectTarget()

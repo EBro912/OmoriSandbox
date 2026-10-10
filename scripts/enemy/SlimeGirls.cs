@@ -103,6 +103,7 @@ internal sealed class SlimeGirls : Enemy
 			await DialogueManager.Instance.WaitForDialogue();
 			BattleManager.Instance.ForceCommand(this, this, Skills["SGSelfAngry"]);
 			Stage = 1;
+			return;
 		}
 		
 		if (IsBelowHP(0.5f) && Stage <= 1)

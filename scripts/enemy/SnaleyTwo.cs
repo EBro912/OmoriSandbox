@@ -25,22 +25,12 @@ internal sealed class SnaleyTwo : Enemy
         if (TrueTurnCount is 1)
             return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
         if (TrueTurnCount is 2)
-        {
-            PartyMember target = SelectTarget();
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, target, Skills["SNFollowup"]);
-            return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["SNAttackFollowup"]);
         
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["SNAttack"]);
         if (Roll() < 36)
-        {
-            PartyMember target = SelectTarget();
-            if (!PreRolling)
-                BattleManager.Instance.QueueForceCommand(this, target, Skills["SNFollowup"]);
-            return new BattleCommand(this, target, Skills["SNAttackFollowup"]);
-        }
+            return new BattleCommand(this, SelectTarget(), Skills["SNAttackFollowup"]);
         if (Roll() < 26)
             return new BattleCommand(this, SelectTarget(), Skills["SNBeatdown"]);
         return new BattleCommand(this, this, Skills["SNDoNothing"]);

@@ -75,6 +75,8 @@ public partial class EnemyComponent : ActorComponent
 
 	internal void ShowInfoBox(bool show)
 	{
+		if (show)
+			InfoBox.Position = Actor.CenterPoint + new Vector2(Actor.InfoBoxOffset.X, Actor.InfoBoxOffset.Y + FeetY);
 		InfoBox.Show(show);
 		switch (show)
 		{

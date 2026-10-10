@@ -221,13 +221,41 @@ public abstract class Enemy : Actor
 		return SelectTargetBy(value ?? (_ => 0f), true);
 	}
 
+	/// <summary>
+	/// Selects the enemy with the highest <paramref name="value"/>, such as SPEED, from <see cref="SelectAllEnemies"/>, which includes this enemy.
+	/// </summary>
+	/// <remarks>Ties are broken like <see cref="SelectTargetWithHighest(Func{PartyMember, float})"/>: a random enemy is picked first and only replaced by a strictly better one.</remarks>
+	/// <param name="value">Reads the value to compare from an enemy. If null, a random enemy is picked.</param>
+	/// <param name="filter">Only enemies it returns true for are considered. If null, every enemy is.</param>
+	/// <returns>The selected <see cref="Enemy"/>, or null if no enemy is considered.</returns>
+	protected Enemy SelectEnemyWithHighest(Func<Enemy, float> value, Func<Enemy, bool> filter = null)
+	{
+		return SelectBy(SelectAllEnemies().Where(filter ?? (_ => true)).ToList(), value ?? (_ => 0f), true);
+	}
+
+	/// <summary>
+	/// Selects the enemy with the lowest <paramref name="value"/>, such as the share of HP left, from <see cref="SelectAllEnemies"/>, which includes this enemy.
+	/// </summary>
+	/// <remarks>Ties are broken like <see cref="SelectTargetWithLowest(Func{PartyMember, float})"/>: a random enemy is picked first and only replaced by a strictly better one.</remarks>
+	/// <param name="value">Reads the value to compare from an enemy. If null, a random enemy is picked.</param>
+	/// <param name="filter">Only enemies it returns true for are considered. If null, every enemy is.</param>
+	/// <returns>The selected <see cref="Enemy"/>, or null if no enemy is considered.</returns>
+	protected Enemy SelectEnemyWithLowest(Func<Enemy, float> value, Func<Enemy, bool> filter = null)
+	{
+		return SelectBy(SelectAllEnemies().Where(filter ?? (_ => true)).ToList(), value ?? (_ => 0f), false);
+	}
+
 	private static PartyMember SelectTargetBy(Func<PartyMember, float> value, bool highest)
 	{
-		List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
+		return SelectBy(BattleManager.Instance.GetAlivePartyMembers(), value, highest);
+	}
+
+	private static T SelectBy<T>(IReadOnlyList<T> members, Func<T, float> value, bool highest) where T : Actor
+	{
 		if (members.Count == 0)
 			return null;
-		PartyMember target = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)];
-		foreach (PartyMember member in members)
+		T target = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)];
+		foreach (T member in members)
 		{
 			if (highest ? value(member) > value(target) : value(member) < value(target))
 				target = member;
@@ -263,6 +291,20 @@ public abstract class Enemy : Actor
 	protected virtual IReadOnlyList<Enemy> SelectAllEnemies()
 	{
 		return BattleManager.Instance.GetAllAliveEnemies();
+	}
+
+	/// <summary>
+	/// Whether this enemy can use its equipped skill <paramref name="skill"/> right now.
+	/// </summary>
+	/// <remarks>
+	/// False when the skill isn't equipped, its requirement fails (while AFRAID or STRESSED OUT by default), or this enemy doesn't have enough JUICE.
+	/// Use it in <see cref="ProcessAI"/> to skip a choice the enemy couldn't carry out, and return null when no choice is left, so the enemy takes no action this turn.
+	/// </remarks>
+	/// <param name="skill">The skill's key, as listed in <see cref="EquippedSkills"/>.</param>
+	/// <returns>True if the skill can be used now.</returns>
+	protected bool CanUse(string skill)
+	{
+		return skill != null && Skills.TryGetValue(skill, out Skill value) && value.MeetsRequirements(this) && CurrentJuice >= value.Cost(this);
 	}
 
 	/// <summary>

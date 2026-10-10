@@ -87,7 +87,7 @@ internal sealed class HumphreyFace : Enemy
 	{
 		return index switch
 		{
-			1 => @$"[wave freq=10.0]Just relax... There's nothing to fear.\| Hey {BattleManager.Instance.GetPartyMember(0)?.Name.ToUpper()}... is it getting stuffy in here?[/wave]",
+			1 => @$"[wave freq=10.0]Just relax... There's nothing to fear.\| Hey, {BattleManager.Instance.GetPartyMember(0)?.Name.ToUpper()}... is it getting stuffy in here?[/wave]",
 			2 => @"[wave freq=10.0]Cooking meat is very fun!\| Should you be rare, medium-rare, medium, or well done?[/wave]",
 			3 => @"[wave freq=10.0]It's pointless to squirm. Give up, my friend.\| I'm afraid this cycle will never end.[/wave]",
 			4 => @"[wave freq=10.0]There's no need to squirm. Ignorance is bliss.\| How many times must we do this?[/wave]",

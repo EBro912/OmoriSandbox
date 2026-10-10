@@ -63,7 +63,7 @@ internal sealed class HumphreySwarm : Enemy
     public override async Task OnStartOfBattle()
     {
         AddImmortal();
-        DialogueManager.Instance.QueueMessage(this, "[br][wave freq=10.0]Time to feast! Time to feast! Time for you to be deceased![/wave]");
+        DialogueManager.Instance.QueueMessage(this, "[br][wave freq=10.0]Time to feast! Time to feast![br]Time for you to be deceased![/wave]");
         await DialogueManager.Instance.WaitForDialogue();
     }
 

@@ -9,7 +9,8 @@ internal sealed class NefariousChip : Enemy
 {
     public override string Name => "NEFARIOUS CHIP";
     public override Vector2 InfoBoxOffset => new(0, -230);
-    public override Vector2 DamageNumberOffset => new(-10, -150);
+    // VANILLA BUG: NEFARIOUS CHIP's emotion entries have DamageOffsetX -20 instead of -10, so its damage numbers shift left while it feels an emotion
+    public override Vector2 DamageNumberOffset => CurrentEmotion.Group == null ? new(-10, -150) : new(-20, -150);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/nefarious_chip.tres");
     protected override Stats Stats => new(3456, 1700, 43, 47, 10, 15, 95);

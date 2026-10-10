@@ -170,7 +170,7 @@ internal partial class EnemyEditorComponent : Control
 
 	public void UpdateState(string state)
 	{
-		Animator.Animation = state;
+		Animator.Animation = Database.TryGetEmotion(state, out Emotion emotion) ? Actor.EnemyEmotionAnimation(Animator.SpriteFrames, emotion) : state;
 		Animator.Play();
 	}
 }

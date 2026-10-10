@@ -7,7 +7,8 @@ namespace OmoriSandbox.Actors;
 internal sealed class Tentacle : Enemy
 {
     public override string Name => "TENTACLE";
-    public override Vector2 InfoBoxOffset => new(25, -350);
+    // VANILLA BUG: TENTACLE's emotion entries have StatusXOffset 0 instead of 25, so its info box shifts left while it feels an emotion
+    public override Vector2 InfoBoxOffset => CurrentEmotion.Group == null ? new(25, -350) : new(0, -350);
     public override Vector2 DamageNumberOffset => new(0, -250);
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/tentacle.tres");
     protected override Stats Stats => new(1200, 600, 72, 50, 110, 25, 95);

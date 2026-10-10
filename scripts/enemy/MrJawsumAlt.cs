@@ -68,7 +68,7 @@ internal sealed class MrJawsumAlt : Enemy
         
         if (IsBelowHP(0.75f) && Stage <= 1)
         {
-            DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\! [shake rate=20]on me!");
+            DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\![br][shake rate=20]on me!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
@@ -108,7 +108,7 @@ internal sealed class MrJawsumAlt : Enemy
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory) {
-            DialogueManager.Instance.QueueMessage(CenterPoint, "[shake amp=50.0][font_size=40]JAWHAW[font_size=52]HAW[font_size=64]HAW!!!");
+            DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=40]JAWHAW[font_size=52]HAW[font_size=64]HAW!!!");
             DialogueManager.Instance.QueueMessage(this, "That's what happens when you mess with MR. JAWSUM!");
             await DialogueManager.Instance.WaitForDialogue();
         }

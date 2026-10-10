@@ -56,7 +56,7 @@ internal sealed class KingCrawlerAlt : Enemy
     {
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=12]Ssssssssssssssssssss...");
+            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=23]Ssssssssssssssssssss...");
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
@@ -120,7 +120,7 @@ internal sealed class KingCrawlerAlt : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=12]KISHKISHKISHKISHKISH!!");
+            DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=23]KISHKISHKISHKISHKISH!!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }
