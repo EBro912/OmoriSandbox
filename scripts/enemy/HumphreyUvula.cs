@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Godot;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -35,6 +36,7 @@ internal sealed class HumphreyUvula : Enemy
 
 	public override async Task OnStartOfBattle()
 	{
+		AnimationManager.Instance.ToneBelowUI = true;
 		Breathe();
 		DialogueManager.Instance.QueueMessage(this, "[br]Heh! You'll never defeat me, loser!");
 		await DialogueManager.Instance.WaitForDialogue();

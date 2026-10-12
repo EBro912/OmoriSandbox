@@ -92,7 +92,7 @@ internal partial class SkillMenu : PagedMenu
 		{
 			SkillLabels[i].SetFittedText(DisplayedSkills[i].Name);
 			if (Actor.CurrentJuice < DisplayedSkills[i].Cost(Actor) || !DisplayedSkills[i].MeetsRequirements(Actor))
-				SkillLabels[i].AddThemeColorOverride("font_color", Colors.DimGray);
+				SkillLabels[i].AddThemeColorOverride("font_color", new Color(1f, 1f, 1f, 160f / 255f));
 		}
 		CursorPositions = Positions.GetRange(0, DisplayedSkills.Count);
 		if (CursorIndex >= DisplayedSkills.Count)

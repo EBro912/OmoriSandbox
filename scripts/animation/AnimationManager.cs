@@ -48,6 +48,7 @@ public partial class AnimationManager : Node
 	private Vector4 CurrentTone;
 	private ShaderMaterial UIToneMaterial;
 	private ShaderMaterial UIToneAddMaterial;
+	private ShaderMaterial UIDimMaterial;
 	private bool BelowUI;
 	private bool UIToneDimmed;
 	internal ShaderMaterial UIToneGrayMaterial { get; private set; }
@@ -56,7 +57,6 @@ public partial class AnimationManager : Node
 	
 	internal const float FPS = 15f;
 	private float FrameDuration = 1f / FPS;
-	private float FrameTimer = 0f;
 	private List<PlayingAnimation> PlayingAnimations = [];
 	private readonly List<VideoStreamPlayer> PlayingVideos = [];
 	private Tween ScreenTintTween;
@@ -88,7 +88,7 @@ public partial class AnimationManager : Node
 			if (missingTexture && missingAltTexture)
 				continue;
 
-			RPGMAnimatedSprite animation = new(info.Id, info.Layer,
+			RPGMAnimatedSprite animation = new(info.Id, info.Layer, info.Position,
 				missingTexture ? null : ResourceLoader.Load<Texture2D>($"res://assets/animations/{info.Texture}.png"),
 				missingAltTexture
 					? null
@@ -197,7 +197,7 @@ public partial class AnimationManager : Node
 					}
 				}
 
-				RPGMAnimatedSprite anim = new(animation.Id, layer, texture, altTexture);
+				RPGMAnimatedSprite anim = new(animation.Id, layer, animation.Position, texture, altTexture);
 				foreach (float[][] frame in animation.Frames)
 				{
 					List<Frame> frames = [];
@@ -274,6 +274,7 @@ public partial class AnimationManager : Node
 			try
 			{
 				string name = null;
+				int position = 1;
 				string textureName = null;
 				string altTextureName = null;
 				SortedDictionary<int, List<float[]>> frameData = [];
@@ -295,6 +296,9 @@ public partial class AnimationManager : Node
 							break;
 						case "animation2Name":
 							altTextureName = op["value"].ToString();
+							break;
+						case "position":
+							position = op["value"].ToObject<int>();
 							break;
 						case "frames" when segments.Length == 3:
 						{
@@ -378,7 +382,7 @@ public partial class AnimationManager : Node
 					continue;
 				}
 
-				RPGMAnimatedSprite anim = new(id, layer, texture, altTexture);
+				RPGMAnimatedSprite anim = new(id, layer, position, texture, altTexture);
 
 				int maxFrame = 0;
 				if (frameData.Count > 0)
@@ -467,15 +471,13 @@ public partial class AnimationManager : Node
 
 	public override void _Process(double delta)
 	{
-		if (PlayingAnimations.Count == 0)
-			return;
-
-		FrameTimer += (float)delta;
-
-		if (FrameTimer >= FrameDuration)
+		for (int i = PlayingAnimations.Count - 1; i >= 0; i--)
 		{
-			FrameTimer -= FrameDuration;
-			NextFrame();
+			PlayingAnimations[i].FrameTimer += (float)delta;
+			if (PlayingAnimations[i].FrameTimer < FrameDuration)
+				continue;
+			PlayingAnimations[i].FrameTimer -= FrameDuration;
+			NextFrame(i);
 		}
 	}
 
@@ -495,41 +497,33 @@ public partial class AnimationManager : Node
 		}
 	}
 
-	private void NextFrame()
+	private void NextFrame(int i)
 	{
-		for (int i = PlayingAnimations.Count - 1; i >= 0; i--)
+		// returns true if we're out of frames
+		if (PlayingAnimations[i].AdvanceFrame())
 		{
-			// returns true if we're out of frames
-			if (PlayingAnimations[i].AdvanceFrame())
-			{
-				PlayingAnimations[i].RestoreTarget();
-				PlayingAnimations[i].EmitSignal(PlayingAnimation.SignalName.Finished);
-				PlayingAnimations[i].QueueFree();
-				PlayingAnimations.RemoveAt(i);
-				if (PlayingAnimations.Count == 0)
-				{
-					FrameTimer = 0f;
-					EmitSignal(SignalName.AnimationFinished);
-					return;
-				}
+			PlayingAnimations[i].RestoreTarget();
+			PlayingAnimations[i].EmitSignal(PlayingAnimation.SignalName.Finished);
+			PlayingAnimations[i].QueueFree();
+			PlayingAnimations.RemoveAt(i);
+			if (PlayingAnimations.Count == 0)
+				EmitSignal(SignalName.AnimationFinished);
+			return;
+		}
 
-				continue;
-			}
+		if (PlayingAnimations[i].Animation.TryGetFrameSFX(PlayingAnimations[i].CurrentFrame, out List<SFX> sfx))
+		{
+			sfx.ForEach(AudioManager.Instance.PlaySFX);
+		}
 
-			if (PlayingAnimations[i].Animation.TryGetFrameSFX(PlayingAnimations[i].CurrentFrame, out List<SFX> sfx))
-			{
-				sfx.ForEach(AudioManager.Instance.PlaySFX);
-			}
+		if (PlayingAnimations[i].Animation.TryGetFrameShake(PlayingAnimations[i].CurrentFrame, out Shake shake))
+		{
+			InitShake(shake);
+		}
 
-			if (PlayingAnimations[i].Animation.TryGetFrameShake(PlayingAnimations[i].CurrentFrame, out Shake shake))
-			{
-				InitShake(shake);
-			}
-
-			if (PlayingAnimations[i].Animation.TryGetFrameFlash(PlayingAnimations[i].CurrentFrame, out List<Flash> flashes))
-			{
-				flashes.ForEach(PlayingAnimations[i].StartFlash);
-			}
+		if (PlayingAnimations[i].Animation.TryGetFrameFlash(PlayingAnimations[i].CurrentFrame, out List<Flash> flashes))
+		{
+			flashes.ForEach(PlayingAnimations[i].StartFlash);
 		}
 	}
 
@@ -1123,6 +1117,7 @@ public partial class AnimationManager : Node
 		UIToneMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_shader.gdshader") };
 		UIToneAddMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_add_shader.gdshader") };
 		UIToneGrayMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_gray_shader.gdshader") };
+		UIDimMaterial = new ShaderMaterial { Shader = GD.Load<Shader>("res://assets/ui_tone_shader.gdshader") };
 		foreach ((CanvasItem root, bool _) in GetUIToneRoots())
 			InheritUITone(root);
 	}
@@ -1142,20 +1137,30 @@ public partial class AnimationManager : Node
 		return CurrentTone != Vector4.Zero && !BelowUI && !(dims && UIToneDimmed);
 	}
 
+	private bool IsUIDimmed(bool dims)
+	{
+		return dims && UIToneDimmed && !BelowUI;
+	}
+
 	internal void ApplyUITone(CanvasItem root, bool dims = false)
 	{
-		root.Material = IsUIToned(dims) ? UIToneMaterial : null;
+		root.UseParentMaterial = false;
+		root.Material = IsUIDimmed(dims) ? UIDimMaterial : IsUIToned(dims) ? UIToneMaterial : null;
 		RefreshGrayCursors(root);
 	}
 
 	private void ApplyAnimationTone(PlayingAnimation playing)
 	{
-		bool toned = IsUIToned(true) && playing.ZIndex > -4;
-		playing.SetTone(toned ? UIToneMaterial : null, toned ? UIToneAddMaterial : null);
+		bool party = playing.ZIndex > -4;
+		bool toned = IsUIToned(true) && party;
+		playing.SetTone(IsUIDimmed(true) && party ? UIDimMaterial : toned ? UIToneMaterial : null, toned ? UIToneAddMaterial : null);
 	}
 
-	internal void SetUIToneDimmed(bool dimmed)
+	internal void SetUIDim(float rate)
 	{
+		float t = -100f / 255f * rate;
+		UIDimMaterial.SetShaderParameter("tone", new Vector4(t, t, t, 0f));
+		bool dimmed = rate > 0f;
 		if (UIToneDimmed == dimmed)
 			return;
 		UIToneDimmed = dimmed;
@@ -1189,7 +1194,11 @@ public partial class AnimationManager : Node
 			yield return (MenuManager.Instance.EnergyDisplay, true);
 		}
 		if (BattleLogManager.Instance != null)
-			yield return (BattleLogManager.Instance, true);
+		{
+			yield return (BattleLogManager.Instance, false);
+			foreach (CanvasItem text in BattleLogManager.Instance.TextNodes)
+				yield return (text, true);
+		}
 		if (BattleManager.Instance == null)
 			yield break;
 		foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
@@ -1256,7 +1265,7 @@ public partial class AnimationManager : Node
 		Tween tween = GetTree().CreateTween();
 		tween.TweenCallback(Callable.From(() => AudioManager.Instance.PlaySFX("ba_goop", 0.9f, 0.9f))).SetDelay(0.33f);
 		tween.TweenProperty(HumphreySwarm, "position:y", -450f, 0.5f);
-		tween.TweenCallback(Callable.From(() => TintOverlay(Colors.Black)));
+		tween.TweenCallback(Callable.From(() => TintScreen(-255, -255, -255, 0)));
 		tween.TweenInterval(0.5f);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		HumphreySwarm.Visible = false;
@@ -1383,6 +1392,9 @@ public partial class AnimationManager : Node
 			InitShake(shake);
 		}
 
+		if (animation.Position == 3)
+			position = new Vector2(320, 240);
+
 		PlayingAnimation playing = new(animation, position, layer ?? index, target);
 		if (targetsEnemy)
 			EnemyAnimations.AddChild(playing);
@@ -1432,7 +1444,6 @@ public partial class AnimationManager : Node
 			animation.QueueFree();
 		}
 		PlayingAnimations.Clear();
-		FrameTimer = 0f;
 		ResetShake();
 		EmitSignal(SignalName.AnimationFinished);
 	}
@@ -1448,6 +1459,7 @@ internal class AnimationInfo
 {
 	public int Id;
 	public int Layer;
+	public int Position;
 	public string Texture;
 	public string AltTexture;
 	public float[][][] Frames;

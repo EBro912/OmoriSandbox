@@ -29,6 +29,7 @@ internal sealed class HumphreyGrande : Enemy
 
     public override Task OnStartOfBattle()
     {
+        AnimationManager.Instance.ToneBelowUI = true;
         AddImmortal();
         return Task.CompletedTask;
     }
@@ -39,17 +40,17 @@ internal sealed class HumphreyGrande : Enemy
         {
             DialogueManager.Instance.QueueMessage("HUMPHREY", CenterPoint, @"[wave freq=10.0]Just a warning... it's about to get smelly!\| It's time for you all to get in my belly![/wave]");
             await DialogueManager.Instance.WaitForDialogue();
-            await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
+            AnimationManager.Instance.TintScreen(-255, -255, -255, 0, 0.5f);
             await Wait.Milliseconds(1000);
-            AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack, 0.1f);
+            await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 0.1f);
             await AnimationManager.Instance.WaitForHumphreySwallow();
-            AnimationManager.Instance.TintOverlay(Colors.Black);
+            await AnimationManager.Instance.WaitForTintScreen(-255, -255, -255, 0, 0.1f);
             BattleLogManager.Instance.ClearBattleLog();
             foreach (PartyMember member in SelectAllTargets())
                 BattleManager.Instance.Damage(this, member, () => member.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true, ignoreEmotion: true);
             BattleManager.Instance.ReplaceEnemy(this, "HumphreyFace", offset: new Vector2(0, -60));
             await Wait.Milliseconds(2000);
-            await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 1f);
+            await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 1f);
         }
     }
 }

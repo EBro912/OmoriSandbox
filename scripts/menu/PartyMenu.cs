@@ -38,7 +38,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 		UpdateCursor();
 		// only play a sound if the cursor actually moved
 		if (old != CursorIndex)
-			AudioManager.Instance.PlaySFX("SYS_move");
+			AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 	}
 
 	public override void OnOpen(SelectionMemory memory)
@@ -53,7 +53,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 	protected override void OnSelect()
 	{
 		CursorSprite.StopBounce();
-		AudioManager.Instance.PlaySFX("SYS_select");
+		AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 		if (CursorIndex == 0)
 		{
 			WaitForSecondRun = false;

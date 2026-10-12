@@ -24,6 +24,10 @@ public partial class PartyMemberComponent : ActorComponent
 	
 	private float DisplayedHP;
 	private float DisplayedJuice;
+	private int HPRollTarget;
+	private int JuiceRollTarget;
+	private float HPRollFrames;
+	private float JuiceRollFrames;
 	private int MaxHP;
 	private int MaxJuice;
 	private readonly Queue<PendingDamageNumber> PendingDamageNumbers = new();
@@ -49,10 +53,6 @@ public partial class PartyMemberComponent : ActorComponent
 	/// The followup set assigned to the <see cref="Actors.PartyMember"/>, or null when followups are disabled.
 	/// </summary>
 	internal FollowupSet FollowupSet { get; private set; }
-	/// <summary>
-	/// The battlecard portrait node, tinted by the <see cref="DialogueManager"/> while dialogue is on screen.
-	/// </summary>
-	internal TextureRect Battlecard { get; private set; }
 
 	private Timer HurtTimer = new()
 	{
@@ -70,7 +70,6 @@ public partial class PartyMemberComponent : ActorComponent
 			actor.Emotion = "neutral";
 		if (!PartyMember.Init(face, actor))
 			return false;
-		Battlecard = GetNode<TextureRect>("../Battlecard");
 		HPLabel = GetNode<Label>("../Battlecard/Health/HealthLabel/");
 		HPBar = GetNode<TextureProgressBar>("../Battlecard/Health");
 		JuiceLabel = GetNode<Label>("../Battlecard/Juice/JuiceLabel");
@@ -91,6 +90,8 @@ public partial class PartyMemberComponent : ActorComponent
 		JuiceBar.Value = PartyMember.CurrentJuice;
 		DisplayedHP = PartyMember.CurrentHP;
 		DisplayedJuice = PartyMember.CurrentJuice;
+		HPRollTarget = PartyMember.CurrentHP;
+		JuiceRollTarget = PartyMember.CurrentJuice;
 		
 		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{MaxHP}";
 		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
@@ -124,7 +125,7 @@ public partial class PartyMemberComponent : ActorComponent
 
 	internal void RefreshCenterPoint()
 	{
-		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 79);
+		PartyMember.CenterPoint = GetParent<Control>().GlobalPosition + new Vector2(57, 82);
 	}
 
 	internal override void ShowDamageNumber(int damage, DamageType type, bool critical)
@@ -205,25 +206,43 @@ public partial class PartyMemberComponent : ActorComponent
 			MaxJuice = stats.MaxJuice;
 			HPBar.MaxValue = Math.Max(1, MaxHP);
 			JuiceBar.MaxValue = Math.Max(1, MaxJuice);
-			HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{MaxHP}";
-			JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
+			HPLabel.Text = $"{(int)Math.Floor(DisplayedHP + 0.5f)}/{MaxHP}";
+			JuiceLabel.Text = $"{(int)Math.Floor(DisplayedJuice + 0.5f)}/{MaxJuice}";
 		}
+	}
 
-		// nothing to animate once the displayed values have settled
-		// ReSharper disable twice CompareOfFloatsByEqualityOperator
-		if (DisplayedHP == PartyMember.CurrentHP && DisplayedJuice == PartyMember.CurrentJuice)
+	/// <summary>
+	/// Rolls the displayed HP and JUICE toward their current values, one step per physics frame.
+	/// </summary>
+	public override void _PhysicsProcess(double delta)
+	{
+		if (PartyMember == null)
 			return;
+		if (Roll(ref DisplayedHP, ref HPRollTarget, ref HPRollFrames, PartyMember.CurrentHP))
+		{
+			HPBar.Value = DisplayedHP;
+			HPLabel.Text = $"{(int)Math.Floor(DisplayedHP + 0.5f)}/{MaxHP}";
+		}
+		if (Roll(ref DisplayedJuice, ref JuiceRollTarget, ref JuiceRollFrames, PartyMember.CurrentJuice))
+		{
+			JuiceBar.Value = DisplayedJuice;
+			JuiceLabel.Text = $"{(int)Math.Floor(DisplayedJuice + 0.5f)}/{MaxJuice}";
+		}
+	}
 
-		float dt = (float)delta;
-
-		DisplayedHP = Mathf.MoveToward(DisplayedHP, PartyMember.CurrentHP, dt * ((float)HPBar.MaxValue / 0.5f));
-		DisplayedJuice = Mathf.MoveToward(DisplayedJuice, PartyMember.CurrentJuice, dt * ((float)JuiceBar.MaxValue / 0.5f));
-
-		HPBar.Value = DisplayedHP;
-		JuiceBar.Value = DisplayedJuice;
-
-		HPLabel.Text = $"{Mathf.RoundToInt(DisplayedHP)}/{MaxHP}";
-		JuiceLabel.Text = $"{Mathf.RoundToInt(DisplayedJuice)}/{MaxJuice}";
+	private static bool Roll(ref float current, ref int target, ref float frames, int value)
+	{
+		if (value != target)
+		{
+			target = value;
+			// VANILLA BUG: a change that lands mid-roll leaves a fractional frame count, so the last step overshoots the new value
+			frames = Math.Clamp(Math.Abs(current - target), 0f, 30f);
+		}
+		if (frames <= 0f)
+			return false;
+		current = (current * (frames - 1f) + target) / frames;
+		frames--;
+		return true;
 	}
 
 	/// <summary>

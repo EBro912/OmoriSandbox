@@ -24,6 +24,8 @@ public partial class BattleLogManager : Control
 	[Export] private Sprite2D Icon;
 	[Export] private Control LineContainer;
 
+	internal CanvasItem[] TextNodes => [ImmediateLabel, Icon, LineContainer];
+
 	private readonly Queue<string> MessageQueue = [];
 	private readonly Queue<string> LineQueue = [];
 	private readonly List<Control> ActiveLines = [];

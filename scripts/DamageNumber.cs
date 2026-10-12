@@ -14,10 +14,13 @@ internal partial class DamageNumber : Node2D
     internal readonly bool Party;
     private static Texture2D Texture;
 
-    private const int WIDTH = 30;
-    private const int HEIGHT = 42;
-    private const float SPACING = 25f;
-    private const float SCALE = 1f;
+    private const int CELL_WIDTH = 32;
+    private const int CELL_HEIGHT = 45;
+    private readonly List<Sprite2D> Cells = [];
+    private int Duration = 128;
+    private float FlashAlpha;
+    private int FlashDuration;
+    private bool Started;
 
     public DamageNumber(int damage, Vector2 position, DamageType type = DamageType.Damage, bool critical = false, bool party = false)
     {
@@ -58,54 +61,73 @@ internal partial class DamageNumber : Node2D
 
     public override void _Ready()
     {
-        Tween tween = GetTree().CreateTween().SetParallel();
-        const float stagger = 0.05f;
         if (DamageType == DamageType.Miss)
+            AddCell(new Rect2(0, 4 * CELL_HEIGHT, 48, CELL_HEIGHT), 0f);
+        else
+            for (int i = 0; i < Digits.Length; i++)
+                AddCell(new Rect2(CELL_WIDTH * Digits[i], CELL_HEIGHT * (int)DamageType, CELL_WIDTH, CELL_HEIGHT),
+                    (i - (Digits.Length - 1) / 2f) * (CELL_WIDTH - 8));
+        if (Critical)
         {
-            Sprite2D sprite = new()
-            {
-                Texture = Texture,
-                RegionEnabled = true,
-                RegionRect = new Rect2(0, 182, 62, HEIGHT),
-                UseParentMaterial = true
-            };
-            AddChild(sprite);
-            tween.TweenProperty(sprite, "position:y", 20, 0.1f)
-                .SetDelay(stagger)
-                .SetEase(Tween.EaseType.Out)
-                .SetTrans(Tween.TransitionType.Cubic);
-            tween.TweenProperty(sprite, "modulate:a", 1f, 0.1f).SetDelay(stagger);
-            return;
+            FlashAlpha = 160f / 255f;
+            FlashDuration = 60;
         }
-        
-        const float scaledSpacing = SPACING * SCALE;
-        float totalWidth = (Digits.Length - 1) * scaledSpacing;
-        for (int i = 0; i < Digits.Length; i++)
-        {
-            Sprite2D sprite = new()
-            {
-                Texture = Texture,
-                Modulate = Critical ? new Color(1f, 0f, 0f, 0f) : Colors.Transparent,
-                RegionEnabled = true,
-                RegionRect = new Rect2(32 * Digits[i], 48 * (int)DamageType, WIDTH, HEIGHT),
-                UseParentMaterial = true
-            };
-            AddChild(sprite);
+    }
 
-            sprite.Scale = new Vector2(SCALE, SCALE);
-            float offset = i * scaledSpacing - totalWidth / 2f;
-            sprite.Position = new Vector2(offset, -20);
-            float delay = i * stagger;
-            tween.TweenProperty(sprite, "position:y", 20, 0.1f)
-                .SetDelay(delay)
-                .SetEase(Tween.EaseType.Out)
-                .SetTrans(Tween.TransitionType.Cubic);
-            tween.TweenProperty(sprite, "modulate:a", 1f, 0.1f).SetDelay(delay);
-            if (Critical)
+    private void AddCell(Rect2 region, float x)
+    {
+        Sprite2D sprite = new()
+        {
+            Texture = Texture,
+            RegionEnabled = true,
+            RegionRect = region,
+            Centered = false,
+            Offset = new Vector2(-region.Size.X / 2f, -region.Size.Y),
+            Position = new Vector2(x + 1f, 44f - 50f),
+            Modulate = Colors.Transparent,
+            UseParentMaterial = true
+        };
+        AddChild(sprite);
+        Cells.Add(sprite);
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        Step();
+        if (!Party && Started && !IsQueuedForDeletion())
+            Step();
+        Started = true;
+    }
+
+    private void Step()
+    {
+        if (Duration > 0)
+        {
+            bool previousDone = true;
+            foreach (Sprite2D cell in Cells)
             {
-                tween.TweenProperty(sprite, "modulate:g", 1f, 0.5f).SetDelay(delay);
-                tween.TweenProperty(sprite, "modulate:b", 1f, 0.5f).SetDelay(delay);
+                if (previousDone)
+                {
+                    float alpha = Duration > 10 ? Mathf.Min(cell.Modulate.A + 20f / 255f, 1f) : cell.Modulate.A;
+                    cell.Position = new Vector2(cell.Position.X, Mathf.Min(cell.Position.Y + 6f, 44f));
+                    cell.Modulate = new Color(1f, 1f - FlashAlpha, 1f - FlashAlpha, alpha);
+                }
+                previousDone = cell.Position.Y >= 44f - 20f;
             }
+            if (previousDone)
+                Duration--;
+        }
+        if (FlashDuration > 0)
+        {
+            int d = FlashDuration--;
+            FlashAlpha *= (d - 1f) / d;
+        }
+        if (Duration < 10)
+            Modulate = new Color(Modulate, Duration / 10f);
+        if (Duration <= 0)
+        {
+            DamageNumbers.Remove(Position);
+            QueueFree();
         }
     }
 

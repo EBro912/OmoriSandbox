@@ -62,6 +62,7 @@ internal sealed class HumphreySwarm : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        AnimationManager.Instance.ToneBelowUI = true;
         AddImmortal();
         DialogueManager.Instance.QueueMessage(this, "[br][wave freq=10.0]Time to feast! Time to feast![br]Time for you to be deceased![/wave]");
         await DialogueManager.Instance.WaitForDialogue();
@@ -92,6 +93,6 @@ internal sealed class HumphreySwarm : Enemy
         await AnimationManager.Instance.WaitForHumphreySwarm();
         BattleManager.Instance.ReplaceEnemy(this, "HumphreyGrande")?.AddImmortal();
         await Wait.Milliseconds(2500);
-        await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
+        AnimationManager.Instance.TintScreen(0, 0, 0, 0, 0.5f);
     }
 }

@@ -10,6 +10,7 @@ internal class RPGMAnimatedSprite
 
 	public int Id { get; private set; }
 	public int Layer { get; private set; }
+	public int Position { get; private set; }
 	private readonly Texture2D Texture;
 	private readonly Texture2D AltTexture;
 	private readonly List<List<Frame>> Frames = [];
@@ -19,10 +20,11 @@ internal class RPGMAnimatedSprite
 	private readonly int Columns;
 	private readonly int AltColumns;
 
-	public RPGMAnimatedSprite(int id, int layer, Texture2D texture, Texture2D altTexture)
+	public RPGMAnimatedSprite(int id, int layer, int position, Texture2D texture, Texture2D altTexture)
 	{
 		Id = id;
 		Layer = layer;
+		Position = position;
 		Texture = texture;
 		AltTexture = altTexture;
 		if (Texture == null && AltTexture == null)

@@ -56,8 +56,9 @@ internal sealed class MenuRepeat
 			return;
 		}
 
-		HeldTime += Math.Min(delta, 2.0 / 60.0 * Engine.TimeScale);
-		if (HeldTime + delta / 2 < NextRepeat)
+		double step = Math.Min(delta, 2.0 / 60.0 * Engine.TimeScale);
+		HeldTime += step;
+		if (HeldTime + step / 2 < NextRepeat)
 			return;
 		NextRepeat += SettingsMenuManager.Instance.SelectionChangeSpeed;
 		Direction = HeldDirection;

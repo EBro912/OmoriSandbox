@@ -455,7 +455,7 @@ public partial class BattleManager : Node
 						CurrentPartyMember--;
 						if (CurrentPartyMember < 0)
 						{
-							AudioManager.Instance.PlaySFX("sys_cancel");
+							AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
 							MenuManager.Instance.ShowMenu(MenuState.Party, true);
 							SetPhase(BattlePhase.FightRun);
 							return;
@@ -470,7 +470,7 @@ public partial class BattleManager : Node
 					}
 
 					PlayerCommands.Remove(prev);
-					AudioManager.Instance.PlaySFX("sys_cancel");
+					AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
 					MenuManager.Instance.ShowMenu(MenuState.Battle);
 					SetPhase(BattlePhase.PlayerCommand);
 					break;
@@ -487,7 +487,7 @@ public partial class BattleManager : Node
 							? MenuState.Battle
 							: MenuState.Skill;
 					
-					AudioManager.Instance.PlaySFX("sys_cancel");
+					AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
 					if (CurrentEnemyTarget > -1)
 						Enemies[CurrentEnemyTarget].ShowInfoBox(false);
 					CurrentEnemyTarget = -1;
@@ -496,7 +496,7 @@ public partial class BattleManager : Node
 					SetPhase(targetMenu is MenuState.Battle ? BattlePhase.PlayerCommand : BattlePhase.SkillSelection);
 					break;
 				case BattlePhase.SkillSelection:
-					AudioManager.Instance.PlaySFX("sys_cancel");
+					AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
 					MenuManager.Instance.ShowMenu(MenuState.Battle, ignoreMemory: true);
 					SetPhase(BattlePhase.PlayerCommand);
 					break;
@@ -610,7 +610,7 @@ public partial class BattleManager : Node
 				{
 					Enemies[old].ShowInfoBox(false);
 					Enemies[CurrentEnemyTarget].ShowInfoBox(true);
-					AudioManager.Instance.PlaySFX("SYS_move");
+					AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 				}
 				return;
 			}
@@ -625,7 +625,7 @@ public partial class BattleManager : Node
 					CurrentPartyMemberTarget = target;
 					// only play a sound if the cursor actually moves
 					if (CurrentPartyMemberTarget != old)
-						AudioManager.Instance.PlaySFX("SYS_move");
+						AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 				}
 			}
 		}
@@ -763,21 +763,21 @@ public partial class BattleManager : Node
 	{
 		if (!IsMenuOptionEnabled(BattleMenuOption.Attack))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 		SelectedAction = CurrentParty[CurrentPartyMember].Actor.Skills.Values.FirstOrDefault();
 		if (SelectedAction == null)
 		{
 			// the preset gave this actor no skills at all
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 		PartyMember attacker = CurrentParty[CurrentPartyMember].Actor;
 		if (SelectedAction is Skill attack &&
 		    (!attack.MeetsRequirements(attacker) || attacker.CurrentJuice - attack.Cost(attacker) < 0))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
@@ -796,7 +796,7 @@ public partial class BattleManager : Node
 		};
 		if (!IsMenuOptionEnabled(option))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
@@ -809,25 +809,25 @@ public partial class BattleManager : Node
 		SelectedAction = skill;
 		if (!skill.MeetsRequirements(CurrentParty[CurrentPartyMember].Actor))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
 		}
 
 		if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - skill.Cost(CurrentParty[CurrentPartyMember].Actor) <
 		    0)
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
 		}
 
 		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies &&
 		    CurrentParty.All(x => !x.Actor.IsToast))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
 		}
 
-		AudioManager.Instance.PlaySFX("SYS_select");
+		AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		SetPhase(BattlePhase.TargetSelection);
 		return true;
@@ -842,7 +842,7 @@ public partial class BattleManager : Node
 		if (SelectedAction.Target is SkillTarget.DeadAlly &&
 		    CurrentParty.All(x => !x.Actor.IsToast))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
 		}
 
@@ -855,7 +855,7 @@ public partial class BattleManager : Node
 		if (value == 0)
 			Items.Remove(item.Id);
 
-		AudioManager.Instance.PlaySFX("SYS_select");
+		AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 		MenuManager.Instance.SaveLastSelected(CurrentParty[CurrentPartyMember].Actor);
 		SetPhase(BattlePhase.TargetSelection);
 		return true;
@@ -1507,7 +1507,7 @@ public partial class BattleManager : Node
 	{
 		if (Enemies.All(x => x.Actor.IsToast))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 
@@ -1515,7 +1515,7 @@ public partial class BattleManager : Node
 		     (SelectedAction.Target == SkillTarget.AllyOrEnemy && CurrentPartyMemberTarget > -1))
 		    && CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast)
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 
@@ -1523,7 +1523,7 @@ public partial class BattleManager : Node
 		     SelectedAction.Target == SkillTarget.AllDeadAllies && CurrentPartyMemberTarget > -1)
 		    && !CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast)
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 
@@ -1531,7 +1531,7 @@ public partial class BattleManager : Node
 		    (CurrentPartyMemberTarget == CurrentParty[CurrentPartyMember].Position
 		     || CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor.IsToast))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 
@@ -1540,19 +1540,19 @@ public partial class BattleManager : Node
 		{
 			case SkillTarget.Self:
 				PlayerCommands[actor] = new BattleCommand(actor, actor, SelectedAction);
-				AudioManager.Instance.PlaySFX("SYS_select");
+				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			case SkillTarget.Ally:
 			case SkillTarget.AllyNotSelf:
 			case SkillTarget.DeadAlly:
 				PlayerCommands[actor] = new BattleCommand(actor,
 					CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction);
-				AudioManager.Instance.PlaySFX("SYS_select");
+				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			case SkillTarget.Enemy:
 				PlayerCommands[actor] = new BattleCommand(actor,
 					Enemies[CurrentEnemyTarget].Actor, SelectedAction);
-				AudioManager.Instance.PlaySFX("SYS_select");
+				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			case SkillTarget.AllyOrEnemy:
 				if (CurrentEnemyTarget > -1)
@@ -1561,7 +1561,7 @@ public partial class BattleManager : Node
 				else
 					PlayerCommands[actor] = new BattleCommand(actor,
 						CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction);
-				AudioManager.Instance.PlaySFX("SYS_select");
+				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			// select all party members for now, these will be resolved later
 			case SkillTarget.AllAllies:
@@ -2210,6 +2210,7 @@ public partial class BattleManager : Node
 					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
 					GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
 					GameManager.Instance.SetBattlebackGrayscale(false);
+					AnimationManager.Instance.ToneBelowUI = false;
 					BattleLogManager.Instance.ClearBattleLog();
 					MenuManager.Instance.ClearLastSelected();
 					await Wait.Milliseconds(1000);
@@ -2933,12 +2934,6 @@ public partial class BattleManager : Node
 		AddChild(dmg);
 		if (party)
 			AnimationManager.Instance.ApplyUITone(dmg, dims: true);
-
-		GetTree().CreateTimer(1.5f).Timeout += () =>
-		{
-			if (IsInstanceValid(dmg))
-				dmg.Despawn();
-		};
 	}
 
 	/// <summary>

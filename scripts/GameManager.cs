@@ -118,6 +118,7 @@ public partial class GameManager : Node
 		GetParent().CallDeferred(Node.MethodName.AddChild, ModLayer);
 		BattlebackLayer = new Node2D { Name = "BattlebackLayer", ZIndex = -50, UseParentMaterial = true };
 		BattlebackRoot.CallDeferred(Node.MethodName.AddChild, BattlebackLayer);
+		BattlebackRoot.CallDeferred(Node.MethodName.MoveChild, BattlebackLayer, 0);
 		
 		GD.Print("Version: " + Version);
 

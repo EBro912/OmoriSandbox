@@ -21,22 +21,17 @@ internal abstract partial class PagedMenu : Menu
 	protected abstract void UpdatePage();
 	protected abstract void ShowInfo();
 
+	protected virtual bool DownMovesToLast => false;
+
 	protected override void MoveCursor(Vector2I direction, bool wrap)
 	{
 		if (Empty) return;
 		if (BattleManager.Instance.Phase == BattlePhase.TargetSelection) return;
 		// scrolling moves the view by one row while the cursor keeps its screen position
-		if (direction == Vector2.Down && Page < MaxPage && CursorIndex > 1)
-		{
-			Page++;
-			AudioManager.Instance.PlaySFX("SYS_move");
-			UpdatePage();
-			return;
-		}
 		if (direction == Vector2.Up && Page > 0 && CursorIndex < 2)
 		{
 			Page--;
-			AudioManager.Instance.PlaySFX("SYS_move");
+			AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 			UpdatePage();
 			return;
 		}
@@ -52,7 +47,7 @@ internal abstract partial class PagedMenu : Menu
 			{
 				Page--;
 				CursorIndex = 1;
-				AudioManager.Instance.PlaySFX("SYS_move");
+				AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 				UpdatePage();
 				return;
 			}
@@ -65,7 +60,7 @@ internal abstract partial class PagedMenu : Menu
 			{
 				Page++;
 				CursorIndex = 2;
-				AudioManager.Instance.PlaySFX("SYS_move");
+				AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 				UpdatePage();
 				return;
 			}
@@ -77,14 +72,24 @@ internal abstract partial class PagedMenu : Menu
 		}
 		else if (direction == Vector2.Down)
 		{
-			if (CursorIndex < 2 && DisplayedCount > 2)
-				CursorIndex = Math.Min(CursorIndex + 2, DisplayedCount - 1);
+			int index = Page * 2 + CursorIndex;
+			int target = index < TotalCount - 2 ? index + 2
+				: DownMovesToLast && TotalCount > 2 && index == TotalCount - 2 ? TotalCount - 1 : index;
+			if (target / 2 > Page + 1)
+			{
+				Page++;
+				CursorIndex = target - Page * 2;
+				AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
+				UpdatePage();
+				return;
+			}
+			CursorIndex = target - Page * 2;
 		}
 		if (CursorIndex != old)
 		{
 			UpdateCursor();
 			ShowInfo();
-			AudioManager.Instance.PlaySFX("SYS_move");
+			AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 		}
 	}
 }

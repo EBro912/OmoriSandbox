@@ -20,6 +20,7 @@ internal partial class ItemMenu : PagedMenu
 
 	protected override int TotalCount => Items.Count;
 	protected override int DisplayedCount => DisplayedItems.Count;
+	protected override bool DownMovesToLast => true;
 
 	public override void OnOpen(SelectionMemory memory)
 	{

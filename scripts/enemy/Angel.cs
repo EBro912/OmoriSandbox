@@ -59,7 +59,7 @@ internal sealed class Angel : Enemy
     {
         if (!victory)
         {
-            DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=40]FWEFWE[font_size=52]FWEFWE!!!");
+            DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=43]FWEFWE[font_size=58]FWEFWE!!!");
             DialogueManager.Instance.QueueMessage(this, "My master has taught me well!");
             await DialogueManager.Instance.WaitForDialogue();
         }

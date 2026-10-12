@@ -4,6 +4,7 @@
 	"Texture": "Basic_Attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 1 ] ],
 	  [ [ 1, 0, 0, 100, 0, 0, 255, 1 ] ],
@@ -20,6 +21,7 @@
 	"Texture": "o_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [ [ 0, -19.5, -52, 100, 0, 0, 255, 1 ] ],
 	  [
@@ -46,6 +48,7 @@
 	"Texture": "o_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -135, 100, 0, 0, 255, 0 ] ],
@@ -87,6 +90,7 @@
 	"Texture": "o_observe",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -127,6 +131,7 @@
 	"Texture": "o_sad_story",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -48, 100, 0, 0, 255, 0 ] ],
@@ -188,6 +193,7 @@
 	"Texture": "o_hackaway",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -160, -16, 100, 0, 0, 255, 0 ] ],
@@ -293,6 +299,7 @@
 	"Texture": "o_attack",
 	"AltTexture": "o_bread_alt",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 100, 0, 0, 100, 0, 0, 100, 0 ] ],
@@ -327,6 +334,7 @@
 	"Texture": "o_quick_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -373,6 +381,7 @@
 	"Texture": "o_stab",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -144, 0, 100, 0, 0, 255, 0 ] ],
@@ -423,6 +432,7 @@
 	"Texture": "o_finger_pointing",
 	"AltTexture": "o_question_hit_spark",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -489,6 +499,7 @@
 	"Texture": "o_shun",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -818,6 +829,7 @@
 	"Texture": "o_finger_pointing",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 8, -144, 256, 100, 0, 0, 255, 0 ] ],
@@ -968,6 +980,7 @@
 	"Texture": "o_final_strike",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 5, -96, -96, 100, 0, 0, 255, 0 ] ],
@@ -1265,6 +1278,7 @@
 	"Texture": "o_ACS_trip",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -1311,6 +1325,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "o_release_energy_alt",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -240, -16, 100, 0, 0, 255, 0 ] ],
@@ -2094,6 +2109,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "u_statdown",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -2206,6 +2222,7 @@
 	"Texture": "o_observe",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -2256,6 +2273,7 @@
 	"Texture": "painful_truth",
 	"AltTexture": "e_attacksoft",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -2316,6 +2334,7 @@
 	"Texture": "o_stab",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 213, -14, 100, 0, 1, 255, 0 ] ],
@@ -2356,6 +2375,7 @@
 	"Texture": "o_violin_bow_slash",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -2394,6 +2414,7 @@
 	"Texture": "o_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -135, 100, 0, 0, 255, 0 ] ],
@@ -2449,6 +2470,7 @@
 	"Texture": "o_real_red_hands",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [ [ 0, -8, -76, 100, 0, 0, 100, 0 ] ],
 	  [ [ 0, -8, -64, 100, 0, 0, 150, 0 ] ],
@@ -2602,6 +2624,7 @@
 	"Texture": "o_hair_attack",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
 	  [ [ 1, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -2648,6 +2671,7 @@
 	"Texture": "o_mannequin_mari",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [
 		[ 0, -96, -96, 100, 0, 0, 50, 0 ],
@@ -2785,6 +2809,7 @@
 	"Texture": "o_final_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [
 		[ 0, -20, -47, 100, 0, 0, 50, 0 ],
@@ -3212,6 +3237,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -3222,6 +3248,7 @@
 	"Texture": "a_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -141, -80, 100, 0, 0, 255, 0 ] ],
@@ -3272,6 +3299,7 @@
 	"Texture": "a_peptalk",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -3431,6 +3459,7 @@
 	"Texture": "a_headbutt_edit",
 	"AltTexture": "0_face_transition",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 103, -250, -168, 100, 0, 0, 255, 0 ] ],
@@ -3669,6 +3698,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -256, -32, 100, 0, 0, 255, 0 ] ],
@@ -3917,6 +3947,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -272, -48, 100, 0, 0, 255, 0 ] ],
@@ -3958,6 +3989,7 @@
 	"Texture": "a_spin",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -4113,6 +4145,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "a_spin",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -240, -16, 100, 0, 0, 255, 0 ] ],
@@ -4829,6 +4862,7 @@
 	"Texture": "speech_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -151, 96, 100, 0, 0, 255, 0 ] ],
@@ -4980,6 +5014,7 @@
 	"Texture": "speech_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -161, 96, 100, 0, 0, 255, 0 ] ],
@@ -5292,6 +5327,7 @@
 	"Texture": "speech_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -161, 96, 100, 0, 0, 255, 0 ] ],
@@ -5834,6 +5870,7 @@
 	"Texture": "speech_3",
 	"AltTexture": "speech_4",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 120, 128, 96, 100, 0, 0, 255, 0 ] ],
@@ -5982,6 +6019,7 @@
 	"Texture": "speech_3",
 	"AltTexture": "speech_4",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 115, 128, 96, 100, 0, 0, 255, 0 ] ],
@@ -6128,6 +6166,7 @@
 	"Texture": "speech_3",
 	"AltTexture": "speech_4",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 110, 128, 96, 100, 0, 0, 255, 0 ] ],
@@ -6274,6 +6313,7 @@
 	"Texture": "speech_3",
 	"AltTexture": "speech_1",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 105, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -6423,6 +6463,7 @@
 	"Texture": "h_snack_time",
 	"AltTexture": "speech_1",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 110, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -6533,6 +6574,7 @@
 	"Texture": "speech_3",
 	"AltTexture": "speech_1",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 100, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -6682,6 +6724,7 @@
 	"Texture": "a_basic_attack_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -6751,6 +6794,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -368, -64, 100, 0, 0, 255, 0 ] ],
@@ -6797,6 +6841,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "Basic_Attack",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -256, -32, 100, 0, 0, 255, 0 ] ],
@@ -6874,6 +6919,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -6884,6 +6930,7 @@
 	"Texture": "FA_a_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -141, -80, 100, 0, 0, 255, 0 ] ],
@@ -6934,6 +6981,7 @@
 	"Texture": "team_spirit",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -6974,6 +7022,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -6984,6 +7033,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -6994,6 +7044,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -7004,6 +7055,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -7014,6 +7066,7 @@
 	"Texture": "k_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 143, 142.5, 100, 0, 0, 255, 0 ] ],
@@ -7055,6 +7108,7 @@
 	"Texture": "k_annoy",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -110, -145, 100, 0, 0, 255, 0 ] ],
@@ -7200,6 +7254,7 @@
 	"Texture": "k_rebound",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -7277,6 +7332,7 @@
 	"Texture": "k_flex",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 1, 140, 135, 100, 0, 0, 255, 0 ] ],
@@ -7398,6 +7454,7 @@
 	"Texture": "k_riccochet_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -7609,6 +7666,7 @@
 	"Texture": "k_tickle",
 	"AltTexture": "e_brag",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [],
 	"sfx": [
 	  {
@@ -7627,6 +7685,7 @@
 	"Texture": "k_snowball",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 165.5, 157.5, 100, 0, 0, 255, 0 ] ],
@@ -7670,6 +7729,7 @@
 	"Texture": "k_party_hat",
 	"AltTexture": "k_party_blower",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -7870,6 +7930,7 @@
 	"Texture": "k_ACS_o",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 175, -22, 100, 0, 0, 255, 0 ] ],
@@ -7922,6 +7983,7 @@
 	"Texture": "k_pass_to_omori_3",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 176, 64, 100, 0, 0, 255, 0 ] ],
@@ -7985,6 +8047,7 @@
 	"Texture": "k_pass_to_omori_3",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 176, 64, 100, 0, 0, 255, 0 ] ],
@@ -8074,6 +8137,7 @@
 	"Texture": "k_ACS_a",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 115.5, 137.5, 100, 0, 0, 255, 0 ] ],
@@ -8165,6 +8229,7 @@
 	"Texture": "k_to_a_ACS_attacks",
 	"AltTexture": "e_attacksoft",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 3, 0, -256, 100, 0, 0, 255, 0 ] ],
@@ -8200,6 +8265,7 @@
 	"Texture": "k_ACS_a",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -8244,6 +8310,7 @@
 	"Texture": "k_pass_to_aubrey_3_damage",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -8329,6 +8396,7 @@
 	"Texture": "k_small_ally_oop",
 	"AltTexture": "k_ACS_h",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 102, 202.5, -4.5, 100, 0, 0, 255, 0 ] ],
@@ -8372,6 +8440,7 @@
 	"Texture": "k_ACS_h",
 	"AltTexture": "h_sparkles",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 2, 203, 3, 100, 0, 0, 255, 0 ] ],
@@ -8453,6 +8522,7 @@
 	"Texture": "",
 	"AltTexture": "k_pass_to_hero_3",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -8613,6 +8683,7 @@
 	"Texture": "k_run_n_gun",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -8647,6 +8718,7 @@
 	"Texture": "k_rebound",
 	"AltTexture": "k_ACS_a",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -8676,6 +8748,7 @@
 	"Texture": "k_annoy",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -110, -145, 100, 0, 0, 255, 0 ] ],
@@ -8828,6 +8901,7 @@
 	"Texture": "Kel_comeback",
 	"AltTexture": "Happy_Lvl_1",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 100, 0 ] ],
@@ -8877,6 +8951,7 @@
 	"Texture": "Kel_comeback",
 	"AltTexture": "Happy_Lvl_1",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 100, 0 ] ],
@@ -8989,6 +9064,7 @@
 	"Texture": "FA_kel_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 272, 192, 100, 0, 0, 255, 0 ] ],
@@ -9032,6 +9108,7 @@
 	"Texture": "FA_kel_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 272, 192, 100, 0, 0, 255, 0 ] ],
@@ -9075,6 +9152,7 @@
 	"Texture": "k_pass_to_aubrey_3",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 160, 112, 100, 0, 0, 255, 0 ] ],
@@ -9162,6 +9240,7 @@
 	"Texture": "k_basic_attack_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -9219,6 +9298,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -9229,6 +9309,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -9239,6 +9320,7 @@
 	"Texture": "h_attack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -9280,6 +9362,7 @@
 	"Texture": "h_snack_time",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 155, -65, 100, 0, 0, 255, 0 ] ],
@@ -9347,6 +9430,7 @@
 	"Texture": "h_snack_time",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 5, 0, -32, 100, 0, 0, 255, 0 ] ],
@@ -9420,6 +9504,7 @@
 	"Texture": "h_massage",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 280, -35, 100, 0, 0, 255, 0 ] ],
@@ -9468,6 +9553,7 @@
 	"Texture": "h_smile",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 7, 248, -166, 100, 0, 0, 50, 0 ] ],
@@ -9807,6 +9893,7 @@
 	"Texture": "h_snack_time",
 	"AltTexture": "speech_1",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 115, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -10029,6 +10116,7 @@
 	"Texture": "h_tea_time",
 	"AltTexture": "speech_1",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [
 		[ 4, 0, 0, 100, 0, 0, 100, 0 ],
@@ -10392,6 +10480,7 @@
 	"Texture": "h_hero_smile",
 	"AltTexture": "Sparkles",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 3, 247, -160, 100, 0, 0, 255, 0 ] ],
@@ -10496,6 +10585,7 @@
 	"Texture": "h_hero_smile",
 	"AltTexture": "Sparkles",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 3, 246, -160, 100, 0, 0, 255, 0 ] ],
@@ -10643,6 +10733,7 @@
 	"Texture": "h_hero_smile",
 	"AltTexture": "Sparkles",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 3, 246, -160, 100, 0, 0, 255, 0 ] ],
@@ -10952,6 +11043,7 @@
 	"Texture": "speech_5",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 10, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -11008,6 +11100,7 @@
 	"Texture": "speech_5",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 5, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -11062,6 +11155,7 @@
 	"Texture": "speech_5",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -11116,6 +11210,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -11126,6 +11221,7 @@
 	"Texture": "",
 	"AltTexture": "speech_1",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 120, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -11177,6 +11273,7 @@
 	"Texture": "spicy_food",
 	"AltTexture": "e_attack_big_alt",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 100, 0 ] ],
@@ -11277,6 +11374,7 @@
 	"Texture": "FA_h_attack copy",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -11318,6 +11416,7 @@
 	"Texture": "h_gator_aid",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -11553,6 +11652,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -11563,6 +11663,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -11573,6 +11674,7 @@
 	"Texture": "o_allegro",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [ [ 0, -114, -60.5, 100, 0, 0, 255, 0 ] ],
 	  [ [ 1, -66.5, -18.5, 100, 0, 0, 255, 0 ] ],
@@ -11644,6 +11746,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -12477,6 +12580,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -13128,6 +13232,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -14101,6 +14206,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -15886,6 +15992,7 @@
 	"Texture": "FA_player_attack",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -15928,6 +16035,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -15938,6 +16046,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -16903,6 +17012,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -17658,6 +17768,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -18749,6 +18860,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18759,6 +18871,7 @@
 	"Texture": "u_firstaid",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -18793,6 +18906,7 @@
 	"Texture": "u_protect",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 1, -5, 100, 0, 0, 255, 0 ] ],
@@ -18833,6 +18947,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18843,6 +18958,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18853,6 +18969,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18863,6 +18980,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18873,6 +18991,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18883,6 +19002,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -18893,6 +19013,7 @@
 	"Texture": "e_attacksoft",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -30, 100, 0, 0, 255, 0 ] ],
@@ -18926,6 +19047,7 @@
 	"Texture": "e_attacksolid",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -20, 100, 0, 0, 255, 0 ] ],
@@ -18959,6 +19081,7 @@
 	"Texture": "e_attack_big_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -19029,6 +19152,7 @@
 	"Texture": "e_attacktechno",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0.5, -10, 100, 0, 0, 255, 0 ] ],
@@ -19062,6 +19186,7 @@
 	"Texture": "e_attack_plant",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 47.5, -45, 100, 0, 0, 255, 0 ] ],
@@ -19116,6 +19241,7 @@
 	"Texture": "e_attack_scratch",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [ [ 0, -57, -39.5, 100, 0, 0, 255, 0 ] ],
 	  [ [ 2, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -19146,6 +19272,7 @@
 	"Texture": "e_attack_goop",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -19183,6 +19310,7 @@
 	"Texture": "e_attack_something",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -19223,6 +19351,7 @@
 	"Texture": "e_attack_recyclist",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -64, 100, 0, 0, 255, 0 ] ],
@@ -19270,6 +19399,7 @@
 	"Texture": "e_attack_moon",
 	"AltTexture": "e_attack_spark_dynamite",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -19315,6 +19445,7 @@
 	"Texture": "e_attack_sweetheart",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -64, 100, 0, 0, 255, 0 ] ],
@@ -19362,6 +19493,7 @@
 	"Texture": "e_attack_marina",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -105.5, -50, 100, 0, 0, 255, 0 ] ],
@@ -19407,6 +19539,7 @@
 	"Texture": "e_attack_medusa",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -128, 0, 100, 0, 0, 255, 0 ] ],
@@ -19452,6 +19585,7 @@
 	"Texture": "e_attack_molly",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -107.5, 0, 100, 0, 0, 255, 0 ] ],
@@ -19497,6 +19631,7 @@
 	"Texture": "e_attack_cross_chop",
 	"AltTexture": "Basic_Attack",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -116.5, -34, 100, 0, 0, 255, 0 ] ],
@@ -19538,6 +19673,7 @@
 	"Texture": "e_attack_cross_chop",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -19589,6 +19725,7 @@
 	"Texture": "e_kim_headbutt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 96, 100, 0, 0, 255, 0 ] ],
@@ -19625,6 +19762,7 @@
 	"Texture": "e_attack_punch",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -19661,6 +19799,7 @@
 	"Texture": "e_attack_something_omori",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -19695,6 +19834,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -19705,6 +19845,7 @@
 	"Texture": "e_attack_basil",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -19774,6 +19915,7 @@
 	"Texture": "e_attack_bread",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -19815,6 +19957,7 @@
 	"Texture": "e_something_extra",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -8, 100, 0, 0, 255, 0 ] ],
@@ -19863,6 +20006,7 @@
 	"Texture": "e_callforfriend",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -19951,6 +20095,7 @@
 	"Texture": "e_call_for_friend_phone",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 100, -90, 100, 0, 0, 255, 1 ] ],
@@ -19997,6 +20142,7 @@
 	"Texture": "e_summon_spider",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -20041,6 +20187,7 @@
 	"Texture": "e_becute",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 1, 35.5, -52.5, 100, 0, 0, 255, 0 ] ],
@@ -20071,6 +20218,7 @@
 	"Texture": "e_sad_eyes",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -25, 0, 100, 0, 0, 255, 0 ] ],
@@ -20117,6 +20265,7 @@
 	"Texture": "e_engulf_omori_something",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -20626,6 +20775,7 @@
 	"Texture": "Emotional_Control",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -20679,6 +20829,7 @@
 	"Texture": "e_blastmusic",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -20798,6 +20949,7 @@
 	"Texture": "e_blast_music_angry",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -21006,6 +21158,7 @@
 	"Texture": "e_blast_music_sad",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -21155,6 +21308,7 @@
 	"Texture": "e_blast_music_happy",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -21252,6 +21406,7 @@
 	"Texture": "e_tangle",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -15, 100, 0, 0, 255, 0 ] ],
@@ -21295,6 +21450,7 @@
 	"Texture": "e_bitesmall",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -21330,6 +21486,7 @@
 	"Texture": "e_laser",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 35, 0, 100, 0, 0, 255, 0 ] ],
@@ -21362,6 +21519,7 @@
 	"Texture": "e_laserorange",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 45, -15, 100, 0, 0, 255, 0 ] ],
@@ -21412,6 +21570,7 @@
 	"Texture": "e_laserbig",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 40, 0, 100, 0, 0, 255, 0 ] ],
@@ -21446,6 +21605,7 @@
 	"Texture": "e_strange_beam",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 15, 100, 0, 0, 255, 0 ] ],
@@ -21490,6 +21650,7 @@
 	"Texture": "e_brag",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -61.5, -119.5, 100, 0, 0, 255, 0 ] ],
@@ -21572,6 +21733,7 @@
 	"Texture": "e_poke",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -131.5, 125, 100, 0, 0, 255, 0 ] ],
@@ -21616,6 +21778,7 @@
 	"Texture": "e_grab",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -40, 100, 0, 0, 255, 0 ] ],
@@ -21664,6 +21827,7 @@
 	"Texture": "e_download",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -22584,6 +22748,7 @@
 	"Texture": "e_fly",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -22680,6 +22845,7 @@
 	"Texture": "e_angstysong",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -22776,6 +22942,7 @@
 	"Texture": "e_bullethell",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -23005,6 +23172,7 @@
 	"Texture": "e_cruel",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 5, -95, 60, 100, 0, 0, 255, 0 ] ],
@@ -23187,6 +23355,7 @@
 	"Texture": "e_protect_the_earth",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -23309,6 +23478,7 @@
 	"Texture": "e_small_trip",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -23341,6 +23511,7 @@
 	"Texture": "u_dynamite",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [],
@@ -23635,6 +23806,7 @@
 	"Texture": "e_snowstorm",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -23789,6 +23961,7 @@
 	"Texture": "e_bear_hug",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -23925,6 +24098,7 @@
 	"Texture": "e_roar_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -23996,6 +24170,7 @@
 	"Texture": "e_spider_webs",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -24305,6 +24480,7 @@
 	"Texture": "e_spider_webs_small",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 1, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -24342,6 +24518,7 @@
 	"Texture": "e_hide",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 200, 0 ] ],
@@ -24451,6 +24628,7 @@
 	"Texture": "e_sproutmole_running",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 14, 304, 0, 100, 0, 0, 255, 0 ] ],
@@ -24690,6 +24868,7 @@
 	"Texture": "e_calm_down",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -24723,6 +24902,7 @@
 	"Texture": "e_vapors",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -25108,6 +25288,7 @@
 	"Texture": "e_bed",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -25155,6 +25336,7 @@
 	"Texture": "e_sharp_insult_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -258, -194, 100, 0, 0, 255, 0 ] ],
@@ -25498,6 +25680,7 @@
 	"Texture": "e_fire",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -25677,6 +25860,7 @@
 	"Texture": "e_fire",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -25928,6 +26112,7 @@
 	"Texture": "o_final_strike_extra",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -26230,6 +26415,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -26240,6 +26426,7 @@
 	"Texture": "o_mock",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -26273,6 +26460,7 @@
 	"Texture": "e_pop",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -26376,6 +26564,7 @@
 	"Texture": "e_jet_pack",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [],
@@ -26473,6 +26662,7 @@
 	"Texture": "e_vapors_slime_girls",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -26865,6 +27055,7 @@
 	"Texture": "e_summon_spider",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -26883,6 +27074,7 @@
 	"Texture": "e_sting_ray",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -27015,6 +27207,7 @@
 	"Texture": "e_throw_potion_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -272, 100, 0, 0, 255, 0 ] ],
@@ -27049,6 +27242,7 @@
 	"Texture": "e_scare",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -27110,6 +27304,7 @@
 	"Texture": "e_bullet_hell_cookies",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -27513,6 +27708,7 @@
 	"Texture": "e_drag_down",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -15, 100, 0, 0, 255, 0 ] ],
@@ -27551,6 +27747,7 @@
 	"Texture": "e_earth_slam",
 	"AltTexture": "e_earth_roll",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 4, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -28178,6 +28375,7 @@
 	"Texture": "e_basil_something_attack_small",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -28234,6 +28432,7 @@
 	"Texture": "e_sproutmole_running",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 4, 304, 96, 100, 0, 0, 255, 0 ] ],
@@ -28338,6 +28537,7 @@
 	"Texture": "",
 	"AltTexture": "e_throw_trash",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -28396,6 +28596,7 @@
 	"Texture": "e_attack_hooligans",
 	"AltTexture": "e_attacksolid_fa",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 22, 250, 144, 100, 0, 0, 255, 0 ] ],
@@ -28540,6 +28741,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -28612,6 +28814,7 @@
 	"Texture": "e_pierce_heart",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -28675,6 +28878,7 @@
 	"Texture": "e_engulf_snow",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -40, 100, 0, 0, 255, 0 ] ],
@@ -28742,6 +28946,7 @@
 	"Texture": "e_swing_mace",
 	"AltTexture": "e_attacksolid",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 254, 140, 100, 0, 0, 255, 0 ] ],
@@ -28912,6 +29117,7 @@
 	"Texture": "e_attack_bread",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -251, -164, 100, 0, 0, 255, 0 ] ],
@@ -29034,6 +29240,7 @@
 	"Texture": "e_attacksolid",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -29086,6 +29293,7 @@
 	"Texture": "o_shun",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 1, 0, 0, 100, 0, 0, 50, 0 ] ],
@@ -29121,6 +29329,7 @@
 	"Texture": "pillar_or_light",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -29195,6 +29404,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29205,6 +29415,7 @@
 	"Texture": "u_healheart",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 5, -20, 100, 0, 0, 255, 0 ] ],
@@ -29233,6 +29444,7 @@
 	"Texture": "u_healjuice",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 10, -10, 100, 0, 0, 255, 0 ] ],
@@ -29261,6 +29473,7 @@
 	"Texture": "u_statup",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 10, 0, 100, 0, 0, 255, 0 ] ],
@@ -29296,6 +29509,7 @@
 	"Texture": "u_statdown",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -29332,6 +29546,7 @@
 	"Texture": "e_healheart",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 3.5, -5, 100, 0, 0, 255, 0 ] ],
@@ -29372,6 +29587,7 @@
 	"Texture": "e_healjuice",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 1, -3.5, -25, 100, 0, 0, 255, 0 ] ],
@@ -29411,6 +29627,7 @@
 	"Texture": "e_statup",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 30, 100, 0, 0, 255, 0 ] ],
@@ -29476,6 +29693,7 @@
 	"Texture": "e_statdown",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -29563,6 +29781,7 @@
 	"Texture": "e_statdown",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -29650,6 +29869,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29660,6 +29880,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29670,6 +29891,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29680,6 +29902,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29690,6 +29913,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29700,6 +29924,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29710,6 +29935,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29720,6 +29946,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29730,6 +29957,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29740,6 +29968,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -29769,6 +29998,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29787,6 +30017,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -29809,6 +30040,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29827,6 +30059,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29845,6 +30078,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29863,6 +30097,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [],
@@ -29892,6 +30127,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29910,6 +30146,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [],
@@ -29936,6 +30173,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29954,6 +30192,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -29972,6 +30211,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -29982,6 +30222,7 @@
 	"Texture": "0_face_transition",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 8, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -30046,6 +30287,7 @@
 	"Texture": "0_face_transition",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 3, -1, -10, 100, 0, 0, 255, 0 ] ],
@@ -30162,6 +30404,7 @@
 	"Texture": "0_face_transition",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 5, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -30215,6 +30458,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -30225,6 +30469,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30243,6 +30488,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30261,6 +30507,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30279,6 +30526,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30297,6 +30545,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30315,6 +30564,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30333,6 +30583,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30351,6 +30602,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30369,6 +30621,7 @@
 	"Texture": "Sad_Lvl_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30387,6 +30640,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30405,6 +30659,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30423,6 +30678,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30441,6 +30697,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -30463,6 +30720,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30481,6 +30739,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -30491,6 +30750,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30509,6 +30769,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30527,6 +30788,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30545,6 +30807,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30563,6 +30826,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30581,6 +30845,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30613,6 +30878,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30631,6 +30897,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [
 	  {
@@ -30649,6 +30916,7 @@
 	"Texture": "u_lifejam",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -1, -10, 100, 0, 0, 255, 0 ] ],
@@ -30690,6 +30958,7 @@
 	"Texture": "u_dynamite",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -30980,6 +31249,7 @@
 	"Texture": "e_vapors",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -31365,6 +31635,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -31411,6 +31682,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31421,6 +31693,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31431,6 +31704,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31441,6 +31715,7 @@
 	"Texture": "Happy_Lvl_1",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -31477,6 +31752,7 @@
 	"Texture": "Happy_Lvl_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -31513,6 +31789,7 @@
 	"Texture": "Sad_Lvl_1",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -31552,6 +31829,7 @@
 	"Texture": "Sad_Lvl_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -31591,6 +31869,7 @@
 	"Texture": "Angry_Lvl_1",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -31636,6 +31915,7 @@
 	"Texture": "Angry_Lvl_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -31680,6 +31960,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31690,6 +31971,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31700,6 +31982,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31710,6 +31993,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -31720,6 +32004,7 @@
 	"Texture": "spider_bite_scratch",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -50, 100, 0, 0, 255, 0 ] ],
@@ -31776,6 +32061,7 @@
 	"Texture": "spider_bite_scratch_no_color",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -50, 100, 0, 0, 255, 0 ] ],
@@ -31818,6 +32104,7 @@
 	"Texture": "u_dynamite",
 	"AltTexture": "e_protect_the_earth",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -32434,6 +32721,7 @@
 	"Texture": "o_trip_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -304, 128, 100, 0, 0, 255, 0 ] ],
@@ -32486,6 +32774,7 @@
 	"Texture": "o_attack_again_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -48, -128, 100, 0, 0, 255, 0 ] ],
@@ -32555,6 +32844,7 @@
 	"Texture": "e_attack_goop_2",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -10, 100, 0, 0, 255, 0 ] ],
@@ -32592,6 +32882,7 @@
 	"Texture": "e_expand",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -32712,6 +33003,7 @@
 	"Texture": "e_throw_potion_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -32793,6 +33085,7 @@
 	"Texture": "o_hackaway",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -160, -16, 100, 0, 0, 255, 0 ] ],
@@ -32898,6 +33191,7 @@
 	"Texture": "e_humphrey",
 	"AltTexture": "e_attacksoft",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [],
@@ -32963,6 +33257,7 @@
 	"Texture": "e_basil_something_attack_small",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -33026,6 +33321,7 @@
 	"Texture": "e_sad_eyes",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, -25, -110, 100, 0, 0, 255, 0 ] ],
@@ -33072,6 +33368,7 @@
 	"Texture": "e_becute",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 1, 35.5, -152.5, 100, 0, 0, 255, 0 ] ],
@@ -33102,6 +33399,7 @@
 	"Texture": "e_blast_music_happy",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -33199,6 +33497,7 @@
 	"Texture": "speech_5",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 10, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -33247,6 +33546,7 @@
 	"Texture": "speech_5",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 5, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -33293,6 +33593,7 @@
 	"Texture": "speech_5",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 128, -96, 100, 0, 0, 255, 0 ] ],
@@ -33339,6 +33640,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -33349,6 +33651,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -33359,6 +33662,7 @@
 	"Texture": "e_earth_slam",
 	"AltTexture": "e_earth_roll",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 4, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -33986,6 +34290,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -33996,6 +34301,7 @@
 	"Texture": "e_red_hands_attack",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -34078,6 +34384,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34088,6 +34395,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34098,6 +34406,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34108,6 +34417,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34118,6 +34428,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34128,6 +34439,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34138,6 +34450,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34148,6 +34461,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34158,6 +34472,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34168,6 +34483,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34178,6 +34494,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34188,6 +34505,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34198,6 +34516,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -34208,6 +34527,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -35173,6 +35493,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -35928,6 +36249,7 @@
 	"Texture": "o_facesets",
 	"AltTexture": "o_facesets_2",
 	"Layer": 0,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -37019,6 +37341,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -37029,6 +37352,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -37039,6 +37363,7 @@
 	"Texture": "e_attacksoft",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -37116,6 +37441,7 @@
 	"Texture": "e_attack_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 96, -96, 100, 0, 0, 255, 0 ] ],
@@ -37212,6 +37538,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -37222,6 +37549,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -37232,6 +37560,7 @@
 	"Texture": "painful_truth",
 	"AltTexture": "e_attacksoft",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -37290,6 +37619,7 @@
 	"Texture": "painful_truth",
 	"AltTexture": "e_attacksoft",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, 0, 100, 0, 0, 255, 0 ] ],
@@ -37348,6 +37678,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -37358,6 +37689,7 @@
 	"Texture": "k_flex",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 1, 140, 135, 100, 0, 0, 255, 0 ] ],
@@ -37479,6 +37811,7 @@
 	"Texture": "h_smile",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 176, -80, 100, 0, 0, 255, 0 ] ],
@@ -37508,6 +37841,7 @@
 	"Texture": "h_hero_smile",
 	"AltTexture": "Sparkles",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -37584,6 +37918,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -37594,6 +37929,7 @@
 	"Texture": "a_peptalk",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -37754,6 +38090,7 @@
 	"Texture": "a_last_resort_alt",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, -222, 96, 100, 0, 0, 255, 0 ] ],
@@ -37796,6 +38133,7 @@
 	"Texture": "",
 	"AltTexture": "k_pass_to_hero_3",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ -1, 203, 3, 100, 0, 0, 255, 0 ] ],
@@ -37935,6 +38273,7 @@
 	"Texture": "b_cheer",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -38071,6 +38410,7 @@
 	"Texture": "",
 	"AltTexture": "b_snack_time",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -38176,6 +38516,7 @@
 	"Texture": "",
 	"AltTexture": "b_snack_time",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [
@@ -38255,6 +38596,7 @@
 	"Texture": "e_attacksoft",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -30, 100, 0, 0, 255, 0 ] ],
@@ -38288,6 +38630,7 @@
 	"Texture": "e_attack_big",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 0, -208, 100, 0, 0, 255, 0 ] ],
@@ -38545,6 +38888,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -38555,6 +38899,7 @@
 	"Texture": "",
 	"AltTexture": "",
 	"Layer": 3,
+	"Position": 1,
 	"frames": [ [] ],
 	"sfx": [],
 	"flash": [],
@@ -38565,6 +38910,7 @@
 	"Texture": "e_bullethell",
 	"AltTexture": "",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [
@@ -38772,6 +39118,7 @@
 	"Texture": "e_swing_mace",
 	"AltTexture": "e_attacksolid",
 	"Layer": 2,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 0, 254, 140, 100, 0, 0, 255, 0 ] ],
@@ -38909,6 +39256,7 @@
 	"Texture": "e_sproutmole_running",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [ [ 14, 304, 0, 100, 0, 0, 255, 0 ] ],
@@ -39148,6 +39496,7 @@
 	"Texture": "o_final_strike_extra",
 	"AltTexture": "e_attacksolid",
 	"Layer": 3,
+	"Position": 3,
 	"frames": [
 	  [],
 	  [

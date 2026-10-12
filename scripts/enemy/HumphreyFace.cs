@@ -55,6 +55,12 @@ internal sealed class HumphreyFace : Enemy
 
 	private int MessageIndex = 0;
 	private bool SkipFirst = true;
+
+	public override Task OnStartOfBattle()
+	{
+		AnimationManager.Instance.ToneBelowUI = true;
+		return Task.CompletedTask;
+	}
 	
 	public override async Task ProcessEndOfTurn()
 	{

@@ -125,7 +125,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 		UpdateCursor();
 		// only play a sound if the cursor actually moved
 		if (old != CursorIndex)
-			AudioManager.Instance.PlaySFX("SYS_move");
+			AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 	}
 
 	// maps cursor indices to their public option ids
@@ -136,7 +136,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 	{
 		if (!BattleManager.Instance.IsMenuOptionEnabled(IndexToOption[CursorIndex]))
 		{
-			AudioManager.Instance.PlaySFX("sys_buzzer");
+			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
 		}
 		CursorSprite.StopBounce();
@@ -155,7 +155,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 				BattleManager.Instance.OnSelectNotAttack(MenuState.Toy);
 				break;
 		}
-		AudioManager.Instance.PlaySFX("SYS_select");
+		AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 	}
 
 	protected override bool ShouldCloseVisually(MenuState newState)

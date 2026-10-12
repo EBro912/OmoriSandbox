@@ -78,8 +78,8 @@ internal sealed class MrJawsumAlt : Enemy
             AudioManager.Instance.PlaySFX("se_thunder_bolt", volume: 0.9f);
             AudioManager.Instance.PlaySFX("se_fire_whoosh", pitch: 0.7f, volume: 0.9f);
             AnimationManager.Instance.InitShake(new Shake(1, 8, 15));
-            await AnimationManager.Instance.WaitForTintOverlay(new Color(1, 0, 0, 0.5f), 0.25f);
-            AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack, 0.25f);
+            AnimationManager.Instance.TintOverlay(new Color(1f, 0f, 0f, 120f / 255f));
+            AnimationManager.Instance.TintOverlay(new Color(1f, 0f, 0f, 0f), 0.5f);
             SetEmotion("angry", true);
             ClearResult();
             DialogueManager.Instance.QueueMessage(this, @"What do you mean we're running low on henchmen!?\! That's impossible!");
@@ -108,7 +108,7 @@ internal sealed class MrJawsumAlt : Enemy
     public override async Task OnEndOfBattle(bool victory)
     {
         if (!victory) {
-            DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=40]JAWHAW[font_size=52]HAW[font_size=64]HAW!!!");
+            DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=43]JAWHAW[font_size=58]HAW[font_size=73]HAW!!!");
             DialogueManager.Instance.QueueMessage(this, "That's what happens when you mess with MR. JAWSUM!");
             await DialogueManager.Instance.WaitForDialogue();
         }

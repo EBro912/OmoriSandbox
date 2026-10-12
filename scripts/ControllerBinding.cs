@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using Godot.Collections;
 
@@ -16,9 +17,11 @@ internal static class ControllerBinding
         _ => null
     };
 
+    private static readonly System.Collections.Generic.Dictionary<string, ulong[]> DefaultUIAxes = [];
+
     internal static void UpdateAction(string action, InputEvent binding)
     {
-        ReplaceEvents(action, binding);
+        ReplaceEvents(action, binding, []);
         // convert sandbox actions to godot actions
         string uiAction = action switch
         {
@@ -30,15 +33,22 @@ internal static class ControllerBinding
             "MenuRight" => "ui_right",
             _ => null
         };
-        if (uiAction != null)
-            ReplaceEvents(uiAction, binding);
+        if (uiAction == null || (binding == null && uiAction is "ui_accept" or "ui_cancel"))
+            return;
+        if (!DefaultUIAxes.TryGetValue(uiAction, out ulong[] axes))
+        {
+            axes = InputMap.ActionGetEvents(uiAction).Where(input => input is InputEventJoypadMotion)
+                .Select(input => input.GetInstanceId()).ToArray();
+            DefaultUIAxes[uiAction] = axes;
+        }
+        ReplaceEvents(uiAction, binding, axes);
     }
 
-    private static void ReplaceEvents(string action, InputEvent binding)
+    private static void ReplaceEvents(string action, InputEvent binding, ulong[] keep)
     {
         foreach (InputEvent input in InputMap.ActionGetEvents(action))
         {
-            if (IsController(input))
+            if (IsController(input) && !keep.Contains(input.GetInstanceId()))
                 InputMap.ActionEraseEvent(action, input);
         }
         if (binding != null)

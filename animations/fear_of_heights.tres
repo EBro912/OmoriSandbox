@@ -35,7 +35,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"hurt",
-"speed": 1.0
+"speed": 1.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -52,7 +52,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"neutral",
-"speed": 1.0
+"speed": 1.5
 }, {
 "frames": [{
 "duration": 1.0,
@@ -69,5 +69,5 @@ animations = [{
 }],
 "loop": false,
 "name": &"toast",
-"speed": 1.0
+"speed": 1.5
 }]

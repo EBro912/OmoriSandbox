@@ -3765,10 +3765,12 @@ public class Database
 			cost: 0,
 			effect: async (self, targets) =>
 			{
+				bool wasBelowUI = AnimationManager.Instance.ToneBelowUI;
+				AnimationManager.Instance.ToneBelowUI = true;
 				BattleLogManager.Instance.QueueMessage(self, "[actor] throw everything they have!");
 				AnimationManager.Instance.PlayScreenAnimation(293, false);
 				await Wait.Milliseconds(1162);
-				AnimationManager.Instance.TintOverlay(new Color(0, 0, 1f, 0.61f), 1f);
+				AnimationManager.Instance.TintScreen(0, 0, 255, 155, 1f);
 				AnimationManager.Instance.PlayScreenAnimation(181, false);
 				await Wait.Milliseconds(332);
 				// VANILLA BUG: shows and logs max JUICE, not the JUICE actually lost
@@ -3780,7 +3782,7 @@ public class Database
 				foreach (Actor member in targets)
 					BattleLogManager.Instance.QueueMessage(member, $"[actor] lost {member.CurrentStats.MaxJuice} JUICE!");
 				await Wait.Milliseconds(1660);
-				AnimationManager.Instance.TintOverlay(new Color(0.63f, 0.63f, 0f, 0.61f), 1f);
+				AnimationManager.Instance.TintScreen(160, 160, 0, 155, 1f);
 				await Wait.Milliseconds(332);
 				foreach (Actor member in targets)
 					AnimationManager.Instance.PlayAnimation(193, member);
@@ -3798,7 +3800,7 @@ public class Database
 				await Wait.Milliseconds(166);
 				BattleLogManager.Instance.QueueMessage("Everyone's SPEED fell.");
 				await Wait.Milliseconds(1330);
-				AnimationManager.Instance.TintOverlay(new Color(1f, 0f, 0f, 0.61f), 1f);
+				AnimationManager.Instance.TintScreen(255, 0, 0, 155, 1f);
 				await Wait.Milliseconds(332);
 				AnimationManager.Instance.PlayScreenAnimation(172, false);
 				await Wait.Milliseconds(332);
@@ -3807,8 +3809,9 @@ public class Database
 					BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.4f, false, 0f, neverCrit: true);
 				}
 				await Wait.Milliseconds(400);
-				AnimationManager.Instance.TintOverlay(Colors.Transparent);
+				AnimationManager.Instance.TintScreen(0, 0, 0, 0, 1f);
 				await Wait.Milliseconds(664);
+				AnimationManager.Instance.ToneBelowUI = wasBelowUI;
 			}
 		);
 
@@ -7398,7 +7401,7 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] swallows everyone!");
 				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.TintOverlay(Colors.Black, 1f);
+				AnimationManager.Instance.TintScreen(-255, -255, -255, 0, 1f);
 				if (self is Enemy enemy)
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
@@ -7413,7 +7416,7 @@ public class Database
 				await Wait.Milliseconds(750);
 				if (self is Enemy stillAnEnemy)
 					stillAnEnemy.SetOpacity(1f);
-				await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 1f);
+				await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 1f);
 			}
 		);
 
@@ -7432,7 +7435,7 @@ public class Database
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] swallows everyone!");
 				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.TintOverlay(Colors.Black, 1f);
+				AnimationManager.Instance.TintScreen(-255, -255, -255, 0, 1f);
 				if (self is Enemy enemy)
 					enemy.SetOpacity(0f);
 				await AnimationManager.Instance.WaitForHumphreyFaceSwallow();
@@ -7447,7 +7450,7 @@ public class Database
 				await Wait.Milliseconds(750);
 				if (self is Enemy stillAnEnemy)
 					stillAnEnemy.SetOpacity(1f);
-				await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 1f);
+				await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 1f);
 			}
 		);
 		

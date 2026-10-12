@@ -165,7 +165,7 @@ public partial class AudioManager : Node
 		{
 			if (SettingsMenuManager.Instance.LogDebug)
 				GD.Print($"Ignored PlayBGM(\"{name}\"), the preset locks the BGM.");
-			BGM.VolumeDb = Mathf.LinearToDb(volume);
+			BGM.VolumeDb = Mathf.LinearToDb(Math.Clamp(volume, 0.001f, 3f));
 			return;
 		}
 		ForcePlayBGM(name, volume, pitch);

@@ -13,6 +13,7 @@ internal partial class PlayingAnimation : Node2D
 	private const int Rate = 4;
 
 	public int CurrentFrame { get; private set; } = 0;
+	internal float FrameTimer;
 	public readonly RPGMAnimatedSprite Animation;
 	public Vector2 DrawPosition { get; private set; }
 	public readonly Actor Target;

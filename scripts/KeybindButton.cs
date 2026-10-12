@@ -113,6 +113,12 @@ internal partial class KeybindButton : Control
             return;
         }
 
+        if (ControllerBinding.IsController(@event) && @event.IsActionPressed("Back"))
+        {
+            CancelCapture();
+            return;
+        }
+
         if (@event is InputEventKey { Pressed: true, Echo: false } keyEvent)
         {
             if (CapturingController)

@@ -71,7 +71,7 @@ internal sealed class Pluto : Enemy
     {
         if (IsBelowHP(0.5f) && !HasExpanded)
         {
-            DialogueManager.Instance.QueueMessage(this, "[br][wave freq=20.0]GWAH[font_size=40]AHAHAH[font_size=52]AHAHA!!!");
+            DialogueManager.Instance.QueueMessage(this, "[br][wave freq=20.0]GWAH[font_size=43]AHAHAH[font_size=58]AHAHA!!!");
             DialogueManager.Instance.QueueMessage(this, "[br]What a splendid show of force!");
             await DialogueManager.Instance.WaitForDialogue();
             BattleManager.Instance.ForceCommand(this, this, Skills["PLExpand"]);

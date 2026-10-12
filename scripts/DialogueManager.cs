@@ -28,10 +28,6 @@ public partial class DialogueManager : Node2D
 	[Export] private NinePatchRect ChoiceBox;
 	[Export] private VBoxContainer ChoiceTextParent;
 
-	// vanilla tints battlecards, energy bar, and battle log while a dialogue box is on screen
-	[Export] private Color UIDimTint = new(0.5f, 0.5f, 0.5f);
-	[Export] private float UIDimDuration = 0.2f;
-
 	private Queue<MessageBox> MessageQueue = [];
 	private bool HasChoice = false;
 
@@ -44,13 +40,11 @@ public partial class DialogueManager : Node2D
 	private bool WaitingForChoice = false;
 	private double CharTimer = 0;
 	private int CurrentMessageLength = 0;
-	private int CharsTillSound = 3;
+	private int CharsTillSound = 1;
 	private Dictionary<int, List<Pause>> PauseIndices = [];
 	private RichTextLabel Measure;
 	private Tween OpenCloseTween;
-	private Tween DimTween;
 	private Tween CursorFadeTween;
-	private bool UIDimmed;
 
 	private static readonly string[] ParagraphTags = ["[center]", "[right]", "[fill]", "[left]"];
 
@@ -134,7 +128,6 @@ public partial class DialogueManager : Node2D
 				else if (MessageQueue.Count == 0)
 				{
 					Cursor.Visible = false;
-					SpeakerSprite.Visible = false;
 					Text.Visible = false;
 					WaitingForAnimation = true;
 					AnimateClose();
@@ -150,17 +143,17 @@ public partial class DialogueManager : Node2D
 			ChoiceRepeat.Update(delta);
 			if (Input.IsActionJustPressed("Accept"))
 			{
-				AudioManager.Instance.PlaySFX("SYS_select");
+				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				WaitingForChoice = false;
 				if (MessageQueue.Count == 0)
 				{
 					Cursor.Visible = false;
-					SpeakerSprite.Visible = false;
 					Text.Visible = false;
 					ChoiceBox.Visible = false;
 					ChoiceTextParent.Visible = false;
 					ChoiceBox.CustomMinimumSize = new Vector2(110, 20);
 					ChoiceBox.OffsetLeft = CHOICE_BOX_DEFAULT_LEFT;
+					WaitingForAnimation = true;
 					AnimateClose();
 				}
 				else
@@ -184,7 +177,7 @@ public partial class DialogueManager : Node2D
 				{
 					ChoiceIndex = (ChoiceIndex - 1 + CurrentChoices.Length) % CurrentChoices.Length;
 					Cursor.Position = GetCursorPosition(ChoiceIndex);
-					AudioManager.Instance.PlaySFX("SYS_move");
+					AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 				}
 			}
 			else if (ChoiceRepeat.Direction == Vector2I.Down)
@@ -193,7 +186,7 @@ public partial class DialogueManager : Node2D
 				{
 					ChoiceIndex = (ChoiceIndex + 1) % CurrentChoices.Length;
 					Cursor.Position = GetCursorPosition(ChoiceIndex);
-					AudioManager.Instance.PlaySFX("SYS_move");
+					AudioManager.Instance.PlaySFX("SYS_move", volume: 0.9f);
 				}
 			}
 		}
@@ -208,9 +201,9 @@ public partial class DialogueManager : Node2D
 		}
 		if (!Input.IsActionPressed("Accept") && !Input.IsActionPressed("Back"))
 			return false;
-		int before = (int)(TriggerHeldTime * 60 + 0.01);
+		int before = (int)(TriggerHeldTime * 60 + 0.5);
 		TriggerHeldTime += delta;
-		int after = (int)(TriggerHeldTime * 60 + 0.01);
+		int after = (int)(TriggerHeldTime * 60 + 0.5);
 		for (int frame = before + 1; frame <= after; frame++)
 		{
 			if (frame >= 24 && frame % 6 == 0)
@@ -228,6 +221,8 @@ public partial class DialogueManager : Node2D
 			// the pause sits before the character at this index, which stays hidden until typing resumes
 			if (pauses.Count == 0)
 				PauseIndices.Remove(Text.VisibleCharacters);
+			CharsTillSound = 1;
+			PlaySound();
 			if (pauses.Count == 0 && p.Type == PauseType.Input && Text.VisibleCharacters >= CurrentMessageLength && !AutoClose)
 				return;
 			IsTyping = false;
@@ -250,11 +245,15 @@ public partial class DialogueManager : Node2D
 		if (Text.VisibleCharacters >= CurrentMessageLength)
 		{
 			IsTyping = false;
+			if (AutoClose)
+				PlaySound();
 			EndOfMessage();
 			return;
 		}
 
 		Text.VisibleCharacters++;
+		if (Text.VisibleCharacters >= CurrentMessageLength && !PauseIndices.ContainsKey(Text.VisibleCharacters) && !HasChoice && !AutoClose)
+			CharsTillSound = 1;
 		PlaySound();
 	}
 
@@ -289,22 +288,15 @@ public partial class DialogueManager : Node2D
 		AutoClose = false;
 		TextFinished = false;
 		ShowFast = false;
-		if (current.SpeakerPos != default)
-		{
-			SpeakerSprite.Visible = true;
-			Vector2 local = ToLocal(current.SpeakerPos);
-			SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
-		}
-		else if (current.Speaker == null)
-		{
-			SpeakerSprite.Visible = false;
-		}
+		CharsTillSound = 1;
+		PlaceSpeakerArrow(current);
 
 		if (current.Speaker != null)
 		{
 			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " + BuildHeader(current.Font) + current.Message);
 			Text.Text = cleaned;
 			Text.VisibleCharacters = current.Speaker.Length + 2;
+			PlaySound();
 		}
 		else
 		{
@@ -422,7 +414,13 @@ public partial class DialogueManager : Node2D
 			case '\\':
 				sb.Append('\\');
 				return i;
+			case '[':
+				sb.Append("[lb]");
+				return i;
 		}
+
+		if (char.IsAsciiDigit(input[i]))
+			return slash;
 
 		if (!char.IsAsciiLetter(input[i]))
 		{
@@ -487,7 +485,6 @@ public partial class DialogueManager : Node2D
 		if (MessageQueue.Count == 0)
 		{
 			Cursor.Visible = false;
-			SpeakerSprite.Visible = false;
 			Text.Visible = false;
 			WaitingForAnimation = true;
 			// FinishMessage emits FinishedDialogue
@@ -615,22 +612,39 @@ public partial class DialogueManager : Node2D
 	public void QueueMessage(string speaker, Vector2 speakerPos, string message, string[] choices = null,
 		FontType font = FontType.Normal)
 	{
-		CurrentChoices = choices;
 		if (DialogueDisabled)
+		{
+			CurrentChoices = choices;
 			return;
+		}
 
 		MessageQueue.Enqueue(new MessageBox(speaker, speakerPos, message, choices, font));
 
 		if (WaitingForAnimation || IsTyping || WaitingForInput || WaitingForTimer || WaitingForChoice)
 			return;
 		
+		OpenBox();
+	}
+
+	private void OpenBox()
+	{
 		bool barVisible = MenuManager.Instance != null && MenuManager.Instance.EnergyDisplay.Visible;
 		Position = barVisible ? DefaultPosition : DefaultPosition + new Vector2(0, NoEnergyBarOffset);
 
 		Visible = true;
 		WaitingForAnimation = true;
-		SetUIDimmed(true);
+		SetOpenness(0f);
+		PlaceSpeakerArrow(MessageQueue.Peek());
 		AnimateOpen();
+	}
+
+	private void PlaceSpeakerArrow(MessageBox message)
+	{
+		SpeakerSprite.Visible = message.SpeakerPos != default;
+		if (!SpeakerSprite.Visible)
+			return;
+		Vector2 local = ToLocal(message.SpeakerPos);
+		SpeakerSprite.Position = new Vector2(Mathf.Clamp(local.X, -160, 160), SpeakerSprite.Position.Y);
 	}
 
 	/// <summary>
@@ -647,10 +661,18 @@ public partial class DialogueManager : Node2D
 	}
 
 
+	private void SetOpenness(float rate)
+	{
+		Box.Scale = new Vector2(1f, rate);
+		SpeakerSprite.Scale = new Vector2(1f, rate);
+		SpeakerSprite.Position = new Vector2(SpeakerSprite.Position.X, 3f - 56f * rate);
+		AnimationManager.Instance.SetUIDim(rate);
+	}
+
 	private void AnimateOpen()
 	{
 		OpenCloseTween = CreateTween();
-		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 112, 0.1f);
+		OpenCloseTween.TweenMethod(Callable.From<float>(SetOpenness), 0f, 1f, 0.17f);
 		OpenCloseTween.TweenCallback(Callable.From(BeginMessage));
 	}
 
@@ -724,63 +746,32 @@ public partial class DialogueManager : Node2D
 	private void AnimateClose()
 	{
 		OpenCloseTween = CreateTween();
-		OpenCloseTween.TweenProperty(Box, "custom_minimum_size:y", 20, 0.1f);
+		OpenCloseTween.TweenMethod(Callable.From<float>(SetOpenness), 1f, 0f, 0.17f);
 		OpenCloseTween.TweenCallback(Callable.From(FinishMessage));
 	}
 	
 	private void FinishMessage()
 	{
-		Visible = false;
 		WaitingForAnimation = false;
-		SetUIDimmed(false);
-		EmitSignal(SignalName.FinishedDialogue);
-		if (HasChoice)
-			EmitSignal(SignalName.ChoiceSelected, CurrentChoices[ChoiceIndex]);
+		SpeakerSprite.Visible = false;
+		bool hadChoice = HasChoice;
+		string choice = hadChoice ? CurrentChoices[ChoiceIndex] : null;
+		HasChoice = false;
+		if (MessageQueue.Count > 0)
+			OpenBox();
+		else
+		{
+			Visible = false;
+			EmitSignal(SignalName.FinishedDialogue);
+		}
+		if (hadChoice)
+			EmitSignal(SignalName.ChoiceSelected, choice);
 	}
 	
-	private static IEnumerable<CanvasItem> GetDimTargets()
-	{
-		if (BattleManager.Instance != null)
-		{
-			foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
-			{
-				Control battlecard = member.Component?.Battlecard;
-				if (battlecard != null)
-					yield return battlecard;
-			}
-		}
-		if (MenuManager.Instance != null)
-			yield return MenuManager.Instance.EnergyDisplay;
-		if (BattleLogManager.Instance != null)
-			yield return BattleLogManager.Instance;
-	}
-
-	private void SetUIDimmed(bool dimmed)
-	{
-		if (UIDimmed == dimmed)
-			return;
-		UIDimmed = dimmed;
-		Color target = dimmed ? UIDimTint : Colors.White;
-		DimTween?.Kill();
-		DimTween = CreateTween().SetParallel();
-		foreach (CanvasItem item in GetDimTargets())
-			DimTween.TweenProperty(item, "modulate", target, UIDimDuration).SetTrans(Tween.TransitionType.Sine);
-		if (dimmed)
-			AnimationManager.Instance.SetUIToneDimmed(true);
-		else
-			DimTween.Chain().TweenCallback(Callable.From(() => AnimationManager.Instance.SetUIToneDimmed(false)));
-	}
-
 	public void Reset()
 	{
 		MessageQueue.Clear();
 		OpenCloseTween?.Kill();
-		// restore UI tint immediately
-		DimTween?.Kill();
-		UIDimmed = false;
-		foreach (CanvasItem item in GetDimTargets())
-			item.Modulate = Colors.White;
-		AnimationManager.Instance.SetUIToneDimmed(false);
 		PauseGeneration++;
 		HasChoice = false;
 		AutoClose = false;
@@ -793,7 +784,7 @@ public partial class DialogueManager : Node2D
 		WaitingForTimer = false;
 		IsTyping = false;
 		Cursor.Visible = false;
-		CharsTillSound = 3;
+		CharsTillSound = 1;
 		CurrentMessageLength = 0;
 		CharTimer = 0;
 		ChoiceIndex = 0;
@@ -808,7 +799,7 @@ public partial class DialogueManager : Node2D
 		SpeakerSprite.Visible = false;
 		ChoiceBox.Visible = false;
 		ChoiceTextParent.Visible = false;
-		Box.CustomMinimumSize = new Vector2(Box.CustomMinimumSize.X, 20);
+		SetOpenness(0f);
 	}
 
 	private record MessageBox(string Speaker, Vector2 SpeakerPos, string Message, string[] Choices, FontType Font);

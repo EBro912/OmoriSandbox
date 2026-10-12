@@ -100,7 +100,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"afraid",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -114,7 +114,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"angry",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -128,7 +128,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"hurt",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -142,7 +142,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"neutral",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -156,7 +156,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"sad",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -170,7 +170,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"stressed",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -184,7 +184,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"toast",
-"speed": 5
+"speed": 4.615385
 }, {
 "frames": [{
 "duration": 1.0,
@@ -198,5 +198,5 @@ animations = [{
 }],
 "loop": true,
 "name": &"victory",
-"speed": 5
+"speed": 4.615385
 }]

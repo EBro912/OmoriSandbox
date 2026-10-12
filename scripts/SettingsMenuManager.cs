@@ -58,8 +58,10 @@ public partial class SettingsMenuManager : Control
 
 		TitleLoopPointSpinBox.ValueChanged += value =>
 		{
-			TitleBGMLoopPoint = value == TitleTrackLoopPoint ? 0 : value;
-			AudioManager.Instance.ForceSetBGMLoopOffset(TitleBGMLoopPoint);
+			double point = value == TitleTrackLoopPoint ? 0 : value;
+			if (AudioManager.Instance.TryGetBGM(TitleBGM, out _))
+				TitleBGMLoopPoint = point;
+			AudioManager.Instance.ForceSetBGMLoopOffset(point);
 		};
 
 		TitleLoopSetCurrentButton.Pressed += () =>
@@ -517,6 +519,8 @@ public partial class SettingsMenuManager : Control
 	private void RefreshTitleLoopPoint(string bgm)
 	{
 		TitleTrackLoopPoint = AudioManager.Instance.GetDefaultBGMLoopOffset(bgm);
+		TitleLoopPointSpinBox.SetValueNoSignal(0);
+		TitleLoopPointSpinBox.MaxValue = 0;
 		TitleLoopPointSpinBox.MaxValue = AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis stream) ? stream.GetLength() : 0;
 		TitleLoopPointSpinBox.SetValueNoSignal(bgm == TitleBGM && TitleBGMLoopPoint > 0 ? TitleBGMLoopPoint : TitleTrackLoopPoint);
 	}

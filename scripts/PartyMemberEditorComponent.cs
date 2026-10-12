@@ -155,8 +155,8 @@ internal partial class PartyMemberEditorComponent : Control
 		
 		ActorDropdown.Selected = ActorDropdown.GetItemIndex(name);
 		Populate(name);
-		WeaponDropdown.Selected = WeaponDropdown.GetItemIndex(weapon);
-		CharmDropdown.Selected = CharmDropdown.GetItemIndex(charm);
+		WeaponDropdown.Selected = WeaponDropdown.GetItemIndex(EquipmentItem(weapon));
+		CharmDropdown.Selected = CharmDropdown.GetItemIndex(EquipmentItem(charm));
 		EmotionDropdown.Selected = EmotionDropdown.GetItemIndex(emotion);
 		int followupIndex = FollowupSetDropdown.GetItemIndex(followupSetId);
 		FollowupSetDropdown.Selected = followupIndex != -1
@@ -177,6 +177,11 @@ internal partial class PartyMemberEditorComponent : Control
 		int index = level - 1;
 		RefreshSelected(index);
 		RecalculateStats();
+	}
+
+	private static string EquipmentItem(string name)
+	{
+		return name == null || name.Equals("none", System.StringComparison.OrdinalIgnoreCase) ? "None" : name;
 	}
 
 	public void Populate(string who)
