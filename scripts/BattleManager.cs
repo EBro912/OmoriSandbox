@@ -2378,11 +2378,16 @@ public partial class BattleManager : Node
 		return DamageCore(self, target, damageFunc, neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent, null);
 	}
 
+	internal int DamageAfterRoll(Actor self, Actor target, Func<float> damageFunc, float variance, bool neverCrit)
+	{
+		return DamageCore(self, target, damageFunc, false, variance, false, neverCrit, false, null, false, null, true);
+	}
+
 	private int DamageCore(Actor self, Actor target, Func<float> damageFunc, bool neverMiss, float variance,
-		bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting)
+		bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting, bool rolled = false)
 	{
 		target = ResolveTransformed(target);
-		if (!neverMiss && RollMissOrEvade(self, target, silent))
+		if (!neverMiss && !rolled && RollMissOrEvade(self, target, silent))
 			return -1;
 
 		float damage = Math.Max(0, damageFunc());
@@ -2397,7 +2402,7 @@ public partial class BattleManager : Node
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
-			damage = CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, attackElement);
+			damage = (float)CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, attackElement);
 		context.Effectiveness = effectiveness;
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
@@ -2506,7 +2511,8 @@ public partial class BattleManager : Node
 				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
 		}
 
-		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] takes " + roundedInt + " damage!");
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target,
+			roundedInt > 0 ? "[target] takes " + roundedInt + " damage!" : "[actor]'s attack did nothing.");
 
 		if (juiceLost > 0)
 		{
@@ -2522,7 +2528,7 @@ public partial class BattleManager : Node
 		return roundedInt;
 	}
 
-	private bool RollMissOrEvade(Actor self, Actor target, bool silent)
+	internal bool RollMissOrEvade(Actor self, Actor target, bool silent)
 	{
 		int hitRate = self.CurrentStats.HIT;
 		int evasion = target.CurrentStats.EVA;
@@ -2545,16 +2551,11 @@ public partial class BattleManager : Node
 		if (!miss && !evaded)
 			return false;
 
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack whiffed!");
 		if (evaded)
-		{
-			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] evaded the attack!");
 			AudioManager.Instance.PlaySFX("GEN_Swish", volume: 0.9f);
-		}
 		else
-		{
-			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack missed...");
 			AudioManager.Instance.PlaySFX("BA_miss");
-		}
 		// Miss text spawns a little further down
 		SpawnDamageNumber(-1, target, DamageType.Miss);
 		return true;
@@ -2651,7 +2652,7 @@ public partial class BattleManager : Node
 		float variance, bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting)
 	{
 		target = ResolveTransformed(target);
-		if (!neverMiss && RollMissOrEvade(self, target, silent))
+		if (!neverMiss && RollMissOrEvade(self, target, true))
 			return -1;
 
 		float damage = damageFunc();
@@ -2663,7 +2664,7 @@ public partial class BattleManager : Node
 
 		int effectiveness = 0;
 		if (!ignoreEmotion)
-			damage = CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out effectiveness, attackElement);
+			damage = (float)CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out effectiveness, attackElement);
 		context.Effectiveness = effectiveness;
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
@@ -2719,7 +2720,7 @@ public partial class BattleManager : Node
 		target.DamageJuice(roundedInt, applyDebugScale: false);
 		if (roundedInt > 0)
 			SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
-		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
+		if (!silent && roundedInt > 0) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
 		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),
 			"DamageDealt");
@@ -2739,14 +2740,15 @@ public partial class BattleManager : Node
 	/// <param name="healFunc">The function to use in the heal calculation.</param>
 	/// <param name="variance">The healing variance. Healed HP will be multiplied between (1 - variance) and (1 + variance).</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
-	public int Heal(Actor self, Actor target, Func<float> healFunc, float variance = 0.2f, bool silent = false)
+	/// <returns>The amount of HP healed.</returns>
+	public int Heal(Actor self, Actor target, Func<double> healFunc, float variance = 0.2f, bool silent = false)
 	{
 		target = ResolveTransformed(target);
-		float baseHealing = healFunc();
+		double baseHealing = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
-		int rounded = (int)Math.Round(baseHealing, MidpointRounding.AwayFromZero);
+		int rounded = RoundHealing(baseHealing);
 		rounded = target.Heal(rounded);
 		SpawnDamageNumber(rounded, target, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
@@ -2757,24 +2759,50 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Calculates emotion-based juice healing to the <paramref name="target"/>.
 	/// </summary>
-	/// /// <remarks>
+	/// <remarks>
 	/// Some juice healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.
 	/// </remarks>
 	/// <param name="self">The healer.</param>
 	/// <param name="target">The target being healed.</param>
-	/// <param name="healFunc">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance).</param>
+	/// <param name="healFunc">The function to use in the juice healing calculation.</param>
+	/// <param name="variance">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance).</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
-	public void HealJuice(Actor self, Actor target, Func<float> healFunc, bool silent = false)
+	/// <returns>The amount of juice healed.</returns>
+	public int HealJuice(Actor self, Actor target, Func<double> healFunc, float variance = 0f, bool silent = false)
 	{
 		target = ResolveTransformed(target);
-		float baseJuice = healFunc();
+		double baseJuice = healFunc();
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
-		float finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
-		int rounded = (int)Math.Round(finalJuice, MidpointRounding.AwayFromZero);
+		double finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
+		finalJuice = CalculateVariance(finalJuice, variance);
+		int rounded = RoundHealing(finalJuice);
 		rounded = target.HealJuice(rounded);
 		SpawnDamageNumber(rounded, target, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
+		return rounded;
+	}
+
+	/// <summary>
+	/// Rounds a healing amount the way the base game does: an exact half rounds down.
+	/// </summary>
+	/// <param name="amount">The unrounded healing amount.</param>
+	/// <returns>The rounded amount.</returns>
+	public static int RoundHealing(double amount)
+	{
+		double whole = Math.Floor(amount);
+		return (int)(amount - whole > 0.5 ? whole + 1 : whole);
+	}
+
+	/// <summary>
+	/// Returns a percentage of a value with the fraction dropped, like the base game's percentage heals.
+	/// </summary>
+	/// <param name="value">The value to take the percentage of, such as max HEART.</param>
+	/// <param name="percent">The percentage, from 0 to 100.</param>
+	/// <returns>The truncated result.</returns>
+	public static int PercentOf(int value, int percent)
+	{
+		return (int)(value * percent * 0.01);
 	}
 
 	// RPGMaker applyVariance method
@@ -2785,11 +2813,18 @@ public partial class BattleManager : Node
 		return damage + v;
 	}
 
+	private double CalculateVariance(double damage, float variance)
+	{
+		int amp = (int)Math.Floor(Math.Max(Math.Abs(damage) * variance, 0));
+		int v = GameManager.Instance.Random.RandiRange(0, amp) + GameManager.Instance.Random.RandiRange(0, amp) - amp;
+		return damage + v;
+	}
+
 	// weaknesses and resistances by tier
 	private readonly float[] weakness = [1.5f, 2f, 2.5f];
 	private readonly float[] resistance = [0.8f, 0.65f, 0.5f];
 
-	private float CalculateEmotionModifiers(Emotion self, Emotion target, float damage, out int effect, string attackElement = null)
+	private double CalculateEmotionModifiers(Emotion self, Emotion target, double damage, out int effect, string attackElement = null)
 	{
 		Emotion neutral = Database.NeutralEmotion;
 
@@ -2816,7 +2851,7 @@ public partial class BattleManager : Node
 		}
 
 		// emotions that are weak to all emotions like afraid check for any emotion
-		if (self != neutral && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
+		if (self.Group != null && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
 		{
 			effect = emotionRate > 1f ? 1 : emotionRate < 1f ? -1 : 0;
 			return damage * emotionRate;

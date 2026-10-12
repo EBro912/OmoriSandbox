@@ -14,8 +14,8 @@ public sealed class ReleaseEnergyBasilStatModifier : StatModifier
     /// <inheritdoc/>
     public override void OnStartOfTurn(Actor actor)
     {
-        int heal = (int)Math.Round(actor.CurrentStats.MaxHP * 0.1f, MidpointRounding.AwayFromZero);
-		int juice = (int)Math.Round(actor.CurrentStats.MaxJuice * 0.05f, MidpointRounding.AwayFromZero);
+        int heal = (int)Math.Floor(actor.CurrentStats.MaxHP * 0.1);
+		int juice = (int)Math.Floor(actor.CurrentStats.MaxJuice * 0.05);
 		heal = actor.Heal(heal);
 		juice = actor.HealJuice(juice);
 		BattleManager.Instance.SpawnDamageNumber(heal, actor, DamageType.Heal);

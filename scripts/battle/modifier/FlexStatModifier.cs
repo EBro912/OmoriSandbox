@@ -1,4 +1,4 @@
-using OmoriSandbox.Actors;
+using System;
 
 namespace OmoriSandbox.Battle.Modifier;
 
@@ -11,13 +11,12 @@ public sealed class FlexStatModifier : StatModifier
     public FlexStatModifier(params StatBonus[] bonuses) : base(bonuses) { }
     
     /// <inheritdoc/>
-    public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking, bool isCritical, bool neverMiss)
+    public override void OverrideDamage(DamagePhase phase, ref float damage, DamageContext context)
     {
-        if (phase is DamagePhase.PreJuice && isAttacking && !neverMiss)
+        if (phase is DamagePhase.PreJuice && context.IsAttacking && !context.NeverMiss && !context.IsJuice && damage > 0)
         {
-            damage *= 2.5f;
-            if (damage > 0)
-                attacker.RemoveStatModifier("Flex");
+            damage = (float)Math.Ceiling(damage * 2.5f);
+            context.Attacker.RemoveStatModifier("Flex");
         }
     }
 }
