@@ -68,12 +68,12 @@ public sealed class DamageDealtEventArgs : EventArgs
     public int JuiceLost { get; }
 
     /// <summary>
-    /// Whether the hit was a critical hit.
+    /// Whether the hit was a critical hit. False when the hit dealt no damage: no HP for an HP attack, no Juice for a juice attack.
     /// </summary>
     public bool Critical { get; }
 
     /// <summary>
-    /// True if this was a juice attack (see <see cref="BattleManager.DamageJuice"/>), false for a regular HP attack.
+    /// True if this was a juice attack (see <c>BattleManager.DamageJuice</c>), false for a regular HP attack.
     /// </summary>
     public bool JuiceDamage { get; }
 

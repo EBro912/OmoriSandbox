@@ -8,7 +8,7 @@ namespace OmoriSandbox.Battle;
 /// <see cref="StatModifier.OverrideDamage(DamagePhase, ref float, DamageContext)"/>.
 /// </summary>
 /// <remarks>
-/// One context is created for each <see cref="BattleManager.Damage"/> or <see cref="BattleManager.DamageJuice"/> call and
+/// One context is created for each <c>BattleManager.Damage</c> or <c>BattleManager.DamageJuice</c> call and
 /// shared by every phase and modifier of that call, so read its values during the call instead of keeping it.
 /// </remarks>
 public sealed class DamageContext
@@ -30,19 +30,27 @@ public sealed class DamageContext
     public bool IsAttacking { get; internal set; }
 
     /// <summary>
-    /// Whether the damage is a critical hit. Always false during <see cref="DamagePhase.PreEmotion"/> and <see cref="DamagePhase.PreCrit"/>.
+    /// Whether the damage is a critical hit. Always false during <see cref="DamagePhase.PreEmotion"/> and <see cref="DamagePhase.PreCrit"/>, and during <see cref="DamagePhase.PostApply"/> when a hit that isn't absorbed or reflected dealt no damage.
     /// </summary>
     public bool IsCritical { get; internal set; }
 
     /// <summary>
+    /// The options the damage call was made with. See <see cref="DamageOptions"/>.
+    /// </summary>
+    /// <remarks>
+    /// A call with the older <c>BattleManager.Damage</c> parameters gets the matching options. A reflected hit has its own options.
+    /// </remarks>
+    public DamageOptions Options { get; }
+
+    /// <summary>
     /// Whether the attack can never miss.
     /// </summary>
-    public bool NeverMiss { get; }
+    public bool NeverMiss => Options.NeverMiss;
 
     /// <summary>
     /// Whether the attack ignores emotion advantage.
     /// </summary>
-    public bool IgnoreEmotion { get; }
+    public bool IgnoreEmotion => Options.IgnoreEmotion;
 
     /// <summary>
     /// The emotion advantage of the hit: 1 for a moving attack, -1 for a dull attack, 0 otherwise.<br/>
@@ -53,10 +61,10 @@ public sealed class DamageContext
     /// <summary>
     /// The attack element passed to the damage call, such as <c>"exploit"</c>, or null when the attacker's emotion is used.
     /// </summary>
-    public string AttackElement { get; }
+    public string AttackElement => Options.AttackElement;
 
     /// <summary>
-    /// True for juice damage (<see cref="BattleManager.DamageJuice"/>), false for HP damage (<see cref="BattleManager.Damage"/>).
+    /// True for juice damage (<c>BattleManager.DamageJuice</c>), false for HP damage (<c>BattleManager.Damage</c>).
     /// </summary>
     public bool IsJuice { get; }
 
@@ -78,14 +86,11 @@ public sealed class DamageContext
 
     internal string Element { get; }
 
-    internal DamageContext(Actor attacker, Actor defender, bool neverMiss, bool ignoreEmotion, string attackElement, bool isJuice,
-        string element, bool isReflected)
+    internal DamageContext(Actor attacker, Actor defender, DamageOptions options, bool isJuice, string element, bool isReflected)
     {
         Attacker = attacker;
         Defender = defender;
-        NeverMiss = neverMiss;
-        IgnoreEmotion = ignoreEmotion;
-        AttackElement = attackElement;
+        Options = options;
         IsJuice = isJuice;
         Element = element;
         IsReflected = isReflected;

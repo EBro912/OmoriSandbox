@@ -53,7 +53,7 @@ public enum DamagePhase
     /// Damage can no longer be overridden here, however any "respond" effects can be applied.
     /// </summary>
     /// <remarks>
-    /// Modifiers such as Second Chance, used by Plot Armor and Persist, are applied at this stage.
+    /// Modifiers such as Second Chance, used by Plot Armor and Persist, are applied at this stage. The defender's modifiers run before the attacker's in this phase.
     /// </remarks>
     PostApply
 }

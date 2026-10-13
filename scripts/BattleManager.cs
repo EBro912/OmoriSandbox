@@ -177,6 +177,8 @@ public partial class BattleManager : Node
 	private int FollowupTier = 1;
 	private bool DamageNumbersDisabled = false;
 	private bool DebugDamageHeld = false;
+	private bool InActionEffect;
+	private bool ActionForcedCrit;
 
 	internal bool CombinedBuffsDebuffs { get; private set; }
 
@@ -709,6 +711,8 @@ public partial class BattleManager : Node
 		FallTween = null;
 		CurrentCommand = null;
 		CommandTargets = [];
+		InActionEffect = false;
+		ActionForcedCrit = false;
 		EndTiersFromFirstTarget();
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.ResetScreenEffects();
@@ -1807,8 +1811,12 @@ public partial class BattleManager : Node
 		foreach (Actor resolved in resolvedTargets)
 			resolved.ClearResult();
 
+		ActionForcedCrit = false;
+		InActionEffect = true;
 		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
 			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
+		InActionEffect = false;
+		ActionForcedCrit = false;
 		EndTiersFromFirstTarget();
 
 		RaiseGuarded(ActionEnded, actionArgs, "ActionEnded");
@@ -2357,7 +2365,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// On top of calculating damage, this function also handles displaying damage numbers, playing sound effects, and queuing battle log messages for misses and critical hits.<br/>
-	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.<br/>
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -2376,49 +2384,77 @@ public partial class BattleManager : Node
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
 		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
-		return DamageCore(self, target, damageFunc, neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent, null);
+		return Damage(self, target, damageFunc, ToOptions(neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent));
 	}
 
-	internal int DamageAfterRoll(Actor self, Actor target, Func<float> damageFunc, float variance, bool neverCrit)
+	/// <summary>
+	/// Calculates damage with the given <paramref name="options"/>. Misses, critical hits, emotion effectiveness, sad juice loss, and stat modifiers are all taken into account.
+	/// </summary>
+	/// <remarks>
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
+	/// </remarks>
+	/// <param name="self">The attacker.</param>
+	/// <param name="target">The target/defender.</param>
+	/// <param name="damageFunc">The damage function to use in the damage calculation.</param>
+	/// <param name="options">How the attack behaves. Null uses <see cref="DamageOptions.Default"/>.</param>
+	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied, or -1 if the attack missed, was evaded, or a stat modifier turned it into a miss.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="self"/>, <paramref name="target"/> or <paramref name="damageFunc"/> is null.</exception>
+	public int Damage(Actor self, Actor target, Func<float> damageFunc, DamageOptions options)
 	{
-		return DamageCore(self, target, damageFunc, false, variance, false, neverCrit, false, null, false, null, true);
+		ArgumentNullException.ThrowIfNull(self);
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(damageFunc);
+		return DamageCore(self, target, damageFunc, options ?? DamageOptions.Default, false, null);
 	}
 
-	private int DamageCore(Actor self, Actor target, Func<float> damageFunc, bool neverMiss, float variance,
-		bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting, bool rolled = false)
+	private static DamageOptions ToOptions(bool neverMiss, float variance, bool guaranteeCrit, bool neverCrit, bool ignoreEmotion,
+		string attackElement, bool silent)
+	{
+		return new DamageOptions
+		{
+			NeverMiss = neverMiss,
+			Variance = variance,
+			Crit = neverCrit ? CritMode.Never : guaranteeCrit ? CritMode.Always : CritMode.Roll,
+			IgnoreEmotion = ignoreEmotion,
+			AttackElement = attackElement,
+			Silent = silent
+		};
+	}
+
+	private int DamageCore(Actor self, Actor target, Func<float> damageFunc, DamageOptions options, bool juice,
+		DamageContext reflecting)
 	{
 		target = ResolveTransformed(target);
-		if (!neverMiss && !rolled && RollMissOrEvade(self, target, silent))
+		// VANILLA BUG: TICKLE never restores the critical hit it forces, so it lasts the rest of the action
+		if (InActionEffect && options.Crit != CritMode.Never && target.HasStatModifier("Tickle"))
+			ActionForcedCrit = true;
+		if (!options.NeverMiss && !RollHit(self, target, options.Silent || juice))
 			return -1;
 
 		float damage = Math.Max(0, damageFunc());
 		// locked bosses resolve advantage as their locked emotion
 		Emotion selfEmotion = self.EffectiveEmotion;
 		Emotion targetEmotion = target.EffectiveEmotion;
-		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, false,
-			reflecting != null ? reflecting.Element : (attackElement ?? selfEmotion.Group?.Id), reflecting != null);
+		DamageContext context = new(self, target, options, juice,
+			reflecting != null ? reflecting.Element : (options.AttackElement ?? selfEmotion.Group?.Id), reflecting != null);
 		ApplyOutcomeRules(context);
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
 
 		int effectiveness = 0;
-		if (!ignoreEmotion)
-			damage = (float)CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, attackElement);
+		if (!options.IgnoreEmotion)
+			damage = (float)CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, options.AttackElement);
 		context.Effectiveness = effectiveness;
 		bool critical =
-			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
-			 target.HasStatModifier("Tickle")) && !neverCrit;
+			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || options.Crit == CritMode.Always ||
+			 ActionForcedCrit || target.HasStatModifier("Tickle")) && options.Crit != CritMode.Never;
 
 		// even though we know if the attack is a crit or not at this stage, pass false
 		// this may change in the future depending on feedback and use case
 		ApplyOverrides(DamagePhase.PreCrit, ref damage, context);
 
 		if (critical)
-		{
-			damage *= 1.5f;
-			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
-			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2.5f);
-		}
+			damage = (float)(damage * options.CritMultiplier);
 
 		context.IsCritical = critical;
 		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, context);
@@ -2430,7 +2466,7 @@ public partial class BattleManager : Node
 
 		ApplyOverrides(DamagePhase.PreVariance, ref damage, context);
 
-		damage = CalculateVariance(damage, variance);
+		damage = CalculateVariance(damage, options.Variance);
 
 		ApplyOverrides(DamagePhase.PreRounding, ref damage, context);
 
@@ -2447,19 +2483,25 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
 
 		if (IsDiverted(context))
-			return DivertDamage(context, (int)Math.Round(rounded, MidpointRounding.AwayFromZero), silent);
+		{
+			options.OnHit?.Invoke();
+			return DivertDamage(context, (int)Math.Round(rounded, MidpointRounding.AwayFromZero), options.Silent);
+		}
 
 		// sadness converts part of the damage to juice loss. emotion-locked states keep tier-1
 		// element rates but bleed 0.5/1.0, so the bleed follows the displayed emotion, not the lock's advantage emotion
 		int juiceLost = 0;
-		float bleed = target.CurrentEmotion.JuiceBleedFraction;
-		if (bleed > 0)
+		if (!juice)
 		{
-			juiceLost = Math.Min((int)Math.Floor(rounded * bleed), target.CurrentJuice);
-			rounded -= juiceLost;
-		}
+			float bleed = target.CurrentEmotion.JuiceBleedFraction;
+			if (bleed > 0)
+			{
+				juiceLost = Math.Min((int)Math.Floor(rounded * bleed), target.CurrentJuice);
+				rounded -= juiceLost;
+			}
 
-		target.CurrentJuice -= juiceLost;
+			target.CurrentJuice -= juiceLost;
+		}
 
 		if (rounded < 0)
 			rounded = 0;
@@ -2471,66 +2513,113 @@ public partial class BattleManager : Node
 		ApplyOverrides(DamagePhase.PreApply, ref rounded, context);
 
 		int roundedInt = (int)rounded;
-		
+
 		// if damage ends up being below zero due to a stat modifier, treat it as a pseudo-miss
 		// exactly 0 damage still proceeds through as normal
 		if (roundedInt < 0)
 		{
 			// undo the sad juice bleed, the hit never landed
-			target.CurrentJuice += juiceLost;
-			AudioManager.Instance.PlaySFX("BA_miss");
+			if (!juice)
+				target.CurrentJuice += juiceLost;
+			AudioManager.Instance.PlaySFX("BA_miss", volume: 0.9f);
 			SpawnDamageNumber(-1, target, DamageType.Miss);
-			if (!silent) BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
+			if (!options.Silent && !juice) BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
 			return -1;
 		}
-		// scaled above already, before the sad bleed split it
-		target.Damage(roundedInt, applyDebugScale: false);
-		
-		if (target is PartyMember && roundedInt > 0)
-		{
-			Energy = Math.Min(10, Energy + 1);
-			AnimationManager.Instance.InitShake(new Shake(5, 5, 10));
-		}
 
-		SpawnDamageNumber(roundedInt, target, critical: critical);
-		// we don't need to play a hitsound if the attack is a critical or if there's no damage
-		if (roundedInt > 0)
+		if (juice)
 		{
-			if (SettingsMenuManager.Instance.LogDebug)
-				GD.Print("Effectiveness: " + effectiveness);
-			if (effectiveness > 0)
+			roundedInt = Math.Min(roundedInt, target.CurrentJuice);
+			rounded = roundedInt;
+			target.DamageJuice(roundedInt, applyDebugScale: false);
+		}
+		else
+		{
+			// scaled above already, before the sad bleed split it
+			target.Damage(roundedInt, applyDebugScale: false);
+
+			if (target is PartyMember && roundedInt > 0)
 			{
-				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
-				if (!critical) AudioManager.Instance.PlaySFX("se_impact_double", 1f, 1.5f);
+				Energy = Math.Min(10, Energy + 1);
+				AnimationManager.Instance.InitShake(new Shake(5, 5, 10));
 			}
-			else if (effectiveness < 0)
-			{
-				if (!silent) BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
-				if (!critical) AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 1.5f);
-			}
-			else
-				AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
 		}
 
-		if (!silent) BattleLogManager.Instance.QueueMessage(self, target,
-			roundedInt > 0 ? "[target] takes " + roundedInt + " damage!" : "[actor]'s attack did nothing.");
+		options.OnHit?.Invoke();
+		// VANILLA BUG: the moving/dull line and sound re-read the emotions after the hit's own effects
+		if (!options.IgnoreEmotion)
+			CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, 0, out effectiveness, options.AttackElement);
 
-		if (juiceLost > 0)
+		bool landedCritical = critical && roundedInt > 0;
+		if (juice)
 		{
-			if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
-			SpawnDamageNumber(juiceLost, target, DamageType.JuiceLoss);
+			if (roundedInt > 0)
+				SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
+			if (!options.Silent && roundedInt > 0) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
+		}
+		else
+		{
+			SpawnDamageNumber(roundedInt, target, critical: landedCritical);
+			// a critical plays only its own sound, and nothing plays if there's no damage
+			if (roundedInt > 0)
+			{
+				if (SettingsMenuManager.Instance.LogDebug)
+					GD.Print("Effectiveness: " + effectiveness);
+				if (critical)
+					AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2.5f);
+				else if (effectiveness > 0)
+					AudioManager.Instance.PlaySFX("se_impact_double", 1f, 1.5f);
+				else if (effectiveness < 0)
+					AudioManager.Instance.PlaySFX("se_impact_soft", 1f, 1.5f);
+				else
+					AudioManager.Instance.PlaySFX("SE_dig", 0.7f, 0.9f);
+			}
+
+			if (!options.Silent)
+			{
+				if (landedCritical)
+					BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
+				if (roundedInt > 0 && effectiveness > 0)
+					BattleLogManager.Instance.QueueMessage("...It was a moving attack!");
+				else if (roundedInt > 0 && effectiveness < 0)
+					BattleLogManager.Instance.QueueMessage("...It was a dull attack.");
+				BattleLogManager.Instance.QueueMessage(self, target,
+					roundedInt > 0 ? "[target] takes " + roundedInt + " damage!" : "[actor]'s attack did nothing.");
+			}
+
+			if (juiceLost > 0 && options.ShowJuiceLoss)
+			{
+				if (!options.Silent) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + juiceLost + " JUICE...");
+				SpawnDamageNumber(juiceLost, target, DamageType.JuiceLoss);
+			}
 		}
 
+		context.IsCritical = landedCritical;
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
 
-		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, roundedInt, juiceLost, critical, false),
-			"DamageDealt");
+		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, juice ? 0 : roundedInt, juice ? roundedInt : juiceLost,
+			landedCritical, juice), "DamageDealt");
 
 		return roundedInt;
 	}
 
-	internal bool RollMissOrEvade(Actor self, Actor target, bool silent)
+	/// <summary>
+	/// Rolls whether an attack hits, using the attacker's HIT and the target's EVA.
+	/// </summary>
+	/// <remarks>
+	/// The "Combined Accuracy" setting changes how the roll works. Every damage call that can miss rolls through this method.<br/>
+	/// For damage plus other effects on one roll, use <see cref="DamageOptions.OnHit"/> instead.
+	/// </remarks>
+	/// <param name="self">The attacker.</param>
+	/// <param name="target">The target/defender.</param>
+	/// <param name="silent">If true, a miss logs nothing to the BattleLog. The sound and MISS still show.</param>
+	/// <returns>True if the attack hits.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="self"/> or <paramref name="target"/> is null.</exception>
+	public bool RollHit(Actor self, Actor target, bool silent = false)
 	{
+		ArgumentNullException.ThrowIfNull(self);
+		ArgumentNullException.ThrowIfNull(target);
+		target = ResolveTransformed(target);
 		int hitRate = self.CurrentStats.HIT;
 		int evasion = target.CurrentStats.EVA;
 
@@ -2550,16 +2639,16 @@ public partial class BattleManager : Node
 		}
 
 		if (!miss && !evaded)
-			return false;
+			return true;
 
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s attack whiffed!");
 		if (evaded)
 			AudioManager.Instance.PlaySFX("GEN_Swish", volume: 0.9f);
 		else
-			AudioManager.Instance.PlaySFX("BA_miss");
+			AudioManager.Instance.PlaySFX("BA_miss", volume: 0.9f);
 		// Miss text spawns a little further down
 		SpawnDamageNumber(-1, target, DamageType.Miss);
-		return true;
+		return false;
 	}
 
 	private static void ApplyOutcomeRules(DamageContext context)
@@ -2596,10 +2685,15 @@ public partial class BattleManager : Node
 		{
 			if (!silent)
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] reflected the attack!");
-			if (context.IsJuice)
-				DamageJuiceCore(target, self, () => amount, true, 0f, false, true, true, context.AttackElement, silent, context);
-			else
-				DamageCore(target, self, () => amount, true, 0f, false, true, true, context.AttackElement, silent, context);
+			DamageCore(target, self, () => amount, new DamageOptions
+			{
+				NeverMiss = true,
+				Variance = 0f,
+				Crit = CritMode.Never,
+				IgnoreEmotion = true,
+				AttackElement = context.AttackElement,
+				Silent = silent
+			}, context.IsJuice, context);
 		}
 		float none = 0f;
 		ApplyOverrides(DamagePhase.PostApply, ref none, context);
@@ -2611,12 +2705,16 @@ public partial class BattleManager : Node
 		TierReactionDepth++;
 		try
 		{
-			context.IsAttacking = true;
-			foreach (StatModifier mod in context.Attacker.StatModifiers.Values)
-				mod.OverrideDamage(phase, ref damage, context);
-			context.IsAttacking = false;
-			foreach (StatModifier mod in context.Defender.StatModifiers.Values)
-				mod.OverrideDamage(phase, ref damage, context);
+			if (phase == DamagePhase.PostApply)
+			{
+				RunOverrides(context.Defender, false, phase, ref damage, context);
+				RunOverrides(context.Attacker, true, phase, ref damage, context);
+			}
+			else
+			{
+				RunOverrides(context.Attacker, true, phase, ref damage, context);
+				RunOverrides(context.Defender, false, phase, ref damage, context);
+			}
 		}
 		finally
 		{
@@ -2624,12 +2722,19 @@ public partial class BattleManager : Node
 		}
 	}
 
+	private static void RunOverrides(Actor actor, bool attacking, DamagePhase phase, ref float damage, DamageContext context)
+	{
+		context.IsAttacking = attacking;
+		foreach (StatModifier mod in actor.StatModifiers.Values)
+			mod.OverrideDamage(phase, ref damage, context);
+	}
+
 	/// <summary>
 	/// Calculates juice damage. Misses, critical hits, emotion effectiveness, and stat modifiers are all taken into account. Sadness damage reduction, however, is not.
 	/// </summary>
 	/// /// <remarks>
 	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool, string, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.<br/>
-	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.<br/>
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -2646,86 +2751,28 @@ public partial class BattleManager : Node
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
 		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
-		return DamageJuiceCore(self, target, damageFunc, neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent, null);
+		return DamageJuice(self, target, damageFunc, ToOptions(neverMiss, variance, guaranteeCrit, neverCrit, ignoreEmotion, attackElement, silent));
 	}
 
-	private int DamageJuiceCore(Actor self, Actor target, Func<float> damageFunc, bool neverMiss,
-		float variance, bool guaranteeCrit, bool neverCrit, bool ignoreEmotion, string attackElement, bool silent, DamageContext reflecting)
+	/// <summary>
+	/// Calculates juice damage with the given <paramref name="options"/>. Misses, critical hits, emotion effectiveness, and stat modifiers are all taken into account.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="DamageOptions.ShowJuiceLoss"/> has no effect here.<br/>
+	/// The target can't lose more JUICE than it has. A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
+	/// </remarks>
+	/// <param name="self">The attacker.</param>
+	/// <param name="target">The target/defender.</param>
+	/// <param name="damageFunc">The damage function to use in the damage calculation.</param>
+	/// <param name="options">How the attack behaves. Null uses <see cref="DamageOptions.Default"/>.</param>
+	/// <returns>The JUICE the target lost, at most the JUICE it had, or -1 if the attack missed, was evaded, or a stat modifier turned it into a miss.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="self"/>, <paramref name="target"/> or <paramref name="damageFunc"/> is null.</exception>
+	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, DamageOptions options)
 	{
-		target = ResolveTransformed(target);
-		if (!neverMiss && RollMissOrEvade(self, target, true))
-			return -1;
-
-		float damage = damageFunc();
-		DamageContext context = new(self, target, neverMiss, ignoreEmotion, attackElement, true,
-			reflecting != null ? reflecting.Element : (attackElement ?? self.EffectiveEmotion.Group?.Id), reflecting != null);
-		ApplyOutcomeRules(context);
-		// locked bosses resolve advantage as their locked emotion
-		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
-
-		int effectiveness = 0;
-		if (!ignoreEmotion)
-			damage = (float)CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, damage, out effectiveness, attackElement);
-		context.Effectiveness = effectiveness;
-		bool critical =
-			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || guaranteeCrit ||
-			 target.HasStatModifier("Tickle")) && !neverCrit;
-
-		ApplyOverrides(DamagePhase.PreCrit, ref damage, context);
-
-		if (critical)
-		{
-			damage *= 1.5f;
-			if (!silent) BattleLogManager.Instance.QueueMessage("IT HIT RIGHT IN THE HEART!");
-			AudioManager.Instance.PlaySFX("BA_CRITICAL_HIT", volume: 2f);
-		}
-
-		context.IsCritical = critical;
-		ApplyOverrides(DamagePhase.PreFlatCrit, ref damage, context);
-
-		if (critical)
-		{
-			damage += 1.5f;
-		}
-
-		ApplyOverrides(DamagePhase.PreVariance, ref damage, context);
-
-		damage = CalculateVariance(damage, variance);
-
-		ApplyOverrides(DamagePhase.PreRounding, ref damage, context);
-
-		float rounded = (float)Math.Round(damage, MidpointRounding.AwayFromZero);
-
-		if (ShouldDoDebugDamage() && reflecting == null)
-			rounded *= 10;
-		if (rounded < 0)
-			rounded = 0;
-		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
-			rounded = 9999;
-
-		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
-		if (IsDiverted(context))
-			return DivertDamage(context, (int)Math.Round(rounded, MidpointRounding.AwayFromZero), silent);
-		ApplyOverrides(DamagePhase.PreApply, ref rounded, context);
-
-		int roundedInt = (int)rounded;
-		// a stat modifier fully negated the hit and drove the damage negative — treat it like a miss
-		if (roundedInt < 0)
-		{
-			AudioManager.Instance.PlaySFX("BA_miss");
-			SpawnDamageNumber(-1, target, DamageType.Miss);
-			return -1;
-		}
-		roundedInt = Math.Min(roundedInt, target.CurrentJuice);
-		rounded = roundedInt;
-		target.DamageJuice(roundedInt, applyDebugScale: false);
-		if (roundedInt > 0)
-			SpawnDamageNumber(roundedInt, target, DamageType.JuiceLoss);
-		if (!silent && roundedInt > 0) BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + roundedInt + " JUICE...");
-		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
-		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, 0, roundedInt, critical, true),
-			"DamageDealt");
-		return roundedInt;
+		ArgumentNullException.ThrowIfNull(self);
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(damageFunc);
+		return DamageCore(self, target, damageFunc, options ?? DamageOptions.Default, true, null);
 	}
 
 	// some healing and juice skills are affected by emotion
@@ -2734,7 +2781,8 @@ public partial class BattleManager : Node
 	/// Calculates emotion-based healing to the <paramref name="target"/>.
 	/// </summary>
 	/// <remarks>
-	/// Some healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.
+	/// Some healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.<br/>
+	/// A negative amount heals 0, and the healing is capped at 9999 unless "Disable Damage Limit" is on, like damage.
 	/// </remarks>
 	/// <param name="self">The healer.</param>
 	/// <param name="target">The target being healed.</param>
@@ -2745,12 +2793,14 @@ public partial class BattleManager : Node
 	public int Heal(Actor self, Actor target, Func<double> healFunc, float variance = 0.2f, bool silent = false)
 	{
 		target = ResolveTransformed(target);
-		double baseHealing = healFunc();
+		double baseHealing = Math.Max(0, healFunc());
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
-		int rounded = RoundHealing(baseHealing);
-		rounded = target.Heal(rounded);
+		int rounded = DebugScale(RoundHealing(baseHealing));
+		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
+			rounded = 9999;
+		rounded = target.Heal(rounded, applyDebugScale: false);
 		SpawnDamageNumber(rounded, target, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
@@ -2761,7 +2811,8 @@ public partial class BattleManager : Node
 	/// Calculates emotion-based juice healing to the <paramref name="target"/>.
 	/// </summary>
 	/// <remarks>
-	/// Some juice healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.
+	/// Some juice healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.<br/>
+	/// A negative amount heals 0, and the healing is capped at 9999 unless "Disable Damage Limit" is on, like damage.
 	/// </remarks>
 	/// <param name="self">The healer.</param>
 	/// <param name="target">The target being healed.</param>
@@ -2772,12 +2823,14 @@ public partial class BattleManager : Node
 	public int HealJuice(Actor self, Actor target, Func<double> healFunc, float variance = 0f, bool silent = false)
 	{
 		target = ResolveTransformed(target);
-		double baseJuice = healFunc();
+		double baseJuice = Math.Max(0, healFunc());
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		double finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
 		finalJuice = CalculateVariance(finalJuice, variance);
-		int rounded = RoundHealing(finalJuice);
-		rounded = target.HealJuice(rounded);
+		int rounded = DebugScale(RoundHealing(finalJuice));
+		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
+			rounded = 9999;
+		rounded = target.HealJuice(rounded, applyDebugScale: false);
 		SpawnDamageNumber(rounded, target, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
 		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
@@ -2822,8 +2875,8 @@ public partial class BattleManager : Node
 	}
 
 	// weaknesses and resistances by tier
-	private readonly float[] weakness = [1.5f, 2f, 2.5f];
-	private readonly float[] resistance = [0.8f, 0.65f, 0.5f];
+	private readonly double[] weakness = [1.5, 2, 2.5];
+	private readonly double[] resistance = [0.8, 0.65, 0.5];
 
 	private double CalculateEmotionModifiers(Emotion self, Emotion target, double damage, out int effect, string attackElement = null)
 	{
@@ -2864,7 +2917,7 @@ public partial class BattleManager : Node
 			return damage;
 		}
 
-		float multiplier = 1.0f;
+		double multiplier = 1.0;
 		if (self.Group.BeatsGroupId == target.Group.Id)
 		{
 			effect = 1;

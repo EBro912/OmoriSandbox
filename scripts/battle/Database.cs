@@ -1868,13 +1868,15 @@ public class Database
 				await Wait.Milliseconds(1500);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] headbutts [target]!");
 				// vanilla intended behavior: FURIOUS is excluded from the bonus, so only the first two tiers count
+				int damage;
 				if (self.GetEmotionTier("angry") is 1 or 2)
-					BattleManager.Instance.Damage(self, target,
+					damage = BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 3f - target.CurrentStats.DEF, false);
 				else
-					BattleManager.Instance.Damage(self, target,
+					damage = BattleManager.Instance.Damage(self, target,
 						() => self.CurrentStats.ATK * 2.5f - target.CurrentStats.DEF, false);
-				self.CurrentHP = (int)Math.Max(1f, self.CurrentHP - Math.Floor(self.CurrentStats.MaxHP * 0.2));
+				if (damage > -1)
+					self.CurrentHP = (int)Math.Max(1f, self.CurrentHP - Math.Floor(self.CurrentStats.MaxHP * 0.2));
 			}
 		).WithCustomRequirement(actor =>
 		{
@@ -2611,16 +2613,22 @@ public class Database
 					"[actor] passes the COCONUT to [target]!");
 				AnimationManager.Instance.PlayAnimation(123, target);
 				// juice me can miss
-				if (!BattleManager.Instance.RollMissOrEvade(self, target, false))
+				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * .25f, new DamageOptions
 				{
-					int juice = BattleManager.Instance.DebugScale((int)Math.Floor(target.CurrentStats.MaxJuice * 0.4));
-					if (juice > 0)
-						BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {juice} JUICE...");
-					BattleManager.Instance.DamageAfterRoll(self, target, () => target.CurrentHP * .25f, 0f, true);
-					target.HealJuice(juice, applyDebugScale: false);
-					if (juice > 0)
-						BattleManager.Instance.SpawnDamageNumber(juice, target, DamageType.JuiceGain);
-				}
+					NeverMiss = false,
+					Variance = 0f,
+					Crit = CritMode.Never,
+					ShowJuiceLoss = false,
+					OnHit = () =>
+					{
+						int juice = BattleManager.Instance.DebugScale((int)Math.Floor(target.CurrentStats.MaxJuice * 0.4));
+						if (juice > 0)
+							BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovers {juice} JUICE...");
+						target.HealJuice(juice, applyDebugScale: false);
+						if (juice > 0)
+							BattleManager.Instance.SpawnDamageNumber(juice, target, DamageType.JuiceGain);
+					}
+				});
 
 				await Task.CompletedTask;
 			}
@@ -3453,7 +3461,7 @@ public class Database
 				await AnimationManager.Instance.WaitForAnimation(123, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] bumps into [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF,
-					false);
+					new DamageOptions { NeverMiss = false, CritMultiplier = 0.6 });
 			}
 		);
 
@@ -5020,16 +5028,19 @@ public class Database
 		  {
 			  BattleLogManager.Instance.QueueMessage(self, "[actor] sheds a single tear...\nand bids everyone farewell!");
 			  AnimationManager.Instance.PlayScreenAnimation(172, true);
+			  bool landed = false;
 			  foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
 			  {
-				  if (enemy != self)
-					  BattleManager.Instance.Damage(self, enemy, () => enemy.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true);
+				  if (enemy != self && BattleManager.Instance.Damage(self, enemy, () => enemy.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true) > -1)
+					  landed = true;
 			  }
 			  foreach (Actor member in targets)
 			  {
-				  BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true);
+				  if (BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true) > -1)
+					  landed = true;
 			  }
-			  self.Damage(self.CurrentStats.MaxHP);
+			  if (landed)
+				  self.Damage(self.CurrentStats.MaxHP);
 			  await Task.CompletedTask;
 		  }
 		);
@@ -6096,14 +6107,19 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(197, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] wraps around [target]!");
-				int damage = BattleManager.Instance.Damage(self, target, () => 100, false, 0.1f, neverCrit: true);
-				if (damage > -1)
+				BattleManager.Instance.Damage(self, target, () => 100, new DamageOptions
 				{
-					if (target.SetEmotion("afraid", true))
-						BattleLogManager.Instance.QueueMessage(target, "[actor] feels AFRAID.");
-					else
-						BattleManager.Instance.ShowEmotionNoEffect(target, "afraid");
-				}
+					NeverMiss = false,
+					Variance = 0.1f,
+					Crit = CritMode.Never,
+					OnHit = () =>
+					{
+						if (target.SetEmotion("afraid", true))
+							BattleLogManager.Instance.QueueMessage(target, "[actor] feels AFRAID.");
+						else
+							BattleManager.Instance.ShowEmotionNoEffect(target, "afraid");
+					}
+				});
 			}
 		);
 		
@@ -7408,8 +7424,8 @@ public class Database
 				await Wait.Milliseconds(500);
 				AudioManager.Instance.PlaySFX("GEN_Bite", 0.5f, 0.9f);
 				// Damage returns -1 on a miss/evade, which must not count against the steal
-				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true)));
-				self.Heal((int)Math.Floor(totalDamage * 0.25d), applyDebugScale: false);
+				int stolen = targets.Sum(target => (int)Math.Floor(Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true)) * 0.25d));
+				self.Heal(stolen, applyDebugScale: false);
 				await Wait.Frames(8);
 				AudioManager.Instance.PlaySFX("BA_Bite", 0.5f, 0.9f);
 				await BattleLogManager.Instance.WaitForBattleLog();
@@ -7442,8 +7458,8 @@ public class Database
 				await Wait.Milliseconds(500);
 				AudioManager.Instance.PlaySFX("GEN_Bite", 0.5f, 0.9f);
 				// Damage returns -1 on a miss/evade, which must not count against the steal
-				int totalDamage = targets.Sum(target => Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.35f, false, 0.5f, neverCrit: true)));
-				self.Heal((int)Math.Floor(totalDamage * 0.5d), applyDebugScale: false);
+				int stolen = targets.Sum(target => (int)Math.Floor(Math.Max(0, BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.35f, false, 0.5f, neverCrit: true)) * 0.5d));
+				self.Heal(stolen, applyDebugScale: false);
 				await Wait.Frames(8);
 				AudioManager.Instance.PlaySFX("BA_Bite", 0.5f, 0.9f);
 				await BattleLogManager.Instance.WaitForBattleLog();

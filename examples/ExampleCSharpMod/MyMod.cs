@@ -32,7 +32,7 @@ namespace OmoriSandboxSampleMod
     }
 
     // Example Harmony patch: Tony's attacks can never miss or be evaded.
-    [HarmonyPatch(typeof(BattleManager), "RollMissOrEvade")]
+    [HarmonyPatch(typeof(BattleManager), nameof(BattleManager.RollHit))]
     internal class TonyNeverMissesPatch
     {
         // the double underscore format here is a Harmony variable
@@ -44,9 +44,9 @@ namespace OmoriSandboxSampleMod
             if (self is not Tony)
                 return true;
 
-            // false means the attack was not a miss and was not evaded
+            // true means the attack hit
             // returning false skips the original method, so no miss sound or message plays
-            __result = false;
+            __result = true;
             return false;
         }
     }

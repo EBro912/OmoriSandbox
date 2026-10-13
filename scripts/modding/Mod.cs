@@ -27,7 +27,7 @@ public abstract partial class Mod : Node
     /// <summary>
     /// This mod's <see cref="HarmonyLib.Harmony"/> instance, created on first use.<br/>
     /// Harmony patches are applied to the whole game, not just this mod's content. A patch on a
-    /// shared method like <see cref="BattleManager.Damage"/> runs for every actor in every battle.
+    /// shared method like <c>BattleManager.Damage</c> runs for every actor in every battle.
     /// Always guard patches so they only affect the actors or battles they are meant for,
     /// e.g. <c>if (__instance is not MyEnemy) return;</c>
     /// </summary>
