@@ -146,7 +146,11 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Selects a target. Mainly used in <see cref="ProcessAI"/> for single-target skills. Can be overriden for custom targeting behavior.
 	/// </summary>
-	/// <remarks>This only includes alive party members by default.</remarks>
+	/// <remarks>
+	/// This only includes alive party members by default. The member who charmed this enemy comes first, then a taunting party member.
+	/// Taunts are ignored while this enemy has the <c>"ObserveIgnoreTaunt"</c> stat modifier, which OBSERVE usually gives the enemy it targets.
+	/// A charmed enemy's single-target skill aimed at the party goes to the member who charmed it when the skill runs, whatever target it was given.
+	/// </remarks>
 	/// <returns>The <see cref="PartyMember"/> that will be targeted.</returns>
 	protected virtual PartyMember SelectTarget()
 	{
@@ -180,7 +184,7 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Selects the living party member with the lowest value of the given stat.
 	/// </summary>
-	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely. A charmed enemy's single-target skill aimed at the party still goes to the member who charmed it when the skill runs.</remarks>
 	/// <param name="stat">The stat to compare, read from <see cref="Actor.CurrentStats"/>.</param>
 	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
 	protected PartyMember SelectTargetWithLowest(StatType stat)
@@ -191,7 +195,7 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Selects the living party member with the lowest <paramref name="value"/>, such as current HP.
 	/// </summary>
-	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely. A charmed enemy's single-target skill aimed at the party still goes to the member who charmed it when the skill runs.</remarks>
 	/// <param name="value">Reads the value to compare from a party member. If null, a random living member is picked.</param>
 	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
 	protected PartyMember SelectTargetWithLowest(Func<PartyMember, float> value)
@@ -202,7 +206,7 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Selects the living party member with the highest value of the given stat.
 	/// </summary>
-	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely. A charmed enemy's single-target skill aimed at the party still goes to the member who charmed it when the skill runs.</remarks>
 	/// <param name="stat">The stat to compare, read from <see cref="Actor.CurrentStats"/>.</param>
 	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
 	protected PartyMember SelectTargetWithHighest(StatType stat)
@@ -213,7 +217,7 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Selects the living party member with the highest <paramref name="value"/>, such as current HP.
 	/// </summary>
-	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely.</remarks>
+	/// <remarks>Unlike <see cref="SelectTarget"/>, a charm isn't taken into account. Ties are broken like the base game: a random living member is picked first and only replaced by a strictly better one, so among tied members the first in party order is the most likely. A charmed enemy's single-target skill aimed at the party still goes to the member who charmed it when the skill runs.</remarks>
 	/// <param name="value">Reads the value to compare from a party member. If null, a random living member is picked.</param>
 	/// <returns>The selected <see cref="PartyMember"/>, or null if nobody is alive.</returns>
 	protected PartyMember SelectTargetWithHighest(Func<PartyMember, float> value)
@@ -328,7 +332,10 @@ public abstract class Enemy : Actor
 	/// <summary>
 	/// Called right before an enemy takes their turn.
 	/// </summary>
-	/// <returns>The <see cref="BattleCommand"/> that the enemy will perform on their turn.</returns>
+	/// <remarks>
+	/// Return null to take no action this turn. The enemy's turn is skipped and the turn goes on with the next actor.
+	/// </remarks>
+	/// <returns>The <see cref="BattleCommand"/> that the enemy will perform on their turn, or null for no action.</returns>
 	public abstract BattleCommand ProcessAI();
 	/// <summary>
 	/// Whether the enemy falls off the screen when killed.
@@ -387,7 +394,8 @@ public abstract class Enemy : Actor
 	/// The true turn number to check for in <see cref="ProcessAI"/> for an enemy that uses certain skills on certain turns.
 	/// </summary>
 	/// <remarks>
-	/// During turn N it reads N, like <see cref="BattleManager.TurnCount"/>, except in the turn-order roll at the start of commands, which reads N - 1 because the base game makes that roll before the turn count goes up.
+	/// During turn N it reads N, like <see cref="BattleManager.TurnCount"/>, except in the turn-order roll at the start of commands,
+	/// which reads N - 1 because the base game makes that roll before the turn count goes up.
 	/// The roll that picks the enemy's action and a turn-order re-roll after its emotion changes both read N.
 	/// </remarks>
 	protected int TrueTurnCount => BattleManager.Instance.TurnCount - (PreRolling && !EmotionRerolling ? 1 : 0);

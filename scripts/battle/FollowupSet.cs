@@ -144,7 +144,7 @@ public readonly struct FollowupEntry
 	public FollowupEntry WithEnergyCost(int cost) => this with { EnergyCost = cost };
 
 	/// <summary>
-	/// Sets the required alive party members (0-4) for the entry.
+	/// Sets the fewest party members (0-4) the party must have for the entry. Toast members count.
 	/// </summary>
 	/// <param name="size">The fewest party members.</param>
 	public FollowupEntry WithMinPartySize(int size) => this with { MinPartySize = size };

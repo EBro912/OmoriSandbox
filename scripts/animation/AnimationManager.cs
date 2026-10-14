@@ -575,6 +575,9 @@ public partial class AnimationManager : Node
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="target"/>.<br/>
 	/// Use <see cref="WaitForAnimation(int, Actor, int?)"/> if you want to wait for the animation to finish.
 	/// </summary>
+	/// <remarks>
+	/// An animation whose data sets it to play on the screen (position 3) plays at the center of the screen instead, like the base game.
+	/// </remarks>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
 	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
@@ -587,6 +590,9 @@ public partial class AnimationManager : Node
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/>.<br/>
 	/// Use <see cref="WaitForAnimation(int, Vector2, bool, int?)"/> if you want to wait for the animation to finish.
 	/// </summary>
+	/// <remarks>
+	/// An animation whose data sets it to play on the screen (position 3) plays at the center of the screen instead, like the base game.
+	/// </remarks>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="position">The coordinates to play the animation at.</param>
 	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
@@ -613,6 +619,9 @@ public partial class AnimationManager : Node
 	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="target"/>, and waits for it to finish.<br/>
 	/// Use <see cref="PlayAnimation(int, Actor, int?)"/> if you want the animation to play without waiting.
 	/// </summary>
+	/// <remarks>
+	/// An animation whose data sets it to play on the screen (position 3) plays at the center of the screen instead, like the base game.
+	/// </remarks>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="target">The <see cref="Actor"/> that this animation will play centered on.</param>
 	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
@@ -625,13 +634,17 @@ public partial class AnimationManager : Node
 	}
 
 	/// <summary>
-	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/> and waits for it to finish.<br/>
+	/// Plays an animation with the given <paramref name="id"/> centered on the given <paramref name="position"/>, and waits for it to finish.<br/>
 	/// Use <see cref="PlayAnimation(int, Vector2, bool, int?)"/> if you want the animation to play without waiting.
 	/// </summary>
+	/// <remarks>
+	/// An animation whose data sets it to play on the screen (position 3) plays at the center of the screen instead, like the base game.
+	/// </remarks>
 	/// <param name="id">The animation ID to play. Uses the same ID numbers as OMORI for all vanilla animations.</param>
 	/// <param name="position">The coordinates to play the animation at.</param>
 	/// <param name="targetsEnemy">Whether the animation should play on the enemy layer.</param>
 	/// <param name="layer">The z-index to draw the animation at, overriding the layer from its animation data. Null keeps the animation's own layer.</param>
+	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForAnimation(int id, Vector2 position, bool targetsEnemy, int? layer = null)
 	{
 		PlayingAnimation playing = StartAnimation(id, position, targetsEnemy, layer: layer);
@@ -1010,7 +1023,8 @@ public partial class AnimationManager : Node
 	/// </summary>
 	/// <remarks>
 	/// While this is false, the default, a tint also changes the menus, the battle log, the energy bar, the portraits and the party's animations and damage numbers.
-	/// While it's true, they keep their colors and only the battleback, the enemies and their animations change. It turns off again when a battle starts or resets.
+	/// While it's true, they keep their colors and only the battleback, the enemies and their animations change, and a dialogue message doesn't dim the party's UI.
+	/// It turns off again when a battle starts or resets, and when a Boss Rush stage changes.
 	/// </remarks>
 	public bool ToneBelowUI
 	{

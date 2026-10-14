@@ -60,6 +60,9 @@ public abstract class Actor
 	/// <summary>
 	/// The center point of the actor, calculated by the center of its sprite.
 	/// </summary>
+	/// <remarks>
+	/// For a party member, it's (57, 82) pixels from the top-left corner of their battle card.
+	/// </remarks>
 	public Vector2 CenterPoint = Vector2.Zero;
 
 	private ActorComponent _Component;
@@ -68,7 +71,7 @@ public abstract class Actor
 	/// </summary>
 	/// <remarks>
 	/// This gets set when the actor spawns into a battle, it will be null again as soon as that node starts being removed, including when the
-	/// battle is exited or restarted, when a Boss Rush stage changes, when the enemy is replaced with <see cref="BattleManager.TransformEnemy"/>,
+	/// battle is exited or restarted, when a Boss Rush stage changes, when the enemy is replaced with <see cref="BattleManager.TransformEnemy"/> or <see cref="BattleManager.ReplaceEnemy"/>,
 	/// or when spawning fails.<br/>
 	/// <see cref="Enemy.Component"/> and <see cref="PartyMember.Component"/> return their own component types.
 	/// </remarks>
@@ -438,7 +441,7 @@ public abstract class Actor
 	/// <remarks>
 	/// The stun is the <c>"Stunned"</c> stat modifier, which counts down at the end of each turn. A stun of 1 ends after the current turn,
 	/// so it only skips an action the actor hasn't taken yet. Stunning a stunned actor again keeps the longer of the two durations.
-	/// Remove the modifier to end the stun early.
+	/// Remove the modifier to end the stun early. A stun can be added again right after one ends, even while "Allow State Reapply on Removal" is off.
 	/// </remarks>
 	/// <param name="turns">The number of turns, at least 1.</param>
 	public void Stun(int turns)
@@ -535,10 +538,10 @@ public abstract class Actor
 	{
 		if (modifier == null || !StatModifiers.TryGetValue(modifier, out StatModifier mod))
 			return;
-		// removal-guarded modifiers only get removed via force or their own turn counter
+		// modifiers that bypass Recover All removal only get removed via force or their own turn counter
 		if (!force && mod.BypassesRecoverAllRemoval && reason != StatModifierRemovalReason.Expired)
 		{
-			GD.Print("Removal of modifier " + modifier + " on " + Name + " blocked by removal guard (" + reason + ")");
+			GD.Print("Removal of modifier " + modifier + " on " + Name + " blocked by BypassesRecoverAllRemoval (" + reason + ")");
 			return;
 		}
 		StatModifiers.Remove(modifier);
@@ -555,8 +558,8 @@ public abstract class Actor
 	private readonly HashSet<string> RemovedSinceResultClear = [];
 
 	/// <summary>
-	/// Clears which modifiers were removed from this actor, mirroring RPG Maker's <c>clearResult</c>.<br/>
-	/// Until this runs, a removed modifier can't be added back unless "Allow State Reapply on Removal" is enabled.
+	/// Clears which modifiers and emotions were removed from this actor, mirroring RPG Maker's <c>clearResult</c>.<br/>
+	/// Until this runs, a removed modifier can't be added back, and some lost emotions can't either, unless "Allow State Reapply on Removal" is enabled.
 	/// The battle calls this when an action applies to or from this actor, after its action ends and at the end of the turn.
 	/// </summary>
 	public void ClearResult()
@@ -1058,6 +1061,11 @@ public abstract class Actor
     /// or if their emotion is locked.<br/>
     /// See <see cref="IsEmotionValid(Emotion)"/> and <see cref="LockEmotion"/>.
     /// </summary>
+    /// <remarks>
+    /// An emotion this actor lost since its action result was last cleared can fail the same way, unless "Allow State Reapply on Removal" is enabled:
+    /// going back to neutral records the emotion it had, and so does becoming AFRAID from a HAPPY, SAD or ANGRY emotion, while gaining a HAPPY, SAD or ANGRY emotion forgets the recorded HAPPY, SAD, ANGRY and AFRAID emotions.
+    /// See <see cref="ClearResult"/>.
+    /// </remarks>
     /// <param name="id">The id of the emotion to set this actor to.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
     /// <returns>Whether the emotion was applied.</returns>
@@ -1113,6 +1121,9 @@ public abstract class Actor
 	/// <summary>
 	/// Silently forces this actor to feel an emotion, bypassing emotion locks and validity checks. Mainly used for boss phase changes. Should be used sparingly.
 	/// </summary>
+	/// <remarks>
+	/// It is never refused by the re-apply rule, and it doesn't record the emotion it replaces, see <see cref="ClearResult"/>.
+	/// </remarks>
 	/// <param name="id">The id of the emotion to force this actor to feel.</param>
 	public void SetEmotionForced(string id)
 	{
@@ -1192,7 +1203,7 @@ public abstract class Actor
 	}
 	
 	/// <summary>
-	/// Called once when this actor enters a battle, before any start-of-battle hook. Use it to set up extra sprites or nodes.
+	/// Called once when this actor enters a battle. For the actors a battle starts with, that is before any start-of-battle hook. Use it to set up extra sprites or nodes.
 	/// </summary>
 	/// <remarks>
 	/// The battle waits for it for the party members and enemies a battle, or a Boss Rush stage, starts with.

@@ -19,7 +19,7 @@ public sealed record DamageOptions
     public static DamageOptions Default { get; } = new();
 
     /// <summary>
-    /// The default settings, but with <c>NeverMiss</c> set to <c>false</c>/
+    /// The default settings, but with <c>NeverMiss</c> set to <c>false</c>.
     /// </summary>
     public static DamageOptions DefaultCanMiss { get; } = new() { NeverMiss = false };
     

@@ -27,7 +27,7 @@ To run the Sandbox, you can either use the provided `OmoriSandbox.sh` script, or
 You can visit the [Official Documentation](https://ebro912.gitbook.io/omorisandbox) to read more about how the sandbox works, configuration options, important file paths and folders, and modding.
 
 ## Modding
-As of update v0.8, official modding is now supported! You can read more about creating file driven, JSON, and fully fledged C# mods on the official [Modding Wiki](https://ebro912.gitbook.io/omorisandbox/modding/overview).
+As of update v0.8, official modding is now supported! You can read more about creating file driven, JSON, and fully fledged C# mods on the official [Modding Wiki](https://ebro912.gitbook.io/omorisandbox/modding/overview). For C# mods, start with the [C# Modding guide](https://ebro912.gitbook.io/omorisandbox/modding/c-modding), which covers setting up and building your mod.
 
 OmoriSandbox will auto-generate a mod called `custom` when first launched. Here, you can place your custom Battlebacks and/or BGM in their respective `battlebacks` and `bgm` folders without having to create a mod yourself. This auto-generated mod behaves exactly as any other mod and can be expanded as you see fit.
 
@@ -49,6 +49,8 @@ If there is a feature missing or not fully implemented in the Sandbox that is no
 If you would like to contribute code to the Sandbox, you must first install the latest **.NET Version** of [Godot](https://godotengine.org/download/).
 
 After installation, simply clone the repository and open the project folder in Godot. All of the necessary assets should already be available to you. 
+
+Before editing C# files, pleaase read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 If you need any other assets from the game that the Sandbox currently does not provide, you must retrieve them yourself from a valid copy of Omori.
 

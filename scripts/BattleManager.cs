@@ -129,12 +129,19 @@ public partial class BattleManager : Node
 	/// Fired after an attack lands and its damage has been applied to any target.
 	/// Not fired for misses, evades, or hits a modifier turned into a miss.
 	/// </summary>
+	/// <remarks>
+	/// A hit the target absorbs raises <see cref="Healed"/> instead. A hit the target reflects raises this event for the damage
+	/// the original attacker then takes, with the reflecting actor as the attacker, unless the original attacker absorbs it.
+	/// </remarks>
 	public event EventHandler<DamageDealtEventArgs> DamageDealt;
 
 	/// <summary>
 	/// Fired after healing (Heart or Juice) is applied through <see cref="Heal"/> or <see cref="HealJuice"/>.
 	/// Healing applied directly to an <see cref="Actor"/> (as most snacks do) does not raise this event.
 	/// </summary>
+	/// <remarks>
+	/// Also fired when a target absorbs a hit, with the attacker as the healer.
+	/// </remarks>
 	public event EventHandler<HealedEventArgs> Healed;
 
 	/// <summary>
@@ -1891,6 +1898,7 @@ public partial class BattleManager : Node
 	/// Forces a skill command to be executed after the current one.
 	/// </summary>
 	/// <remarks>
+	/// Also clears the currently acting battler's action result, if any.
 	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
 	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
 	/// </remarks>
@@ -1904,9 +1912,9 @@ public partial class BattleManager : Node
 
 	/// <summary>
 	/// Forces a skill command to be executed after the current one.
-	/// Also clears the currently acting battler's action result, if any.
 	/// </summary>
 	/// <remarks>
+	/// Also clears the currently acting battler's action result, if any.
 	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
 	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
 	/// </remarks>
@@ -2365,7 +2373,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// On top of calculating damage, this function also handles displaying damage numbers, playing sound effects, and queuing battle log messages for misses and critical hits.<br/>
-	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.<br/>
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -2380,7 +2388,7 @@ public partial class BattleManager : Node
 	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
 	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
 	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
-	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied.</returns>
+	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied, or -1 if the attack missed, was evaded, or a stat modifier turned it into a miss.</returns>
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
 		bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
@@ -2607,7 +2615,7 @@ public partial class BattleManager : Node
 	/// Rolls whether an attack hits, using the attacker's HIT and the target's EVA.
 	/// </summary>
 	/// <remarks>
-	/// The "Combined Accuracy" setting changes how the roll works. Every damage call that can miss rolls through this method.<br/>
+	/// The "Combined Accuracy Formula" rule changes how the roll works. Every damage call that can miss rolls through this method.<br/>
 	/// For damage plus other effects on one roll, use <see cref="DamageOptions.OnHit"/> instead.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
@@ -2732,9 +2740,10 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Calculates juice damage. Misses, critical hits, emotion effectiveness, and stat modifiers are all taken into account. Sadness damage reduction, however, is not.
 	/// </summary>
-	/// /// <remarks>
+	/// <remarks>
 	/// Unlike <see cref="Damage(Actor, Actor, Func{float}, bool, float, bool, bool, bool, string, bool)"/>, this method does not play hit sounds, however it does display damage numbers and queues the battle log.<br/>
-	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.<br/>
+	/// The target can't lose more JUICE than it has. A miss, or a hit that lands for 0 JUICE, shows no battle log line, and a hit that lands for 0 JUICE shows no damage number. A critical hit shows no "IT HIT RIGHT IN THE HEART!" line and plays no sound.<br/>
+	/// A hit the target absorbs, or reflects back at the attacker, returns 0. See <see cref="DamageContext.Outcome"/>.
 	/// </remarks>
 	/// <param name="self">The attacker.</param>
 	/// <param name="target">The target/defender.</param>
@@ -2747,7 +2756,7 @@ public partial class BattleManager : Node
 	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
 	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
 	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
-	/// <returns>The final juice damage after all critical, emotion, and stat modifications have been applied.</returns>
+	/// <returns>The JUICE the target lost, at most the JUICE it had, or -1 if the attack missed, was evaded, or a stat modifier turned it into a miss.</returns>
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
 		float variance = 0.2f, bool guaranteeCrit = false, bool neverCrit = false, bool ignoreEmotion = false, string attackElement = null, bool silent = false)
 	{
@@ -2782,6 +2791,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Some healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.<br/>
+	/// The amount is rounded with <see cref="RoundHealing"/>, so an exact half rounds down.<br/>
 	/// A negative amount heals 0, and the healing is capped at 9999 unless "Disable Damage Limit" is on, like damage.
 	/// </remarks>
 	/// <param name="self">The healer.</param>
@@ -2789,7 +2799,7 @@ public partial class BattleManager : Node
 	/// <param name="healFunc">The function to use in the heal calculation.</param>
 	/// <param name="variance">The healing variance. Healed HP will be multiplied between (1 - variance) and (1 + variance).</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
-	/// <returns>The amount of HP healed.</returns>
+	/// <returns>The HEART healed, after emotion effects, variance, rounding, Debug Damage scaling and the 9999 cap. It can be more than the HEART actually restored.</returns>
 	public int Heal(Actor self, Actor target, Func<double> healFunc, float variance = 0.2f, bool silent = false)
 	{
 		target = ResolveTransformed(target);
@@ -2812,14 +2822,15 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Some juice healing in OMORI is "bugged" and is influenced by emotion, which this method replicates.<br/>
+	/// The amount is rounded with <see cref="RoundHealing"/>, so an exact half rounds down.<br/>
 	/// A negative amount heals 0, and the healing is capped at 9999 unless "Disable Damage Limit" is on, like damage.
 	/// </remarks>
 	/// <param name="self">The healer.</param>
 	/// <param name="target">The target being healed.</param>
-	/// <param name="healFunc">The function to use in the juice healing calculation.</param>
-	/// <param name="variance">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance).</param>
+	/// <param name="healFunc">The function to use in the heal calculation.</param>
+	/// <param name="variance">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance). Defaults to 0, no variance.</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
-	/// <returns>The amount of juice healed.</returns>
+	/// <returns>The JUICE healed, after emotion effects, variance, rounding, Debug Damage scaling and the 9999 cap. It can be more than the JUICE actually restored.</returns>
 	public int HealJuice(Actor self, Actor target, Func<double> healFunc, float variance = 0f, bool silent = false)
 	{
 		target = ResolveTransformed(target);
@@ -2942,6 +2953,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// If the rolled emotion has no effect, such as at the group's highest tier, the group's no-effect line is shown, see <see cref="ShowEmotionNoEffect"/>.
+	/// An emotion the actor lost since its action result was last cleared can be refused, like in <c>Actor.SetEmotion</c>.
 	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="silent">If true, no battle log messages will be shown.</param>
@@ -3169,11 +3181,15 @@ public partial class BattleManager : Node
 	}
 
 	/// <summary>
-	/// Transforms an enemy into another enemy, despawning the original and spawning the replacement
-	/// at the same position and index (see <see cref="GetEnemy"/>). The original enemy is immediately removed from the battle.
+	/// Transforms an enemy into another enemy. The new enemy takes over the original's place in the battle, and the original is removed.
 	/// </summary>
 	/// <remarks>
 	/// Special care must be used when using this method, as the old enemy will immediately become invalid.<br/>
+	/// The new enemy spawns at the original's position (plus <paramref name="offset"/>) and index (see <see cref="GetEnemy"/>), feeling the original's emotion, or <paramref name="startingEmotion"/> if it can't feel that one.
+	/// It keeps the original's HP and JUICE (capped at its own maximums), stat modifiers (their <c>OnAdd</c> doesn't run again), <see cref="Actor.Stunned"/> flag,
+	/// OBSERVE prediction and queued forced commands, and its place in the turn: if the original already acted this turn, the new enemy doesn't act again,
+	/// and if it hasn't, the new enemy acts at its normal place in the turn order. A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
+	/// so use <see cref="ReplaceEnemy"/> there, or anywhere a fresh enemy is wanted.<br/>
 	/// Damage, healing, emotion changes and damage numbers that go through <see cref="BattleManager"/> to the old enemy
 	/// reach the new one instead, so the rest of a running action still lands. Commands later in the turn that are aimed
 	/// at the old enemy also go to the new one. Methods called directly on the old enemy are safe, but they don't reach
@@ -3181,10 +3197,10 @@ public partial class BattleManager : Node
 	/// </remarks>
 	/// <param name="original">The enemy to transform from.</param>
 	/// <param name="who">The database name of the enemy to transform into.</param>
-	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
+	/// <param name="startingEmotion">The new enemy's emotion if it can't feel the original's.</param>
 	/// <param name="offset">The position offset relative to the old enemy's position.</param>
 	/// <param name="adjustedStats">Stat adjustments for the new enemy. Defaults to the original's <see cref="Enemy.AdjustedStats"/>.</param>
-	/// <returns>The new <see cref="Enemy"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
+	/// <returns>The new <see cref="Enemy"/>, or null if <paramref name="original"/> or <paramref name="who"/> is null. Also null if the original enemy is not in the battle, or if the new one fails to spawn (the original is removed either way once found).</returns>
 	public Enemy TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default, Stats? adjustedStats = null)
 	{
 		bool acted = ActedThisTurn.Contains(original);
@@ -3225,7 +3241,7 @@ public partial class BattleManager : Node
 	/// at the same position and index (see <see cref="GetEnemy"/>). The original enemy is immediately removed from the battle.
 	/// </summary>
 	/// <remarks>
-	/// Unlike <see cref="TransformEnemy"/>, the replacement is a new enemy. Tt starts with full HP and none of the original's
+	/// Unlike <see cref="TransformEnemy"/>, the replacement is a new enemy. It starts with full HP and none of the original's
 	/// stat modifiers or forced commands, and when it's spawned in the middle of a turn, it acts right after the current action.<br/>
 	/// Special care must be used when using this method, as the old enemy will immediately become invalid.
 	/// </remarks>
@@ -3234,7 +3250,7 @@ public partial class BattleManager : Node
 	/// <param name="startingEmotion">Starting emotion for the new enemy.</param>
 	/// <param name="offset">The position offset relative to the old enemy's position.</param>
 	/// <param name="adjustedStats">Stat adjustments for the new enemy. Defaults to the original's <see cref="Enemy.AdjustedStats"/>.</param>
-	/// <returns>The new <see cref="Enemy"/>, or null if the original enemy is not in the battle or the new one fails to spawn (the original is removed either way once found).</returns>
+	/// <returns>The new <see cref="Enemy"/>, or null if <paramref name="original"/> or <paramref name="who"/> is null. Also null if the original enemy is not in the battle, or if the new one fails to spawn (the original is removed either way once found).</returns>
 	public Enemy ReplaceEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default, Stats? adjustedStats = null)
 	{
 		if (original == null || who == null)
@@ -3407,6 +3423,7 @@ public partial class BattleManager : Node
 	/// <remarks>
 	/// Inside a skill or item marked with <see cref="Skill.WithTiersFromFirstTarget"/>, the tier for one of its targets can follow the first target instead.
 	/// If the emotion has no effect, the group's no-effect line is shown, see <see cref="ShowEmotionNoEffect"/>.
+	/// An emotion the actor lost since its action result was last cleared can be refused, like in <c>Actor.SetEmotion</c>.
 	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
@@ -3437,6 +3454,7 @@ public partial class BattleManager : Node
 	/// <remarks>
 	/// A higher tier of the same group is kept. A party member that already feels this exact tier still gets the usual "feels" line,
 	/// while every other case where nothing changes shows the no-effect line, see <see cref="ShowEmotionNoEffect"/>.
+	/// An emotion the actor lost since its action result was last cleared can be refused, like in <c>Actor.SetEmotion</c>.
 	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
 	/// <param name="groupId">The id of the <see cref="EmotionGroup"/> to apply.</param>
@@ -3478,9 +3496,10 @@ public partial class BattleManager : Node
 	/// Shows the battle log line for an emotion that had no effect on <paramref name="who"/>.
 	/// </summary>
 	/// <remarks>
-	/// Useful after a silent emotion change that returned false. A group id, or the id of an emotion in a group, shows the group's
-	/// <see cref="EmotionGroup.MaxTierMessage"/>. A group without one, or an emotion without a group such as afraid, shows "NAME cannot be AFRAID!".
-	/// Nothing is shown for a null actor or id.
+	/// Useful after a silent emotion change that returned false. A group id shows the group's <see cref="EmotionGroup.MaxTierMessage"/>,
+	/// or nothing if the group has none. The id of an emotion shows its group's <see cref="EmotionGroup.MaxTierMessage"/>. An emotion
+	/// without a group, such as afraid, or whose group has no message, shows "NAME cannot be EMOTION!" with the emotion's display name.
+	/// Nothing is shown for a null actor or id, and an unknown id logs an error.
 	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> the emotion had no effect on.</param>
 	/// <param name="groupOrEmotionId">The id of an <see cref="EmotionGroup"/> or of an <see cref="Emotion"/>.</param>
@@ -3583,7 +3602,7 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/>, or null if none is found.</returns>
-	/// <remarks>Immortal enemies at 0 HP are included until they're truly defeated. See <see cref="GetAllAliveEnemies"/>.</remarks>
+	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. See <see cref="GetAllAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveEnemy()
 	{
 		List<EnemyComponent> alive = Enemies.Where(x => !x.Actor.IsToast).ToList();
@@ -3591,7 +3610,7 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/> that's not the provided actor, or null if none is found.</returns>
-	/// <remarks>Immortal enemies at 0 HP are included until they're truly defeated. See <see cref="GetAllAliveEnemies"/>.</remarks>
+	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. See <see cref="GetAllAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveUniqueEnemy(Actor not)
 	{
 		List<EnemyComponent> alive = Enemies.Where(x => !x.Actor.IsToast && x.Actor != not).ToList();

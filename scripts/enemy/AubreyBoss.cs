@@ -110,7 +110,7 @@ internal sealed class AubreyBoss : Enemy
 
     private BattleCommand ProcessAngry()
     {
-        // VANILLA BUG: "Element HAPPY Weakness" always passes for untested party members, so ANGRY AUBREY always uses TWIRL
+        // VANILLA BUG: "Element HAPPY Weakness" always passes for untested party members, so ANGRY AUBREY always uses TWIRL when none of ProcessAI's shared checks fire
         if (CanUse("ABossTwirl"))
             return new BattleCommand(this, SelectTarget(), Skills["ABossTwirl"]);
         if (CanUse("AAttack") && Roll() < 21)

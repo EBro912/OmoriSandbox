@@ -181,7 +181,7 @@ public partial class GameManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Use <c>"Default"</c> for the game's own skin, or the ID of a skin from a mod (its file name in the mod's <c>windowskins</c> folder, or the ID passed to <c>Mod.RegisterWindowSkin</c>).
-	/// The preset's skin comes back when the battle restarts or ends.
+	/// Restarting the battle brings back the preset's skin, and leaving the battle goes back to <c>"Default"</c>. Winning or losing keeps the current skin.
 	/// </remarks>
 	/// <param name="id">The ID of the window skin.</param>
 	public void SetWindowSkin(string id)

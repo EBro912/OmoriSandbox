@@ -63,7 +63,7 @@ public sealed class DamageDealtEventArgs : EventArgs
     public int Damage { get; }
 
     /// <summary>
-    /// The Juice the target lost, including the sad juice bleed for HP attacks, or the full amount for juice attacks.
+    /// The Juice the target lost, including the sad juice bleed for HP attacks. For juice attacks, it's the JUICE the target lost, never more than the target had.
     /// </summary>
     public int JuiceLost { get; }
 

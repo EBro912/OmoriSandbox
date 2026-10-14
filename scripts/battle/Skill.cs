@@ -58,8 +58,8 @@ public class Skill : BattleAction
 
 	/// <summary>
 	/// The battle log message shown when this skill's requirement fails at execution time
-	/// for a reason other than the actor being afraid/stressed. When null, the default
-	/// "too AFRAID to move" message is used. Supports the [actor] tag.
+	/// for a reason other than the actor being afraid/stressed. When null, nothing is shown.
+	/// Supports the [actor] tag.
 	/// </summary>
 	public string RequirementFailureMessage { get; private set; }
 
@@ -120,6 +120,7 @@ public class Skill : BattleAction
 	/// <remarks>
 	/// By default, all skills have the requirement that the user is not afraid or stressed.
 	/// By adding a custom requirement, you must also re-add those checks in yourself if necessary.<br/>
+	/// A party member's basic attack (their first skill) should use <c>WithCustomRequirement(_ =&gt; true)</c> so they can still attack while AFRAID or STRESSED OUT, like the base game's party members.<br/>
 	/// Juice cost is an inherent requirement for all skills and cannot be modified.
 	/// </remarks>
 	public Skill WithCustomRequirement(Func<Actor, bool> requirement)
@@ -154,7 +155,7 @@ public class Skill : BattleAction
 	}
 
 	/// <summary>
-	/// Makes tier step-ups on this skill's targets follow the first target's next tier, like many of the base game's party-wide skills.
+	/// Makes tier step-ups on this skill's targets follow the first target's next tier, like many of the base game's multi-target skills.
 	/// </summary>
 	/// <remarks>
 	/// The "Per-Target Buff Tiers" setting turns this off.

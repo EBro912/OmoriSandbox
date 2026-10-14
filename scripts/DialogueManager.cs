@@ -533,7 +533,8 @@ public partial class DialogueManager : Node2D
 	/// Waits for the current dialogue to finish and for the player to dismiss it.
 	/// </summary>
 	/// <remarks>
-	/// If this method is not called after <c>QueueMessage</c>, the battle will continue while the dialogue is still on screen.
+	/// If this method is not called after <c>QueueMessage</c>, the battle will continue while the dialogue is still on screen.<br/>
+	/// It returns once the box has closed with nothing left queued: a message queued while the box is closing opens it again first.
 	/// </remarks>
 	public async Task WaitForDialogue()
 	{

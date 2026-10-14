@@ -202,7 +202,7 @@ public abstract class PartyMember : Actor
 	/// </summary>
 	public Equipment Weapon { get; private set; }
 	/// <summary>
-	/// A list of skills IDs that this actor has equipped.
+	/// A list of skill IDs that this actor has equipped. The first one is the basic attack, used by ATTACK.
 	/// </summary>
 	public string[] EquippedSkills { get; protected set; }
 	/// <summary>

@@ -30,7 +30,7 @@ public sealed class DamageContext
     public bool IsAttacking { get; internal set; }
 
     /// <summary>
-    /// Whether the damage is a critical hit. Always false during <see cref="DamagePhase.PreEmotion"/> and <see cref="DamagePhase.PreCrit"/>, and during <see cref="DamagePhase.PostApply"/> when a hit that isn't absorbed or reflected dealt no damage.
+    /// Whether the damage is a critical hit. Always false during <see cref="DamagePhase.PreEmotion"/> and <see cref="DamagePhase.PreCrit"/>, and during <see cref="DamagePhase.PostApply"/> when a hit that isn't absorbed or reflected dealt no HEART damage (for <c>DamageJuice</c>, took no JUICE).
     /// </summary>
     public bool IsCritical { get; internal set; }
 
