@@ -893,7 +893,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] whispers something to\n[target].");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF,
 					false);
-				QueueEmotionLine(target, "sad", truthTargetSad);
+				// VANILLA BUG: always prints the tier-1 SAD line for the target, whatever tier it reaches
+				QueueTierOneEmotionLine(target, "sad", truthTargetSad);
 				QueueEmotionLine(self, "sad", truthSelfSad);
 			}
 		);
@@ -1207,7 +1208,8 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(219, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
 				target.AddTierStatModifier("SpeedDown", 2);
-				BattleManager.Instance.MakeSad(target);
+				// VANILLA BUG: always prints the tier-1 SAD line, whatever tier the target reaches
+				QueueTierOneEmotionLine(target, "sad", BattleManager.Instance.MakeSad(target, silent: true));
 			},
 			effect: async (self, target) =>
 			{
@@ -1232,7 +1234,8 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(219, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
 				AddTierThreeStatModifier(target, "SpeedDown");
-				BattleManager.Instance.MakeSad(target);
+				// VANILLA BUG: always prints the tier-1 SAD line, whatever tier the target reaches
+				QueueTierOneEmotionLine(target, "sad", BattleManager.Instance.MakeSad(target, silent: true));
 			},
 			effect: async (self, target) =>
 			{
@@ -2181,7 +2184,9 @@ public class Database
 				AnimationManager.Instance.PlayScreenAnimation(38, false);
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
-				BattleManager.Instance.MakeAngry(self);
+				// VANILLA BUG: always prints the tier-1 ANGRY line, whatever tier the user reaches, even when the add changed nothing
+				BattleManager.Instance.MakeAngry(self, silent: true);
+				BattleLogManager.Instance.QueueMessage(self, "[actor] feels ANGRY!");
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
@@ -2202,11 +2207,13 @@ public class Database
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
 				self.AddStatModifier("AttackUp", silent: true);
-				BattleLogManager.Instance.QueueMessage(self, other, "[target] and [actor]'s ATTACK ROSE!");
+				// VANILLA BUG: says both ATTACKs rose, but only the user's ATTACK goes up
+				BattleLogManager.Instance.QueueMessage(self, other, "[target]'s and [actor]'s ATTACK rose!");
 				AnimationManager.Instance.PlayAnimation(214, self);
 				AnimationManager.Instance.PlayAnimation(214, other);
-				BattleManager.Instance.MakeAngry(self);
-				BattleManager.Instance.MakeAngry(other);
+				BattleManager.Instance.MakeAngry(self, silent: true);
+				BattleManager.Instance.MakeAngry(other, silent: true);
+				QueueLookAtKelLines(self, other);
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
@@ -2227,11 +2234,13 @@ public class Database
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
 				self.AddTierStatModifier("AttackUp", 3, silent: true);
-				BattleLogManager.Instance.QueueMessage(self, other, "[target] and [actor]'s ATTACK ROSE!");
+				// VANILLA BUG: says both ATTACKs rose, but only the user's ATTACK goes up
+				BattleLogManager.Instance.QueueMessage(self, other, "[target]'s and [actor]'s ATTACK rose!");
 				AnimationManager.Instance.PlayAnimation(214, self);
 				AnimationManager.Instance.PlayAnimation(214, other);
-				BattleManager.Instance.MakeEmotionTier(self, "angry", 2, false);
-				BattleManager.Instance.MakeEmotionTier(other, "angry", 2, false);
+				BattleManager.Instance.MakeEmotionTier(self, "angry", 2, true);
+				BattleManager.Instance.MakeEmotionTier(other, "angry", 2, true);
+				QueueLookAtKelLines(self, other);
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
@@ -2253,8 +2262,10 @@ public class Database
 				AnimationManager.Instance.PlayAnimation(214, self);
 				await Wait.Milliseconds(1000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] tells [actor] to focus!");
-				self.AddStatModifier("DefenseUp");
+				self.AddStatModifier("DefenseUp", silent: true);
 				BattleManager.Instance.MakeHappy(self);
+				// VANILLA BUG: prints the DEFENSE line even when the stat is already at its limit
+				BattleLogManager.Instance.QueueMessage(self, "[actor]'s DEFENSE rose!!");
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
@@ -2569,7 +2580,7 @@ public class Database
 			description: "Makes [actor] HAPPY. If SAD was removed,\n[actor] gains FLEX. Cost: 25",
 			target: SkillTarget.Self,
 			cost: 25,
-			setup: async (Actor _, Actor target) =>
+			setup: async (Actor self, Actor target) =>
 			{
 				if (target.CurrentEmotion.Group?.Id == "sad")
 				{
@@ -2583,6 +2594,8 @@ public class Database
 					AnimationManager.Instance.PlayAnimation(75, target);
 				}
 
+				// VANILLA BUG: reuses PEP TALK's battle text, so the user cheers themselves on
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] cheers on [target]!");
 				BattleManager.Instance.MakeHappy(target);
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask
@@ -2643,7 +2656,8 @@ public class Database
 			{
 				await AnimationManager.Instance.WaitForAnimation(60, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a SNOWBALL at\n[target]!");
-				BattleManager.Instance.MakeSad(target);
+				// VANILLA BUG: always prints the tier-1 SAD line, whatever tier the target reaches
+				QueueTierOneEmotionLine(target, "sad", BattleManager.Instance.MakeSad(target, silent: true));
 			},
 			effect: async (self, target) =>
 			{
@@ -2976,7 +2990,8 @@ public class Database
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier enchantMod) &&
 					enchantMod is CharmStatModifier enchantState)
 					enchantState.CharmedBy = self as PartyMember;
-				BattleManager.Instance.MakeHappy(target);
+				// VANILLA BUG: always prints the tier-1 HAPPY line, whatever tier the target reaches
+				QueueTierOneEmotionLine(target, "happy", BattleManager.Instance.MakeHappy(target, silent: true));
 			},
 			effect: async (self, target) =>
 			{
@@ -3080,7 +3095,8 @@ public class Database
 					BattleLogManager.Instance.QueueMessage(self, enemy, "[actor] smiles at [target]!");
 					AnimationManager.Instance.PlayAnimation(276, enemy);
 					enemy.AddTierStatModifier("AttackDown");
-					BattleManager.Instance.MakeHappy(enemy);
+					// VANILLA BUG: always prints the tier-1 HAPPY line, whatever tier the target reaches
+					QueueTierOneEmotionLine(enemy, "happy", BattleManager.Instance.MakeHappy(enemy, silent: true));
 					AnimationManager.Instance.PlayAnimation(219, enemy);
 				}
 			},
@@ -8729,6 +8745,30 @@ public class Database
 			BattleLogManager.Instance.QueueMessage(who.CurrentEmotion.FeelsMessage(who.Name));
 		else
 			BattleManager.Instance.ShowEmotionNoEffect(who, groupId);
+	}
+
+	private static void QueueLookAtKelLines(Actor self, Actor other)
+	{
+		int selfTier = self.CurrentEmotion.Group?.Id == "angry" ? self.CurrentEmotion.Tier : 0;
+		int otherTier = other.CurrentEmotion.Group?.Id == "angry" ? other.CurrentEmotion.Tier : 0;
+		if (selfTier is 1 or 2 && otherTier is 1 or 2 && selfTier != otherTier)
+		{
+			BattleLogManager.Instance.QueueMessage(other.CurrentEmotion.FeelsMessage(other.Name));
+			BattleLogManager.Instance.QueueMessage(self.CurrentEmotion.FeelsMessage(self.Name));
+			return;
+		}
+		// VANILLA BUG: any other pair gets the ANGRY line, even when one of them isn't ANGRY at all
+		BattleLogManager.Instance.QueueMessage(self, other, selfTier == 2 && otherTier == 2
+			? "[target] and [actor] feel ENRAGED!!"
+			: "[target] and [actor] feel ANGRY!");
+	}
+
+	private static void QueueTierOneEmotionLine(Actor who, string groupId, bool applied)
+	{
+		if (!applied)
+			BattleManager.Instance.ShowEmotionNoEffect(who, groupId);
+		else if (TryGetEmotionByGroupTier(groupId, 1, out Emotion first))
+			BattleLogManager.Instance.QueueMessage(first.FeelsMessage(who.Name));
 	}
 
 	private static void QueueEmotionTierLine(Actor who, string groupId, int tier)

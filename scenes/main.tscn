@@ -444,18 +444,6 @@ Cursor = NodePath("Cursor")
 ChoiceBox = NodePath("ChoiceBox")
 ChoiceTextParent = NodePath("ChoiceBox/MarginContainer/Text")
 
-[node name="Text" type="RichTextLabel" parent="BattleCanvas/UI/DialogueBox" unique_id=1194128622]
-offset_left = -162.0
-offset_top = -46.0
-offset_right = 162.0
-offset_bottom = 48.0
-theme_override_constants/line_separation = 1
-theme_override_constants/outline_size = 4
-bbcode_enabled = true
-scroll_active = false
-shortcut_keys_enabled = false
-visible_characters_behavior = 1
-
 [node name="Box" type="NinePatchRect" parent="BattleCanvas/UI/DialogueBox" unique_id=747187245]
 custom_minimum_size = Vector2(360, 112)
 anchors_preset = 8
@@ -488,6 +476,20 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="Text" type="RichTextLabel" parent="BattleCanvas/UI/DialogueBox" unique_id=1194128622]
+offset_left = -162.0
+offset_top = -46.0
+offset_right = 162.0
+offset_bottom = 48.0
+clip_contents = false
+theme_override_constants/line_separation = 1
+theme_override_constants/outline_size = 4
+bbcode_enabled = true
+scroll_active = false
+autowrap_mode = 0
+shortcut_keys_enabled = false
+visible_characters_behavior = 1
 
 [node name="ChoiceBox" type="NinePatchRect" parent="BattleCanvas/UI/DialogueBox" unique_id=281540300]
 visible = false

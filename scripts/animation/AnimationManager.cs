@@ -979,6 +979,7 @@ public partial class AnimationManager : Node
 	/// <remarks>
 	/// If you would like to wait for the overlay to finish, use <see cref="WaitForTintOverlay"/>.
 	/// To change the battle's colors like RPG Maker's Tint Screen instead of covering them, use <see cref="TintScreen"/>.
+	/// A fade that starts while the overlay is fully transparent fades in <paramref name="color"/> without blending from the overlay's previous color.
 	/// </remarks>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint. If left as 0, the tint will be instant.</param>
@@ -998,6 +999,9 @@ public partial class AnimationManager : Node
 	/// <summary>
 	/// Covers the battle with a color overlay above the enemies and waits for it to finish.
 	/// </summary>
+	/// <remarks>
+	/// A fade that starts while the overlay is fully transparent fades in <paramref name="color"/> without blending from the overlay's previous color.
+	/// </remarks>
 	/// <param name="color">The Color to set the screen tint to. This includes alpha.</param>
 	/// <param name="duration">The duration of the tint.</param>
 	/// <param name="layer">The layer to show the screen tint on. Defaults to -4, just above the enemy layer.</param>
@@ -1013,6 +1017,8 @@ public partial class AnimationManager : Node
 	private Tween StartScreenTint(Color color, float duration)
 	{
 		ScreenTintTween?.Kill();
+		if (ScreenTint.Color.A == 0f)
+			ScreenTint.Color = new Color(color.R, color.G, color.B, 0f);
 		ScreenTintTween = GetTree().CreateTween();
 		ScreenTintTween.TweenProperty(ScreenTint, "color", color, duration);
 		return ScreenTintTween;

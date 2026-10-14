@@ -1633,7 +1633,9 @@ public partial class BattleManager : Node
 		List<Actor> resolvedTargets = [];
 		bool noTarget = false;
 		currentAction.Targets = currentAction.Targets?.Select(ResolveTransformed).ToList();
-		if (currentAction.Action.Target == SkillTarget.Enemy && currentAction.Targets is { Count: > 0 }
+		if (currentAction.Targets is { Count: > 0 }
+		    && (currentAction.Action.Target == SkillTarget.Enemy
+		        || (currentAction.Action.Target == SkillTarget.AllyOrEnemy && currentAction.Targets[0] is PartyMember))
 		    && currentAction.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charm)
 		    && charm is CharmStatModifier { CharmedBy: { } charmer } && currentAction.Actor is Enemy)
 			currentAction.Targets = [charmer, .. currentAction.Targets.Skip(1)];
@@ -1717,7 +1719,9 @@ public partial class BattleManager : Node
 				break;
 		}
 
-		if (!noTarget && currentAction.Action.Target == SkillTarget.Enemy && resolvedTargets.Count == 1)
+		if (!noTarget && (currentAction.Action.Target == SkillTarget.Enemy
+		        || (currentAction.Action.Target == SkillTarget.AllyOrEnemy && currentAction.Actor is Enemy))
+		    && resolvedTargets.Count == 1)
 			resolvedTargets[0] = ResolveTauntTarget(currentAction.Actor, resolvedTargets[0]);
 
 		if (currentAction.Action is Skill skill)
@@ -1814,9 +1818,9 @@ public partial class BattleManager : Node
 		// RPGMaker clears the user's and each target's action result when the action applies,
 		// so modifiers removed before this point stop blocking re-adds. a setup phase runs before this on purpose
 		// to recreate the "bug" of attempting to apply a state before results are cleared
-		currentAction.Actor.ClearResult();
+		ResolveKeptBattler(currentAction.Actor).ClearResult();
 		foreach (Actor resolved in resolvedTargets)
-			resolved.ClearResult();
+			ResolveKeptBattler(resolved).ClearResult();
 
 		ActionForcedCrit = false;
 		InActionEffect = true;
@@ -1923,7 +1927,7 @@ public partial class BattleManager : Node
 	/// <param name="skill">The skill that is being forced.</param>
 	public void ForceCommand(Actor self, IReadOnlyList<Actor> targets, Skill skill)
 	{
-		CurrentCommand?.Actor.ClearResult();
+		ResolveKeptBattler(CurrentCommand?.Actor)?.ClearResult();
 		EnqueueForcedCommand(self, targets, skill);
 	}
 
@@ -2305,6 +2309,8 @@ public partial class BattleManager : Node
 
 	private async Task EndOfBattle(bool victory)
 	{
+		if (RestartQueued)
+			return;
 		// use index loops since the collections may be modified by summons in hooks
 		for (int i = 0; i < CurrentParty.Count; i++)
 		{
@@ -2485,8 +2491,7 @@ public partial class BattleManager : Node
 			rounded *= 10;
 		if (rounded < 0)
 			rounded = 0;
-		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
-			rounded = 9999;
+		rounded = (float)LimitDamage(rounded);
 
 		ApplyOverrides(DamagePhase.PreJuice, ref rounded, context);
 
@@ -2513,8 +2518,7 @@ public partial class BattleManager : Node
 
 		if (rounded < 0)
 			rounded = 0;
-		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
-			rounded = 9999;
+		rounded = (float)LimitDamage(rounded);
 
 		rounded = (float)Math.Round(rounded, MidpointRounding.AwayFromZero);
 
@@ -2800,16 +2804,18 @@ public partial class BattleManager : Node
 	/// <param name="variance">The healing variance. Healed HP will be multiplied between (1 - variance) and (1 + variance).</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
 	/// <returns>The HEART healed, after emotion effects, variance, rounding, Debug Damage scaling and the 9999 cap. It can be more than the HEART actually restored.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="self"/>, <paramref name="target"/> or <paramref name="healFunc"/> is null.</exception>
 	public int Heal(Actor self, Actor target, Func<double> healFunc, float variance = 0.2f, bool silent = false)
 	{
+		ArgumentNullException.ThrowIfNull(self);
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(healFunc);
 		target = ResolveTransformed(target);
 		double baseHealing = Math.Max(0, healFunc());
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
-		int rounded = DebugScale(RoundHealing(baseHealing));
-		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
-			rounded = 9999;
+		int rounded = (int)LimitDamage(DebugScale(RoundHealing(baseHealing)));
 		rounded = target.Heal(rounded, applyDebugScale: false);
 		SpawnDamageNumber(rounded, target, DamageType.Heal);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
@@ -2831,16 +2837,18 @@ public partial class BattleManager : Node
 	/// <param name="variance">The healing variance. Healed Juice will be multiplied between (1 - variance) and (1 + variance). Defaults to 0, no variance.</param>
 	/// <param name="silent">If this healing should not log anything to the BattleLog. Damage numbers will still be displayed.</param>
 	/// <returns>The JUICE healed, after emotion effects, variance, rounding, Debug Damage scaling and the 9999 cap. It can be more than the JUICE actually restored.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="self"/>, <paramref name="target"/> or <paramref name="healFunc"/> is null.</exception>
 	public int HealJuice(Actor self, Actor target, Func<double> healFunc, float variance = 0f, bool silent = false)
 	{
+		ArgumentNullException.ThrowIfNull(self);
+		ArgumentNullException.ThrowIfNull(target);
+		ArgumentNullException.ThrowIfNull(healFunc);
 		target = ResolveTransformed(target);
 		double baseJuice = Math.Max(0, healFunc());
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
 		double finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
 		finalJuice = CalculateVariance(finalJuice, variance);
-		int rounded = DebugScale(RoundHealing(finalJuice));
-		if (!SettingsMenuManager.Instance.DisableDamageLimit && rounded > 9999)
-			rounded = 9999;
+		int rounded = (int)LimitDamage(DebugScale(RoundHealing(finalJuice)));
 		rounded = target.HealJuice(rounded, applyDebugScale: false);
 		SpawnDamageNumber(rounded, target, DamageType.JuiceGain);
 		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
@@ -3188,7 +3196,9 @@ public partial class BattleManager : Node
 	/// The new enemy spawns at the original's position (plus <paramref name="offset"/>) and index (see <see cref="GetEnemy"/>), feeling the original's emotion, or <paramref name="startingEmotion"/> if it can't feel that one.
 	/// It keeps the original's HP and JUICE (capped at its own maximums), stat modifiers (their <c>OnAdd</c> doesn't run again), <see cref="Actor.Stunned"/> flag,
 	/// OBSERVE prediction and queued forced commands, and its place in the turn: if the original already acted this turn, the new enemy doesn't act again,
-	/// and if it hasn't, the new enemy acts at its normal place in the turn order. A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
+	/// and if it hasn't, the new enemy acts at its normal place in the turn order. It also keeps the original's emotion lock (see <see cref="Actor.LockEmotion"/>),
+	/// <see cref="Actor.DamageTakenThisAction"/>, action result (see <see cref="Actor.ClearResult"/>) and an IMMORTAL release that is waiting for its forced commands
+	/// (see <see cref="Enemy.RemoveImmortal"/>). A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
 	/// so use <see cref="ReplaceEnemy"/> there, or anywhere a fresh enemy is wanted.<br/>
 	/// Damage, healing, emotion changes and damage numbers that go through <see cref="BattleManager"/> to the old enemy
 	/// reach the new one instead, so the rest of a running action still lands. Commands later in the turn that are aimed
@@ -3203,9 +3213,14 @@ public partial class BattleManager : Node
 	/// <returns>The new <see cref="Enemy"/>, or null if <paramref name="original"/> or <paramref name="who"/> is null. Also null if the original enemy is not in the battle, or if the new one fails to spawn (the original is removed either way once found).</returns>
 	public Enemy TransformEnemy(Enemy original, string who, string startingEmotion = "neutral", Vector2 offset = default, Stats? adjustedStats = null)
 	{
+		if (original == null || who == null)
+		{
+			GD.PushWarning("TransformEnemy needs an enemy to transform and the name of the enemy to transform it into.");
+			return null;
+		}
 		bool acted = ActedThisTurn.Contains(original);
 		int priority = PriorityActors.IndexOf(original);
-		bool preRolled = original?.HasPreRolledAction == true;
+		bool preRolled = original.HasPreRolledAction;
 		Enemy transformed = ReplaceEnemy(original, who, startingEmotion, offset, adjustedStats);
 		if (transformed == null)
 			return null;
@@ -3218,6 +3233,8 @@ public partial class BattleManager : Node
 		transformed.ObserveTarget = original.ObserveTarget;
 		transformed.ObserveMultiTarget = original.ObserveMultiTarget;
 		transformed.ObserveSetThisTurn = original.ObserveSetThisTurn;
+		transformed.CopyBattlerState(original);
+		transformed.ImmortalReleasePending = original.ImmortalReleasePending;
 		Stats stats = transformed.CurrentStats;
 		transformed.CurrentHP = Math.Min(original.CurrentHP, stats.MaxHP);
 		transformed.CurrentJuice = Math.Min(original.CurrentJuice, stats.MaxJuice);
@@ -3265,14 +3282,14 @@ public partial class BattleManager : Node
 		Enemies.Remove(target);
 		target.GetParent().QueueFree();
 		
-		Enemy transformed = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer, adjustedStats ?? original.AdjustedStats);
-		if (transformed != null && index >= 0)
+		Enemy replacement = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer, adjustedStats ?? original.AdjustedStats);
+		if (replacement != null && index >= 0)
 		{
-			Enemies.Remove(transformed.Component);
-			Enemies.Insert(index, transformed.Component);
+			Enemies.Remove(replacement.Component);
+			Enemies.Insert(index, replacement.Component);
 		}
-		original.TransformedInto = transformed;
-		return transformed;
+		original.TransformedInto = replacement;
+		return replacement;
 	}
 
 	internal Actor ResolveTransformed(Actor actor)
@@ -3282,7 +3299,7 @@ public partial class BattleManager : Node
 		return actor;
 	}
 
-	private static Actor ResolveKeptBattler(Actor actor)
+	internal static Actor ResolveKeptBattler(Actor actor)
 	{
 		while (actor is Enemy { TransformedInto: { KeepsBattler: true } next })
 			actor = next;
@@ -3386,6 +3403,11 @@ public partial class BattleManager : Node
 	internal int DebugScale(int amount)
 	{
 		return ShouldDoDebugDamage() ? amount * 10 : amount;
+	}
+
+	internal double LimitDamage(double amount)
+	{
+		return !SettingsMenuManager.Instance.DisableDamageLimit && amount > 9999 ? 9999 : amount;
 	}
 	
 	/// <summary>

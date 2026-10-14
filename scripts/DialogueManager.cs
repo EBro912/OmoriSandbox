@@ -59,6 +59,8 @@ public partial class DialogueManager : Node2D
 	private const float CURSOR_TOP_OFFSET = 30f;
 	private const float CURSOR_LEFT_PADDING = 30f;
 	private const float CURSOR_FADE_DURATION = 10f / 60f;
+	private const float WRAP_WIDTH = 324f;
+	private const int WRAP_FONT_SIZE = 28;
 
 	/// <summary>
 	/// If dialogue is disabled in the current preset.<br/>
@@ -294,7 +296,7 @@ public partial class DialogueManager : Node2D
 		if (current.Speaker != null)
 		{
 			string cleaned = FindPauses(BuildHeader(FontType.Normal) + current.Speaker + ": " + BuildHeader(current.Font) + current.Message);
-			Text.Text = cleaned;
+			Text.Text = WrapLines(cleaned);
 			Text.VisibleCharacters = current.Speaker.Length + 2;
 			PlaySound();
 		}
@@ -315,7 +317,7 @@ public partial class DialogueManager : Node2D
 				}
 			}
 			string cleaned = FindPauses(alignment + BuildHeader(current.Font) + message);
-			Text.Text = cleaned;
+			Text.Text = WrapLines(cleaned);
 			Text.VisibleCharacters = 0;
 		}
 
@@ -344,6 +346,77 @@ public partial class DialogueManager : Node2D
 			_ => "[font=res://fonts/OMORI_GAME2.ttf]"
 		});
 		return sb.ToString();
+	}
+
+	private static string WrapLines(string bbcode)
+	{
+		Font normal = GD.Load<Font>("res://fonts/OMORI_GAME2.ttf");
+		Stack<int> sizes = new([WRAP_FONT_SIZE]);
+		Stack<Font> fonts = new([normal]);
+		char[] chars = bbcode.ToCharArray();
+		float x = 0;
+		for (int i = 0; i < chars.Length; i++)
+		{
+			if (chars[i] == '[' && TryReadTag(bbcode, i, out string tag, out int end))
+			{
+				if (tag == "lb")
+					x += fonts.Peek().GetCharSize('[', sizes.Peek()).X;
+				else if (tag == "br")
+					x = 0;
+				else if (tag.StartsWith("font_size=") && int.TryParse(tag[10..], out int size))
+					sizes.Push(size);
+				else if (tag == "/font_size" && sizes.Count > 1)
+					sizes.Pop();
+				else if (tag.StartsWith("font="))
+					fonts.Push(GD.Load<Font>(tag[5..]) ?? fonts.Peek());
+				else if (tag == "/font" && fonts.Count > 1)
+					fonts.Pop();
+				i = end;
+			}
+			else if (chars[i] == '\n')
+			{
+				x = 0;
+			}
+			else if (chars[i] == ' ' && x + MeasureWord(bbcode, i, normal) > WRAP_WIDTH)
+			{
+				chars[i] = '\n';
+				x = 0;
+			}
+			else
+			{
+				x += fonts.Peek().GetCharSize(chars[i], sizes.Peek()).X;
+			}
+		}
+		return new string(chars);
+	}
+
+	private static float MeasureWord(string bbcode, int space, Font font)
+	{
+		int size = WRAP_FONT_SIZE;
+		float width = font.GetCharSize(' ', size).X;
+		for (int i = space + 1; i < bbcode.Length && bbcode[i] is not (' ' or '\n'); i++)
+		{
+			if (bbcode[i] == '[' && TryReadTag(bbcode, i, out string tag, out int end))
+			{
+				if (tag == "br")
+					break;
+				if (tag == "lb")
+					width += font.GetCharSize('[', size).X;
+				else if (tag.StartsWith("font_size=") && int.TryParse(tag[10..], out int tagSize))
+					size = tagSize;
+				i = end;
+				continue;
+			}
+			width += font.GetCharSize(bbcode[i], size).X;
+		}
+		return width;
+	}
+
+	private static bool TryReadTag(string bbcode, int start, out string tag, out int end)
+	{
+		end = bbcode.IndexOf(']', start);
+		tag = end < 0 ? null : bbcode[(start + 1)..end];
+		return end >= 0;
 	}
 
 	private string FindPauses(string input)

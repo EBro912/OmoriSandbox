@@ -7,6 +7,7 @@ namespace OmoriSandbox;
 internal partial class DamageNumber : Node2D
 {
     private static Dictionary<Vector2, DamageNumber> DamageNumbers = [];
+    private static readonly List<DamageNumber> PartyNumbers = [];
     
     private int[] Digits;
     private DamageType DamageType;
@@ -31,6 +32,11 @@ internal partial class DamageNumber : Node2D
         ZAsRelative = false;
         ZIndex = 10;
         Position = position;
+        if (Party)
+        {
+            PartyNumbers.Add(this);
+            return;
+        }
         if (DamageNumbers.TryGetValue(Position, out DamageNumber number))
             ShiftUp(number);
         DamageNumbers[Position] = this;
@@ -54,9 +60,10 @@ internal partial class DamageNumber : Node2D
 
     public static void DespawnAll()
     {
-        foreach (DamageNumber number in DamageNumbers.Values.Where(IsInstanceValid))
+        foreach (DamageNumber number in DamageNumbers.Values.Concat(PartyNumbers).Where(IsInstanceValid))
             number.Despawn();
         DamageNumbers.Clear();
+        PartyNumbers.Clear();
     }
 
     public override void _Ready()
@@ -126,7 +133,7 @@ internal partial class DamageNumber : Node2D
             Modulate = new Color(Modulate, Duration / 10f);
         if (Duration <= 0)
         {
-            DamageNumbers.Remove(Position);
+            Forget();
             QueueFree();
         }
     }
@@ -137,9 +144,17 @@ internal partial class DamageNumber : Node2D
         tween.TweenProperty(this, "modulate:a", 0f, 0.1f);
         tween.TweenCallback(Callable.From(() =>
         {
-            DamageNumbers.Remove(Position);
+            Forget();
             QueueFree();
         }));
+    }
+
+    private void Forget()
+    {
+        if (Party)
+            PartyNumbers.Remove(this);
+        else
+            DamageNumbers.Remove(Position);
     }
 }
 

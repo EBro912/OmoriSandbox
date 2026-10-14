@@ -476,7 +476,7 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public bool IsImmortal => HasStatModifier("Immortal");
 
-	internal bool ImmortalReleasePending { get; private set; }
+	internal bool ImmortalReleasePending { get; set; }
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;

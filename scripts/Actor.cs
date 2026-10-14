@@ -567,6 +567,14 @@ public abstract class Actor
 		RemovedSinceResultClear.Clear();
 	}
 
+	internal void CopyBattlerState(Actor original)
+	{
+		RemovedSinceResultClear.UnionWith(original.RemovedSinceResultClear);
+		DamageTakenThisAction = original.DamageTakenThisAction;
+		IsEmotionLocked = original.IsEmotionLocked;
+		LockedAdvantageEmotion = original.LockedAdvantageEmotion;
+	}
+
 	private static string ResultKey(string modifier, int tier)
 	{
 		return tier > 0 ? modifier + "#" + tier : modifier;
@@ -586,7 +594,7 @@ public abstract class Actor
 	// first tick, so the state doesn't expire by its own action ending
 	private void GrantFreeActionTick(StatModifier mod)
 	{
-		if (mod.TicksOnActionEnd && BattleManager.Instance?.GetCurrentCommand()?.Actor == this)
+		if (mod.TicksOnActionEnd && BattleManager.ResolveKeptBattler(BattleManager.Instance?.GetCurrentCommand()?.Actor) == this)
 			mod.SkipNextActionTick = true;
 	}
 

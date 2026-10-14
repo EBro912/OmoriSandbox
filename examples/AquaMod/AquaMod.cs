@@ -83,8 +83,7 @@ public partial class AquaMod : Mod
             {
                 BattleLogManager.Instance.QueueMessage(self, "[actor] uses her OMEGA attack!");
                 await Wait.Milliseconds(1000);
-                foreach (Actor target in targets)
-                    AnimationManager.Instance.PlayAnimation(13, target);
+                AnimationManager.Instance.PlayScreenAnimation(13, false);
                 for (int i = 0; i < 10; i++)
                 {
                     foreach (Actor target in targets)
