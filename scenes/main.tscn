@@ -50,6 +50,8 @@
 [ext_resource type="Material" path="res://assets/screen_blend_shader.tres" id="45_scrbl"]
 [ext_resource type="Script" path="res://scripts/display/DisplayLayout.cs" id="46_layout"]
 [ext_resource type="FontFile" uid="uid://c1ffiobkf516l" path="res://fonts/OMORI_GAME2_Numbers.ttf" id="47_nmbrs"]
+[ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="48_hpicn"]
+[ext_resource type="Texture2D" uid="uid://bbstna42lmri8" path="res://assets/system/energy_icon.png" id="49_enicn"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
 viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
@@ -664,7 +666,7 @@ region_rect = Rect2(835, 172, 179, 39)
 [node name="Cursor" parent="BattleCanvas/UI/BattleMenu" unique_id=587240618 instance=ExtResource("24_qkpxi")]
 visible = true
 
-[node name="SkillMenu" type="NinePatchRect" parent="BattleCanvas/UI" unique_id=1066892326 node_paths=PackedStringArray("SkillLabels", "CostText", "PageUpSprite", "PageDownSprite", "CursorSprite")]
+[node name="SkillMenu" type="NinePatchRect" parent="BattleCanvas/UI" unique_id=1066892326 node_paths=PackedStringArray("SkillLabels", "CostText", "CostValues", "CostIcons", "PageUpSprite", "PageDownSprite", "CursorSprite")]
 visible = false
 layout_mode = 1
 anchors_preset = 7
@@ -687,6 +689,11 @@ patch_margin_right = 6
 script = ExtResource("19_og1vs")
 SkillLabels = [NodePath("Skill1"), NodePath("Skill3"), NodePath("Skill2"), NodePath("Skill4")]
 CostText = NodePath("Cost/Value")
+CostValues = [NodePath("Cost/Value"), NodePath("Cost/Value2"), NodePath("Cost/Value3")]
+CostIcons = [NodePath("Cost/Sprite2D"), NodePath("Cost/Icon2"), NodePath("Cost/Icon3")]
+JuiceIcon = ExtResource("11_eb6dy")
+HPIcon = ExtResource("48_hpicn")
+EnergyIcon = ExtResource("49_enicn")
 PageUpSprite = NodePath("PageUp")
 PageDownSprite = NodePath("PageDown")
 CursorSprite = NodePath("Cursor")
@@ -719,6 +726,38 @@ horizontal_alignment = 2
 [node name="Sprite2D" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu/Cost" unique_id=2000981634]
 position = Vector2(102, 10)
 texture = ExtResource("11_eb6dy")
+
+[node name="Value2" type="Label" parent="BattleCanvas/UI/SkillMenu/Cost" unique_id=1593021774]
+visible = false
+layout_mode = 0
+offset_left = 110.0
+offset_right = 163.0
+offset_bottom = 24.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
+[node name="Icon2" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu/Cost" unique_id=873310452]
+visible = false
+position = Vector2(176, 10)
+texture = ExtResource("48_hpicn")
+
+[node name="Value3" type="Label" parent="BattleCanvas/UI/SkillMenu/Cost" unique_id=2046318851]
+visible = false
+layout_mode = 0
+offset_left = 184.0
+offset_right = 237.0
+offset_bottom = 24.0
+theme_override_fonts/font = ExtResource("10_choun")
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
+[node name="Icon3" type="Sprite2D" parent="BattleCanvas/UI/SkillMenu/Cost" unique_id=412907336]
+visible = false
+position = Vector2(250, 10)
+texture = ExtResource("49_enicn")
 
 [node name="Skill1" type="Label" parent="BattleCanvas/UI/SkillMenu" unique_id=1826348171]
 layout_mode = 0

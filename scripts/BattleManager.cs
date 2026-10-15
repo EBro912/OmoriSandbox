@@ -785,8 +785,7 @@ public partial class BattleManager : Node
 			return;
 		}
 		PartyMember attacker = CurrentParty[CurrentPartyMember].Actor;
-		if (SelectedAction is Skill attack &&
-		    (!attack.MeetsRequirements(attacker) || attacker.CurrentJuice - attack.Cost(attacker) < 0))
+		if (SelectedAction is Skill attack && GetInputUseFailure(attacker, attack) != null)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
@@ -815,17 +814,15 @@ public partial class BattleManager : Node
 		SetPhase(BattlePhase.SkillSelection);
 	}
 
+	internal SkillUseFailure? GetInputUseFailure(PartyMember member, Skill skill)
+	{
+		return member.GetUseFailure(skill);
+	}
+
 	internal bool OnSelectSkill(Skill skill)
 	{
 		SelectedAction = skill;
-		if (!skill.MeetsRequirements(CurrentParty[CurrentPartyMember].Actor))
-		{
-			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
-			return false;
-		}
-
-		if (CurrentParty[CurrentPartyMember].Actor.CurrentJuice - skill.Cost(CurrentParty[CurrentPartyMember].Actor) <
-		    0)
+		if (GetInputUseFailure(CurrentParty[CurrentPartyMember].Actor, skill) != null)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
@@ -1726,33 +1723,9 @@ public partial class BattleManager : Node
 
 		if (currentAction.Action is Skill skill)
 		{
-			if (!currentAction.Forced && !skill.MeetsRequirements(currentAction.Actor))
-			{
-				if (currentAction.Actor.CurrentEmotion.BlocksActions)
-					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-					                                       " is too AFRAID to move!");
-				else if (skill.RequirementFailureMessage != null)
-					BattleLogManager.Instance.QueueMessage(currentAction.Actor, skill.RequirementFailureMessage);
-				if (BattleLogManager.Instance.IsProcessingMessage)
-					SetPhase(BattlePhase.WaitForBattleLog);
-				else
-					SetPhase(BattlePhase.PostCommand);
+			if (!currentAction.Forced && RefuseSkill(currentAction, skill))
 				return;
-			}
-			
-			int skillCost = skill.Cost(currentAction.Actor);
-			if (skillCost > 0)
-			{
-				if (!currentAction.Forced && currentAction.Actor.CurrentJuice < skillCost)
-				{
-					BattleLogManager.Instance.QueueMessage(currentAction.Actor.Name.ToUpper() +
-					                                       " does not have enough JUICE!");
-					SetPhase(BattlePhase.WaitForBattleLog);
-					return;
-				}
-
-				currentAction.Actor.CurrentJuice = Math.Max(0, currentAction.Actor.CurrentJuice - skillCost);
-			}
+			PaySkillCosts(currentAction.Actor, skill);
 
 			if (noTarget)
 			{
@@ -1836,6 +1809,51 @@ public partial class BattleManager : Node
 			SetPhase(BattlePhase.WaitForBattleLog);
 		else
 			SetPhase(BattlePhase.PostCommand);
+	}
+
+	private bool RefuseSkill(BattleCommand command, Skill skill)
+	{
+		SkillUseFailure? failure = command.Actor.GetUseFailure(skill);
+		if (failure == null)
+			return false;
+		string name = command.Actor.Name.ToUpper();
+		switch (failure)
+		{
+			case SkillUseFailure.Requirement:
+				if (command.Actor.CurrentEmotion.BlocksActions)
+					BattleLogManager.Instance.QueueMessage(name + " is too AFRAID to move!");
+				else if (skill.RequirementFailureMessage != null)
+					BattleLogManager.Instance.QueueMessage(command.Actor, skill.RequirementFailureMessage);
+				if (BattleLogManager.Instance.IsProcessingMessage)
+					SetPhase(BattlePhase.WaitForBattleLog);
+				else
+					SetPhase(BattlePhase.PostCommand);
+				return true;
+			case SkillUseFailure.Juice:
+				BattleLogManager.Instance.QueueMessage(name + " does not have enough JUICE!");
+				break;
+			case SkillUseFailure.HP:
+				BattleLogManager.Instance.QueueMessage(name + " does not have enough HP!");
+				break;
+			case SkillUseFailure.Energy:
+				BattleLogManager.Instance.QueueMessage(name + " does not have enough ENERGY!");
+				break;
+		}
+		SetPhase(BattlePhase.WaitForBattleLog);
+		return true;
+	}
+
+	private void PaySkillCosts(Actor actor, Skill skill)
+	{
+		int juice = skill.Cost(actor);
+		if (juice > 0)
+			actor.CurrentJuice = Math.Max(0, actor.CurrentJuice - juice);
+		int hp = skill.HPCost(actor);
+		if (hp > 0)
+			actor.CurrentHP = Math.Max(0, actor.CurrentHP - hp);
+		int energy = actor is PartyMember ? skill.EnergyCost(actor) : 0;
+		if (energy > 0)
+			Energy = Math.Max(0, Energy - energy);
 	}
 
 	private void EndCommandWithoutTarget(BattleCommand command)
@@ -2019,13 +2037,18 @@ public partial class BattleManager : Node
 			return false;
 		if (includeEnergy && Energy < entry.EnergyCost)
 			return false;
+		if (user.FollowupSet != null
+		    && Database.TryGetSkill(FollowupSets.SkillNameFor(entry, user.FollowupSet, FollowupTier), out Skill skill)
+		    && user.Actor.GetFollowupUseFailure(skill) != null)
+			return false;
 
 		return entry.Requirement == null || entry.Requirement(user.Actor);
 	}
 
 	private bool IsFollowupValid(PendingFollowupData followup)
 	{
-		if (IsInvalidTarget(followup.Command.Actor) || followup.Command.Actor.Stunned)
+		if (IsInvalidTarget(followup.Command.Actor) || followup.Command.Actor.Stunned
+		    || followup.Command.Actor.CurrentEmotion.BlocksActions)
 			return false;
 
 		return IsFollowupEntryUsable(followup.User, followup.Entry, includeEnergy: true);

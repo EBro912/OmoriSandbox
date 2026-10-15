@@ -341,6 +341,20 @@ public class StatModifier
     public virtual void OverrideJuiceCost(ref int juice, Actor actor) {}
 
     /// <summary>
+    /// Allows modifying the HP cost of skills.
+    /// </summary>
+    /// <param name="hp">The current HP cost.</param>
+    /// <param name="actor">The actor this modifier is attached to.</param>
+    public virtual void OverrideHPCost(ref int hp, Actor actor) {}
+
+    /// <summary>
+    /// Allows modifying the Energy cost of skills.
+    /// </summary>
+    /// <param name="energy">The current Energy cost.</param>
+    /// <param name="actor">The actor this modifier is attached to.</param>
+    public virtual void OverrideEnergyCost(ref int energy, Actor actor) {}
+
+    /// <summary>
     /// Sets the number of turns left on this modifier. If the value exceeds the max turns
     /// set previously, the max is raised to match. An explicit duration on a turnless modifier
     /// converts it into a timed one, so refreshes restore that duration instead of making it infinite.

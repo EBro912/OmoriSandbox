@@ -54,6 +54,80 @@ public class Skill : BattleAction
 
 		return cost;
 	}
+
+	/// <summary>
+	/// The flat part of this skill's HP cost, ignoring any cost modifiers. See <see cref="WithHPCost"/>.
+	/// </summary>
+	public int BaseHPCost { get; private set; }
+
+	/// <summary>
+	/// The part of this skill's HP cost that scales with the user's max HP, as a fraction. See <see cref="WithHPCost"/>.
+	/// </summary>
+	public float BaseHPCostRate { get; private set; }
+
+	/// <summary>
+	/// The Energy cost of this skill, ignoring any cost modifiers. See <see cref="WithEnergyCost"/>.
+	/// </summary>
+	public int BaseEnergyCost { get; private set; }
+
+	/// <summary>
+	/// The cost of the skill in HP, taking any skill cost changes into account.
+	/// </summary>
+	/// <param name="actor">The actor to use.</param>
+	/// <returns>The HP the actor pays to use this skill.</returns>
+	public int HPCost(Actor actor)
+	{
+		double rate = (double)(decimal)BaseHPCostRate;
+		int hp = (int)Math.Floor(Math.Max(0d, BaseHPCost + actor.CurrentStats.MaxHP * rate));
+		foreach (StatModifier modifier in actor.StatModifiers.Values)
+			modifier.OverrideHPCost(ref hp, actor);
+		return hp;
+	}
+
+	/// <summary>
+	/// The cost of the skill in Energy, taking any skill cost changes into account.
+	/// </summary>
+	/// <remarks>
+	/// Only party members pay Energy costs.
+	/// </remarks>
+	/// <param name="actor">The actor to use.</param>
+	/// <returns>The Energy the party pays when the actor uses this skill.</returns>
+	public int EnergyCost(Actor actor)
+	{
+		int energy = BaseEnergyCost;
+		foreach (StatModifier modifier in actor.StatModifiers.Values)
+			modifier.OverrideEnergyCost(ref energy, actor);
+		return energy;
+	}
+
+	/// <summary>
+	/// Makes this skill cost HP to use.
+	/// </summary>
+	/// <remarks>
+	/// The cost is <paramref name="flat"/> plus <paramref name="maxHPRate"/> times the user's max HP, rounded down.
+	/// The user needs more HP than the cost to use the skill, so paying it leaves them with at least 1 HP. A forced use pays it anyway and can knock the user out.
+	/// </remarks>
+	/// <param name="flat">A fixed amount of HP.</param>
+	/// <param name="maxHPRate">A fraction of the user's max HP, e.g. <c>0.2f</c> for 20%.</param>
+	public Skill WithHPCost(int flat, float maxHPRate = 0f)
+	{
+		BaseHPCost = flat;
+		BaseHPCostRate = maxHPRate;
+		return this;
+	}
+
+	/// <summary>
+	/// Makes this skill cost Energy to use.
+	/// </summary>
+	/// <remarks>
+	/// Only party members pay it; enemies ignore Energy costs. A follow-up's Energy cost belongs on its follow-up entry, since a follow-up skill with its own Energy cost charges both.
+	/// </remarks>
+	/// <param name="energy">The Energy the party pays.</param>
+	public Skill WithEnergyCost(int energy)
+	{
+		BaseEnergyCost = energy;
+		return this;
+	}
 	
 	private Func<Actor, bool> Requirement = actor => !actor.CurrentEmotion.BlocksActions;
 

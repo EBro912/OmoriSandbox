@@ -10,6 +10,11 @@ internal partial class SkillMenu : PagedMenu
 {
 	[Export] public AutofitLabel[] SkillLabels;
 	[Export] public Label CostText;
+	[Export] private Label[] CostValues;
+	[Export] private Sprite2D[] CostIcons;
+	[Export] private Texture2D JuiceIcon;
+	[Export] private Texture2D HPIcon;
+	[Export] private Texture2D EnergyIcon;
 	[Export] private Sprite2D PageUpSprite;
 	[Export] private Sprite2D PageDownSprite;
 	private readonly List<Skill> Skills = [];
@@ -91,7 +96,7 @@ internal partial class SkillMenu : PagedMenu
 		for (int i = 0; i < DisplayedSkills.Count; i++)
 		{
 			SkillLabels[i].SetFittedText(DisplayedSkills[i].Name);
-			bool usable = Actor.CurrentJuice >= DisplayedSkills[i].Cost(Actor) && DisplayedSkills[i].MeetsRequirements(Actor);
+			bool usable = BattleManager.Instance.GetInputUseFailure(Actor, DisplayedSkills[i]) == null;
 			if (DisplayedSkills[i].MenuFontColor(usable) is Color color)
 				SkillLabels[i].AddThemeColorOverride("font_color", color);
 		}
@@ -106,8 +111,34 @@ internal partial class SkillMenu : PagedMenu
 	{
 		if (Empty) return;
 		Skill s = DisplayedSkills[CursorIndex];
-		CostText.Text = s.Cost(Actor).ToString();
+		UpdateCostHeader(s);
 		BattleLogManager.Instance.ClearAndShowDescription($"[font_size=28]{s.Name}\n[font_size=20]{s.Description.Replace("[actor]", Actor.Name.ToUpper()).Replace("[first]", BattleManager.Instance.GetPartyMember(0).Name.ToUpper())}");
+	}
+
+	private void UpdateCostHeader(Skill skill)
+	{
+		List<(int Amount, Texture2D Icon)> costs = [];
+		int juice = skill.Cost(Actor);
+		if (juice > 0)
+			costs.Add((juice, JuiceIcon));
+		int hp = skill.HPCost(Actor);
+		if (hp > 0)
+			costs.Add((hp, HPIcon));
+		int energy = skill.EnergyCost(Actor);
+		if (energy > 0)
+			costs.Add((energy, EnergyIcon));
+		if (costs.Count == 0)
+			costs.Add((juice, JuiceIcon));
+		for (int i = 0; i < CostValues.Length; i++)
+		{
+			bool shown = i < costs.Count;
+			CostValues[i].Visible = shown;
+			CostIcons[i].Visible = shown;
+			if (!shown)
+				continue;
+			CostValues[i].Text = costs[i].Amount.ToString();
+			CostIcons[i].Texture = costs[i].Icon;
+		}
 	}
 
 	protected override void OnSelect()

@@ -506,6 +506,49 @@ public abstract class Actor
 	}
 
 	/// <summary>
+	/// Whether this actor can use its skill <paramref name="skill"/> right now.
+	/// </summary>
+	/// <remarks>
+	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default), or the actor can't pay its JUICE, HP or Energy cost.
+	/// In <see cref="Enemy.ProcessAI"/>, use it to skip a choice the enemy couldn't carry out, and return null when no choice is left, so the enemy takes no action this turn.
+	/// </remarks>
+	/// <param name="skill">The skill's key in <see cref="Skills"/>.</param>
+	/// <returns>True if the skill can be used now.</returns>
+	public bool CanUse(string skill)
+	{
+		return skill != null && Skills.TryGetValue(skill, out Skill value) && CanUse(value);
+	}
+
+	/// <summary>
+	/// Whether this actor can use <paramref name="skill"/> right now. See <see cref="CanUse(string)"/>.
+	/// </summary>
+	/// <param name="skill">The skill to check. It doesn't have to be in <see cref="Skills"/>.</param>
+	/// <returns>True if the skill can be used now.</returns>
+	public bool CanUse(Skill skill)
+	{
+		return skill != null && GetUseFailure(skill) == null;
+	}
+
+	internal SkillUseFailure? GetUseFailure(Skill skill) => GetUseFailure(skill, true);
+
+	internal SkillUseFailure? GetFollowupUseFailure(Skill skill) => GetUseFailure(skill, false);
+
+	private SkillUseFailure? GetUseFailure(Skill skill, bool includeRequirementAndJuice)
+	{
+		if (includeRequirementAndJuice && !skill.MeetsRequirements(this))
+			return SkillUseFailure.Requirement;
+		int juice = skill.Cost(this);
+		if (includeRequirementAndJuice && juice > 0 && CurrentJuice < juice)
+			return SkillUseFailure.Juice;
+		int hp = skill.HPCost(this);
+		if (hp > 0 && CurrentHP <= hp)
+			return SkillUseFailure.HP;
+		if (this is PartyMember && BattleManager.Instance != null && BattleManager.Instance.Energy < skill.EnergyCost(this))
+			return SkillUseFailure.Energy;
+		return null;
+	}
+
+	/// <summary>
 	/// How many of this actor's <see cref="StatModifier"/>s are in the given category.
 	/// </summary>
 	/// <param name="category">The category name, ignoring case.</param>

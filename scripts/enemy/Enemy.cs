@@ -298,20 +298,6 @@ public abstract class Enemy : Actor
 	}
 
 	/// <summary>
-	/// Whether this enemy can use its equipped skill <paramref name="skill"/> right now.
-	/// </summary>
-	/// <remarks>
-	/// False when the skill isn't equipped, its requirement fails (while AFRAID or STRESSED OUT by default), or this enemy doesn't have enough JUICE.
-	/// Use it in <see cref="ProcessAI"/> to skip a choice the enemy couldn't carry out, and return null when no choice is left, so the enemy takes no action this turn.
-	/// </remarks>
-	/// <param name="skill">The skill's key, as listed in <see cref="EquippedSkills"/>.</param>
-	/// <returns>True if the skill can be used now.</returns>
-	protected bool CanUse(string skill)
-	{
-		return skill != null && Skills.TryGetValue(skill, out Skill value) && value.MeetsRequirements(this) && CurrentJuice >= value.Cost(this);
-	}
-
-	/// <summary>
 	/// Rolls a number between 1 and 100 (inclusive). Mainly a helper function for calculating skill chances in <see cref="ProcessAI"/>
 	/// </summary>
 	/// <returns></returns>
