@@ -819,6 +819,11 @@ public partial class BattleManager : Node
 		return member.GetUseFailure(skill);
 	}
 
+	internal int GetInputCooldown(PartyMember member, Skill skill)
+	{
+		return member.GetSkillCooldown(skill);
+	}
+
 	internal bool OnSelectSkill(Skill skill)
 	{
 		SelectedAction = skill;
@@ -1829,6 +1834,9 @@ public partial class BattleManager : Node
 				else
 					SetPhase(BattlePhase.PostCommand);
 				return true;
+			case SkillUseFailure.Cooldown:
+				BattleLogManager.Instance.QueueMessage(name + " can't use that yet!");
+				break;
 			case SkillUseFailure.Juice:
 				BattleLogManager.Instance.QueueMessage(name + " does not have enough JUICE!");
 				break;
@@ -1854,6 +1862,7 @@ public partial class BattleManager : Node
 		int energy = actor is PartyMember ? skill.EnergyCost(actor) : 0;
 		if (energy > 0)
 			Energy = Math.Max(0, Energy - energy);
+		actor.StartSkillCooldown(skill);
 	}
 
 	private void EndCommandWithoutTarget(BattleCommand command)
@@ -2065,6 +2074,7 @@ public partial class BattleManager : Node
 			{
 				x.Actor.ClearResult();
 				x.Actor.DecreaseStatTurnCounter();
+				x.Actor.TickSkillCooldowns();
 				x.UpdateStateIcons();
 			});
 			Enemies.ForEach(x =>
@@ -2074,6 +2084,7 @@ public partial class BattleManager : Node
 					x.Actor.ClearResult();
 					x.Actor.DecreaseStatTurnCounter();
 				}
+				x.Actor.TickSkillCooldowns();
 			});
 
 			// in vanilla, a reinforcement added by a TURN END page is not in the action order until next turn,
@@ -2283,6 +2294,7 @@ public partial class BattleManager : Node
 						if (!Stages[CurrentStage].KeepStatusEffects)
 							x.Actor.ClearStatModifiersOnRecoverAll();
 						x.Actor.ClearResult();
+						x.Actor.ClearSkillCooldowns();
 						x.UpdateStateIcons();
 					});
 					AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
@@ -3220,7 +3232,7 @@ public partial class BattleManager : Node
 	/// It keeps the original's HP and JUICE (capped at its own maximums), stat modifiers (their <c>OnAdd</c> doesn't run again), <see cref="Actor.Stunned"/> flag,
 	/// OBSERVE prediction and queued forced commands, and its place in the turn: if the original already acted this turn, the new enemy doesn't act again,
 	/// and if it hasn't, the new enemy acts at its normal place in the turn order. It also keeps the original's emotion lock (see <see cref="Actor.LockEmotion"/>),
-	/// <see cref="Actor.DamageTakenThisAction"/>, action result (see <see cref="Actor.ClearResult"/>) and an IMMORTAL release that is waiting for its forced commands
+	/// <see cref="Actor.DamageTakenThisAction"/>, action result (see <see cref="Actor.ClearResult"/>), skill cooldowns (see <see cref="Actor.GetSkillCooldown(Skill)"/>) and an IMMORTAL release that is waiting for its forced commands
 	/// (see <see cref="Enemy.RemoveImmortal"/>). A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
 	/// so use <see cref="ReplaceEnemy"/> there, or anywhere a fresh enemy is wanted.<br/>
 	/// Damage, healing, emotion changes and damage numbers that go through <see cref="BattleManager"/> to the old enemy

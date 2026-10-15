@@ -21,12 +21,20 @@ internal partial class SkillMenu : PagedMenu
 	private List<Skill> DisplayedSkills = [];
 
 	private PartyMember Actor;
+	private Label CostHeader => CostText.GetParent<Label>();
+	private Vector2 CostValuePosition;
 
 	protected override Vector2 OpenPosition => new(140, 385);
 	protected override Vector2 ClosedPosition => new(140, 480);
 
 	protected override int TotalCount => Skills.Count;
 	protected override int DisplayedCount => DisplayedSkills.Count;
+
+	public override void _Ready()
+	{
+		base._Ready();
+		CostValuePosition = CostText.Position;
+	}
 
 	public override void OnOpen(SelectionMemory memory)
 	{
@@ -117,6 +125,24 @@ internal partial class SkillMenu : PagedMenu
 
 	private void UpdateCostHeader(Skill skill)
 	{
+		int cooldown = BattleManager.Instance.GetInputCooldown(Actor, skill);
+		if (cooldown > 0)
+		{
+			CostHeader.Text = "COOLDOWN:";
+			CostText.Text = cooldown.ToString();
+			CostText.HorizontalAlignment = HorizontalAlignment.Left;
+			float width = CostHeader.GetThemeFont("font").GetStringSize("COOLDOWN: ", fontSize: CostHeader.GetThemeFontSize("font_size")).X;
+			CostText.Position = new Vector2(width, CostValuePosition.Y);
+			for (int i = 0; i < CostValues.Length; i++)
+			{
+				CostValues[i].Visible = i == 0;
+				CostIcons[i].Visible = false;
+			}
+			return;
+		}
+		CostHeader.Text = "COST:";
+		CostText.HorizontalAlignment = HorizontalAlignment.Right;
+		CostText.Position = CostValuePosition;
 		List<(int Amount, Texture2D Icon)> costs = [];
 		int juice = skill.Cost(Actor);
 		if (juice > 0)

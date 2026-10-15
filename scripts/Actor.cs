@@ -509,7 +509,7 @@ public abstract class Actor
 	/// Whether this actor can use its skill <paramref name="skill"/> right now.
 	/// </summary>
 	/// <remarks>
-	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default), or the actor can't pay its JUICE, HP or Energy cost.
+	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default), the skill is cooling down (see <see cref="GetSkillCooldown(Skill)"/>), or the actor can't pay its JUICE, HP or Energy cost.
 	/// In <see cref="Enemy.ProcessAI"/>, use it to skip a choice the enemy couldn't carry out, and return null when no choice is left, so the enemy takes no action this turn.
 	/// </remarks>
 	/// <param name="skill">The skill's key in <see cref="Skills"/>.</param>
@@ -537,6 +537,8 @@ public abstract class Actor
 	{
 		if (includeRequirementAndJuice && !skill.MeetsRequirements(this))
 			return SkillUseFailure.Requirement;
+		if (GetSkillCooldown(skill) > 0)
+			return SkillUseFailure.Cooldown;
 		int juice = skill.Cost(this);
 		if (includeRequirementAndJuice && juice > 0 && CurrentJuice < juice)
 			return SkillUseFailure.Juice;
@@ -546,6 +548,79 @@ public abstract class Actor
 		if (this is PartyMember && BattleManager.Instance != null && BattleManager.Instance.Energy < skill.EnergyCost(this))
 			return SkillUseFailure.Energy;
 		return null;
+	}
+
+	private readonly Dictionary<Skill, int> SkillCooldowns = [];
+
+	/// <summary>
+	/// How many more turns this actor can't use <paramref name="skill"/>, counting the current turn. 0 means it isn't cooling down.
+	/// </summary>
+	/// <param name="skill">The skill to check.</param>
+	public int GetSkillCooldown(Skill skill)
+	{
+		return skill != null && SkillCooldowns.TryGetValue(skill, out int turns) ? turns : 0;
+	}
+
+	/// <summary>
+	/// How many more turns this actor can't use its skill <paramref name="skill"/>, counting the current turn. See <see cref="GetSkillCooldown(Skill)"/>.
+	/// </summary>
+	/// <param name="skill">The skill's key in <see cref="Skills"/>. An unknown key reads 0.</param>
+	public int GetSkillCooldown(string skill)
+	{
+		return skill != null && Skills.TryGetValue(skill, out Skill value) ? GetSkillCooldown(value) : 0;
+	}
+
+	/// <summary>
+	/// Sets how many more turns this actor can't use <paramref name="skill"/>, counting the current turn.
+	/// </summary>
+	/// <remarks>
+	/// For example, 2 set during a turn blocks the skill for the rest of that turn and the whole next one. 0 makes it usable again.
+	/// </remarks>
+	/// <param name="skill">The skill to set.</param>
+	/// <param name="turns">The number of turns, at least 0.</param>
+	public void SetSkillCooldown(Skill skill, int turns)
+	{
+		if (skill == null)
+			return;
+		if (turns > 0)
+			SkillCooldowns[skill] = turns;
+		else
+			SkillCooldowns.Remove(skill);
+	}
+
+	/// <summary>
+	/// Sets how many more turns this actor can't use its skill <paramref name="skill"/>, counting the current turn. See <see cref="SetSkillCooldown(Skill, int)"/>.
+	/// </summary>
+	/// <param name="skill">The skill's key in <see cref="Skills"/>. An unknown key is ignored, with an error.</param>
+	/// <param name="turns">The number of turns, at least 0.</param>
+	public void SetSkillCooldown(string skill, int turns)
+	{
+		if (skill != null && Skills.TryGetValue(skill, out Skill value))
+		{
+			SetSkillCooldown(value, turns);
+			return;
+		}
+		GD.PrintErr($"{Name} has no skill \"{skill}\" to set a cooldown on.");
+	}
+
+	internal void StartSkillCooldown(Skill skill)
+	{
+		if (skill.Cooldown > 0)
+			SkillCooldowns[skill] = skill.Cooldown + 1;
+	}
+
+	internal void TickSkillCooldowns()
+	{
+		foreach (Skill skill in SkillCooldowns.Keys.ToList())
+		{
+			if (--SkillCooldowns[skill] <= 0)
+				SkillCooldowns.Remove(skill);
+		}
+	}
+
+	internal void ClearSkillCooldowns()
+	{
+		SkillCooldowns.Clear();
 	}
 
 	/// <summary>
@@ -663,6 +738,8 @@ public abstract class Actor
 		DamageTakenThisAction = original.DamageTakenThisAction;
 		IsEmotionLocked = original.IsEmotionLocked;
 		LockedAdvantageEmotion = original.LockedAdvantageEmotion;
+		foreach (KeyValuePair<Skill, int> entry in original.SkillCooldowns)
+			SkillCooldowns[entry.Key] = entry.Value;
 	}
 
 	private static string ResultKey(string modifier, int tier)

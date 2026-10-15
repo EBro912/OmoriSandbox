@@ -99,6 +99,11 @@ internal class ModdedEnemy : Enemy
             command = null;
             return false;
         }
+        if (GetSkillCooldown(skill) > 0)
+        {
+            command = null;
+            return false;
+        }
 
         command = skill.Target switch
         {

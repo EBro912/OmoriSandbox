@@ -101,6 +101,25 @@ public class Skill : BattleAction
 	}
 
 	/// <summary>
+	/// How many turns this skill can't be used after each use. See <see cref="WithCooldown"/>.
+	/// </summary>
+	public int Cooldown { get; private set; }
+
+	/// <summary>
+	/// Makes this skill unusable for the given number of turns after each use.
+	/// </summary>
+	/// <remarks>
+	/// A skill with a cooldown of 2 used on turn 1 can be used again on turn 4. It also can't be used again later in the turn it was used in.
+	/// Each actor has its own cooldowns. See <see cref="Actor.GetSkillCooldown(Skill)"/>.
+	/// </remarks>
+	/// <param name="turns">The number of turns, at least 0.</param>
+	public Skill WithCooldown(int turns)
+	{
+		Cooldown = Math.Max(0, turns);
+		return this;
+	}
+
+	/// <summary>
 	/// Makes this skill cost HP to use.
 	/// </summary>
 	/// <remarks>
