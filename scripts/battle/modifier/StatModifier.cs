@@ -11,6 +11,16 @@ namespace OmoriSandbox.Battle.Modifier;
 public class StatModifier
 {
     /// <summary>
+    /// The category the Sandbox gives its ATTACK, DEFENSE and SPEED Up modifiers. See <see cref="WithCategories"/>.
+    /// </summary>
+    public const string BuffCategory = "BUFF";
+
+    /// <summary>
+    /// The category the Sandbox gives its ATTACK, DEFENSE and SPEED Down modifiers. See <see cref="WithCategories"/>.
+    /// </summary>
+    public const string DebuffCategory = "DEBUFF";
+
+    /// <summary>
     /// The bonuses that this stat modifier provides.
     /// </summary>
     protected StatBonus[] Bonuses;
@@ -69,7 +79,14 @@ public class StatModifier
     /// </summary>
     public bool ReapplyAllowed { get; private set; }
 
-    private readonly HashSet<string> Categories = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> CategorySet = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The categories this modifier is in. See <see cref="WithCategories"/>.
+    /// </summary>
+    public IReadOnlyCollection<string> Categories => CategorySet;
+
+    internal long AddSequence { get; set; }
 
     /// <summary>
     /// Whether this modifier's turn counter ticks each time its holder finishes performing an
@@ -139,7 +156,7 @@ public class StatModifier
         foreach (string category in categories ?? [])
         {
             if (!string.IsNullOrWhiteSpace(category))
-                Categories.Add(category.Trim());
+                CategorySet.Add(category.Trim());
         }
         return this;
     }
@@ -150,7 +167,7 @@ public class StatModifier
     /// <param name="category">The category name to check, ignoring case.</param>
     public bool HasCategory(string category)
     {
-        return !string.IsNullOrWhiteSpace(category) && Categories.Contains(category.Trim());
+        return !string.IsNullOrWhiteSpace(category) && CategorySet.Contains(category.Trim());
     }
 
     private readonly EmotionImmunity Immunity = new();

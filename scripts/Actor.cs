@@ -144,6 +144,8 @@ public abstract class Actor
 	/// </summary>
 	public readonly Dictionary<string, StatModifier> StatModifiers = [];
 
+	private static long LastModifierSequence;
+
 	private int _CurrentHP = 0;
 	/// <summary>
 	/// The actor's current HP. Updating this value will fire <see cref="OnHPChanged"/>.
@@ -307,6 +309,7 @@ public abstract class Actor
 			mod.SetTurnsLeft(turns);
 		}
 
+		mod.AddSequence = ++LastModifierSequence;
 		StatModifiers.Add(modifier, mod);
 		GrantFreeActionTick(mod);
 		BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
@@ -357,6 +360,7 @@ public abstract class Actor
 			}
 			if (turns > -1)
 				mod.SetTurnsLeft(turns);
+			mod.AddSequence = ++LastModifierSequence;
 			StatModifiers.Add(modifier, mod);
 			BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
 			GD.Print("Added modifier " + modifier + " to " + Name);
@@ -415,6 +419,7 @@ public abstract class Actor
 		t.WithTier(tier);
 		if (turns > -1)
 			t.SetTurnsLeft(turns);
+		t.AddSequence = ++LastModifierSequence;
 		StatModifiers.Add(modifier, t);
 		BattleManager.Instance.RunAsReaction(() => t.OnAdd(this));
 		GD.Print("Added modifier " + modifier + " to " + Name);
@@ -498,6 +503,48 @@ public abstract class Actor
 			if (entry.Value.HasCategory(category))
 				RemoveStatModifierInternal(entry.Key, StatModifierRemovalReason.Manual, force);
 		}
+	}
+
+	/// <summary>
+	/// How many of this actor's <see cref="StatModifier"/>s are in the given category.
+	/// </summary>
+	/// <param name="category">The category name, ignoring case.</param>
+	public int CountStatModifiersInCategory(string category)
+	{
+		return StatModifiers.Values.Count(x => x.HasCategory(category));
+	}
+
+	/// <summary>
+	/// The ids of this actor's <see cref="StatModifier"/>s in the given category, oldest first.
+	/// </summary>
+	/// <param name="category">The category name, ignoring case.</param>
+	public IReadOnlyList<string> GetStatModifiersInCategory(string category)
+	{
+		return StatModifiers.Where(x => x.Value.HasCategory(category))
+			.OrderBy(x => x.Value.AddSequence)
+			.Select(x => x.Key)
+			.ToList();
+	}
+
+	/// <summary>
+	/// Removes up to <paramref name="count"/> of this actor's <see cref="StatModifier"/>s in the given category, oldest first.
+	/// </summary>
+	/// <remarks>
+	/// Modifiers that bypass removal are skipped without using up the count, unless <paramref name="force"/> is true. A count of 0 or less removes nothing.
+	/// </remarks>
+	/// <param name="category">The category name, ignoring case.</param>
+	/// <param name="count">The most modifiers to remove.</param>
+	/// <param name="force">If true, also removes modifiers that bypass removal. See <see cref="StatModifier.WithBypassRecoverAllRemoval"/>.</param>
+	public void RemoveStatModifiersInCategory(string category, int count, bool force = false)
+	{
+		if (count <= 0)
+			return;
+		List<string> removing = GetStatModifiersInCategory(category)
+			.Where(x => force || !StatModifiers[x].BypassesRecoverAllRemoval)
+			.Take(count)
+			.ToList();
+		foreach (string id in removing)
+			RemoveStatModifierInternal(id, StatModifierRemovalReason.Manual, force);
 	}
 
 	/// <summary>

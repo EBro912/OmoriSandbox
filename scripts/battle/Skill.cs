@@ -1,3 +1,4 @@
+using Godot;
 using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
@@ -164,5 +165,41 @@ public class Skill : BattleAction
 	{
 		TiersFromFirstTarget = true;
 		return this;
+	}
+
+	/// <summary>
+	/// The color of this skill's name in the skill menu, or null for the default color. See <see cref="WithMenuColor"/>.
+	/// </summary>
+	public Color? MenuColor { get; private set; }
+
+	/// <summary>
+	/// The color of this skill's name in the skill menu while it can't be used, or null to fade <see cref="MenuColor"/>. See <see cref="WithMenuColor"/>.
+	/// </summary>
+	public Color? MenuDisabledColor { get; private set; }
+
+	/// <summary>
+	/// Sets the color of this skill's name in the skill menu.
+	/// </summary>
+	/// <remarks>
+	/// While the skill can't be used, its name uses <paramref name="disabledColor"/>. Without one, it uses <paramref name="color"/> with the menu's usual disabled transparency.
+	/// </remarks>
+	/// <param name="color">The name's color while the skill can be used.</param>
+	/// <param name="disabledColor">The name's color while the skill can't be used, or null to fade <paramref name="color"/>.</param>
+	public Skill WithMenuColor(Color color, Color? disabledColor = null)
+	{
+		MenuColor = color;
+		MenuDisabledColor = disabledColor;
+		return this;
+	}
+
+	internal Color? MenuFontColor(bool usable)
+	{
+		if (usable)
+			return MenuColor;
+		if (MenuDisabledColor != null)
+			return MenuDisabledColor;
+		if (MenuColor is Color color)
+			return new Color(color.R, color.G, color.B, color.A * 160f / 255f);
+		return new Color(1f, 1f, 1f, 160f / 255f);
 	}
 }
