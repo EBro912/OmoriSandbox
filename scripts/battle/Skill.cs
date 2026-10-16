@@ -27,6 +27,16 @@ public class Skill : BattleAction
 	/// Whether this skill causes the followup bubbles to appear when used by a <see cref="PartyMember"/>.
 	/// </summary>
 	public bool ShowFollowups { get; private set; }
+	/// <summary>
+	/// Whether this skill can't be used outside forced commands. See <see cref="WithUseDisallowed"/>.
+	/// </summary>
+	public bool UseDisallowed { get; private set; }
+	/// <summary>
+	/// The ids of the stat modifiers an actor with this skill equipped gets when the battle starts. See <see cref="WithPassiveStatModifier"/>.
+	/// </summary>
+	public IReadOnlyList<string> PassiveStatModifiers => PassiveModifiers;
+
+	private readonly List<string> PassiveModifiers = [];
 
 	/// <summary>
 	/// Whether the given <param name="actor"> meets the requirements to use this skill.</param>
@@ -245,6 +255,36 @@ public class Skill : BattleAction
 	public Skill WithLastTarget(LastTargetRecord record)
 	{
 		LastTargetRecord = record;
+		return this;
+	}
+
+	/// <summary>
+	/// Gives every actor with this skill equipped the given stat modifier when the battle starts.
+	/// </summary>
+	/// <remarks>
+	/// The modifier is added silently at the start of the battle and of each Boss Rush stage, and when an actor with this skill is summoned.
+	/// A tiered modifier starts at tier 1. An actor that already has the modifier only gets its turns refreshed.<br/>
+	/// After that it's an ordinary modifier: it counts down if it has turns, and it can be removed like any other.
+	/// Use <see cref="StatModifier.WithBypassDeathRemoval"/> or <see cref="StatModifier.WithBypassRecoverAllRemoval"/> to make it last.<br/>
+	/// Call this more than once to give several modifiers. Add <see cref="WithUseDisallowed"/> for a skill that can't be selected.
+	/// </remarks>
+	/// <param name="modifier">The id of the stat modifier to give.</param>
+	public Skill WithPassiveStatModifier(string modifier)
+	{
+		if (!string.IsNullOrWhiteSpace(modifier))
+			PassiveModifiers.Add(modifier);
+		return this;
+	}
+
+	/// <summary>
+	/// Makes this skill unusable: it's greyed out in the skill menu, and <see cref="Actor.CanUse(Skill)"/> returns false for it.
+	/// </summary>
+	/// <remarks>
+	/// Enemy AI that checks <c>CanUse</c> skips it, and so do JSON enemies. A command that uses it anyway is refused like a failed requirement, and it can't be used as a follow-up. Forced commands can still use it.
+	/// </remarks>
+	public Skill WithUseDisallowed()
+	{
+		UseDisallowed = true;
 		return this;
 	}
 

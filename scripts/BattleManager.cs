@@ -222,6 +222,7 @@ public partial class BattleManager : Node
 	private bool BattleStartForcesOnly = false;
 	private bool SpawnHooksArmed = false;
 	private readonly HashSet<Actor> SpawnedActors = [];
+	private bool TransformingEnemy;
 
 	public static BattleManager Instance { get; private set; }
 
@@ -339,6 +340,10 @@ public partial class BattleManager : Node
 	private async void PreBattle()
 	{
 		SpawnHooksArmed = true;
+		foreach (PartyMemberComponent member in CurrentParty.ToList())
+			RunGuarded(member.Actor.ApplyPassiveStatModifiers, $"{member.Actor.Name}.ApplyPassiveStatModifiers");
+		foreach (EnemyComponent component in Enemies.ToList())
+			RunGuarded(component.Actor.ApplyPassiveStatModifiers, $"{component.Actor.Name}.ApplyPassiveStatModifiers");
 		foreach (PartyMemberComponent member in CurrentParty.ToList())
 		{
 			await RunSpawnHook(member.Actor);
@@ -1730,6 +1735,7 @@ public partial class BattleManager : Node
 		{
 			if (!currentAction.Forced && RefuseSkill(currentAction, skill))
 				return;
+			RunModifierHooks(currentAction.Actor, "OnActionStarted", modifier => modifier.OnActionStarted(currentAction.Actor, currentAction));
 			PaySkillCosts(currentAction.Actor, skill);
 
 			if (noTarget)
@@ -1764,6 +1770,8 @@ public partial class BattleManager : Node
 				}
 			}
 		}
+		else
+			RunModifierHooks(currentAction.Actor, "OnActionStarted", modifier => modifier.OnActionStarted(currentAction.Actor, currentAction));
 
 		if (noTarget)
 		{
@@ -1808,6 +1816,8 @@ public partial class BattleManager : Node
 		ActionForcedCrit = false;
 		EndTiersFromFirstTarget();
 
+		Actor ender = ResolveKeptBattler(currentAction.Actor);
+		RunModifierHooks(ender, "OnActionEnded", modifier => modifier.OnActionEnded(ender, currentAction));
 		RaiseGuarded(ActionEnded, actionArgs, "ActionEnded");
 
 		if (BattleLogManager.Instance.IsProcessingMessage)
@@ -1824,7 +1834,7 @@ public partial class BattleManager : Node
 		string name = command.Actor.Name.ToUpper();
 		switch (failure)
 		{
-			case SkillUseFailure.Requirement:
+			case SkillUseFailure.Requirement or SkillUseFailure.UseDisallowed:
 				if (command.Actor.CurrentEmotion.BlocksActions)
 					BattleLogManager.Instance.QueueMessage(name + " is too AFRAID to move!");
 				else if (skill.RequirementFailureMessage != null)
@@ -1867,6 +1877,8 @@ public partial class BattleManager : Node
 
 	private void EndCommandWithoutTarget(BattleCommand command)
 	{
+		Actor ender = ResolveKeptBattler(command.Actor);
+		RunModifierHooks(ender, "OnActionEnded", modifier => modifier.OnActionEnded(ender, command));
 		BattleLogManager.Instance.QueueMessage(command.Actor.Name.ToUpper() + "'s skill did nothing.");
 		SetPhase(BattlePhase.WaitForBattleLog);
 	}
@@ -2070,22 +2082,26 @@ public partial class BattleManager : Node
 			// tick down stat turn timers
 			// vanilla omori bug: stats decrease before of end of turn enemy skills
 			// vanilla clears each result before turn-end states expire, so those expiries stay recorded
-			CurrentParty.ForEach(x =>
+			foreach (PartyMemberComponent x in CurrentParty.ToList())
 			{
 				x.Actor.ClearResult();
 				x.Actor.DecreaseStatTurnCounter();
+				RunEndOfTurnModifierHooks(x.Actor);
 				x.Actor.TickSkillCooldowns();
 				x.UpdateStateIcons();
-			});
-			Enemies.ForEach(x =>
+			}
+			foreach (EnemyComponent x in Enemies.ToList())
 			{
+				if (!Enemies.Contains(x))
+					continue;
 				if (!x.Actor.IsToast)
 				{
 					x.Actor.ClearResult();
 					x.Actor.DecreaseStatTurnCounter();
+					RunEndOfTurnModifierHooks(x.Actor);
 				}
 				x.Actor.TickSkillCooldowns();
-			});
+			}
 
 			// in vanilla, a reinforcement added by a TURN END page is not in the action order until next turn,
 			// so mid-turn reinforcements are picked up by getNextSubject and act at once (unless stunned)
@@ -2391,6 +2407,19 @@ public partial class BattleManager : Node
 		}
 	}
 
+	private void RunModifierHooks(Actor actor, string hook, Action<StatModifier> call)
+	{
+		foreach (StatModifier modifier in actor.StatModifiers.Values.ToList())
+			RunGuarded(() => RunAsReaction(() => call(modifier)), $"{modifier.GetType().Name}.{hook} ({actor.Name})");
+	}
+
+	private void RunEndOfTurnModifierHooks(Actor actor)
+	{
+		InEndOfTurnHooks = true;
+		RunModifierHooks(actor, "OnEndOfTurn", modifier => modifier.OnEndOfTurn(actor));
+		InEndOfTurnHooks = false;
+	}
+
 	// mirrors RunGuarded for events. each subscriber is raised separately, so one throwing
 	// handler is logged without skipping the others or breaking the battle flow
 	private void RaiseGuarded(EventHandler handler, string context)
@@ -2592,12 +2621,15 @@ public partial class BattleManager : Node
 			}
 		}
 
+		bool landedCritical = critical && roundedInt > 0;
+		DamageDealtEventArgs dealt = new(self, target, juice ? 0 : roundedInt, juice ? roundedInt : juiceLost, landedCritical, juice);
+		RunModifierHooks(target, "OnDamageTaken", modifier => modifier.OnDamageTaken(target, dealt));
+		RunModifierHooks(self, "OnDamageDealt", modifier => modifier.OnDamageDealt(self, dealt));
 		options.OnHit?.Invoke();
 		// VANILLA BUG: the moving/dull line and sound re-read the emotions after the hit's own effects
 		if (!options.IgnoreEmotion)
 			CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, 0, out effectiveness, options.AttackElement);
 
-		bool landedCritical = critical && roundedInt > 0;
 		if (juice)
 		{
 			if (roundedInt > 0)
@@ -2644,8 +2676,7 @@ public partial class BattleManager : Node
 		context.IsCritical = landedCritical;
 		ApplyOverrides(DamagePhase.PostApply, ref rounded, context);
 
-		RaiseGuarded(DamageDealt, new DamageDealtEventArgs(self, target, juice ? 0 : roundedInt, juice ? roundedInt : juiceLost,
-			landedCritical, juice), "DamageDealt");
+		RaiseGuarded(DamageDealt, dealt, "DamageDealt");
 
 		return roundedInt;
 	}
@@ -3101,6 +3132,8 @@ public partial class BattleManager : Node
 	
 	internal EnemyComponent SummonEnemy(BattlePresetEnemy en, Vector2 position)
 	{
+		bool transforming = TransformingEnemy;
+		TransformingEnemy = false;
 		while (Enemies.Any(x => x.Actor.CenterPoint == position))
 		{
 			// if this enemy is going to spawn on top of another, nudge them a little
@@ -3126,7 +3159,11 @@ public partial class BattleManager : Node
 		else if (InEndOfTurnHooks)
 			ActedThisTurn.Add(enemy.Actor);
 		if (SpawnHooksArmed)
+		{
+			if (!transforming)
+				RunGuarded(enemy.Actor.ApplyPassiveStatModifiers, $"{enemy.Actor.Name}.ApplyPassiveStatModifiers");
 			_ = RunSpawnHook(enemy.Actor);
+		}
 
 		return enemy;
 	}
@@ -3219,7 +3256,10 @@ public partial class BattleManager : Node
 		// a summoned member with followups may need to reveal the energy bar
 		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
 		if (SpawnHooksArmed)
+		{
+			RunGuarded(component.Actor.ApplyPassiveStatModifiers, $"{component.Actor.Name}.ApplyPassiveStatModifiers");
 			_ = RunSpawnHook(component.Actor);
+		}
 		return component.Actor;
 	}
 
@@ -3233,7 +3273,8 @@ public partial class BattleManager : Node
 	/// OBSERVE prediction and queued forced commands, and its place in the turn: if the original already acted this turn, the new enemy doesn't act again,
 	/// and if it hasn't, the new enemy acts at its normal place in the turn order. It also keeps the original's emotion lock (see <see cref="Actor.LockEmotion"/>),
 	/// <see cref="Actor.DamageTakenThisAction"/>, action result (see <see cref="Actor.ClearResult"/>), skill cooldowns (see <see cref="Actor.GetSkillCooldown(Skill)"/>) and an IMMORTAL release that is waiting for its forced commands
-	/// (see <see cref="Enemy.RemoveImmortal"/>). A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
+	/// (see <see cref="Enemy.RemoveImmortal"/>). Once that state is in place, the new enemy gets the passive stat modifiers of its own skills
+	/// (see <see cref="Skill.WithPassiveStatModifier"/>). A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
 	/// so use <see cref="ReplaceEnemy"/> there, or anywhere a fresh enemy is wanted.<br/>
 	/// Damage, healing, emotion changes and damage numbers that go through <see cref="BattleManager"/> to the old enemy
 	/// reach the new one instead, so the rest of a running action still lands. Commands later in the turn that are aimed
@@ -3256,7 +3297,9 @@ public partial class BattleManager : Node
 		bool acted = ActedThisTurn.Contains(original);
 		int priority = PriorityActors.IndexOf(original);
 		bool preRolled = original.HasPreRolledAction;
+		TransformingEnemy = true;
 		Enemy transformed = ReplaceEnemy(original, who, startingEmotion, offset, adjustedStats);
+		TransformingEnemy = false;
 		if (transformed == null)
 			return null;
 		transformed.KeepsBattler = true;
@@ -3273,6 +3316,8 @@ public partial class BattleManager : Node
 		Stats stats = transformed.CurrentStats;
 		transformed.CurrentHP = Math.Min(original.CurrentHP, stats.MaxHP);
 		transformed.CurrentJuice = Math.Min(original.CurrentJuice, stats.MaxJuice);
+		if (SpawnHooksArmed)
+			RunGuarded(transformed.ApplyPassiveStatModifiers, $"{transformed.Name}.ApplyPassiveStatModifiers");
 		for (int i = 0; i < ForcedCommands.Count; i++)
 		{
 			if (ForcedCommands[i].Actor == original)
@@ -3294,7 +3339,9 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Unlike <see cref="TransformEnemy"/>, the replacement is a new enemy. It starts with full HP and none of the original's
-	/// stat modifiers or forced commands, and when it's spawned in the middle of a turn, it acts right after the current action.<br/>
+	/// stat modifiers or forced commands, and when it's spawned in the middle of a turn, it acts right after the current action.
+	/// Like any summoned enemy, it gets the passive stat modifiers of its own skills before its <see cref="Actor.OnSpawned"/>
+	/// (see <see cref="Skill.WithPassiveStatModifier"/>).<br/>
 	/// Special care must be used when using this method, as the old enemy will immediately become invalid.
 	/// </remarks>
 	/// <param name="original">The enemy to replace.</param>

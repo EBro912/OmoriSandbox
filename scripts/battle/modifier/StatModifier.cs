@@ -274,6 +274,60 @@ public class StatModifier
     public virtual void OnStartOfTurn(Actor actor) {}
 
     /// <summary>
+    /// Called at the end of every turn, after the turn's counters have counted down.
+    /// </summary>
+    /// <remarks>
+    /// It runs for every party member, toast ones included, and for every enemy still standing, before the enemies' end-of-turn actions.
+    /// A modifier that has just run out doesn't get this call.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to.</param>
+    public virtual void OnEndOfTurn(Actor actor) { }
+
+    /// <summary>
+    /// Called when the actor this modifier is attached to starts an action, before the action's costs are paid.
+    /// </summary>
+    /// <remarks>
+    /// An action that is refused doesn't get this call: one whose requirement fails, that is disallowed or cooling down, or that can't be paid for. Forced commands always pass those checks.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to, which is the one acting.</param>
+    /// <param name="command">The action being used and the targets it was given.</param>
+    public virtual void OnActionStarted(Actor actor, BattleCommand command) { }
+
+    /// <summary>
+    /// Called when an action by the actor this modifier is attached to ends, right after its effect.
+    /// </summary>
+    /// <remarks>
+    /// Every action that got <see cref="OnActionStarted"/> gets this call too, including one that ended with no target to use it on.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to, which is the one acting.</param>
+    /// <param name="command">The action that was used and the targets it was given.</param>
+    public virtual void OnActionEnded(Actor actor, BattleCommand command) { }
+
+    /// <summary>
+    /// Called after the actor this modifier is attached to is hit, once the damage has been applied.
+    /// </summary>
+    /// <remarks>
+    /// Every hit that lands calls it, HP or JUICE, even one that deals 0 damage. A hit that misses or is absorbed doesn't.
+    /// A reflected hit calls it on the actor the hit bounced back to.<br/>
+    /// It runs before <see cref="OnDamageDealt"/> on the attacker, then <see cref="DamageOptions.OnHit"/> and <see cref="BattleManager.DamageDealt"/>.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to, which was hit.</param>
+    /// <param name="e">The hit's details, the same ones <see cref="BattleManager.DamageDealt"/> receives.</param>
+    public virtual void OnDamageTaken(Actor actor, DamageDealtEventArgs e) { }
+
+    /// <summary>
+    /// Called after the actor this modifier is attached to lands a hit, once the damage has been applied.
+    /// </summary>
+    /// <remarks>
+    /// Every hit that lands calls it, HP or JUICE, even one that deals 0 damage. A hit that misses or is absorbed doesn't.
+    /// A reflected hit calls it on the actor that reflected it.<br/>
+    /// It runs after <see cref="OnDamageTaken"/> on the target, and before <see cref="DamageOptions.OnHit"/> and <see cref="BattleManager.DamageDealt"/>.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to, which landed the hit.</param>
+    /// <param name="e">The hit's details, the same ones <see cref="BattleManager.DamageDealt"/> receives.</param>
+    public virtual void OnDamageDealt(Actor actor, DamageDealtEventArgs e) { }
+
+    /// <summary>
     /// The total multiplier this modifier applies to the given stat, as the product of its
     /// stat bonus multipliers. Flat bonuses are ignored.
     /// </summary>

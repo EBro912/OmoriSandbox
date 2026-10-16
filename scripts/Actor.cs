@@ -537,6 +537,8 @@ public abstract class Actor
 	{
 		if (includeRequirementAndJuice && !skill.MeetsRequirements(this))
 			return SkillUseFailure.Requirement;
+		if (skill.UseDisallowed)
+			return SkillUseFailure.UseDisallowed;
 		if (GetSkillCooldown(skill) > 0)
 			return SkillUseFailure.Cooldown;
 		int juice = skill.Cost(this);
@@ -791,6 +793,34 @@ public abstract class Actor
 	private void ShowStatMessage(string message)
 	{
 		BattleLogManager.Instance.QueueMessage($"{Name.ToUpper()}'s {message}");
+	}
+
+	internal void ApplyPassiveStatModifiers()
+	{
+		foreach (Skill skill in Skills.Values.ToList())
+		{
+			foreach (string id in skill.PassiveStatModifiers)
+			{
+				if (StatModifiers.TryGetValue(id, out StatModifier held))
+				{
+					held.RefreshTurns();
+					continue;
+				}
+				StatModifier mod = Database.CreateModifier(id);
+				if (mod == null)
+				{
+					GD.PrintErr("Unknown stat modifier: " + id);
+					continue;
+				}
+				if (mod is TierStatModifier tier)
+					tier.WithTier(1);
+				mod.AddSequence = ++LastModifierSequence;
+				StatModifiers.Add(id, mod);
+				BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
+				GD.Print("Added passive modifier " + id + " to " + Name);
+				NotifyModifierAdded(id, mod);
+			}
+		}
 	}
 
 	internal void DecreaseStatTurnCounter()

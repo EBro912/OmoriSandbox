@@ -99,7 +99,7 @@ internal class ModdedEnemy : Enemy
             command = null;
             return false;
         }
-        if (GetSkillCooldown(skill) > 0)
+        if (GetSkillCooldown(skill) > 0 || skill.UseDisallowed)
         {
             command = null;
             return false;
