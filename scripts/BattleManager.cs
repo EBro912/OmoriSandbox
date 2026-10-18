@@ -45,8 +45,9 @@ public partial class BattleManager : Node
 	private int CurrentPartyMember = -1;
 	private int CurrentEnemyTarget = -1;
 	private int CurrentPartyMemberTarget = -1;
-	private readonly Dictionary<Actor, BattleCommand> PlayerCommands = new();
+	private readonly Dictionary<Actor, List<BattleCommand>> PlayerCommands = new();
 	private readonly HashSet<Actor> ActedThisTurn = [];
+	private Actor ActingSubject;
 	private readonly List<BattleCommand> ForcedCommands = [];
 	private int ForcedCountAtCommandStart = 0;
 	private IReadOnlyList<Actor> CommandTargets = [];
@@ -464,29 +465,7 @@ public partial class BattleManager : Node
 			switch (Phase)
 			{
 				case BattlePhase.PlayerCommand:
-					do
-					{
-						CurrentPartyMember--;
-						if (CurrentPartyMember < 0)
-						{
-							AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
-							MenuManager.Instance.ShowMenu(MenuState.Party, true);
-							SetPhase(BattlePhase.FightRun);
-							return;
-						}
-					} while (CurrentParty[CurrentPartyMember].Actor.IsToast || CurrentParty[CurrentPartyMember].Actor.Stunned);
-
-					Actor prev = CurrentParty[CurrentPartyMember].Actor;
-					if (PlayerCommands.TryGetValue(prev, out BattleCommand prevCmd) && prevCmd.Action is Item item)
-					{
-						if (!Items.TryAdd(item.Id, 1))
-							Items[item.Id]++;
-					}
-
-					PlayerCommands.Remove(prev);
-					AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
-					MenuManager.Instance.ShowMenu(MenuState.Battle);
-					SetPhase(BattlePhase.PlayerCommand);
+					BackFromPlayerCommand();
 					break;
 				case BattlePhase.TargetSelection:
 					MenuState targetMenu;
@@ -710,6 +689,7 @@ public partial class BattleManager : Node
 		CurrentPartyMemberTarget = -1;
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
+		ActingSubject = null;
 		ForcedCommands.Clear();
 		ForcedCountAtCommandStart = 0;
 		PendingFollowup = null;
@@ -821,12 +801,26 @@ public partial class BattleManager : Node
 
 	internal SkillUseFailure? GetInputUseFailure(PartyMember member, Skill skill)
 	{
-		return member.GetUseFailure(skill);
+		SkillUseFailure? failure = member.GetUseFailure(skill);
+		if (failure is SkillUseFailure.Requirement or SkillUseFailure.UseDisallowed)
+			return failure;
+		if (IsReservedThisTurn(member, skill))
+			return SkillUseFailure.Cooldown;
+		return failure;
 	}
 
 	internal int GetInputCooldown(PartyMember member, Skill skill)
 	{
-		return member.GetSkillCooldown(skill);
+		int cooldown = member.GetSkillCooldown(skill);
+		if (IsReservedThisTurn(member, skill))
+			cooldown = Math.Max(cooldown, skill.Cooldown + 1);
+		return cooldown;
+	}
+
+	private bool IsReservedThisTurn(PartyMember member, Skill skill)
+	{
+		return skill.Cooldown > 0 && PlayerCommands.TryGetValue(member, out List<BattleCommand> commands)
+		                          && commands.Any(x => x.Action == skill);
 	}
 
 	internal bool OnSelectSkill(Skill skill)
@@ -1198,31 +1192,45 @@ public partial class BattleManager : Node
 		if (BattleStartForcesOnly)
 			return null;
 
+		if (ActingSubject != null)
+		{
+			Actor subject = ActingSubject;
+			ActingSubject = null;
+			if (CanContinue(subject))
+			{
+				BattleCommand continued = ResolveCommandForActor(subject);
+				if (continued != null)
+					return continued;
+				SkipIdleEnemy(subject);
+				return GetNextAction();
+			}
+			DropRemainingCommands(subject);
+		}
+
 		// priority actors, post-forced command actors or mid-battle spawns who haven't had their normal turn
 		while (PriorityActors.Count > 0)
 		{
 			Actor actor = PriorityActors[0];
 			PriorityActors.RemoveAt(0);
-			if (ActedThisTurn.Contains(actor) || IsInvalidTarget(actor) || actor.Stunned) 
+			if (ActedThisTurn.Contains(actor) || IsInvalidTarget(actor) || actor.Stunned || actor.RemainingActions <= 0) 
 				continue;
 			BattleCommand cmd = ResolveCommandForActor(actor);
 			if (cmd != null)
 				return cmd;
 			SkipIdleEnemy(actor);
+			if (actor.RemainingActions > 0)
+				return GetNextAction();
+			ActingSubject = null;
 		}
 
 		// regular turn order
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
 			if (!ActedThisTurn.Contains(member.Actor)
-			    && (IsInvalidTarget(member.Actor) || member.Actor.Stunned || !PlayerCommands.ContainsKey(member.Actor)))
+			    && (IsInvalidTarget(member.Actor) || member.Actor.Stunned || CommandCount(member.Actor) == 0
+			        || member.Actor.RemainingActions <= 0))
 			{
-				if (PlayerCommands.TryGetValue(member.Actor, out BattleCommand refundCmd)
-				    && refundCmd.Action is Item item)
-				{
-					if (!Items.TryAdd(item.Id, 1))
-						Items[item.Id]++;
-				}
+				DropRemainingCommands(member.Actor);
 				ActedThisTurn.Add(member.Actor);
 			}
 		}
@@ -1231,12 +1239,13 @@ public partial class BattleManager : Node
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
 			if (!ActedThisTurn.Contains(member.Actor) && !IsInvalidTarget(member.Actor)
-			    && PlayerCommands.ContainsKey(member.Actor) && !member.Actor.Stunned)
+			    && CommandCount(member.Actor) > 0 && !member.Actor.Stunned)
 				candidates.Add(member.Actor);
 		}
 		foreach (EnemyComponent enemy in Enemies)
 		{
-			if (!ActedThisTurn.Contains(enemy.Actor) && !IsInvalidTarget(enemy.Actor) && !enemy.Actor.Stunned)
+			if (!ActedThisTurn.Contains(enemy.Actor) && !IsInvalidTarget(enemy.Actor) && !enemy.Actor.Stunned
+			    && enemy.Actor.RemainingActions > 0)
 				candidates.Add(enemy.Actor);
 		}
 
@@ -1247,8 +1256,8 @@ public partial class BattleManager : Node
 			.OrderByDescending(a =>
 			{
 				int priority = 0;
-				if (a is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
-					priority = cmd.Action.Priority;
+				if (a is PartyMember member && PlayerCommands.TryGetValue(member, out List<BattleCommand> commands))
+					priority = commands.Min(x => x.Action.Priority);
 				else if (a is Enemy enemy)
 					priority = enemy.TurnPriority;
 				return (long)a.CurrentStats.SPD + priority;
@@ -1278,16 +1287,41 @@ public partial class BattleManager : Node
 	private BattleCommand ResolveCommandForActor(Actor actor)
 	{
 		ActedThisTurn.Add(actor);
-		if (actor is PartyMember member && PlayerCommands.TryGetValue(member, out BattleCommand cmd))
+		if (actor is PartyMember member)
+		{
+			if (!PlayerCommands.TryGetValue(member, out List<BattleCommand> commands) || commands.Count == 0)
+				return null;
+			BattleCommand cmd = commands[0];
+			commands.RemoveAt(0);
+			StartOwnAction(member, cmd);
 			return cmd;
+		}
 		if (actor is Enemy enemy)
 		{
 			RaiseGuarded(AIDeciding, new AIDecidingEventArgs(enemy), "AIDeciding");
 			BattleCommand decided = enemy.ProcessAI();
 			RaiseGuarded(AIDecided, new AIDecidedEventArgs(enemy, decided), "AIDecided");
+			StartOwnAction(enemy, decided);
 			return decided;
 		}
 		return null;
+	}
+
+	private void StartOwnAction(Actor actor, BattleCommand command)
+	{
+		ActingSubject = actor;
+		ConsumeAction(actor, command);
+	}
+
+	private void ConsumeAction(Actor actor, BattleCommand command)
+	{
+		actor.RemainingActions--;
+	}
+
+	private bool CanContinue(Actor actor)
+	{
+		return ActedThisTurn.Contains(actor) && actor.RemainingActions > 0 && !IsInvalidTarget(actor) && !actor.Stunned
+		       && (actor is not PartyMember || CommandCount(actor) > 0);
 	}
 
 	// handles the quirk of enemy AI rerolling whenever their emotion group changes if they have not acted yet
@@ -1344,6 +1378,15 @@ public partial class BattleManager : Node
 
 		if (ResumingStartOfTurn)
 			ResumingStartOfTurn = false;
+		else if (ProcessedStartOfTurn)
+		{
+			CurrentPartyMember = -1;
+			CurrentEnemyTarget = -1;
+			CurrentPartyMemberTarget = -1;
+			foreach (Actor actor in PlayerCommands.Keys.ToList())
+				DropRemainingCommands(actor);
+			PlayerCommands.Clear();
+		}
 		else
 		{
 			CurrentPartyMember = -1;
@@ -1351,6 +1394,7 @@ public partial class BattleManager : Node
 			CurrentPartyMemberTarget = -1;
 			PlayerCommands.Clear();
 			ActedThisTurn.Clear();
+			ActingSubject = null;
 			ForcedCommands.Clear();
 			ForcedCountAtCommandStart = 0;
 			// a followup discarded here never spent its energy, so there is nothing to refund
@@ -1369,6 +1413,10 @@ public partial class BattleManager : Node
 		if (!ProcessedStartOfTurn)
 		{
 			InStartOfTurnHooks = true;
+			foreach (PartyMemberComponent member in CurrentParty)
+				member.Actor.RollActionTimes();
+			foreach (EnemyComponent enemy in Enemies)
+				enemy.Actor.RollActionTimes();
 			foreach (PartyMemberComponent member in CurrentParty.ToList())
 			{
 				if (member.Actor.IsToast)
@@ -1463,7 +1511,7 @@ public partial class BattleManager : Node
 	{
 		// treat stunned and toast actors the same
 		// no point in letting a stunned party member choose a command if they can't do anything
-		while (CurrentParty[CurrentPartyMember].Actor.IsToast || CurrentParty[CurrentPartyMember].Actor.Stunned)
+		while (!NeedsInput(CurrentParty[CurrentPartyMember].Actor))
 		{
 			CurrentPartyMember++;
 			if (CurrentPartyMember >= CurrentParty.Count)
@@ -1554,44 +1602,45 @@ public partial class BattleManager : Node
 		}
 
 		Actor actor = CurrentParty[CurrentPartyMember].Actor;
+		BattleCommand command = null;
 		switch (SelectedAction.Target)
 		{
 			case SkillTarget.Self:
-				PlayerCommands[actor] = new BattleCommand(actor, actor, SelectedAction);
+				command = new BattleCommand(actor, actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			case SkillTarget.Ally:
 			case SkillTarget.AllyNotSelf:
 			case SkillTarget.DeadAlly:
-				PlayerCommands[actor] = new BattleCommand(actor,
+				command = new BattleCommand(actor,
 					CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			case SkillTarget.Enemy:
-				PlayerCommands[actor] = new BattleCommand(actor,
+				command = new BattleCommand(actor,
 					Enemies[CurrentEnemyTarget].Actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			case SkillTarget.AllyOrEnemy:
 				if (CurrentEnemyTarget > -1)
-					PlayerCommands[actor] = new BattleCommand(actor,
+					command = new BattleCommand(actor,
 						Enemies[CurrentEnemyTarget].Actor, SelectedAction);
 				else
-					PlayerCommands[actor] = new BattleCommand(actor,
+					command = new BattleCommand(actor,
 						CurrentParty.First(x => x.Position == CurrentPartyMemberTarget).Actor, SelectedAction);
 				AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 				break;
 			// select all party members for now, these will be resolved later
 			case SkillTarget.AllAllies:
 			case SkillTarget.AllDeadAllies:
-				PlayerCommands[actor] = new BattleCommand(actor,
+				command = new BattleCommand(actor,
 					GetAllPartyMembers(), SelectedAction);
 				break;
 			case SkillTarget.AllEnemies:
-				PlayerCommands[actor] = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
+				command = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
 				break;
 			case SkillTarget.XRandomEnemies:
-				PlayerCommands[actor] = new BattleCommand(actor,
+				command = new BattleCommand(actor,
 					PickRandomAliveEnemies(SelectedAction is Skill randomSkill ? randomSkill.RandomTargetCount : 1), SelectedAction);
 				break;
 			default:
@@ -1603,8 +1652,38 @@ public partial class BattleManager : Node
 			Enemies[CurrentEnemyTarget].ShowInfoBox(false);
 		CurrentEnemyTarget = -1;
 		CurrentPartyMemberTarget = -1;
-		CurrentPartyMember++;
 		SelectedAction = null;
+		if (command != null)
+			AddPlayerCommand(actor, command);
+		AdvanceInput(actor);
+	}
+
+	private int CommandCount(Actor actor)
+	{
+		return PlayerCommands.TryGetValue(actor, out List<BattleCommand> commands) ? commands.Count : 0;
+	}
+
+	private static bool CanInput(Actor actor)
+	{
+		return !actor.IsToast && !actor.Stunned && actor.RemainingActions > 0;
+	}
+
+	private bool NeedsInput(Actor actor)
+	{
+		return CanInput(actor) && CommandCount(actor) < actor.RemainingActions;
+	}
+
+	private void AddPlayerCommand(Actor actor, BattleCommand command)
+	{
+		if (!PlayerCommands.TryGetValue(actor, out List<BattleCommand> commands))
+			PlayerCommands[actor] = commands = [];
+		commands.Add(command);
+	}
+
+	private void AdvanceInput(Actor actor)
+	{
+		if (CommandCount(actor) >= actor.RemainingActions)
+			CurrentPartyMember++;
 		if (CurrentPartyMember >= CurrentParty.Count)
 		{
 			BattleLogManager.Instance.ClearBattleLog();
@@ -1616,6 +1695,53 @@ public partial class BattleManager : Node
 			MenuManager.Instance.ShowMenu(MenuState.Battle);
 			SetPhase(BattlePhase.PlayerCommand);
 		}
+	}
+
+	private void BackFromPlayerCommand()
+	{
+		if (CommandCount(CurrentParty[CurrentPartyMember].Actor) == 0)
+		{
+			do
+			{
+				CurrentPartyMember--;
+				if (CurrentPartyMember < 0)
+				{
+					AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
+					MenuManager.Instance.ShowMenu(MenuState.Party, true);
+					SetPhase(BattlePhase.FightRun);
+					return;
+				}
+			} while (!CanInput(CurrentParty[CurrentPartyMember].Actor));
+		}
+
+		RemoveLastPlayerCommand(CurrentParty[CurrentPartyMember].Actor);
+		AudioManager.Instance.PlaySFX("sys_cancel", volume: 0.9f);
+		MenuManager.Instance.ShowMenu(MenuState.Battle);
+		SetPhase(BattlePhase.PlayerCommand);
+	}
+
+	private void RemoveLastPlayerCommand(Actor actor)
+	{
+		if (!PlayerCommands.TryGetValue(actor, out List<BattleCommand> commands) || commands.Count == 0)
+			return;
+		BattleCommand last = commands[^1];
+		commands.RemoveAt(commands.Count - 1);
+		RefundItem(last);
+	}
+
+	private void DropRemainingCommands(Actor actor)
+	{
+		if (!PlayerCommands.TryGetValue(actor, out List<BattleCommand> commands))
+			return;
+		foreach (BattleCommand command in commands)
+			RefundItem(command);
+		commands.Clear();
+	}
+
+	private void RefundItem(BattleCommand command)
+	{
+		if (command.Action is Item item && !Items.TryAdd(item.Id, 1))
+			Items[item.Id]++;
 	}
 
 	private async void HandleCommandExecute()
@@ -2327,6 +2453,7 @@ public partial class BattleManager : Node
 					PendingFollowup = null;
 					ForceHideFollowup = false;
 					PriorityActors.Clear();
+					ActingSubject = null;
 					CurrentCommand = null;
 					TurnCount = 0;
 					ProcessedStartOfTurn = false;
@@ -3161,7 +3288,10 @@ public partial class BattleManager : Node
 		if (SpawnHooksArmed)
 		{
 			if (!transforming)
+			{
 				RunGuarded(enemy.Actor.ApplyPassiveStatModifiers, $"{enemy.Actor.Name}.ApplyPassiveStatModifiers");
+				enemy.Actor.RollActionTimes();
+			}
 			_ = RunSpawnHook(enemy.Actor);
 		}
 
@@ -3175,7 +3305,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// A member summoned during the command phase at a position after the currently selecting member
-	/// still chooses a command on the current turn, otherwise they act from the next turn onward.<br/>
+	/// still chooses their commands on the current turn, otherwise they act from the next turn onward.<br/>
 	/// </remarks>
 	/// <param name="who">Which party member to spawn.</param>
 	/// <param name="position">The battlecard position to spawn the member at, from 0 to 3. If the position
@@ -3258,6 +3388,7 @@ public partial class BattleManager : Node
 		if (SpawnHooksArmed)
 		{
 			RunGuarded(component.Actor.ApplyPassiveStatModifiers, $"{component.Actor.Name}.ApplyPassiveStatModifiers");
+			component.Actor.RollActionTimes();
 			_ = RunSpawnHook(component.Actor);
 		}
 		return component.Actor;
@@ -3270,16 +3401,7 @@ public partial class BattleManager : Node
 	/// Special care must be used when using this method, as the old enemy will immediately become invalid.<br/>
 	/// The new enemy spawns at the original's position (plus <paramref name="offset"/>) and index (see <see cref="GetEnemy"/>), feeling the original's emotion, or <paramref name="startingEmotion"/> if it can't feel that one.
 	/// It keeps the original's HP and JUICE (capped at its own maximums), stat modifiers (their <c>OnAdd</c> doesn't run again), <see cref="Actor.Stunned"/> flag,
-	/// OBSERVE prediction and queued forced commands, and its place in the turn: if the original already acted this turn, the new enemy doesn't act again,
-	/// and if it hasn't, the new enemy acts at its normal place in the turn order. It also keeps the original's emotion lock (see <see cref="Actor.LockEmotion"/>),
-	/// <see cref="Actor.DamageTakenThisAction"/>, action result (see <see cref="Actor.ClearResult"/>), skill cooldowns (see <see cref="Actor.GetSkillCooldown(Skill)"/>) and an IMMORTAL release that is waiting for its forced commands
-	/// (see <see cref="Enemy.RemoveImmortal"/>). Once that state is in place, the new enemy gets the passive stat modifiers of its own skills
-	/// (see <see cref="Skill.WithPassiveStatModifier"/>). A transform inside <see cref="Enemy.OnDefeat"/> keeps 0 HP,
-	/// so use <see cref="ReplaceEnemy"/> there, or anywhere a fresh enemy is wanted.<br/>
-	/// Damage, healing, emotion changes and damage numbers that go through <see cref="BattleManager"/> to the old enemy
-	/// reach the new one instead, so the rest of a running action still lands. Commands later in the turn that are aimed
-	/// at the old enemy also go to the new one. Methods called directly on the old enemy are safe, but they don't reach
-	/// the new one. An emotion change on it can still show its battle log message.
+	/// OBSERVE prediction and queued forced commands, and its place in the turn.
 	/// </remarks>
 	/// <param name="original">The enemy to transform from.</param>
 	/// <param name="who">The database name of the enemy to transform into.</param>
@@ -3295,6 +3417,7 @@ public partial class BattleManager : Node
 			return null;
 		}
 		bool acted = ActedThisTurn.Contains(original);
+		bool acting = ActingSubject == original;
 		int priority = PriorityActors.IndexOf(original);
 		bool preRolled = original.HasPreRolledAction;
 		TransformingEnemy = true;
@@ -3318,6 +3441,8 @@ public partial class BattleManager : Node
 		transformed.CurrentJuice = Math.Min(original.CurrentJuice, stats.MaxJuice);
 		if (SpawnHooksArmed)
 			RunGuarded(transformed.ApplyPassiveStatModifiers, $"{transformed.Name}.ApplyPassiveStatModifiers");
+		if (transformed.RemainingActions > 0)
+			transformed.RollActionTimes();
 		for (int i = 0; i < ForcedCommands.Count; i++)
 		{
 			if (ForcedCommands[i].Actor == original)
@@ -3326,6 +3451,8 @@ public partial class BattleManager : Node
 		PriorityActors.Remove(transformed);
 		if (priority >= 0)
 			PriorityActors[priority] = transformed;
+		if (acting)
+			ActingSubject = transformed;
 		if (acted)
 			ActedThisTurn.Add(transformed);
 		else if (preRolled && !transformed.Stunned && !transformed.IsToast)
@@ -3339,7 +3466,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Unlike <see cref="TransformEnemy"/>, the replacement is a new enemy. It starts with full HP and none of the original's
-	/// stat modifiers or forced commands, and when it's spawned in the middle of a turn, it acts right after the current action.
+	/// stat modifiers or forced commands, and when it's spawned in the middle of a turn, it acts right after the current battler's actions.
 	/// Like any summoned enemy, it gets the passive stat modifiers of its own skills before its <see cref="Actor.OnSpawned"/>
 	/// (see <see cref="Skill.WithPassiveStatModifier"/>).<br/>
 	/// Special care must be used when using this method, as the old enemy will immediately become invalid.
@@ -3363,6 +3490,8 @@ public partial class BattleManager : Node
 		int index = Enemies.IndexOf(target);
 		Enemies.Remove(target);
 		target.GetParent().QueueFree();
+		if (ActingSubject == original)
+			ActingSubject = null;
 		
 		Enemy replacement = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer, adjustedStats ?? original.AdjustedStats);
 		if (replacement != null && index >= 0)
@@ -3665,6 +3794,9 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Whether the given <see cref="Actor"/> has already acted this turn.
 	/// </summary>
+	/// <remarks>
+	/// An actor with more than one action this turn counts as having acted from its first action. See <see cref="Actor.RemainingActions"/>.
+	/// </remarks>
 	/// <param name="who">The actor to check.</param>
 	/// <returns>True if the actor has acted this turn.</returns>
 	public bool HasActedThisTurn(Actor who)

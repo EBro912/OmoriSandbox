@@ -185,6 +185,32 @@ public abstract class Actor
 	/// Whether the actor is toast.
 	/// </summary>
 	public bool IsToast { get; private set; }
+
+	/// <summary>
+	/// How many actions this actor has for the current turn. Starts at 1.
+	/// </summary>
+	/// <remarks>
+	/// Rolls at the start of every turn, before the start-of-turn hooks. Starting at 1, plus one for each extra-action chance that succeeds
+	/// (see <see cref="StatModifier.WithActionPlus"/>, <see cref="Equipment.WithActionPlus"/> and <see cref="InnateActionPlusChances"/>).
+	/// An actor that spawns mid-battle rolls when it spawns. A transformed enemy rolls only if the original still had actions left
+	/// (see <see cref="BattleManager.TransformEnemy"/>).
+	/// </remarks>
+	public int ActionTimes { get; private set; } = 1;
+
+	private int _RemainingActions = 1;
+
+	/// <summary>
+	/// How many actions this actor still has this turn. Never below 0.
+	/// </summary>
+	/// <remarks>
+	/// Set to <see cref="ActionTimes"/> at the start of every turn, and lowered by 1 when one of the actor's own actions starts.
+	/// While it's above 0 after an action, the actor acts again right away. Forced commands don't use it up.
+	/// </remarks>
+	public int RemainingActions
+	{
+		get => _RemainingActions;
+		set => _RemainingActions = Math.Max(0, value);
+	}
 	
 	/// <summary>
 	/// The actor's base stats without any modifiers.
@@ -738,6 +764,8 @@ public abstract class Actor
 	{
 		RemovedSinceResultClear.UnionWith(original.RemovedSinceResultClear);
 		DamageTakenThisAction = original.DamageTakenThisAction;
+		ActionTimes = original.ActionTimes;
+		RemainingActions = original.RemainingActions;
 		IsEmotionLocked = original.IsEmotionLocked;
 		LockedAdvantageEmotion = original.LockedAdvantageEmotion;
 		foreach (KeyValuePair<Skill, int> entry in original.SkillCooldowns)
@@ -1250,6 +1278,29 @@ public abstract class Actor
 	/// The equipment this actor wears, checked by <see cref="IsImmuneToEmotion"/>. Empty by default.
 	/// </summary>
 	protected virtual IEnumerable<Equipment> EquippedItems => [];
+
+	/// <summary>
+	/// Chances of an extra action each turn that this actor always has, each from 0 to 1. Empty by default.
+	/// </summary>
+	/// <remarks>
+	/// Each chance is rolled separately at the start of every turn, with those from stat modifiers and equipment. See <see cref="ActionTimes"/>.
+	/// </remarks>
+	protected virtual IEnumerable<float> InnateActionPlusChances => [];
+
+	internal void RollActionTimes()
+	{
+		int times = 1;
+		IEnumerable<float> chances = InnateActionPlusChances
+			.Concat(StatModifiers.Values.SelectMany(x => x.ActionPlusChances))
+			.Concat(EquippedItems.Where(x => x != null).SelectMany(x => x.ActionPlusChances));
+		foreach (float chance in chances)
+		{
+			if (GameManager.Instance.Random.Randf() < chance)
+				times++;
+		}
+		ActionTimes = times;
+		RemainingActions = times;
+	}
 
 	/// <summary>
 	/// Checks if this actor can feel the emotion with the given id. See <see cref="IsEmotionValid(Emotion)"/>.

@@ -147,6 +147,26 @@ public class StatModifier
         return this;
     }
 
+    private readonly List<float> ActionPlus = [];
+
+    /// <summary>
+    /// The chances of an extra action each turn this modifier gives its holder. See <see cref="WithActionPlus"/>.
+    /// </summary>
+    public IReadOnlyList<float> ActionPlusChances => ActionPlus;
+
+    /// <summary>
+    /// Gives the holder a chance of one extra action each turn.
+    /// </summary>
+    /// <remarks>
+    /// Each call adds a separate chance, rolled at the start of every turn. A chance of 1 always gives the extra action. See <see cref="Actor.ActionTimes"/>.
+    /// </remarks>
+    /// <param name="chance">The chance, from 0 to 1.</param>
+    public StatModifier WithActionPlus(float chance)
+    {
+        ActionPlus.Add(Math.Clamp(chance, 0f, 1f));
+        return this;
+    }
+
     /// <summary>
     /// Adds this modifier to the given categories, like Yanfly state categories. Category names ignore case.
     /// </summary>

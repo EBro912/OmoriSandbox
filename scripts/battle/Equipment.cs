@@ -1,6 +1,7 @@
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle.Emotions;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace OmoriSandbox.Battle;
@@ -136,6 +137,26 @@ public class Equipment
     internal bool BlocksEmotion(Emotion emotion)
     {
         return Immunity.Blocks(emotion);
+    }
+
+    private readonly List<float> ActionPlus = [];
+
+    /// <summary>
+    /// The chances of an extra action each turn this equipment gives its wearer. See <see cref="WithActionPlus"/>.
+    /// </summary>
+    public IReadOnlyList<float> ActionPlusChances => ActionPlus;
+
+    /// <summary>
+    /// Gives the wearer a chance of one extra action each turn.
+    /// </summary>
+    /// <remarks>
+    /// Each call adds a separate chance, rolled at the start of every turn. A chance of 1 always gives the extra action. See <see cref="Actor.ActionTimes"/>.
+    /// </remarks>
+    /// <param name="chance">The chance, from 0 to 1.</param>
+    public Equipment WithActionPlus(float chance)
+    {
+        ActionPlus.Add(Math.Clamp(chance, 0f, 1f));
+        return this;
     }
 
     /// <summary>
