@@ -204,7 +204,7 @@ public abstract class Actor
 	/// </summary>
 	/// <remarks>
 	/// Set to <see cref="ActionTimes"/> at the start of every turn, and lowered by 1 when one of the actor's own actions starts.
-	/// While it's above 0 after an action, the actor acts again right away. Forced commands don't use it up.
+	/// While it's above 0 after an action, the actor acts again right away. Forced commands and most instant skills don't use it up (see <see cref="Skill.WithInstantCast"/>).
 	/// </remarks>
 	public int RemainingActions
 	{

@@ -301,6 +301,35 @@ public class Skill : BattleAction
 	}
 
 	/// <summary>
+	/// Whether this skill is instant. See <see cref="WithInstantCast"/>.
+	/// </summary>
+	public bool InstantCast { get; private set; }
+
+	/// <summary>
+	/// Whether this instant skill still uses up an action. See <see cref="WithInstantCast"/>.
+	/// </summary>
+	public bool InstantCastUsesAction { get; private set; }
+
+	/// <summary>
+	/// Makes this skill an instant cast skill. It doesn't use up an action, unless <paramref name="usesAction"/> is true.
+	/// </summary>
+	/// <remarks>
+	/// A party member's instant skill runs as soon as its target is chosen, then the same member chooses again.
+	/// One that uses an action counts as one of the member's commands, so the member only chooses again if it has actions left.
+	/// An enemy that uses an instant skill on its own turn acts again right away, so give enemy instant skills a cooldown
+	/// (see <see cref="WithCooldown"/>) or check for them in <see cref="Enemy.ProcessAI"/>, or the enemy can keep acting forever.
+	/// For an enemy, an instant skill that uses an action works like a normal skill.
+	/// Forced commands and followups ignore this.
+	/// </remarks>
+	/// <param name="usesAction">Whether the skill still uses up one of the user's actions.</param>
+	public Skill WithInstantCast(bool usesAction = false)
+	{
+		InstantCast = true;
+		InstantCastUsesAction = usesAction;
+		return this;
+	}
+
+	/// <summary>
 	/// The color of this skill's name in the skill menu, or null for the default color. See <see cref="WithMenuColor"/>.
 	/// </summary>
 	public Color? MenuColor { get; private set; }

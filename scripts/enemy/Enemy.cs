@@ -320,7 +320,7 @@ public abstract class Enemy : Actor
 	/// </summary>
 	/// <remarks>
 	/// Return null to take no action. That action is skipped, and once the enemy has no actions left the turn goes on with the next actor.<br/>
-	/// An enemy with more than one action this turn (see <see cref="Actor.ActionTimes"/>) is asked again for each action, and returning null uses up that action.
+	/// An enemy with more than one action this turn (see <see cref="Actor.ActionTimes"/>) is asked again for each action, and returning null uses up that action. It's also asked again right after it uses an instant skill that doesn't use up an action (see <see cref="Skill.WithInstantCast"/>).
 	/// Unless something changed <see cref="Actor.RemainingActions"/> this turn, <c>ActionTimes - RemainingActions</c> is the number of actions it has already taken this turn.
 	/// </remarks>
 	/// <returns>The <see cref="BattleCommand"/> that the enemy will perform on their turn, or null for no action.</returns>

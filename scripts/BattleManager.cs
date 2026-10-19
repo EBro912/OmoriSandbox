@@ -48,6 +48,12 @@ public partial class BattleManager : Node
 	private readonly Dictionary<Actor, List<BattleCommand>> PlayerCommands = new();
 	private readonly HashSet<Actor> ActedThisTurn = [];
 	private Actor ActingSubject;
+	private bool InstantCasting;
+	private BattleCommand PendingInstant;
+	private PartyMember InstantCaster;
+	private int InstantForcedStart;
+	private int InstantPriorityStart;
+	private bool HideFollowupBeforeInstant;
 	private readonly List<BattleCommand> ForcedCommands = [];
 	private int ForcedCountAtCommandStart = 0;
 	private IReadOnlyList<Actor> CommandTargets = [];
@@ -690,6 +696,7 @@ public partial class BattleManager : Node
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
 		ActingSubject = null;
+		ClearInstantCast();
 		ForcedCommands.Clear();
 		ForcedCountAtCommandStart = 0;
 		PendingFollowup = null;
@@ -928,7 +935,7 @@ public partial class BattleManager : Node
 					return;
 				}
 
-				if (!ProcessedStartOfCommands)
+				if (!ProcessedStartOfCommands && !InstantCasting)
 				{
 					TurnCount++;
 					foreach (EnemyComponent enemy in Enemies.ToList())
@@ -950,10 +957,13 @@ public partial class BattleManager : Node
 					ProcessedStartOfCommands = true;
 				}
 
-				CurrentCommand = GetNextAction();
+				CurrentCommand = InstantCasting ? NextInstantCommand() : GetNextAction();
 				if (CurrentCommand == null)
 				{
-					EndOfTurn();
+					if (InstantCasting)
+						EndInstantCast();
+					else
+						EndOfTurn();
 				}
 				else
 				{
@@ -1161,33 +1171,14 @@ public partial class BattleManager : Node
 	private BattleCommand GetNextAction()
 	{
 		// forced commands have the highest priority
-		while (ForcedCommands.Count > 0)
-		{
-			BattleCommand forced = ForcedCommands[0];
-			ForcedCommands.RemoveAt(0);
-			// skip forced commands whose actor has died since being queued
-			if (!IsInvalidTarget(forced.Actor))
-				return forced;
-			// the dropped command no longer suppresses followup bubbles
-			if (forced.Actor is PartyMember && forced.Action is Skill forcedSkill && forcedSkill.ShowFollowups)
-				ForceHideFollowup = false;
-		}
+		BattleCommand forced = TakeForcedCommand(0);
+		if (forced != null)
+			return forced;
 
 		// followups
-		if (PendingFollowup != null)
-		{
-			PendingFollowupData followup = PendingFollowup;
-			PendingFollowup = null;
-			// vanilla re-validates at use time and only then spends the energy
-			// an invalid followup is silently skipped and costs nothing
-			if (IsFollowupValid(followup))
-			{
-				Energy -= followup.Entry.EnergyCost;
-				return followup.Command;
-			}
-			if (followup.Command.Action is Skill followupSkill && followupSkill.ShowFollowups)
-				ForceHideFollowup = false;
-		}
+		BattleCommand followup = TakePendingFollowup();
+		if (followup != null)
+			return followup;
 
 		if (BattleStartForcesOnly)
 			return null;
@@ -1276,6 +1267,40 @@ public partial class BattleManager : Node
 		return GetNextAction();
 	}
 
+	private BattleCommand TakeForcedCommand(int from)
+	{
+		while (ForcedCommands.Count > from)
+		{
+			BattleCommand forced = ForcedCommands[from];
+			ForcedCommands.RemoveAt(from);
+			// skip forced commands whose actor has died since being queued
+			if (!IsInvalidTarget(forced.Actor))
+				return forced;
+			// the dropped command no longer suppresses followup bubbles
+			if (forced.Actor is PartyMember && forced.Action is Skill forcedSkill && forcedSkill.ShowFollowups)
+				ForceHideFollowup = false;
+		}
+		return null;
+	}
+
+	private BattleCommand TakePendingFollowup()
+	{
+		if (PendingFollowup == null)
+			return null;
+		PendingFollowupData followup = PendingFollowup;
+		PendingFollowup = null;
+		// vanilla re-validates at use time and only then spends the energy
+		// an invalid followup is silently skipped and costs nothing
+		if (IsFollowupValid(followup))
+		{
+			Energy -= followup.Entry.EnergyCost;
+			return followup.Command;
+		}
+		if (followup.Command.Action is Skill followupSkill && followupSkill.ShowFollowups)
+			ForceHideFollowup = false;
+		return null;
+	}
+
 	private static void SkipIdleEnemy(Actor actor)
 	{
 		if (actor is not Enemy idle)
@@ -1315,6 +1340,8 @@ public partial class BattleManager : Node
 
 	private void ConsumeAction(Actor actor, BattleCommand command)
 	{
+		if (actor is Enemy && command?.Action is Skill { InstantCast: true, InstantCastUsesAction: false })
+			return;
 		actor.RemainingActions--;
 	}
 
@@ -1395,6 +1422,7 @@ public partial class BattleManager : Node
 			PlayerCommands.Clear();
 			ActedThisTurn.Clear();
 			ActingSubject = null;
+			ClearInstantCast();
 			ForcedCommands.Clear();
 			ForcedCountAtCommandStart = 0;
 			// a followup discarded here never spent its energy, so there is nothing to refund
@@ -1653,9 +1681,66 @@ public partial class BattleManager : Node
 		CurrentEnemyTarget = -1;
 		CurrentPartyMemberTarget = -1;
 		SelectedAction = null;
+		if (command?.Action is Skill { InstantCast: true })
+		{
+			StartInstantCast(CurrentParty[CurrentPartyMember].Actor, command);
+			return;
+		}
 		if (command != null)
 			AddPlayerCommand(actor, command);
 		AdvanceInput(actor);
+	}
+
+	private void StartInstantCast(PartyMember caster, BattleCommand command)
+	{
+		InstantCasting = true;
+		InstantCaster = caster;
+		PendingInstant = command;
+		InstantForcedStart = ForcedCommands.Count;
+		InstantPriorityStart = PriorityActors.Count;
+		HideFollowupBeforeInstant = ForceHideFollowup;
+		ForceHideFollowup = false;
+		if (command.Action is Skill { InstantCastUsesAction: true })
+			caster.RemainingActions--;
+		BattleLogManager.Instance.ClearBattleLog();
+		MenuManager.Instance.ShowMenu(MenuState.None);
+		SetPhase(BattlePhase.PreCommand);
+	}
+
+	private BattleCommand NextInstantCommand()
+	{
+		if (PendingInstant != null)
+		{
+			BattleCommand instant = PendingInstant;
+			PendingInstant = null;
+			return instant;
+		}
+		return TakeForcedCommand(InstantForcedStart) ?? TakePendingFollowup();
+	}
+
+	private void EndInstantCast()
+	{
+		PartyMember caster = InstantCaster;
+		if (PriorityActors.Count > InstantPriorityStart)
+			PriorityActors.RemoveRange(InstantPriorityStart, PriorityActors.Count - InstantPriorityStart);
+		ForceHideFollowup = HideFollowupBeforeInstant;
+		ClearInstantCast();
+		CurrentCommand = null;
+		foreach (PartyMemberComponent member in CurrentParty)
+		{
+			while (CommandCount(member.Actor) > member.Actor.RemainingActions)
+				RemoveLastPlayerCommand(member.Actor);
+		}
+		CurrentPartyMember = CurrentParty.FindIndex(x => x.Actor == caster);
+		AdvanceInput(caster);
+	}
+
+	private void ClearInstantCast()
+	{
+		InstantCasting = false;
+		PendingInstant = null;
+		InstantCaster = null;
+		HideFollowupBeforeInstant = false;
 	}
 
 	private int CommandCount(Actor actor)
@@ -1860,7 +1945,11 @@ public partial class BattleManager : Node
 		if (currentAction.Action is Skill skill)
 		{
 			if (!currentAction.Forced && RefuseSkill(currentAction, skill))
+			{
+				if (currentAction.Actor is Enemy && skill.InstantCast && !skill.InstantCastUsesAction)
+					currentAction.Actor.RemainingActions--;
 				return;
+			}
 			RunModifierHooks(currentAction.Actor, "OnActionStarted", modifier => modifier.OnActionStarted(currentAction.Actor, currentAction));
 			PaySkillCosts(currentAction.Actor, skill);
 
@@ -2317,7 +2406,7 @@ public partial class BattleManager : Node
 		DyingEnemies.ForEach(x => x.Visible = false);
 		DyingEnemies.Clear();
 		FallTween = null;
-		SetPhase(ProcessedStartOfCommands ? BattlePhase.PreCommand : BattlePhase.FightRun);
+		SetPhase(InstantCasting || ProcessedStartOfCommands ? BattlePhase.PreCommand : BattlePhase.FightRun);
 	}
 
 	// restores an enemy's on-screen state when it is revived after falling (or while falling)
@@ -2448,12 +2537,15 @@ public partial class BattleManager : Node
 					await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
 					if (StopEndOfBattleForRestart())
 						return;
+					foreach (Actor actor in PlayerCommands.Keys.ToList())
+						DropRemainingCommands(actor);
 					ForcedCommands.Clear();
 					ForcedCountAtCommandStart = 0;
 					PendingFollowup = null;
 					ForceHideFollowup = false;
 					PriorityActors.Clear();
 					ActingSubject = null;
+					ClearInstantCast();
 					CurrentCommand = null;
 					TurnCount = 0;
 					ProcessedStartOfTurn = false;

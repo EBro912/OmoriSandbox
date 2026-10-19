@@ -112,7 +112,7 @@ bus = &"BGM"
 [node name="Parallax2D" type="Parallax2D" parent="Main" unique_id=727271642]
 repeat_size = Vector2(960, 0)
 autoscroll = Vector2(12, 0)
-repeat_times = 2
+repeat_times = 3
 ignore_camera_scroll = true
 
 [node name="Background" type="TextureRect" parent="Main/Parallax2D" unique_id=272253253]
@@ -652,17 +652,17 @@ theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Test SFX"
 
-[node name="TitleMusic" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer"]
+[node name="TitleMusic" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=249587268]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleMusic"]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleMusic" unique_id=1389891039]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Title Music"
 
-[node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleMusic"]
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleMusic" unique_id=952286823]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_vertical = 4
@@ -675,23 +675,23 @@ clip_text = true
 fit_to_longest_item = false
 allow_reselect = true
 
-[node name="TitleLoopPoint" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer"]
+[node name="TitleLoopPoint" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=1337146922]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint"]
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint" unique_id=570965717]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Loop Point"
 
-[node name="SpinBox" type="SpinBox" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint"]
+[node name="SpinBox" type="SpinBox" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint" unique_id=129086543]
 layout_mode = 2
 size_flags_vertical = 4
 max_value = 0.0
 step = 0.001
 
-[node name="SetCurrent" type="Button" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint"]
+[node name="SetCurrent" type="Button" parent="Main/Settings/Tabs/Audio/VBoxContainer/TitleLoopPoint" unique_id=1581572636]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
@@ -1804,13 +1804,13 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 clip_text = true
 fit_to_longest_item = false
 
-[node name="WindowSkinLabel" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin"]
+[node name="WindowSkinLabel" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin" unique_id=1223190398]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "Window Skin"
 
-[node name="WindowSkinOptionButton" type="OptionButton" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin"]
+[node name="WindowSkinOptionButton" type="OptionButton" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin" unique_id=524925611]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -2248,7 +2248,7 @@ text = "Common Layers: 11: Party Layer (default)
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
 
-[node name="Rules" type="MarginContainer" parent="Editor/SettingsTabs"]
+[node name="Rules" type="MarginContainer" parent="Editor/SettingsTabs" unique_id=1478508834]
 visible = false
 layout_mode = 2
 theme_override_constants/margin_left = 5
@@ -2257,17 +2257,17 @@ theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 2
 metadata/_tab_index = 6
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Editor/SettingsTabs/Rules"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Editor/SettingsTabs/Rules" unique_id=2134622626]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+[node name="Label" type="Label" parent="Editor/SettingsTabs/Rules/VBoxContainer" unique_id=525338875]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 30
 text = "Rules"
 horizontal_alignment = 1
 
-[node name="Toastless" type="CheckBox" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+[node name="Toastless" type="CheckBox" parent="Editor/SettingsTabs/Rules/VBoxContainer" unique_id=460586647]
 layout_mode = 2
 tooltip_text = "The battle is lost as soon as any party member becomes toast"
 theme_override_fonts/font = ExtResource("2_ekxnf")
@@ -2275,12 +2275,12 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Toastless"
 
-[node name="RuleOverridesLabel" type="Label" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+[node name="RuleOverridesLabel" type="Label" parent="Editor/SettingsTabs/Rules/VBoxContainer" unique_id=750661773]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 22
 text = "Rule Overrides"
 
-[node name="RuleOverrides" type="GridContainer" parent="Editor/SettingsTabs/Rules/VBoxContainer"]
+[node name="RuleOverrides" type="GridContainer" parent="Editor/SettingsTabs/Rules/VBoxContainer" unique_id=212072295]
 layout_mode = 2
 columns = 2

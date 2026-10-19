@@ -175,7 +175,6 @@ internal partial class DisplayLayout : Node
 
         StatusBar.OffsetLeft = StatusBarLeft - OffsetX;
         StatusBar.OffsetRight = StatusBarRight - OffsetX;
-        TitleParallax.RepeatTimes = Math.Max(2, Mathf.CeilToInt(Width / 960f) + 1);
     }
 
     private static void Fill(Control control, Rect2 rect)
