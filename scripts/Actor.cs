@@ -535,8 +535,9 @@ public abstract class Actor
 	/// Whether this actor can use its skill <paramref name="skill"/> right now.
 	/// </summary>
 	/// <remarks>
-	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default), the skill is cooling down (see <see cref="GetSkillCooldown(Skill)"/>), or the actor can't pay its JUICE, HP or Energy cost.
-	/// In <see cref="Enemy.ProcessAI"/>, use it to skip a choice the enemy couldn't carry out, and return null when no choice is left, so the enemy takes no action this turn.
+	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default),
+	/// the skill is disallowed or cooling down (see <see cref="Skill.WithUseDisallowed"/> and <see cref="GetSkillCooldown(Skill)"/>),
+	/// or the actor can't pay its JUICE, HP or Energy cost.
 	/// </remarks>
 	/// <param name="skill">The skill's key in <see cref="Skills"/>.</param>
 	/// <returns>True if the skill can be used now.</returns>

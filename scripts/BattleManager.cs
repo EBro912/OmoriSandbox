@@ -158,11 +158,11 @@ public partial class BattleManager : Node
 	/// <remarks>
 	/// An action doesn't run, and raises neither this event nor <see cref="ActionEnded"/>, when:
 	/// <list type="bullet">
-	/// <item><description>the actor fails the skill's requirements (for example, it is too AFRAID) or can't pay its JUICE cost.</description></item>
+	/// <item><description>the actor fails the skill's requirements (for example, it is too AFRAID), the skill is disallowed or cooling down, or the actor can't pay its JUICE, HP or Energy cost.</description></item>
 	/// <item><description>no valid target is left.</description></item>
 	/// </list>
-	/// Forced commands skip the requirement and JUICE checks, but are still dropped when no valid target is left or their actor is toast.
-	/// A command dropped for having no valid target still spends its JUICE cost.
+	/// Forced commands skip the requirement, disallowed, cooldown and cost checks, but are still dropped when no valid target is left or their actor is toast.
+	/// A command dropped for having no valid target still pays its costs and starts its cooldown.
 	/// </remarks>
 	public event EventHandler<ActionEventArgs> ActionStarted;
 
@@ -2157,8 +2157,9 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Also clears the currently acting battler's action result, if any.
-	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
-	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// A forced command skips every usability check: the skill's requirements (including AFRAID), a disallowed use, the cooldown, and whether the actor can pay the JUICE, HP and Energy costs.
+	/// It still pays those costs, down to 0, so an HP cost can knock the user out. It also starts the skill's cooldown, but doesn't use up one of the actor's actions (see <see cref="Actor.RemainingActions"/>).
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still pays its costs and starts its cooldown.
 	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="target">The target of the command.</param>
@@ -2173,8 +2174,9 @@ public partial class BattleManager : Node
 	/// </summary>
 	/// <remarks>
 	/// Also clears the currently acting battler's action result, if any.
-	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
-	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// A forced command skips every usability check: the skill's requirements (including AFRAID), a disallowed use, the cooldown, and whether the actor can pay the JUICE, HP and Energy costs.
+	/// It still pays those costs, down to 0, so an HP cost can knock the user out. It also starts the skill's cooldown, but doesn't use up one of the actor's actions (see <see cref="Actor.RemainingActions"/>).
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still pays its costs and starts its cooldown.
 	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="targets">The targets of the command.</param>
@@ -2190,8 +2192,9 @@ public partial class BattleManager : Node
 	/// like YEP's <c>BattleManager.queueForceAction</c>, unless <paramref name="clearResults"/> is false.
 	/// </summary>
 	/// <remarks>
-	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
-	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// A forced command skips every usability check: the skill's requirements (including AFRAID), a disallowed use, the cooldown, and whether the actor can pay the JUICE, HP and Energy costs.
+	/// It still pays those costs, down to 0, so an HP cost can knock the user out. It also starts the skill's cooldown, but doesn't use up one of the actor's actions (see <see cref="Actor.RemainingActions"/>).
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still pays its costs and starts its cooldown.
 	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="target">The target of the command.</param>
@@ -2207,8 +2210,9 @@ public partial class BattleManager : Node
 	/// like YEP's <c>BattleManager.queueForceAction</c>, unless <paramref name="clearResults"/> is false.
 	/// </summary>
 	/// <remarks>
-	/// A forced command skips the skill's requirements (including AFRAID) and the JUICE check, but still spends the JUICE cost, down to 0.
-	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still spends the JUICE cost.
+	/// A forced command skips every usability check: the skill's requirements (including AFRAID), a disallowed use, the cooldown, and whether the actor can pay the JUICE, HP and Energy costs.
+	/// It still pays those costs, down to 0, so an HP cost can knock the user out. It also starts the skill's cooldown, but doesn't use up one of the actor's actions (see <see cref="Actor.RemainingActions"/>).
+	/// It is dropped if the actor is toast by the time it runs, or if no valid target is left, which still pays its costs and starts its cooldown.
 	/// </remarks>
 	/// <param name="self">The actor that the command is being forced upon.</param>
 	/// <param name="targets">The targets of the command.</param>

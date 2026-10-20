@@ -21,6 +21,7 @@
 [ext_resource type="Script" uid="uid://b6h3l1listplj" path="res://scripts/AnimationViewer.cs" id="17_j7ex8"]
 [ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="18_gw5y6"]
 [ext_resource type="PackedScene" uid="uid://cjovmomtfkxhh" path="res://scenes/battleback_bgm_editor_component.tscn" id="19_8egab"]
+[ext_resource type="Script" path="res://scripts/StatCurveGenerator.cs" id="20_stcrv"]
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1040890594]
 
@@ -2247,6 +2248,169 @@ text = "Common Layers: 11: Party Layer (default)
                    -5: Enemy Layer"
 
 [node name="PreviewRoot" type="Node" parent="Editor/SettingsTabs/Tools/Animation Viewer" unique_id=1346299156]
+
+[node name="Stat Curve" type="MarginContainer" parent="Editor/SettingsTabs/Tools" unique_id=1364634463 node_paths=PackedStringArray("StatSelector", "LevelsSpinBox", "FirstSpinBox", "LastLabel", "LastSpinBox", "GrowthSlider", "GrowthValueLabel", "Preview", "Output", "CopyButton")]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 2
+script = ExtResource("20_stcrv")
+StatSelector = NodePath("VBoxContainer/StatRow/StatSelector")
+LevelsSpinBox = NodePath("VBoxContainer/StatRow/Levels")
+FirstSpinBox = NodePath("VBoxContainer/ValueRow/First")
+LastLabel = NodePath("VBoxContainer/ValueRow/LastLabel")
+LastSpinBox = NodePath("VBoxContainer/ValueRow/Last")
+GrowthSlider = NodePath("VBoxContainer/GrowthRow/Growth")
+GrowthValueLabel = NodePath("VBoxContainer/GrowthRow/GrowthValue")
+Preview = NodePath("VBoxContainer/Preview")
+Output = NodePath("VBoxContainer/Output")
+CopyButton = NodePath("VBoxContainer/Copy")
+metadata/_tab_index = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Editor/SettingsTabs/Tools/Stat Curve" unique_id=793070144]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=1653444670]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 30
+text = "Stat Curve"
+horizontal_alignment = 1
+
+[node name="StatRow" type="HBoxContainer" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=2146771234]
+layout_mode = 2
+
+[node name="StatLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/StatRow" unique_id=358317087]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Stat"
+
+[node name="StatSelector" type="OptionButton" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/StatRow" unique_id=555149648]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+selected = 0
+item_count = 5
+popup/item_0/text = "HP"
+popup/item_0/id = 0
+popup/item_1/text = "Juice"
+popup/item_1/id = 1
+popup/item_2/text = "ATK"
+popup/item_2/id = 2
+popup/item_3/text = "DEF"
+popup/item_3/id = 3
+popup/item_4/text = "SPD"
+popup/item_4/id = 4
+
+[node name="LevelsLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/StatRow" unique_id=1109477060]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Levels"
+
+[node name="Levels" type="SpinBox" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/StatRow" unique_id=1258098928]
+layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+value = 50.0
+rounded = true
+
+[node name="ValueRow" type="HBoxContainer" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=728403168]
+layout_mode = 2
+
+[node name="FirstLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/ValueRow" unique_id=672971038]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Level 1"
+
+[node name="First" type="SpinBox" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/ValueRow" unique_id=1638743993]
+layout_mode = 2
+min_value = 1.0
+max_value = 9999.0
+value = 34.0
+rounded = true
+
+[node name="LastLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/ValueRow" unique_id=159461668]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Level 50"
+
+[node name="Last" type="SpinBox" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/ValueRow" unique_id=848911464]
+layout_mode = 2
+min_value = 1.0
+max_value = 9999.0
+value = 376.0
+rounded = true
+
+[node name="GrowthRow" type="HBoxContainer" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=395887097]
+layout_mode = 2
+
+[node name="GrowthLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/GrowthRow" unique_id=111897618]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Growth"
+
+[node name="FastLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/GrowthRow" unique_id=1658664427]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Fast"
+
+[node name="Growth" type="HSlider" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/GrowthRow" unique_id=1271057440]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = -10.0
+max_value = 10.0
+step = 1.0
+scrollable = false
+
+[node name="SlowLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/GrowthRow" unique_id=731521839]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Slow"
+
+[node name="GrowthValue" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/GrowthRow" unique_id=1045334741]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "0.0"
+horizontal_alignment = 2
+
+[node name="Preview" type="Control" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=1480390704]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="Output" type="TextEdit" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=2147095042]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/read_only = ExtResource("10_1ajci")
+editable = false
+wrap_mode = 1
+
+[node name="Copy" type="Button" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer" unique_id=682713063]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+text = "Copy"
 
 [node name="Rules" type="MarginContainer" parent="Editor/SettingsTabs" unique_id=1478508834]
 visible = false
