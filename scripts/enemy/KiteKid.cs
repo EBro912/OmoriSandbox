@@ -70,9 +70,9 @@ internal sealed class KiteKid : Enemy
             KidsKite.CurrentHP = 0;
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, @"Haha! As the wind predicted!\! Me and my kite are unbeatable.");
             await DialogueManager.Instance.WaitForDialogue();

@@ -78,7 +78,7 @@ internal sealed class AubreyEnemy : Enemy
         }
 
         if (CurrentHP == 0)
-            RemoveImmortal();
+            await AbortBattle();
     }
 
     public override async Task ProcessEndOfTurn()
@@ -99,9 +99,9 @@ internal sealed class AubreyEnemy : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "[br]Hmph.");
             DialogueManager.Instance.QueueMessage(this, "[br]Serves you right, KEL.");

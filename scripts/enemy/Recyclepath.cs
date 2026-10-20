@@ -77,7 +77,7 @@ internal sealed class Recyclepath : Enemy
         }
 
         if (CurrentHP == 0)
-            RemoveImmortal();
+            await AbortBattle();
     }
 
     public override async Task OnDefeat()
@@ -97,9 +97,9 @@ internal sealed class Recyclepath : Enemy
         return Task.CompletedTask;
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint,"[br]Huzzah! We have been blessed with victory!");
             DialogueManager.Instance.QueueMessage("THE RECYCLEPATH", CenterPoint, "[br]All hail the HOLY BIN in the sky!");

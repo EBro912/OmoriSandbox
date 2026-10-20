@@ -33,11 +33,10 @@ internal sealed class AngelAlt : Enemy
         return Task.CompletedTask;
     }
 
-    public override Task ProcessBattleConditions()
+    public override async Task ProcessBattleConditions()
     {
         if (CurrentHP == 0)
-            RemoveImmortal();
-        return Task.CompletedTask;
+            await AbortBattle();
     }
 
     public override BattleCommand ProcessAI()

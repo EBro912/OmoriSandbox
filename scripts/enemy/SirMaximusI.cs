@@ -93,9 +93,9 @@ internal sealed class SirMaximusI : Enemy
             RemoveImmortal(afterForcedCommands: true);
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "Our family's fighting technique has been undefeated for generations!");
             DialogueManager.Instance.QueueMessage(this, "You were foolish to challenge me!");

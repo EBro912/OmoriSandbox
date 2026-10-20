@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -51,13 +52,20 @@ internal sealed class Angel : Enemy
             HasSpoken = true;
         }
 
-        if (CurrentHP == 0)
-            RemoveImmortal();
+        if (CurrentHP == 0 && await AbortBattle())
+        {
+            Enemy charlene = BattleManager.Instance.GetAllEnemies().FirstOrDefault(x => x is Charlene);
+            if (charlene != null)
+            {
+                DialogueManager.Instance.QueueMessage("CHARLIE", charlene.CenterPoint, "...");
+                await DialogueManager.Instance.WaitForDialogue();
+            }
+        }
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=43]FWEFWE[font_size=58]FWEFWE!!!");
             DialogueManager.Instance.QueueMessage(this, "My master has taught me well!");

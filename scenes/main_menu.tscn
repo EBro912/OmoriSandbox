@@ -21,7 +21,7 @@
 [ext_resource type="Script" uid="uid://b6h3l1listplj" path="res://scripts/AnimationViewer.cs" id="17_j7ex8"]
 [ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="18_gw5y6"]
 [ext_resource type="PackedScene" uid="uid://cjovmomtfkxhh" path="res://scenes/battleback_bgm_editor_component.tscn" id="19_8egab"]
-[ext_resource type="Script" path="res://scripts/StatCurveGenerator.cs" id="20_stcrv"]
+[ext_resource type="Script" uid="uid://blqsg6oejmuei" path="res://scripts/StatCurveGenerator.cs" id="20_stcrv"]
 
 [node name="MainMenu" type="CanvasLayer" unique_id=1040890594]
 
@@ -359,7 +359,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -404,6 +404,7 @@ ToysUseEmotionDamageCheckbox = NodePath("Tabs/Rules/VBoxContainer/ToysUseEmotion
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("Tabs/Rules/VBoxContainer/SpaceExHusbandReleaseEnergy")
 ReleaseEnergyAnyPartyCheckbox = NodePath("Tabs/Rules/VBoxContainer/ReleaseEnergyAnyParty")
 PerTargetBuffTiersCheckbox = NodePath("Tabs/Rules/VBoxContainer/PerTargetBuffTiers")
+AllowEnemyAbortCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowEnemyAbort")
 EnableDebugDamageCheckbox = NodePath("Tabs/Debug/VBoxContainer/EnableDebugDamage")
 CombinedAccuracyCheckbox = NodePath("Tabs/Rules/VBoxContainer/CombinedAccuracy")
 AllowStateReapplyOnRemovalCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowStateReapplyOnRemoval")
@@ -1083,6 +1084,15 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Per-Target Buff Tiers"
+
+[node name="AllowEnemyAbort" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512649]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Allows enemies to abort/end the battle early."
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Allow Enemies to Abort Battle"
 
 [node name="Debug" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=67187411]
 visible = false
@@ -2372,7 +2382,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 min_value = -10.0
 max_value = 10.0
-step = 1.0
 scrollable = false
 
 [node name="SlowLabel" type="Label" parent="Editor/SettingsTabs/Tools/Stat Curve/VBoxContainer/GrowthRow" unique_id=731521839]

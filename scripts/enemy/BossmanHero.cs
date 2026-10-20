@@ -104,9 +104,9 @@ internal sealed class BossmanHero : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage("HERO", CenterPoint, @"Sorry, friends...\| You should have taken my offer when you had the chance!");
             await DialogueManager.Instance.WaitForDialogue();

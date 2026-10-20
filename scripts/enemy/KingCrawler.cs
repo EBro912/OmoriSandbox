@@ -117,9 +117,9 @@ internal sealed class KingCrawler : Enemy
         return Task.CompletedTask;
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "[br][shake rate=20][font_size=23]KISHKISHKISHKISHKISH!!");
             await DialogueManager.Instance.WaitForDialogue();

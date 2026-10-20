@@ -82,9 +82,9 @@ internal sealed class PlutoExpandedAlt : Enemy
         }
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "I apologize, children.");
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "You should applaud yourselves for your effort.");

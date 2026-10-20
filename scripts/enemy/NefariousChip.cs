@@ -88,9 +88,9 @@ internal sealed class NefariousChip : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(CenterPoint, "[font_size=58][wave freq=10.0]YAHOO! WAA-HAA!!");
             await DialogueManager.Instance.WaitForDialogue();

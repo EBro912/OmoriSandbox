@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -38,7 +39,12 @@ internal sealed class Kim : Enemy
         }
 
         if (CurrentHP == 0)
-            RemoveImmortal();
+        {
+            if (BattleManager.Instance.GetAllEnemies().Any(x => x is Vance && !x.IsToast))
+                RemoveImmortal();
+            else
+                await AbortBattle();
+        }
     }
 
     public override async Task OnDefeat()
@@ -54,9 +60,9 @@ internal sealed class Kim : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "Heh... You guys never stood a chance.");
             await DialogueManager.Instance.WaitForDialogue();

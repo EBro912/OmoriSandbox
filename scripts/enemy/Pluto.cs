@@ -89,9 +89,9 @@ internal sealed class Pluto : Enemy
         return Task.CompletedTask;
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, @"Hmph...\![br]You kids fought well...\! but you lack training.");
             await DialogueManager.Instance.WaitForDialogue();

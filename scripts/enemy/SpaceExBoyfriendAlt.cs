@@ -169,9 +169,9 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         }
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "[br]You should've thought twice before challenging me.");
             DialogueManager.Instance.QueueMessage(this, "[br]You are nothing but earthly scum!");

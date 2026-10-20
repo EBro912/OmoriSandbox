@@ -149,9 +149,9 @@ internal sealed class UnbreadTwins : Enemy
 		await DialogueManager.Instance.WaitForDialogue();
 	}
 
-	public override async Task OnEndOfBattle(bool victory)
+	public override async Task OnEndOfBattle(BattleOutcome outcome)
 	{
-		if (!victory)
+		if (outcome == BattleOutcome.Defeat)
 		{
 			DialogueManager.Instance.QueueMessage("DOUGHIE", CenterPoint, @"BISCUIT! It's a miracle!\![br]We've been saved by the gods!");
 			DialogueManager.Instance.QueueMessage("BISCUIT", CenterPoint, "[wave freq=10]Ohooooo!");

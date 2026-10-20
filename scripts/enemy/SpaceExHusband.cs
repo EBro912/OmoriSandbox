@@ -249,9 +249,9 @@ internal sealed class SpaceExHusband : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, @"I feel nothing...\! I am cold...\! like ice...");
             await DialogueManager.Instance.WaitForDialogue();

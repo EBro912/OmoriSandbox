@@ -105,9 +105,9 @@ internal sealed class MrJawsumAlt : Enemy
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");
         await DialogueManager.Instance.WaitForDialogue();
     }
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory) {
+        if (outcome == BattleOutcome.Defeat) {
             DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=43]JAWHAW[font_size=58]HAW[font_size=73]HAW!!!");
             DialogueManager.Instance.QueueMessage(this, "That's what happens when you mess with MR. JAWSUM!");
             await DialogueManager.Instance.WaitForDialogue();

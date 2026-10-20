@@ -131,9 +131,9 @@ internal sealed class SirMaximusII : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "Alas, my father has been avenged!");
             DialogueManager.Instance.QueueMessage(this, "This is a glorious day for my people!");

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -36,6 +37,9 @@ internal sealed class Vance : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
+
+        if (CurrentHP == 0 && !BattleManager.Instance.GetAllEnemies().Any(x => x is Kim && !x.IsToast))
+            await AbortBattle();
     }
     
     public override async Task OnDefeat()
@@ -44,9 +48,9 @@ internal sealed class Vance : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, @"So... uh...\! Can we get that taffy now?");
             await DialogueManager.Instance.WaitForDialogue();

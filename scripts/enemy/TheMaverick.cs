@@ -95,7 +95,7 @@ internal sealed class TheMaverick : Enemy
         }
 
         if (CurrentHP == 0)
-            RemoveImmortal();
+            await AbortBattle();
     }
 
     public override async Task OnDefeat()
@@ -114,9 +114,9 @@ internal sealed class TheMaverick : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, @"Wait...\! I won?\![br]I mean...");
             DialogueManager.Instance.QueueMessage(this, @"As expected! Haha!\![br]Fear me for I am THE MAVERICK!");

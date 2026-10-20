@@ -200,9 +200,9 @@ internal sealed class SweetheartAlt : Enemy
 		}
 	}
 
-	public override async Task OnEndOfBattle(bool victory)
+	public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
 		{
 			DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=10.0][font_size=43]OHOHOH[font_size=58]OHOHOHO!!");
 			DialogueManager.Instance.QueueMessage(this, @"This was child's play!\! You're all nothing but a bunch of lowly peasants!");

@@ -113,11 +113,12 @@ public partial class BattleManager : Node
 	public event EventHandler<BattleStartedEventArgs> BattleStarted;
 
 	/// <summary>
-	/// Fired when a battle ends in victory or defeat, after every actor's <see cref="Actor.OnEndOfBattle"/> hook has run.
+	/// Fired when a battle ends, after every actor's <see cref="Actor.OnEndOfBattle"/> hook has run.
 	/// In Boss Rush, this is fired again at the end of every stage.
 	/// </summary>
 	/// <remarks>
 	/// This is NOT fired when the battle is exited early, see <see cref="BattleExited"/>.
+	/// Check <see cref="BattleEndedEventArgs.Outcome"/> to tell a victory, a defeat and an aborted battle apart.
 	/// </remarks>
 	public event EventHandler<BattleEndedEventArgs> BattleEnded;
 
@@ -225,6 +226,7 @@ public partial class BattleManager : Node
 	private bool InEndOfTurnHooks = false;
 	private bool InStartOfTurnHooks = false;
 	private bool InEndOfBattle = false;
+	internal bool AbortRequested { get; private set; }
 	private bool ResumingStartOfTurn = false;
 	private bool BattleStartForcesOnly = false;
 	private bool SpawnHooksArmed = false;
@@ -738,6 +740,7 @@ public partial class BattleManager : Node
 		InEndOfTurnHooks = false;
 		InStartOfTurnHooks = false;
 		InEndOfBattle = false;
+		AbortRequested = false;
 		ResumingStartOfTurn = false;
 		BattleStartForcesOnly = false;
 		SpawnHooksArmed = false;
@@ -2429,11 +2432,35 @@ public partial class BattleManager : Node
 		parent.GlobalPosition = enemy.Actor.CenterPoint;
 	}
 
+	internal void RequestAbort() => AbortRequested = true;
+
 	/// <summary>
 	/// Runs a check to see if the battle is over.
 	/// </summary>
 	public async void CheckBattleOver()
 	{
+		if (AbortRequested)
+		{
+			SetPhase(BattlePhase.BattleOver);
+			InEndOfBattle = true;
+			await RunEndOfBattleHooks(BattleOutcome.Aborted);
+			if (StopEndOfBattleForRestart())
+				return;
+			if (GameType is GameModeType.BossRush)
+			{
+				string previousBGM = Stages[CurrentStage].BGM;
+				CurrentStage++;
+				if (CurrentStage < Stages.Count)
+				{
+					await AdvanceBossRushStage(previousBGM, null);
+					return;
+				}
+			}
+			InEndOfBattle = false;
+			ShowEndOfBattleOptions();
+			return;
+		}
+
 		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
 		{
 			SetPhase(BattlePhase.BattleOver);
@@ -2492,73 +2519,7 @@ public partial class BattleManager : Node
 					await Wait.Milliseconds(3000);
 					if (StopEndOfBattleForRestart())
 						return;
-					await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
-					if (StopEndOfBattleForRestart())
-						return;
-					SpawnHooksArmed = false;
-					SummonEnemiesForStage(Stages[CurrentStage].Enemies);
-					GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
-					GameManager.Instance.SetBattlebackGrayscale(false);
-					AnimationManager.Instance.ToneBelowUI = false;
-					BattleLogManager.Instance.ClearBattleLog();
-					MenuManager.Instance.ClearLastSelected();
-					await Wait.Milliseconds(1000);
-					if (StopEndOfBattleForRestart())
-						return;
-					CurrentParty.ForEach(x =>
-					{
-						x.Actor.HasUsedPlotArmor = false;
-						if (Stages[CurrentStage].HealParty)
-						{
-							if (x.Actor.IsToast)
-								x.Actor.Revive(x.Actor.CurrentStats.MaxHP);
-							else
-								x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
-							x.Actor.CurrentJuice = x.Actor.CurrentStats.MaxJuice;
-						}
-						else if (x.Actor.CurrentHP == 0)
-						{
-							x.Actor.Revive(1);
-							x.Actor.SetEmotionUnrecorded("neutral");
-						}
-
-						// drop the victory override, the emotion kept underneath shows again
-						x.Actor.ClearAnimation();
-						if (!Stages[CurrentStage].KeepEmotion)
-							x.Actor.SetEmotionUnrecorded("neutral");
-						if (!Stages[CurrentStage].KeepStatusEffects)
-							x.Actor.ClearStatModifiersOnRecoverAll();
-						x.Actor.ClearResult();
-						x.Actor.ClearSkillCooldowns();
-						x.UpdateStateIcons();
-					});
-					AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
-						(float)Stages[CurrentStage].BGMPitch);
-					if (previousBGM == Stages[CurrentStage].BGM)
-						AudioManager.Instance.SeekBGM(currentPosition);
-					AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
-					AudioManager.Instance.FadeBGMTo(1f, 0.5f);
-					await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
-					if (StopEndOfBattleForRestart())
-						return;
-					foreach (Actor actor in PlayerCommands.Keys.ToList())
-						DropRemainingCommands(actor);
-					ForcedCommands.Clear();
-					ForcedCountAtCommandStart = 0;
-					PendingFollowup = null;
-					ForceHideFollowup = false;
-					PriorityActors.Clear();
-					ActingSubject = null;
-					ClearInstantCast();
-					CurrentCommand = null;
-					TurnCount = 0;
-					ProcessedStartOfTurn = false;
-					ResumingStartOfTurn = false;
-					// leave BattleOver so a restart during the next stage's intro dialogue
-					// queues (like the first stage's) instead of resetting mid-hook
-					InEndOfBattle = false;
-					SetPhase(BattlePhase.PreBattle);
-					CallDeferred(MethodName.PreBattle);
+					await AdvanceBossRushStage(previousBGM, currentPosition);
 					return;
 				}
 			}
@@ -2574,6 +2535,79 @@ public partial class BattleManager : Node
 		}
 	}
 
+	private async Task AdvanceBossRushStage(string previousBGM, float? resumePosition)
+	{
+		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
+		if (StopEndOfBattleForRestart())
+			return;
+		SpawnHooksArmed = false;
+		SummonEnemiesForStage(Stages[CurrentStage].Enemies);
+		GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
+		GameManager.Instance.SetBattlebackGrayscale(false);
+		AnimationManager.Instance.ToneBelowUI = false;
+		BattleLogManager.Instance.ClearBattleLog();
+		MenuManager.Instance.ClearLastSelected();
+		await Wait.Milliseconds(1000);
+		if (StopEndOfBattleForRestart())
+			return;
+		CurrentParty.ForEach(x =>
+		{
+			x.Actor.HasUsedPlotArmor = false;
+			if (Stages[CurrentStage].HealParty)
+			{
+				if (x.Actor.IsToast)
+					x.Actor.Revive(x.Actor.CurrentStats.MaxHP);
+				else
+					x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
+				x.Actor.CurrentJuice = x.Actor.CurrentStats.MaxJuice;
+			}
+			else if (x.Actor.CurrentHP == 0)
+			{
+				x.Actor.Revive(1);
+				x.Actor.SetEmotionUnrecorded("neutral");
+			}
+
+			// drop the victory override, the emotion kept underneath shows again
+			x.Actor.ClearAnimation();
+			if (!Stages[CurrentStage].KeepEmotion)
+				x.Actor.SetEmotionUnrecorded("neutral");
+			if (!Stages[CurrentStage].KeepStatusEffects)
+				x.Actor.ClearStatModifiersOnRecoverAll();
+			x.Actor.ClearResult();
+			x.Actor.ClearSkillCooldowns();
+			x.UpdateStateIcons();
+		});
+		float position = resumePosition ?? AudioManager.Instance.GetBGMPosition();
+		AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
+			(float)Stages[CurrentStage].BGMPitch);
+		if (previousBGM == Stages[CurrentStage].BGM)
+			AudioManager.Instance.SeekBGM(position);
+		AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
+		AudioManager.Instance.FadeBGMTo(1f, 0.5f);
+		await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
+		if (StopEndOfBattleForRestart())
+			return;
+		foreach (Actor actor in PlayerCommands.Keys.ToList())
+			DropRemainingCommands(actor);
+		ForcedCommands.Clear();
+		ForcedCountAtCommandStart = 0;
+		PendingFollowup = null;
+		ForceHideFollowup = false;
+		PriorityActors.Clear();
+		ActingSubject = null;
+		ClearInstantCast();
+		CurrentCommand = null;
+		TurnCount = 0;
+		ProcessedStartOfTurn = false;
+		ResumingStartOfTurn = false;
+		AbortRequested = false;
+		// leave BattleOver so a restart during the next stage's intro dialogue
+		// queues (like the first stage's) instead of resetting mid-hook
+		InEndOfBattle = false;
+		SetPhase(BattlePhase.PreBattle);
+		CallDeferred(MethodName.PreBattle);
+	}
+
 	private void ShowEndOfBattleOptions()
 	{
 		EndOfBattleOptionsContainer.Visible = true;
@@ -2581,7 +2615,9 @@ public partial class BattleManager : Node
 		EndOfBattleOptionsContainer.GetChild(1).GetChild<Button>(0).GrabFocus(hideFocus: !MainMenuManager.Instance.UsingController);
 	}
 
-	private async Task EndOfBattle(bool victory)
+	private Task EndOfBattle(bool victory) => RunEndOfBattleHooks(victory ? BattleOutcome.Victory : BattleOutcome.Defeat);
+
+	private async Task RunEndOfBattleHooks(BattleOutcome outcome)
 	{
 		if (RestartQueued)
 			return;
@@ -2589,7 +2625,7 @@ public partial class BattleManager : Node
 		for (int i = 0; i < CurrentParty.Count; i++)
 		{
 			PartyMember member = CurrentParty[i].Actor;
-			await RunGuarded(() => member.OnEndOfBattle(victory), $"{member.Name}.OnEndOfBattle");
+			await RunGuarded(() => member.OnEndOfBattle(outcome), $"{member.Name}.OnEndOfBattle");
 			if (RestartQueued)
 				return;
 		}
@@ -2598,11 +2634,11 @@ public partial class BattleManager : Node
 			Enemy enemy = component.Actor;
 			if (!Enemies.Contains(component) || enemy.IsToast)
 				continue;
-			await RunGuarded(() => enemy.OnEndOfBattle(victory), $"{enemy.Name}.OnEndOfBattle");
+			await RunGuarded(() => enemy.OnEndOfBattle(outcome), $"{enemy.Name}.OnEndOfBattle");
 			if (RestartQueued)
 				return;
 		}
-		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(victory), "BattleEnded");
+		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(outcome), "BattleEnded");
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game

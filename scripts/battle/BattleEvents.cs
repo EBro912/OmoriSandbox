@@ -32,13 +32,18 @@ public sealed class BattleStartedEventArgs : EventArgs
 public sealed class BattleEndedEventArgs : EventArgs
 {
     /// <summary>
+    /// How the battle ended.
+    /// </summary>
+    public BattleOutcome Outcome { get; }
+
+    /// <summary>
     /// Whether the party won the battle.
     /// </summary>
-    public bool Victory { get; }
+    public bool Victory => Outcome == BattleOutcome.Victory;
 
-    internal BattleEndedEventArgs(bool victory)
+    internal BattleEndedEventArgs(BattleOutcome outcome)
     {
-        Victory = victory;
+        Outcome = outcome;
     }
 }
 

@@ -87,6 +87,7 @@ internal sealed class HumphreyFace : Enemy
 			return;
 		DialogueManager.Instance.QueueMessage(this, @"[wave freq=10.0]Feel free to struggle, 'cuz no matter what...\| You'll never be able to escape my gut!");
 		await DialogueManager.Instance.WaitForDialogue();
+		await AbortBattle();
 	}
 
 	private string GetMessage(int index)

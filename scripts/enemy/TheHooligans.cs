@@ -67,7 +67,7 @@ internal sealed class TheHooligans : Enemy
         }
 
         if (CurrentHP == 0)
-            RemoveImmortal();
+            await AbortBattle();
     }
     
     public override async Task OnDefeat()
@@ -92,9 +92,9 @@ internal sealed class TheHooligans : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"Huff...\! Huff...\![br]Is...\! Is this real life?");
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, "We won, master! We won!");

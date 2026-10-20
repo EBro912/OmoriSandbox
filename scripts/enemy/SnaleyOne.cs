@@ -34,11 +34,10 @@ internal sealed class SnaleyOne : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override Task ProcessBattleConditions()
+    public override async Task ProcessBattleConditions()
     {
         if (CurrentHP == 0)
-            RemoveImmortal();
-        return Task.CompletedTask;
+            await AbortBattle();
     }
 
     public override async Task OnDefeat()

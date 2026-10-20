@@ -5,12 +5,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Actors;
-
-// TODO: Remaining enemies
-// Omori
-// Mari
 
 /// <summary>
 /// An <see cref="Actor"/> that is considered an enemy. Can be inherited to create a new enemy.
@@ -465,6 +462,31 @@ public abstract class Enemy : Actor
 	public bool IsImmortal => HasStatModifier("Immortal");
 
 	internal bool ImmortalReleasePending { get; set; }
+
+	/// <summary>
+	/// Ends the battle early, the way the base game ends some story and scripted fights.
+	/// </summary>
+	/// <remarks>
+	/// With the Allow Enemies to Abort Battle rule on, this enemy is held at its current HP, its <see cref="OnDefeat"/> runs for its lines, and the battle ends once the current action finishes, even with other enemies left. With the rule off, it is defeated instead, as if it died normally.<br/>
+	/// Call it from <see cref="ProcessBattleConditions"/>.
+	/// </remarks>
+	/// <returns>True if the battle will end as aborted, false if this enemy is defeated instead.</returns>
+	public async Task<bool> AbortBattle()
+	{
+		if (BattleManager.Instance.AbortRequested)
+			return true;
+		if (!SettingsMenuManager.Instance.AllowEnemyAbort)
+		{
+			RemoveImmortal();
+			CurrentHP = 0;
+			return false;
+		}
+		if (!IsImmortal || ImmortalReleasePending)
+			AddImmortal();
+		BattleManager.Instance.RequestAbort();
+		await OnDefeat();
+		return true;
+	}
 
 	internal PartyMember ObserveTarget;
 	internal bool ObserveMultiTarget;

@@ -135,9 +135,9 @@ internal sealed class SlimeGirlsAlt : Enemy
 		await DialogueManager.Instance.WaitForDialogue();
 	}
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
 		{
 			DialogueManager.Instance.QueueMessage("MARINA", CenterPoint, "Now you belong to us!");
 			DialogueManager.Instance.QueueMessage("MOLLY", CenterPoint, @"Hush, hush, darlings...[br]Don't cry...\! You'll get used to your new life soon~");

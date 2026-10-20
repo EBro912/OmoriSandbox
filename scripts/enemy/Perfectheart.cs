@@ -99,9 +99,9 @@ internal sealed class Perfectheart : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "I said that you would regret this, children.");
             DialogueManager.Instance.QueueMessage(this, "Don't make me do this again.");

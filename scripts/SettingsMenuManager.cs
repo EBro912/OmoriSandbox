@@ -162,6 +162,7 @@ public partial class SettingsMenuManager : Control
 		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		ReleaseEnergyAnyPartyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ReleaseEnergyAnyParty", false);
 		PerTargetBuffTiersCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PerTargetBuffTiers", false);
+		AllowEnemyAbortCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "AllowEnemyAbort", false);
 		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
 		CombinedAccuracyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "CombinedAccuracy", false);
 		AllowStateReapplyOnRemovalCheckbox.ButtonPressed = ReadAllowStateReapplyOnRemoval(config);
@@ -305,6 +306,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "PerTargetBuffTiers", PerTargetBuffTiersCheckbox.ButtonPressed);
+		config.SetValue("Settings", "AllowEnemyAbort", AllowEnemyAbortCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
 		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
 		config.SetValue("Settings", "AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox.ButtonPressed);
@@ -384,6 +386,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
 		config.SetValue("Settings", "ReleaseEnergyAnyParty", false);
 		config.SetValue("Settings", "PerTargetBuffTiers", false);
+		config.SetValue("Settings", "AllowEnemyAbort", false);
 		config.SetValue("Settings", "EnableDebugDamage", false);
 		config.SetValue("Settings", "CombinedAccuracy", false);
 		config.SetValue("Settings", "AllowStateReapplyOnRemoval", false);
@@ -466,7 +469,8 @@ public partial class SettingsMenuManager : Control
 		("ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox),
 		("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox),
 		("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox),
-		("PerTargetBuffTiers", PerTargetBuffTiersCheckbox)
+		("PerTargetBuffTiers", PerTargetBuffTiersCheckbox),
+		("AllowEnemyAbort", AllowEnemyAbortCheckbox)
 	];
 
 	internal IReadOnlyDictionary<string, bool> ActiveRuleOverrides { get; set; }
@@ -540,6 +544,10 @@ public partial class SettingsMenuManager : Control
 	public bool SpaceExHusbandReleaseEnergy => Rule("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox);
 	public bool ReleaseEnergyAnyParty => Rule("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox);
 	public bool PerTargetBuffTiers => Rule("PerTargetBuffTiers", PerTargetBuffTiersCheckbox);
+	/// <summary>
+	/// Whether enemies that end the battle early in the base game end it here too, instead of being defeated.
+	/// </summary>
+	public bool AllowEnemyAbort => Rule("AllowEnemyAbort", AllowEnemyAbortCheckbox);
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public bool CombinedAccuracy => Rule("CombinedAccuracy", CombinedAccuracyCheckbox);
 	public bool AllowStateReapplyOnRemoval => Rule("AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox);
@@ -589,6 +597,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
 	[Export] private CheckBox ReleaseEnergyAnyPartyCheckbox;
 	[Export] private CheckBox PerTargetBuffTiersCheckbox;
+	[Export] private CheckBox AllowEnemyAbortCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
 	[Export] private CheckBox CombinedAccuracyCheckbox;
 	[Export] private CheckBox AllowStateReapplyOnRemovalCheckbox;

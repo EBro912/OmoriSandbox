@@ -114,9 +114,9 @@ internal sealed class Mutantheart : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnEndOfBattle(bool victory)
+    public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
-        if (!victory)
+        if (outcome == BattleOutcome.Defeat)
         {
             DialogueManager.Instance.QueueMessage(this, "[wave freq=10.0]Bleh!");
             await DialogueManager.Instance.WaitForDialogue();

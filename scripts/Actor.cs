@@ -1473,10 +1473,10 @@ public abstract class Actor
 	/// </summary>
 	public virtual async Task OnStartOfBattle() { await Task.CompletedTask; }
 	/// <summary>
-	/// Called when the battle is over, but before the victory screen.
+	/// Called when the battle is over, but before the end-of-battle options appear.
 	/// </summary>
-	/// <param name="victory">Whether the battle was won by the player.</param>
-	public virtual async Task OnEndOfBattle(bool victory) { await Task.CompletedTask; }
+	/// <param name="outcome">How the battle ended.</param>
+	public virtual async Task OnEndOfBattle(BattleOutcome outcome) { await Task.CompletedTask; }
 
 	/// <summary>
 	/// The HP damage this actor has taken during the current action. It goes back to 0 when the next action starts.

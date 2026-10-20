@@ -72,7 +72,7 @@ internal sealed class FearOfDrowning : Enemy
         }
 
         if (CurrentHP == 0)
-            RemoveImmortal();
+            await AbortBattle();
     }
 
     private void UpdateSprite()
