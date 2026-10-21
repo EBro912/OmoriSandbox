@@ -1327,8 +1327,9 @@ public partial class AnimationManager : Node
 		Cherish.Modulate = Colors.Transparent;
 		Cherish.Visible = true;
 		Tween tween = GetTree().CreateTween();
-		tween.TweenProperty(Cherish, "modulate:a", 1f, 0.75f);
-		await Wait.Seconds(1);
+		tween.TweenProperty(Cherish, "modulate:a", 1f, 45 / 60f);
+		await ToSignal(tween, Tween.SignalName.Finished);
+		await Wait.Frames(45);
 		string remember = "You remembered " + index switch
 		{
 			4 => "MARI's request.",
@@ -1362,8 +1363,13 @@ public partial class AnimationManager : Node
 				break;
 		}
 		await DialogueManager.Instance.WaitForDialogue();
-		tween = GetTree().CreateTween();
-		tween.TweenProperty(Cherish, "modulate:a", 0f, 0.75f);
+		await Wait.Frames(60);
+	}
+
+	internal async Task HideCherish()
+	{
+		Tween tween = GetTree().CreateTween();
+		tween.TweenProperty(Cherish, "modulate:a", 0f, 45 / 60f);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		Cherish.Visible = false;
 	}

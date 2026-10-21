@@ -303,6 +303,8 @@ public abstract class Actor
 	/// <param name="silent">If true, success/failure messages will not be logged.</param>
 	public void AddStatModifier(string modifier, int turns = -1, bool silent = false)
 	{
+		if (IsResisted(modifier))
+			return;
 		if (StatModifiers.TryGetValue(modifier, out StatModifier m) && m is not TierStatModifier)
 		{
 			if (IsReapplyBlocked(modifier))
@@ -337,6 +339,7 @@ public abstract class Actor
 
 		mod.AddSequence = ++LastModifierSequence;
 		StatModifiers.Add(modifier, mod);
+		EraseResisted(mod);
 		GrantFreeActionTick(mod);
 		BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
 		GD.Print("Added modifier " + modifier + " to " + Name);
@@ -366,6 +369,8 @@ public abstract class Actor
 
 	private void AddTierStatModifierCore(string modifier, int tier, int turns, bool silent)
 	{
+		if (IsResisted(modifier))
+			return;
 		StatModifier mod = Database.CreateModifier(modifier);
 		if (mod is not TierStatModifier t)
 		{
@@ -388,6 +393,7 @@ public abstract class Actor
 				mod.SetTurnsLeft(turns);
 			mod.AddSequence = ++LastModifierSequence;
 			StatModifiers.Add(modifier, mod);
+			EraseResisted(mod);
 			BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
 			GD.Print("Added modifier " + modifier + " to " + Name);
 			NotifyModifierAdded(modifier, mod);
@@ -447,6 +453,7 @@ public abstract class Actor
 			t.SetTurnsLeft(turns);
 		t.AddSequence = ++LastModifierSequence;
 		StatModifiers.Add(modifier, t);
+		EraseResisted(t);
 		BattleManager.Instance.RunAsReaction(() => t.OnAdd(this));
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		if (!silent && t.SuccessMessage != null)
@@ -778,6 +785,25 @@ public abstract class Actor
 		return tier > 0 ? modifier + "#" + tier : modifier;
 	}
 	
+	private bool IsResisted(string modifier)
+	{
+		foreach (KeyValuePair<string, StatModifier> entry in StatModifiers)
+		{
+			if (entry.Value.Resists.Contains(modifier))
+			{
+				GD.Print("Refused modifier " + modifier + " on " + Name + " (resisted by " + entry.Key + ")");
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void EraseResisted(StatModifier mod)
+	{
+		foreach (string resisted in mod.Resists)
+			RemoveStatModifierInternal(resisted, StatModifierRemovalReason.Cleared, true, false);
+	}
+
 	private bool IsReapplyBlocked(string modifier, int tier = 0)
 	{
 		if (BattleManager.Instance == null || SettingsMenuManager.Instance.AllowStateReapplyOnRemoval)

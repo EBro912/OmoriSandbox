@@ -13,7 +13,7 @@ internal sealed class SunnyAlt : PartyMember
     private static readonly int[] JuiceTreeData = [30];
     public override int[] JuiceTree => JuiceTreeData;
 
-    private static readonly int[] ATKTreeData = [46];
+    private static readonly int[] ATKTreeData = [32];
     public override int[] ATKTree => ATKTreeData;
 
     private static readonly int[] DEFTreeData = [72];

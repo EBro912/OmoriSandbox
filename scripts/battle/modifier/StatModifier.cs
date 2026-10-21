@@ -79,6 +79,8 @@ public class StatModifier
     /// </summary>
     public bool ReapplyAllowed { get; private set; }
 
+    internal IReadOnlyCollection<string> Resists { get; private set; } = [];
+
     private readonly HashSet<string> CategorySet = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -144,6 +146,12 @@ public class StatModifier
     public StatModifier WithReapplyAllowed()
     {
         ReapplyAllowed = true;
+        return this;
+    }
+
+    internal StatModifier WithResists(params string[] modifiers)
+    {
+        Resists = modifiers;
         return this;
     }
 

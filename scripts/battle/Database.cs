@@ -1379,17 +1379,32 @@ public class Database
 			cost: 0,
 			effect: async (_, target) =>
 			{
+				BattleManager.Instance.Energy = 0;
 				AnimationManager.Instance.PlayScreenAnimation(104, false);
-				await Wait.Milliseconds(2500);
 				int heal = target.Heal(BattleManager.RoundHealing(target.CurrentStats.MaxHP * 0.5));
 				target.SetEmotion("neutral", true);
 				BattleManager.Instance.SpawnDamageNumber(heal, target, DamageType.Heal);
 				BattleLogManager.Instance.QueueMessage(target, "[actor] calms down.");
 				if (heal > 0)
 					BattleLogManager.Instance.QueueMessage(target, $"[actor] recovers {heal} HEART!");
+				await Wait.Frames(250);
 			},
 			priority: 2000
 			// calm down can be used while afraid
+		).WithCustomRequirement((actor) => actor.CurrentEmotion.Id is not "stressed");
+
+		Skills["BrokenCalmDown"] = new Skill(
+			name: "CALM DOWN",
+			description: "Removes EMOTIONS and heals some HEART.\nCost: 0",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (Actor _, Actor _) =>
+			{
+				AnimationManager.Instance.PlayScreenAnimation(110, false);
+				await Wait.Frames(250);
+				BattleManager.Instance.Energy = 0;
+			},
+			priority: 1999
 		).WithCustomRequirement((actor) => actor.CurrentEmotion.Id is not "stressed");
 
 		Skills["Focus"] = new Skill(
@@ -1435,6 +1450,8 @@ public class Database
 				BattleLogManager.Instance.QueueMessage(self, "[actor] strikes three times.");
 				for (int i = 0; i < 3; i++)
 				{
+					if (i > 0)
+						await Wait.Frames(8);
 					BattleManager.Instance.Damage(self, target,
 						() => target.CurrentStats.MaxHP * 0.15f + self.CurrentStats.ATK - target.CurrentStats.DEF,
 						false);
@@ -1466,30 +1483,36 @@ public class Database
 			effect: async (_, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(target, "[actor] steadies their breathing.");
-				int index = target.GetStatModifierTier("CherishDialogue");
-				if (index >= 4)
-					target.RemoveStatModifier("CherishDialogue");
-				else
-					target.AddTierStatModifier("CherishDialogue");
-				await AnimationManager.Instance.PlayCherish(index);
-				if (target.HasStatModifier("Encore"))
-				{
-					target.RemoveStatModifier("Encore");
-					foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
-					{
-						member.Heal(300);
-						member.HealJuice(30);
-					}
-				}
-				else
-				{
-					target.Heal(target.CurrentStats.MaxHP);
-					target.HealJuice(target.CurrentStats.MaxJuice);
-				}
-
 				target.AddTierStatModifier("AttackUp", silent: true);
 				target.AddTierStatModifier("DefenseUp", silent: true);
 				target.AddTierStatModifier("SpeedUp", silent: true);
+				int index = target.GetStatModifierTier("CherishDialogue");
+				if (index < 4)
+					target.AddTierStatModifier("CherishDialogue");
+				await AnimationManager.Instance.PlayCherish(index);
+				if (index == 4)
+					target.Skills.Remove("Cherish");
+				if (target.HasStatModifier("Encore"))
+				{
+					// VANILLA BUG: CHERISH removes MARI POISON instead of ENCORE, so ENCORE stays
+					foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
+						member.Heal(300);
+					foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
+						member.HealJuice(30);
+				}
+				else
+				{
+					target.RecoverAll();
+				}
+
+				target.AddTierStatModifier("AttackUp", 3, silent: true);
+				target.AddTierStatModifier("DefenseUp", 1, silent: true);
+				target.AddTierStatModifier("SpeedUp", 2, silent: true);
+				if (target.GetStatModifierTier("CherishDialogue") == 4)
+					target.AddStatModifier("Cherished");
+				await AnimationManager.Instance.HideCherish();
+				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+					enemy.AddStatModifier("CallForFriendDelay", silent: true);
 			}
 		);
 
@@ -8058,7 +8081,8 @@ public class Database
 		Modifiers.Add("SalesTag", () => new SalesTagStatModifier());
 		Modifiers.Add("Immune", () => new ImmuneStatModifier());
 		Modifiers.Add("ResistPhysical", () => new ResistPhysicalModifier());
-		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5));
+		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5).WithBypassRecoverAllRemoval().WithBypassDeathRemoval());
+		Modifiers.Add("Cherished", () => new StatModifier(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 1.15f), new StatBonus(StatType.SPD, 2f)).WithResists("AttackUp", "DefenseUp", "SpeedUp"));
 		#endregion
 
 		#region SNACKS
