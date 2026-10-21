@@ -38,6 +38,7 @@ public partial class AudioManager : Node
 	
 	// reusable tween so multiple pitch tweens don't fight over the BGM
 	private Tween PitchTween;
+	private Tween VolumeTween;
 
 	public override void _EnterTree()
 	{
@@ -398,12 +399,18 @@ public partial class AudioManager : Node
 	{
 		volume = Math.Clamp(volume, 0.001f, 3f);
 		float target = Mathf.LinearToDb(volume);
+		if (VolumeTween != null)
+		{
+			VolumeTween.EmitSignal(Tween.SignalName.Finished);
+			VolumeTween.Kill();
+			VolumeTween = null;
+		}
 		if (seconds == 0f)
 			BGM.VolumeDb = target;
 		else
 		{
-			Tween tween = CreateTween();
-			tween.TweenProperty(BGM, "volume_db", target, seconds);
+			VolumeTween = CreateTween();
+			VolumeTween.TweenProperty(BGM, "volume_db", target, seconds);
 		}
 	}
 
@@ -414,16 +421,10 @@ public partial class AudioManager : Node
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public async Task WaitForFadeBGMTo(float volume, float seconds = 1f)
 	{
-		volume = Math.Clamp(volume, 0.001f, 3f);
-		float target = Mathf.LinearToDb(volume);
-		if (seconds == 0f)
-			BGM.VolumeDb = target;
-		else
-		{
-			Tween tween = CreateTween();
-			tween.TweenProperty(BGM, "volume_db", target, seconds);
+		FadeBGMTo(volume, seconds);
+		Tween tween = VolumeTween;
+		if (tween != null)
 			await ToSignal(tween, Tween.SignalName.Finished);
-		}
 	}
 
 	/// <summary>
@@ -499,6 +500,8 @@ public partial class AudioManager : Node
 		PlayingSounds.Clear();
 		PitchTween?.Kill();
 		PitchTween = null;
+		VolumeTween?.Kill();
+		VolumeTween = null;
 		BGM.Stop();
 		BGM.PitchScale = 1f;
 		BGM.VolumeDb = Mathf.LinearToDb(1f);

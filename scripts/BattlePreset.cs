@@ -74,6 +74,7 @@ internal class BattlePresetBossRushStage
     public bool HealParty { get; set; } = false;
     public bool KeepEmotion { get; set; } = false;
     public bool KeepStatusEffects { get; set; } = false;
+    public bool KeepEnergy { get; set; } = false;
     [JsonRequired] public List<BattlePresetEnemy> Enemies { get; set; } = [];
 }
 

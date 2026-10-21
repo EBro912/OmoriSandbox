@@ -9,7 +9,7 @@
 [ext_resource type="StyleBox" uid="uid://jwq4fr8u18k1" path="res://assets/button_hover.tres" id="4_f0a1o"]
 [ext_resource type="StyleBox" uid="uid://ividp3svjft4" path="res://assets/tab_selected.tres" id="5_1dmn7"]
 
-[node name="BossRushStageComponent" type="ScrollContainer" unique_id=1191877626 node_paths=PackedStringArray("BattlebackBGMEditor", "HealPartyCheckbox", "KeepEmotionCheckbox", "KeepStatusEffectsCheckbox", "AddEnemyButton", "Enemies", "EnemyParent")]
+[node name="BossRushStageComponent" type="ScrollContainer" unique_id=1191877626 node_paths=PackedStringArray("BattlebackBGMEditor", "HealPartyCheckbox", "KeepEmotionCheckbox", "KeepStatusEffectsCheckbox", "KeepEnergyCheckbox", "AddEnemyButton", "Enemies", "EnemyParent")]
 custom_minimum_size = Vector2(0, 400)
 offset_right = 397.0
 offset_bottom = 175.0
@@ -20,6 +20,7 @@ BattlebackBGMEditor = NodePath("MarginContainer/VBoxContainer/BattlebackBGMEdito
 HealPartyCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/HealParty")
 KeepEmotionCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/KeepEmotion")
 KeepStatusEffectsCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/KeepStatusEffects")
+KeepEnergyCheckbox = NodePath("MarginContainer/VBoxContainer/Settings/KeepEnergy")
 AddEnemyButton = NodePath("MarginContainer/VBoxContainer/AddEnemy")
 Enemies = NodePath("MarginContainer/VBoxContainer/EnemyTabs")
 EnemyEditor = ExtResource("2_hx5ke")
@@ -38,8 +39,9 @@ layout_mode = 2
 [node name="BattlebackBGMEditor" parent="MarginContainer/VBoxContainer" unique_id=1531111807 instance=ExtResource("3_f0a1o")]
 layout_mode = 2
 
-[node name="Settings" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1362553702]
+[node name="Settings" type="GridContainer" parent="MarginContainer/VBoxContainer" unique_id=1362553702]
 layout_mode = 2
+columns = 2
 
 [node name="HealParty" type="CheckBox" parent="MarginContainer/VBoxContainer/Settings" unique_id=678539223]
 layout_mode = 2
@@ -61,6 +63,13 @@ tooltip_text = "The party will keep their status effects at the start of this st
 theme_override_fonts/font = ExtResource("1_j0mh2")
 theme_override_font_sizes/font_size = 20
 text = "Keep Status Effects"
+
+[node name="KeepEnergy" type="CheckBox" parent="MarginContainer/VBoxContainer/Settings" unique_id=1749306285]
+layout_mode = 2
+tooltip_text = "The party will keep their energy at the start of this stage"
+theme_override_fonts/font = ExtResource("1_j0mh2")
+theme_override_font_sizes/font_size = 20
+text = "Keep Energy"
 
 [node name="AddEnemy" type="Button" parent="MarginContainer/VBoxContainer" unique_id=837522143]
 layout_mode = 2

@@ -428,7 +428,8 @@ internal partial class EditorManager : Node
 						BGMLoopPoint = editor.BattlebackBGMEditor.BGMLoopPointValue,
 						HealParty = editor.HealPartyCheckbox.ButtonPressed,
 						KeepEmotion =  editor.KeepEmotionCheckbox.ButtonPressed,
-						KeepStatusEffects = editor.KeepStatusEffectsCheckbox.ButtonPressed
+						KeepStatusEffects = editor.KeepStatusEffectsCheckbox.ButtonPressed,
+						KeepEnergy = editor.KeepEnergyCheckbox.ButtonPressed
 					};
 					foreach (Node subChild in editor.Enemies.GetChildren())
 					{
@@ -598,6 +599,7 @@ internal partial class EditorManager : Node
 				editor.HealPartyCheckbox.ButtonPressed = entry.HealParty;
 				editor.KeepEmotionCheckbox.ButtonPressed = entry.KeepEmotion;
 				editor.KeepStatusEffectsCheckbox.ButtonPressed = entry.KeepStatusEffects;
+				editor.KeepEnergyCheckbox.ButtonPressed = entry.KeepEnergy;
 				foreach (BattlePresetEnemy enemy in entry.Enemies)
 				{
 					if (!Database.GetAllEnemyNames().Contains(enemy.Name))

@@ -71,6 +71,8 @@ internal partial class MenuManager : Node
 		EnergyDots.Origin = ActiveSkin.BlackspaceEnergyBar ? new Vector2(1, 229) : new Vector2(363, 1);
 	}
 
+	internal void SetPartyPlayMode(bool on) => PartyMenu.SetPlayMode(on);
+
 	public void ShowButtons()
 	{
 		PartyMenu.ApplySkin(ActiveSkin);

@@ -35,6 +35,7 @@ public partial class AnimationManager : Node
 	[Export] private TextureRect HumphreySwarm;
 	[Export] private TextureRect Encore;
 	[Export] private TextureRect Cherish;
+	[Export] private TextureRect Succumb;
 	[Export] private AnimatedSprite2D HumphreySwallow;
 	[Export] private AnimatedSprite2D HumphreyFaceSwallow;
 	[Export] private PackedScene PerfectheartOverlaySprite;
@@ -1372,6 +1373,22 @@ public partial class AnimationManager : Node
 		tween.TweenProperty(Cherish, "modulate:a", 0f, 45 / 60f);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		Cherish.Visible = false;
+	}
+
+	internal async Task FadeSuccumb(bool closed, float alpha, float seconds)
+	{
+		using (Texture2D texture = ResourceLoader.Load<Texture2D>(closed ? "res://assets/pictures/omori_succumb_closed.png" : "res://assets/pictures/omori_succumb.png"))
+			Succumb.Texture = texture;
+		if (!Succumb.Visible)
+		{
+			Succumb.Modulate = Colors.Transparent;
+			Succumb.Visible = true;
+		}
+		Tween tween = GetTree().CreateTween();
+		tween.TweenProperty(Succumb, "modulate:a", alpha, seconds);
+		await ToSignal(tween, Tween.SignalName.Finished);
+		if (alpha <= 0f)
+			Succumb.Visible = false;
 	}
 
 	internal void DespawnAll()

@@ -221,6 +221,17 @@ public abstract class Enemy : Actor
 	{
 		return SelectTargetBy(value ?? (_ => 0f), true);
 	}
+	
+	/// <summary>
+	/// Selects the a random living party member matching or above the given HP fraction/percentage.
+	/// </summary>
+	/// <param name="fraction">The HP fraction (percent) to select, from 0 to 1.</param>
+	/// <returns>A random <see cref="PartyMember"/> at or above the given HP fraction.</returns>
+	protected PartyMember SelectTargetAtOrAboveHP(float fraction)
+	{
+		List<PartyMember> valid = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.CurrentHP / (float)x.CurrentStats.MaxHP >= fraction);
+		return valid.Count == 0 ? null : valid[GameManager.Instance.Random.RandiRange(0, valid.Count - 1)];
+	}
 
 	/// <summary>
 	/// Selects the enemy with the highest <paramref name="value"/>, such as SPEED, from <see cref="SelectAllEnemies"/>, which includes this enemy.

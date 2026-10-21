@@ -7,6 +7,8 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 {
 	[Export] private Sprite2D FightSprite;
 	[Export] private Sprite2D RunSprite;
+	[Export] private Sprite2D PlaySprite;
+	private bool PlayMode;
 	
 	protected override Vector2 OpenPosition => new(320, 480);
 	protected override Vector2 ClosedPosition => new(320, 572);
@@ -15,6 +17,25 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 	{
 		Options = ["Fight", "Run"];
 		CursorPositions = [new Vector2I(-98, -70), new Vector2I(-78, -31)];
+	}
+
+	internal void SetPlayMode(bool on)
+	{
+		PlayMode = on;
+		if (on)
+		{
+			Options = ["Play"];
+			CursorPositions = [new Vector2I(-63, -50)];
+		}
+		else
+		{
+			Options = ["Fight", "Run"];
+			CursorPositions = [new Vector2I(-98, -70), new Vector2I(-78, -31)];
+		}
+		PlaySprite.Visible = on;
+		FightSprite.Visible = !on;
+		RunSprite.Visible = !on;
+		CursorIndex = 0;
 	}
 
 	public void SetSkinMode(MenuSkinMode mode)
@@ -53,6 +74,12 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 	protected override void OnSelect()
 	{
 		CursorSprite.StopBounce();
+		if (PlayMode)
+		{
+			AudioManager.Instance.PlaySFX("SE_play", volume: 0.9f);
+			BattleManager.Instance.OnPlaySelected();
+			return;
+		}
 		AudioManager.Instance.PlaySFX("SYS_select", volume: 0.9f);
 		if (CursorIndex == 0)
 		{

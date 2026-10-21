@@ -87,6 +87,7 @@ public abstract class PartyMember : Actor
             actor.Emotion = "neutral";
             emotion = "neutral";
         }
+        StartingEmotion = actor.Emotion;
         // init animation
         Sprite = face;
 		Sprite.SpriteFrames = animation;
@@ -111,12 +112,19 @@ public abstract class PartyMember : Actor
 
 		EquippedSkills = actor.Skills;
 
+		AddEquippedSkills();
+
+		return true;
+	}
+
+	private void AddEquippedSkills()
+	{
 		foreach (string s in EquippedSkills)
 		{
 			if (string.IsNullOrWhiteSpace(s))
 				continue;
 
-			if (Database.TryGetSkill(s, out var skill))
+			if (Database.TryGetSkill(s, out Skill skill))
 			{
 				if (!Skills.TryAdd(s, skill)) 
 					GD.PushWarning($"Actor {Name} already has skill {s} equipped! Skipping...");
@@ -124,8 +132,32 @@ public abstract class PartyMember : Actor
 			}
 			GD.PrintErr("Unknown skill: " + s);
 		}
+	}
 
-		return true;
+	/// <summary>
+	/// Replaces one of this party member's skills with another. The <paramref name="to"/> skill will be added regardless.
+	/// </summary>
+	/// <param name="from">The skill to replace.</param>
+	/// <param name="to">The replacement skill.</param>
+	public void ReplaceSkill(string from, string to)
+	{
+		if (!Skills.ContainsKey(from) || !Database.TryGetSkill(to, out Skill replacement))
+			return;
+		List<KeyValuePair<string, Skill>> entries = Skills.ToList();
+		Skills.Clear();
+		foreach (KeyValuePair<string, Skill> entry in entries)
+		{
+			if (entry.Key == from)
+				Skills.TryAdd(to, replacement);
+			else
+				Skills.TryAdd(entry.Key, entry.Value);
+		}
+	}
+
+	internal void RestoreEquippedSkills()
+	{
+		Skills.Clear();
+		AddEquippedSkills();
 	}
 
 	/// <summary>
@@ -230,4 +262,5 @@ public abstract class PartyMember : Actor
 	/// Whether this party member has already used their plot armor this battle.
 	/// </summary>
 	internal bool HasUsedPlotArmor = false;
+	internal string StartingEmotion { get; private set; }
 }

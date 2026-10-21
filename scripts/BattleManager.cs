@@ -32,6 +32,7 @@ public partial class BattleManager : Node
 	private List<EnemyComponent> Enemies = [];
 	private List<BattlePresetBossRushStage> Stages = [];
 	private int CurrentStage = -1;
+	private BattlePreset CurrentPreset;
 	/// <summary>
 	/// The currently loaded preset, if any.
 	/// </summary>
@@ -227,6 +228,10 @@ public partial class BattleManager : Node
 	private bool InStartOfTurnHooks = false;
 	private bool InEndOfBattle = false;
 	internal bool AbortRequested { get; private set; }
+	internal bool PlayMode { get; set; }
+	private bool DeathBeatUsed;
+	private bool InDeathBeat;
+	internal int BattleStartEnergy { get; private set; }
 	private bool ResumingStartOfTurn = false;
 	private bool BattleStartForcesOnly = false;
 	private bool SpawnHooksArmed = false;
@@ -273,6 +278,7 @@ public partial class BattleManager : Node
 	{
 		GameType = preset.Type;
 		CurrentPresetName = preset.Name;
+		CurrentPreset = preset;
 		CurrentParty = party.OrderBy(x => x.Position).ToList();
 		Stages = stages;
 		
@@ -299,6 +305,7 @@ public partial class BattleManager : Node
 		Items = preset.Items.ToDictionary(x => x.Key, x => Math.Min(x.Value, MaxItemCount));
 		MenuManager.Instance.SetPresetSkin(preset.MenuSkin, preset.ItemlessMode);
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
+		BattleStartEnergy = Energy;
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		CombinedBuffsDebuffs = preset.CombinedBuffsDebuffs;
@@ -412,10 +419,7 @@ public partial class BattleManager : Node
 		CurrentParty.ForEach(x => x.UpdateStateIcons());
 		if (ForcedCommands.Any(x => !IsInvalidTarget(x.Actor)))
 		{
-			foreach (PartyMemberComponent member in CurrentParty)
-				ActedThisTurn.Add(member.Actor);
-			foreach (EnemyComponent enemy in Enemies)
-				ActedThisTurn.Add(enemy.Actor);
+			MarkEveryoneActed();
 			ProcessedStartOfCommands = true;
 			ProcessedEndOfTurn = false;
 			BattleStartForcesOnly = true;
@@ -423,6 +427,14 @@ public partial class BattleManager : Node
 			return;
 		}
 		SetPhase(BattlePhase.FightRun);
+	}
+
+	private void MarkEveryoneActed()
+	{
+		foreach (PartyMemberComponent member in CurrentParty)
+			ActedThisTurn.Add(member.Actor);
+		foreach (EnemyComponent enemy in Enemies)
+			ActedThisTurn.Add(enemy.Actor);
 	}
 
 	private Task RunSpawnHook(Actor actor)
@@ -539,7 +551,7 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionJustPressed("Restart"))
 		{
-			if (!RestartQueued)
+			if (!RestartQueued && !InDeathBeat)
 			{
 				RestartLabel.Visible = true;
 				RestartLabel.Text = "Restarting...";
@@ -558,7 +570,7 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionPressed("Restart"))
 		{
-			if (!RestartQueued)
+			if (!RestartQueued && !InDeathBeat)
 			{
 				RestartTimer -= (float)delta;
 				if (RestartTimer <= 0)
@@ -681,6 +693,17 @@ public partial class BattleManager : Node
 		SetPhase(BattlePhase.PlayerCommand);
 	}
 
+	internal void OnPlaySelected()
+	{
+		PartyMember sunny = GetSunnyStandIn();
+		Enemy target = Enemies.Select(x => x.Actor).FirstOrDefault(x => x is OmoriEnemy { IsToast: false, Phase: >= 5 });
+		Database.TryGetSkill("Play", out Skill play);
+		AddPlayerCommand(sunny, new BattleCommand(sunny, target, play));
+		BattleLogManager.Instance.ClearBattleLog();
+		MenuManager.Instance.ShowMenu(MenuState.None);
+		SetPhase(BattlePhase.PreCommand);
+	}
+
 	internal void Reset()
 	{
 		bool wasBattling = IsBattling;
@@ -741,6 +764,10 @@ public partial class BattleManager : Node
 		InStartOfTurnHooks = false;
 		InEndOfBattle = false;
 		AbortRequested = false;
+		PlayMode = false;
+		DeathBeatUsed = false;
+		InDeathBeat = false;
+		BattleStartEnergy = 0;
 		ResumingStartOfTurn = false;
 		BattleStartForcesOnly = false;
 		SpawnHooksArmed = false;
@@ -1534,6 +1561,7 @@ public partial class BattleManager : Node
 				break;
 		}
 
+		MenuManager.Instance.SetPartyPlayMode(PlayMode);
 		MenuManager.Instance.ShowButtons();
 		MenuManager.Instance.ShowMenu(MenuState.Party);
 	}
@@ -2354,6 +2382,8 @@ public partial class BattleManager : Node
 			}
 
 			RaiseGuarded(TurnEnded, "TurnEnded");
+			if (ForcedCommands.Count > 0)
+				MarkEveryoneActed();
 			ProcessedEndOfTurn = true;
 		}
 		
@@ -2463,6 +2493,11 @@ public partial class BattleManager : Node
 
 		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
 		{
+			if (DeathBeatDue())
+			{
+				await RunDeathBeat();
+				return;
+			}
 			SetPhase(BattlePhase.BattleOver);
 			InEndOfBattle = true;
 			await EndOfBattle(false);
@@ -2481,6 +2516,11 @@ public partial class BattleManager : Node
 		// this may change in the future
 		if (omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast)))
 		{
+			if (DeathBeatDue())
+			{
+				await RunDeathBeat();
+				return;
+			}
 			SetPhase(BattlePhase.BattleOver);
 			InEndOfBattle = true;
 			await EndOfBattle(false);
@@ -2577,6 +2617,8 @@ public partial class BattleManager : Node
 			x.Actor.ClearSkillCooldowns();
 			x.UpdateStateIcons();
 		});
+		if (!Stages[CurrentStage].KeepEnergy)
+			Energy = Math.Clamp(CurrentPreset.StartingEnergy, 0, 10);
 		float position = resumePosition ?? AudioManager.Instance.GetBGMPosition();
 		AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
 			(float)Stages[CurrentStage].BGMPitch);
@@ -2587,6 +2629,23 @@ public partial class BattleManager : Node
 		await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;
+		ClearQueuedCommands();
+		TurnCount = 0;
+		ProcessedStartOfTurn = false;
+		ResumingStartOfTurn = false;
+		AbortRequested = false;
+		PlayMode = false;
+		DeathBeatUsed = false;
+		BattleStartEnergy = Energy;
+		// leave BattleOver so a restart during the next stage's intro dialogue
+		// queues (like the first stage's) instead of resetting mid-hook
+		InEndOfBattle = false;
+		SetPhase(BattlePhase.PreBattle);
+		CallDeferred(MethodName.PreBattle);
+	}
+
+	private void ClearQueuedCommands()
+	{
 		foreach (Actor actor in PlayerCommands.Keys.ToList())
 			DropRemainingCommands(actor);
 		ForcedCommands.Clear();
@@ -2597,15 +2656,77 @@ public partial class BattleManager : Node
 		ActingSubject = null;
 		ClearInstantCast();
 		CurrentCommand = null;
-		TurnCount = 0;
+	}
+
+	private bool DeathBeatDue()
+	{
+		return !DeathBeatUsed && Enemies.Any(x => x.Actor is OmoriEnemy { IsToast: false, Phase: >= 5 });
+	}
+
+	private async Task RunDeathBeat()
+	{
+		if (StopEndOfBattleForRestart())
+			return;
+		SetPhase(BattlePhase.BattleOver);
+		InDeathBeat = true;
+		RestartLabel.Visible = false;
+		RestartTimer = SettingsMenuManager.Instance.RestartHoldTime;
+		DeathBeatUsed = true;
+		await Wait.Frames(20);
+		AudioManager.Instance.PlaySFX("BA_ear_ringing", volume: 0.9f);
+		await Wait.Frames(100);
+		DialogueManager.Instance.QueueMessage("You should just die.", font: DialogueManager.FontType.Jagged);
+		await DialogueManager.Instance.WaitForDialogue();
+		await Wait.Frames(60);
+		if (!AudioManager.Instance.BGMLocked)
+			AudioManager.Instance.FadeBGMTo(0.001f, 4f);
+		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 220 / 60f, layer: 22);
+		await Wait.Frames(300);
+		foreach (PartyMemberComponent component in CurrentParty)
+		{
+			PartyMember member = component.Actor;
+			member.RecoverAll();
+			member.RemoveStatModifier("CherishDialogue", force: true);
+			if (member.StartingEmotion != "toast")
+				member.SetEmotionUnrecorded(member.StartingEmotion);
+			member.HasUsedPlotArmor = false;
+			member.ClearSkillCooldowns();
+			member.ClearResult();
+			member.ClearAnimation();
+			member.RestoreEquippedSkills();
+			RunGuarded(member.ApplyPassiveStatModifiers, $"{member.Name}.ApplyPassiveStatModifiers");
+			component.UpdateStateIcons();
+		}
+		Energy = BattleStartEnergy;
+		GetSunnyStandIn().AddStatModifier("ReleaseEnergyBasilBonus", silent: true);
+		foreach (EnemyComponent component in Enemies)
+		{
+			if (component.Actor is OmoriEnemy omori)
+				omori.RestoreForDeathBeat();
+		}
+		if (!AudioManager.Instance.BGMLocked)
+			AudioManager.Instance.StopBGM();
+		PlayMode = true;
+		ClearQueuedCommands();
+		InDeathBeat = false;
 		ProcessedStartOfTurn = false;
-		ResumingStartOfTurn = false;
-		AbortRequested = false;
-		// leave BattleOver so a restart during the next stage's intro dialogue
-		// queues (like the first stage's) instead of resetting mid-hook
-		InEndOfBattle = false;
-		SetPhase(BattlePhase.PreBattle);
-		CallDeferred(MethodName.PreBattle);
+		ProcessedEndOfTurn = false;
+		AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack, 180 / 60f, layer: 22);
+		SetPhase(BattlePhase.FightRun);
+	}
+
+	internal void PlayPresetBGM(float volume)
+	{
+		if (GameType is GameModeType.BossRush)
+		{
+			AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, volume, (float)Stages[CurrentStage].BGMPitch);
+			AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
+		}
+		else
+		{
+			AudioManager.Instance.ForcePlayBGM(CurrentPreset.BGM, volume, (float)CurrentPreset.BGMPitch);
+			AudioManager.Instance.ForceSetBGMLoopOffset(CurrentPreset.BGMLoopPoint);
+		}
 	}
 
 	private void ShowEndOfBattleOptions()
@@ -4110,6 +4231,11 @@ public partial class BattleManager : Node
 	{
 		PartyMember member = CurrentParty.ElementAtOrDefault(index)?.Actor;
 		return member != null && member.CurrentHP > 0 && !member.IsToast ? member : GetAlivePartyMembers().FirstOrDefault();
+	}
+
+	internal PartyMember GetSunnyStandIn()
+	{
+		return CurrentParty.FirstOrDefault(x => x.Actor is Sunny or SunnyAlt)?.Actor ?? CurrentParty[0].Actor;
 	}
 
 	/// <summary>
