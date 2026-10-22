@@ -56,7 +56,7 @@ TitlePresetDropdown = NodePath("../Main/MainControls/PresetSelector/PresetDropdo
 StageSelectorParent = NodePath("../Main/MainControls/StageSelector")
 StageSelectorSpinBox = NodePath("../Main/MainControls/StageSelector/StageSpinBox")
 
-[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "LockBGMAndBattleback", "ItemlessMode", "MenuSkinDropdown", "WindowSkinDropdown", "Toastless", "RuleOverridesGrid", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
+[node name="EditorManager" type="Node" parent="." unique_id=1425104684 node_paths=PackedStringArray("BGMPreview", "BattlebackPreview", "AddActorControls", "AddEnemyControl", "ActorTabs", "EnemyTabs", "BattlebackBGMEditor", "StartingEnergySlider", "StartingEnergyValue", "FollowupTierSlider", "FollowupTierValue", "EnergyBarVisibilityDropdown", "DisableDialogue", "DisableDamageNumbers", "CombinedBuffsDebuffs", "LockBGMAndBattleback", "ItemlessMode", "MenuSkinDropdown", "WindowSkinDropdown", "Toastless", "RuleOverridesGrid", "AddItemButton", "ItemContainer", "SearchInput", "SearchButton", "Results", "SavePresetButton", "PresetInput", "LoadPresetButton", "DeletePresetButton", "PresetDropdown", "ResetButton", "ReturnButton", "PresetFolderButton", "AddStageButton", "DuplicateStageButton", "RemoveStageButton", "MoveStageLeftButton", "MoveStageRightButton", "ImportPresetDropdown", "ImportButton", "StageTabs", "MainTabs")]
 script = ExtResource("12_7b55j")
 BGMPreview = NodePath("../BGMPreview")
 BattlebackPreview = NodePath("../Editor/BattlebackPreview")
@@ -73,11 +73,12 @@ StartingEnergySlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/S
 StartingEnergyValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/StartingEnergy/Label2")
 FollowupTierSlider = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/HSlider")
 FollowupTierValue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/FollowupTier/Label2")
-DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDialogue")
-DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/DisableDamageNumbers")
-CombinedBuffsDebuffs = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/CombinedBuffsDebuffs")
-LockBGMAndBattleback = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/LockBGMAndBattleback")
-ItemlessMode = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/ItemlessMode")
+EnergyBarVisibilityDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/EnergyBarVisibility/EnergyBarVisibilityDropdown")
+DisableDialogue = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles/DisableDialogue")
+DisableDamageNumbers = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles/DisableDamageNumbers")
+CombinedBuffsDebuffs = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles/CombinedBuffsDebuffs")
+LockBGMAndBattleback = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles/LockBGMAndBattleback")
+ItemlessMode = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles/ItemlessMode")
 MenuSkinDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin/OptionButton")
 WindowSkinDropdown = NodePath("../Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/MenuSkin/WindowSkinOptionButton")
 Toastless = NodePath("../Editor/SettingsTabs/Rules/VBoxContainer/Toastless")
@@ -1757,38 +1758,70 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 text = "1"
 
+[node name="EnergyBarVisibility" type="HBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1845203917]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Editor/SettingsTabs/Settings/VBoxContainer/EnergyBarVisibility" unique_id=1845203918]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+text = "Energy Bar Visibility"
+
+[node name="EnergyBarVisibilityDropdown" type="OptionButton" parent="Editor/SettingsTabs/Settings/VBoxContainer/EnergyBarVisibility" unique_id=1845203919]
+custom_minimum_size = Vector2(137, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+fit_to_longest_item = false
+item_count = 3
+selected = 0
+popup/item_0/text = "Auto"
+popup/item_0/id = 0
+popup/item_1/text = "Always"
+popup/item_1/id = 1
+popup/item_2/text = "Never"
+popup/item_2/id = 2
+
 [node name="OtherSettings" type="VBoxContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer" unique_id=1817215259]
 layout_mode = 2
 
-[node name="DisableDialogue" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1424746557]
+[node name="Toggles" type="GridContainer" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1845203920]
+layout_mode = 2
+columns = 2
+
+[node name="DisableDialogue" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles" unique_id=1424746557]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Dialogue"
 
-[node name="DisableDamageNumbers" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1427138058]
+[node name="DisableDamageNumbers" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles" unique_id=1427138058]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Damage Numbers"
 
-[node name="CombinedBuffsDebuffs" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1539284771]
+[node name="CombinedBuffsDebuffs" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles" unique_id=1539284771]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Combined Buffs/Debuffs"
 
-[node name="LockBGMAndBattleback" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1495495260]
+[node name="LockBGMAndBattleback" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles" unique_id=1495495260]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Lock BGM and Battleback"
 
-[node name="ItemlessMode" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings" unique_id=1059368253]
+[node name="ItemlessMode" type="CheckBox" parent="Editor/SettingsTabs/Settings/VBoxContainer/OtherSettings/Toggles" unique_id=1059368253]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20

@@ -39,6 +39,9 @@ public class Database
 	private static readonly List<string> MenuSkinOrder = [];
 	internal static readonly Dictionary<string, WindowSkin> WindowSkins = new(StringComparer.OrdinalIgnoreCase);
 	internal static readonly List<string> WindowSkinOrder = [];
+	private static readonly Dictionary<string, string> EnemyAreas = new(StringComparer.Ordinal);
+	private static readonly Dictionary<string, string> EnemyAreaLabels = new(StringComparer.Ordinal);
+	private static readonly List<string> EnemyAreaOrder = [];
 
 	static Database()
 	{
@@ -217,7 +220,7 @@ public class Database
 		if (builtFrames == null)
 			return false;
 
-		return TryRegister<Func<PartyMember>>(PartyMembers, "PartyMember", jsonActor.Name,
+		return TryRegister(PartyMembers, "PartyMember", jsonActor.Name,
 			() => new ModdedPartyMember(jsonActor, builtFrames));
 	}
 
@@ -226,18 +229,39 @@ public class Database
 		if (builtFrames == null)
 			return false;
 
-		return TryRegister<Func<Enemy>>(Enemies, "Enemy", jsonEnemy.Name,
-			() => new ModdedEnemy(jsonEnemy, builtFrames));
+		return TryRegister(Enemies, "Enemy", jsonEnemy.Name,
+			() => new ModdedEnemy(jsonEnemy, builtFrames))
+			&& MapModEnemyArea(jsonEnemy.Name);
  	}
 
 	internal static bool RegisterModdedPartyMember<T>(string id) where T : PartyMember, new()
 	{
-		return TryRegister<Func<PartyMember>>(PartyMembers, "PartyMember", id, () => new T());
+		return TryRegister(PartyMembers, "PartyMember", id, () => new T());
 	}
 
 	internal static bool RegisterModdedEnemy<T>(string id) where T : Enemy, new()
 	{
-		return TryRegister<Func<Enemy>>(Enemies, "Enemy", id, () => new T());
+		return TryRegister(Enemies, "Enemy", id, () => new T()) && MapModEnemyArea(id);
+	}
+
+	private static bool MapModEnemyArea(string enemyId)
+	{
+		string key = "mod:" + (ModManager.CurrentModId ?? "");
+		if (EnemyAreaLabels.TryAdd(key, ModManager.CurrentModName ?? "Other mods"))
+			EnemyAreaOrder.Add(key);
+		EnemyAreas[enemyId] = key;
+		return true;
+	}
+
+	private static void RegisterArea(string area, Action register)
+	{
+		HashSet<string> before = [.. Enemies.Keys];
+		register();
+		EnemyAreaLabels[area] = area;
+		EnemyAreaOrder.Add(area);
+		foreach (string id in Enemies.Keys)
+			if (!before.Contains(id))
+				EnemyAreas[id] = area;
 	}
 
 	internal static bool RegisterModdedStatModifier(string id, Func<StatModifier> func)
@@ -447,6 +471,30 @@ public class Database
 		return Enemies.Keys;
 	}
 
+	internal static IReadOnlyList<(string Key, string Label)> GetEnemyAreas()
+	{
+		List<string> keys = [.. EnemyAreaOrder.Where(key => EnemyAreas.ContainsValue(key))];
+		return [.. keys.Select(key => (key, AreaLabel(key, keys)))];
+	}
+
+	private static string AreaLabel(string key, List<string> keys)
+	{
+		string label = EnemyAreaLabels[key];
+		if (key.Length > 4 && key.StartsWith("mod:") && keys.Any(other => other != key && EnemyAreaLabels[other] == label))
+			return $"{label} ({key[4..]})";
+		return label;
+	}
+
+	internal static IReadOnlyList<string> GetEnemyNamesInArea(string key)
+	{
+		return [.. Enemies.Keys.Where(id => EnemyAreas.TryGetValue(id, out string area) && area == key)];
+	}
+
+	internal static string GetEnemyArea(string enemyId)
+	{
+		return EnemyAreas.GetValueOrDefault(enemyId);
+	}
+
 	/// <summary>
 	/// The ids of every registered skill.
 	/// </summary>
@@ -540,21 +588,21 @@ public class Database
 		AubreyRegistry.Register();
 		KelRegistry.Register();
 		HeroRegistry.Register();
-		VastForestRegistry.Register();
-		OtherworldRegistry.Register();
-		JunkyardRegistry.Register();
-		PyreflyForestRegistry.Register();
-		SweetheartsCastleRegistry.Register();
-		LastResortRegistry.Register();
-		UnderwaterHighwayRegistry.Register();
-		HumphreyRegistry.Register();
-		OrangeOasisRegistry.Register();
-		SnowglobeMountainRegistry.Register();
-		AbyssRegistry.Register();
-		BlackspaceRegistry.Register();
-		FarawayRegistry.Register();
-		ConsolePortRegistry.Register();
-		BossRushRegistry.Register();
+		RegisterArea("Vast Forest", VastForestRegistry.Register);
+		RegisterArea("Otherworld", OtherworldRegistry.Register);
+		RegisterArea("Junkyard", JunkyardRegistry.Register);
+		RegisterArea("Pyrefly Forest", PyreflyForestRegistry.Register);
+		RegisterArea("Sweetheart's Castle", SweetheartsCastleRegistry.Register);
+		RegisterArea("Last Resort", LastResortRegistry.Register);
+		RegisterArea("Underwater Highway", UnderwaterHighwayRegistry.Register);
+		RegisterArea("Humphrey", HumphreyRegistry.Register);
+		RegisterArea("Orange Oasis", OrangeOasisRegistry.Register);
+		RegisterArea("Snowglobe Mountain", SnowglobeMountainRegistry.Register);
+		RegisterArea("The Abyss", AbyssRegistry.Register);
+		RegisterArea("Blackspace", BlackspaceRegistry.Register);
+		RegisterArea("Faraway", FarawayRegistry.Register);
+		RegisterArea("Console Port", ConsolePortRegistry.Register);
+		RegisterArea("Boss Rush", BossRushRegistry.Register);
 		EmotionsRegistry.Register();
 		ModifiersRegistry.Register();
 		ItemsRegistry.Register();

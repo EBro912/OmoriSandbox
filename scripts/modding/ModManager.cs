@@ -29,6 +29,7 @@ internal partial class ModManager : Node
 	/// Used to attribute database registrations to their mod.
 	/// </summary>
 	internal static string CurrentModName { get; private set; }
+	internal static string CurrentModId { get; private set; }
 
 	public override void _Ready()
 	{
@@ -174,6 +175,7 @@ internal partial class ModManager : Node
 			finally
 			{
 				CurrentModName = null;
+				CurrentModId = null;
 			}
 		}
 
@@ -220,10 +222,12 @@ internal partial class ModManager : Node
 
 		ModLoadReport report = new(metadata.Name, metadata.Version);
 		CurrentModName = metadata.Name;
+		CurrentModId = metadata.Id;
 
 		if (!LoadModAssemblies(dirName, metadata))
 		{
 			CurrentModName = null;
+			CurrentModId = null;
 			return false;
 		}
 		
@@ -274,6 +278,7 @@ internal partial class ModManager : Node
 		}
 
 		CurrentModName = null;
+		CurrentModId = null;
 		report.PrintSummary();
 		MainMenuManager.Instance.AddModListEntry(metadata, icon, report.HasErrors);
 		LoadedMods.Add(metadata);

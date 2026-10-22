@@ -14,6 +14,7 @@ internal class BattlePreset
     public double BGMLoopPoint { get; set; } = 0d;
     public int StartingEnergy { get; set; } = 3;
     public int FollowupTier { get; set; } = 1;
+    public EnergyBarVisibility EnergyBarVisibility { get; set; } = EnergyBarVisibility.Auto;
     // legacy, kept for reading old presets
     public bool BasilFollowups { get; set; } = false;
     public bool ShouldSerializeBasilFollowups() => false;
@@ -84,4 +85,11 @@ internal enum GameModeType
 {
     Normal,
     BossRush
+}
+
+internal enum EnergyBarVisibility
+{
+    Auto,
+    Always,
+    Never
 }

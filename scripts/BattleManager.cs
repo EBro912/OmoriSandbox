@@ -323,7 +323,7 @@ public partial class BattleManager : Node
 		EndOfBattleOptionsContainer.Visible = false;
 		StageSelectorContainer.Visible = false;
 
-		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
+		UpdateEnergyBarVisibility();
 
 		BattleLogManager.Instance.Visible = true;
 		AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack);
@@ -2272,9 +2272,19 @@ public partial class BattleManager : Node
 		return taunting[GameManager.Instance.Random.RandiRange(0, taunting.Count - 1)];
 	}
 
+	private void UpdateEnergyBarVisibility(bool onlyReveal = false)
+	{
+		EnergyBar.Visible = CurrentPreset.EnergyBarVisibility switch
+		{
+			EnergyBarVisibility.Always => true,
+			EnergyBarVisibility.Never => false,
+			_ => (onlyReveal && EnergyBar.Visible) || CurrentParty.Any(x => x.HasFollowup || x.Actor.Skills.Values.Any(skill => skill.EnergyCost(x.Actor) > 0))
+		};
+	}
+
 	private bool HandleFollowup(InputDirection direction)
 	{
-		if (!FollowupActive || ForceHideFollowup || !EnergyBar.Visible || FollowupSelected)
+		if (!FollowupActive || ForceHideFollowup || FollowupSelected)
 			return false;
 
 		PartyMemberComponent current = ((PartyMember)CurrentCommand.Actor).Component;
@@ -3788,7 +3798,7 @@ public partial class BattleManager : Node
 			CurrentPartyMember = CurrentParty.IndexOf(selecting);
 
 		// a summoned member with followups may need to reveal the energy bar
-		EnergyBar.Visible = CurrentParty.Any(x => x.HasFollowup);
+		UpdateEnergyBarVisibility(true);
 		if (SpawnHooksArmed)
 		{
 			RunGuarded(component.Actor.ApplyPassiveStatModifiers, $"{component.Actor.Name}.ApplyPassiveStatModifiers");

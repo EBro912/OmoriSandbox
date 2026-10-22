@@ -8,6 +8,7 @@ namespace OmoriSandbox.Editor;
 
 internal partial class EnemyEditorComponent : Control
 {
+	[Export] public OptionButton AreaDropdown { get; private set; }
 	[Export] public OptionButton EnemyDropdown { get; private set; }
 	[Export] public OptionButton EmotionDropdown { get; private set; }
 	[Export] public SpinBox XPosBox { get; private set; }
@@ -23,6 +24,7 @@ internal partial class EnemyEditorComponent : Control
 
 	private AnimatedSprite2D Animator;
 	private Enemy CurrentEnemy;
+	private string CurrentEnemyId;
 	private bool ChangesLocked;
 	private bool RememberedPreventBattleback;
 	private bool RememberedPreventBGM;
@@ -56,6 +58,16 @@ internal partial class EnemyEditorComponent : Control
 
 	public override void _Ready()
 	{
+		AreaDropdown.AddItem("All");
+		AreaDropdown.SetItemMetadata(0, "");
+		foreach ((string key, string label) in Database.GetEnemyAreas())
+		{
+			AreaDropdown.AddItem(label);
+			AreaDropdown.SetItemMetadata(AreaDropdown.ItemCount - 1, key);
+		}
+		AreaDropdown.Selected = 0;
+		AreaDropdown.ItemSelected += (idx) => FillEnemies(AreaDropdown.GetItemMetadata((int)idx).AsString());
+
 		foreach (string member in Database.GetAllEnemyNames())
 			EnemyDropdown.AddItem(member);
 
@@ -112,6 +124,7 @@ internal partial class EnemyEditorComponent : Control
 
 		StatAdjustmentEditor.SetStats(adjustedStats);
 		Populate(name);
+		ShowArea(name);
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex(name);
 		int emotionIndex = EmotionDropdown.GetItemIndex(emotion);
 		if (emotionIndex == -1)
@@ -181,7 +194,44 @@ internal partial class EnemyEditorComponent : Control
 		UpdateState(EmotionDropdown.GetItemText(EmotionDropdown.Selected));
 
 		CurrentEnemy = enemy;
+		CurrentEnemyId = who;
 		RefreshStatDisplay();
+	}
+
+	private void FillEnemies(string areaKey, bool pickFirst = true)
+	{
+		EnemyDropdown.Clear();
+		foreach (string member in areaKey == "" ? Database.GetAllEnemyNames() : Database.GetEnemyNamesInArea(areaKey))
+			EnemyDropdown.AddItem(member);
+
+		int index = CurrentEnemyId != null ? EnemyDropdown.GetItemIndex(CurrentEnemyId) : -1;
+		if (index > -1)
+		{
+			EnemyDropdown.Selected = index;
+			return;
+		}
+		if (EnemyDropdown.ItemCount == 0)
+			return;
+		EnemyDropdown.Selected = 0;
+		if (pickFirst)
+			Populate(EnemyDropdown.GetItemText(0));
+	}
+
+	private void ShowArea(string enemyId)
+	{
+		if (EnemyDropdown.GetItemIndex(enemyId) > -1)
+			return;
+		string area = Database.GetEnemyArea(enemyId);
+		if (area == null)
+			return;
+		for (int i = 0; i < AreaDropdown.ItemCount; i++)
+		{
+			if (AreaDropdown.GetItemMetadata(i).AsString() != area)
+				continue;
+			AreaDropdown.Selected = i;
+			FillEnemies(area, false);
+			return;
+		}
 	}
 
 	private void RefreshStatDisplay()

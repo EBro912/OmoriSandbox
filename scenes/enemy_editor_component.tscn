@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://chwhfaladnv86" path="res://scenes/stat_adjustment_editor.tscn" id="6_adjst"]
 [ext_resource type="StyleBox" uid="uid://ividp3svjft4" path="res://assets/tab_selected.tres" id="7_tabsel"]
 
-[node name="EnemyEditorComponent" type="TabContainer" unique_id=438065555 node_paths=PackedStringArray("EnemyDropdown", "EmotionDropdown", "XPosBox", "YPosBox", "LayerBox", "FallsOffScreenCheckbox", "GrayscaleOnDefeatCheckbox", "PreventBattlebackCheckbox", "PreventBGMCheckbox", "VisibleCheckbox", "RemoveButton", "StatAdjustmentEditor")]
+[node name="EnemyEditorComponent" type="TabContainer" unique_id=438065555 node_paths=PackedStringArray("AreaDropdown", "EnemyDropdown", "EmotionDropdown", "XPosBox", "YPosBox", "LayerBox", "FallsOffScreenCheckbox", "GrayscaleOnDefeatCheckbox", "PreventBattlebackCheckbox", "PreventBGMCheckbox", "VisibleCheckbox", "RemoveButton", "StatAdjustmentEditor")]
 offset_right = 200.0
 offset_bottom = 375.0
 mouse_filter = 2
@@ -18,6 +18,7 @@ theme_override_styles/tab_hovered = ExtResource("5_sv4pq")
 theme_override_styles/tab_selected = ExtResource("7_tabsel")
 current_tab = 0
 script = ExtResource("1_hxvew")
+AreaDropdown = NodePath("Edit/VBoxContainer/Area/AreaDropdown")
 EnemyDropdown = NodePath("Edit/VBoxContainer/Enemy/EnemyDropdown")
 EmotionDropdown = NodePath("Edit/VBoxContainer/Emotion/EmotionDropdown")
 XPosBox = NodePath("Edit/VBoxContainer/XPos/XPosInput")
@@ -42,6 +43,26 @@ metadata/_tab_index = 0
 [node name="VBoxContainer" type="VBoxContainer" parent="Edit" unique_id=419578643]
 layout_mode = 2
 mouse_filter = 2
+
+[node name="Area" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1500100001]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Edit/VBoxContainer/Area" unique_id=1500100002]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_qooje")
+theme_override_font_sizes/font_size = 20
+text = "Area"
+
+[node name="AreaDropdown" type="OptionButton" parent="Edit/VBoxContainer/Area" unique_id=1500100003]
+layout_mode = 2
+mouse_filter = 1
+theme_override_fonts/font = ExtResource("2_qooje")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = ExtResource("3_drgij")
+theme_override_styles/pressed = ExtResource("4_i0156")
+theme_override_styles/hover = ExtResource("5_sv4pq")
+allow_reselect = true
 
 [node name="Enemy" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=125233606]
 layout_mode = 2

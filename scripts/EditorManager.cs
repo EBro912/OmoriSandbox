@@ -338,6 +338,7 @@ internal partial class EditorManager : Node
 			Name = PresetInput.Text,
 			StartingEnergy = (int)StartingEnergySlider.Value,
 			FollowupTier = (int)FollowupTierSlider.Value,
+			EnergyBarVisibility = (EnergyBarVisibility)EnergyBarVisibilityDropdown.Selected,
 			DisableDialogue = DisableDialogue.ButtonPressed,
 			DisableDamageNumbers = DisableDamageNumbers.ButtonPressed,
 			CombinedBuffsDebuffs = CombinedBuffsDebuffs.ButtonPressed,
@@ -510,6 +511,7 @@ internal partial class EditorManager : Node
 
 		StartingEnergySlider.Value = Math.Clamp(preset.StartingEnergy, 0, 10);
 		FollowupTierSlider.Value = Math.Clamp(preset.FollowupTier, 1, 3);
+		EnergyBarVisibilityDropdown.Selected = Enum.IsDefined(preset.EnergyBarVisibility) ? (int)preset.EnergyBarVisibility : 0;
 		DisableDialogue.ButtonPressed = preset.DisableDialogue;
 		DisableDamageNumbers.ButtonPressed = preset.DisableDamageNumbers;
 		CombinedBuffsDebuffs.ButtonPressed = preset.CombinedBuffsDebuffs;
@@ -854,6 +856,7 @@ internal partial class EditorManager : Node
 		}
 		
 		FollowupTierSlider.Value = 1;
+		EnergyBarVisibilityDropdown.Selected = 0;
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
 		CombinedBuffsDebuffs.ButtonPressed = false;
@@ -906,6 +909,7 @@ internal partial class EditorManager : Node
 	[Export] private Label StartingEnergyValue;
 	[Export] private HSlider FollowupTierSlider;
 	[Export] private Label FollowupTierValue;
+	[Export] private OptionButton EnergyBarVisibilityDropdown;
 	[Export] private CheckBox DisableDialogue;
 	[Export] private CheckBox DisableDamageNumbers;
 	[Export] private CheckBox CombinedBuffsDebuffs;
