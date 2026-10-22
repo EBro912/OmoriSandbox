@@ -181,9 +181,9 @@ internal static class SunnyRegistry
 					target.RecoverAll();
 				}
 
-				target.AddTierStatModifier("AttackUp", 3, silent: true);
-				target.AddTierStatModifier("DefenseUp", 1, silent: true);
-				target.AddTierStatModifier("SpeedUp", 2, silent: true);
+				AddFixedTierStatModifier(target, "AttackUp", 3);
+				AddFixedTierStatModifier(target, "DefenseUp", 1);
+				AddFixedTierStatModifier(target, "SpeedUp", 2);
 				if (target.GetStatModifierTier("CherishDialogue") == 4)
 					target.AddStatModifier("Cherished");
 				if (OmoriEnemy.SealsCherish())

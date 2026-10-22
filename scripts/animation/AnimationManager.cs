@@ -39,6 +39,7 @@ public partial class AnimationManager : Node
 	[Export] private AnimatedSprite2D HumphreySwallow;
 	[Export] private AnimatedSprite2D HumphreyFaceSwallow;
 	[Export] private PackedScene PerfectheartOverlaySprite;
+	[Export] private PackedScene OmoriIntroScene;
 	[Export] private Node2D PerfectheartOverlayParent;
 	[Export] private Node2D FullScreenEffectNode;
 	[Export] private ColorRect ScreenTint;
@@ -61,6 +62,12 @@ public partial class AnimationManager : Node
 	private List<PlayingAnimation> PlayingAnimations = [];
 	private readonly List<VideoStreamPlayer> PlayingVideos = [];
 	private Tween ScreenTintTween;
+	private readonly List<OmoriIntroSprite> IntroSprites = [];
+	private static readonly Vector2 IntroOffset = new(-253f, -194.5f);
+	private const int IntroGateFrame = 2;
+	private const int IntroDelayFrames = 15;
+	private const int IntroDrawingFrames = 10;
+	private const int IntroLastDrawing = 21;
 
 	private float Shake = 0f;
 	private float ShakePwr = 0f;
@@ -1263,6 +1270,69 @@ public partial class AnimationManager : Node
 		return sprite;
 	}
 
+	internal void SpawnOmoriIntros(IReadOnlyList<Enemy> omoris)
+	{
+		foreach (Enemy omori in omoris)
+		{
+			Node2D node = omori.Component.GetParent<Node2D>();
+			OmoriIntroSprite sprite = OmoriIntroScene.Instantiate<OmoriIntroSprite>();
+			sprite.ZIndex = node.ZIndex;
+			sprite.ZAsRelative = node.ZAsRelative;
+			node.AddSibling(sprite);
+			sprite.GlobalPosition = node.GlobalPosition + IntroOffset;
+			sprite.ShowDrawing(0);
+			IntroSprites.Add(sprite);
+		}
+	}
+
+	internal async Task<bool> PlayOmoriIntro(IReadOnlyList<Enemy> omoris, Func<bool> stop)
+	{
+		List<Enemy> targets = [.. omoris];
+		List<OmoriIntroSprite> sprites = [.. IntroSprites];
+		int delay = IntroDelayFrames;
+		int count = IntroDrawingFrames;
+		int index = 0;
+		for (int frame = 1; ; frame++)
+		{
+			if (frame > IntroGateFrame)
+				await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+			if (stop())
+			{
+				FreeOmoriIntros(sprites);
+				return false;
+			}
+			if (delay > 0)
+			{
+				delay--;
+				continue;
+			}
+			if (--count > 0)
+				continue;
+			count = IntroDrawingFrames;
+			if (++index > IntroLastDrawing)
+				break;
+			foreach (OmoriIntroSprite sprite in sprites)
+			{
+				if (IsInstanceValid(sprite))
+					sprite.ShowDrawing(index);
+			}
+		}
+		FreeOmoriIntros(sprites);
+		foreach (Enemy omori in targets)
+			omori.SetOpacity(1f);
+		return true;
+	}
+
+	private void FreeOmoriIntros(List<OmoriIntroSprite> sprites)
+	{
+		foreach (OmoriIntroSprite sprite in sprites)
+		{
+			IntroSprites.Remove(sprite);
+			if (IsInstanceValid(sprite))
+				sprite.QueueFree();
+		}
+	}
+
 	internal async Task WaitForSnaley()
 	{
 		Snaley.Visible = true;
@@ -1395,6 +1465,7 @@ public partial class AnimationManager : Node
 	{
 		foreach (Node child in PerfectheartOverlayParent.GetChildren())
 			child.QueueFree();
+		FreeOmoriIntros([.. IntroSprites]);
 	}
 
 	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy, Actor target = null, int? layer = null)

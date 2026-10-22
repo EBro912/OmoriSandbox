@@ -133,6 +133,8 @@ internal sealed class SlimeGirls : Enemy
 		DialogueManager.Instance.QueueMessage("MOLLY", CenterPoint, @"Hmph...\! This is much more trouble than it's worth.");
 		DialogueManager.Instance.QueueMessage("MEDUSA", CenterPoint, @"Sigh...\! What a predicament...\! How will we feed HUMPHREY now?");
 		await DialogueManager.Instance.WaitForDialogue();
+		await Wait.Frames(10);
+		StopBGM();
 	}
 
     public override async Task OnEndOfBattle(BattleOutcome outcome)

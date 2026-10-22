@@ -216,7 +216,10 @@ internal sealed class OmoriEnemy : Enemy
             member.ClearResult();
         }
         if (Phase < 7)
+        {
             Phase++;
+            AddPhaseLayers();
+        }
         RecoverAll();
         UpdateSprite();
         await Wait.Frames(45);
@@ -232,6 +235,30 @@ internal sealed class OmoriEnemy : Enemy
         if (stuns)
             StunArmed = true;
         AddImmortal();
+    }
+
+    private void AddPhaseLayers()
+    {
+        switch (Phase)
+        {
+            case 3:
+                AddBattlebackLayer(4, "battleback_omori_front");
+                AddBattlebackLayer(3, "battleback_omori_back");
+                ScrollBattlebackLayer(3, new Vector2(0, -60));
+                break;
+            case 4:
+                AddBattlebackLayer(5, "battleback_omori_form_4");
+                RemoveBattlebackLayer(4);
+                break;
+            case 5:
+                AddBattlebackLayer(6, "battleback_omori_form_5");
+                RemoveBattlebackLayer(5);
+                break;
+            case 6:
+                AddBattlebackLayer(7, "battleback_omori_form_6");
+                RemoveBattlebackLayer(6);
+                break;
+        }
     }
 
     private static void StunAllEnemies()
@@ -272,6 +299,17 @@ internal sealed class OmoriEnemy : Enemy
         SaidThirty = false;
         StunArmed = false;
         ForcedPending = false;
+    }
+
+    internal void RebuildLayersForDeathBeat()
+    {
+        ClearBattlebackLayers();
+        if (Phase >= 6)
+            AddBattlebackLayer(7, "battleback_omori_form_6");
+        else
+            AddBattlebackLayer(6, "battleback_omori_form_5");
+        AddBattlebackLayer(3, "battleback_omori_back");
+        ScrollBattlebackLayer(3, new Vector2(0, -60));
     }
     
     internal void UpdateSprite()

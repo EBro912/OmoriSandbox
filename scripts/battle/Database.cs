@@ -605,4 +605,13 @@ public class Database
 		return true;
 	}
 
+	internal static void AddFixedTierStatModifier(Actor target, string modifier, int tier)
+	{
+		int held = target.GetStatModifierTier(modifier);
+		if (held >= tier)
+			target.RefreshTierStatModifier(modifier, held == tier, true);
+		else
+			target.AddTierStatModifier(modifier, tier, silent: true);
+	}
+
 }

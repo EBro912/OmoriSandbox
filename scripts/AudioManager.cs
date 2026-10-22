@@ -148,6 +148,9 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Plays BGM with the given <paramref name="name"/>.
 	/// </summary>
+	/// <remarks>
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.ChangeBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
 	/// <param name="name">The name of the BGM to play.</param>
 	public void PlayBGM(string name)
 	{
@@ -157,6 +160,9 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Plays BGM with the given <paramref name="name"/> and desired parameters.
 	/// </summary>
+	/// <remarks>
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.ChangeBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
 	/// <param name="name">The name of the BGM to play.</param>
 	/// <param name="volume">The volume to play the BGM at, from 0.001 to 3.0.</param>
 	/// <param name="pitch">The pitch to play the BGM at, from 0.1 to 2.0.</param>
@@ -229,6 +235,9 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Stops the currently playing BGM.
 	/// </summary>
+	/// <remarks>
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.StopBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
 	public void StopBGM()
 	{
 		if (BGMLocked)
@@ -393,6 +402,9 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/>.
 	/// </summary>
+	/// <remarks>
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.FadeBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
 	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 3.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public void FadeBGMTo(float volume, float seconds = 1f)
@@ -417,6 +429,9 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
 	/// </summary>
+	/// <remarks>
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.FadeBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
 	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 3.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public async Task WaitForFadeBGMTo(float volume, float seconds = 1f)

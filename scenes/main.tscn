@@ -53,6 +53,9 @@
 [ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="48_hpicn"]
 [ext_resource type="Texture2D" uid="uid://bbstna42lmri8" path="res://assets/system/energy_icon.png" id="49_enicn"]
 [ext_resource type="Texture2D" uid="uid://dloultqjkhtr5" path="res://assets/pictures/omori_succumb.png" id="50_succm"]
+[ext_resource type="Script" path="res://scripts/BattlebackLayers.cs" id="51_bblyr"]
+[ext_resource type="PackedScene" path="res://scenes/battleback_layer.tscn" id="52_bblsc"]
+[ext_resource type="PackedScene" path="res://scenes/omori_intro.tscn" id="53_intro"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
 viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
@@ -62,12 +65,13 @@ blend_mode = 1
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
-[node name="DisplayLayout" type="Node" parent="." node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "Backdrop", "Photograph", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
+[node name="DisplayLayout" type="Node" parent="." node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "Photograph", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
 script = ExtResource("46_layout")
 Layers = [NodePath("../BattleCanvas"), NodePath("../MainMenu/Main"), NodePath("../MainMenu/Editor")]
 Party = NodePath("../BattleCanvas/UI/Party")
 AddActorControls = [NodePath("../MainMenu/Editor/Actors/AddActor1"), NodePath("../MainMenu/Editor/Actors/AddActor2"), NodePath("../MainMenu/Editor/Actors/AddActor3"), NodePath("../MainMenu/Editor/Actors/AddActor4")]
 Battlebacks = [NodePath("../BattleCanvas/UI/BattlebackRoot/Battleback"), NodePath("../MainMenu/Editor/BattlebackPreview")]
+BattlebackLayers = NodePath("../BattleCanvas/UI/BattlebackRoot/BattlebackLayers")
 Backdrop = NodePath("../BattleCanvas/UI/BattlebackRoot/WidescreenBackdrop")
 Photograph = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/Photograph")
 ScreenTint = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/ScreenTint")
@@ -92,12 +96,13 @@ script = ExtResource("18_txyw0")
 [node name="ModManager" type="Node" parent="BattleCanvas" unique_id=1949733735]
 script = ExtResource("2_j8jky")
 
-[node name="GameManager" type="Node" parent="BattleCanvas" unique_id=980653838 node_paths=PackedStringArray("BattlebackParent", "BattlebackRoot", "FPSLabel", "Party", "WindowFrames", "WindowArrows")]
+[node name="GameManager" type="Node" parent="BattleCanvas" unique_id=980653838 node_paths=PackedStringArray("BattlebackParent", "BattlebackRoot", "BattlebackLayers", "FPSLabel", "Party", "WindowFrames", "WindowArrows")]
 script = ExtResource("14_a8y0u")
 BattlecardUI = ExtResource("5_tefeu")
 EnemyNode = ExtResource("8_choun")
 BattlebackParent = NodePath("../UI/BattlebackRoot/Battleback")
 BattlebackRoot = NodePath("../UI/BattlebackRoot")
+BattlebackLayers = NodePath("../UI/BattlebackRoot/BattlebackLayers")
 FPSLabel = NodePath("../UI/HBoxContainer/FPS")
 Party = NodePath("../UI/Party")
 GreyscaleMaterial = ExtResource("7_ty1g6")
@@ -143,6 +148,7 @@ Succumb = NodePath("../UI/BattlebackRoot/FullScreenEffects/Succumb")
 HumphreySwallow = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreySwallow")
 HumphreyFaceSwallow = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreyFaceSwallow")
 PerfectheartOverlaySprite = ExtResource("13_dgi5k")
+OmoriIntroScene = ExtResource("53_intro")
 PerfectheartOverlayParent = NodePath("../UI/BattlebackRoot/FullScreenEffects/SubViewport/PerfectheartOverlayParent")
 FullScreenEffectNode = NodePath("../UI/BattlebackRoot/FullScreenEffects")
 ScreenTint = NodePath("../UI/BattlebackRoot/FullScreenEffects/ScreenTint")
@@ -235,6 +241,12 @@ texture = ExtResource("14_og1vs")
 stretch_mode = 1
 script = ExtResource("19_vc5cj")
 Tiles = 3
+
+[node name="BattlebackLayers" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot"]
+z_index = -100
+use_parent_material = true
+script = ExtResource("51_bblyr")
+LayerScene = ExtResource("52_bblsc")
 
 [node name="WidescreenBackdrop" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot"]
 z_index = -101

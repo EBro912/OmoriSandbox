@@ -26,6 +26,7 @@ internal partial class DisplayLayout : Node
     [Export] private Node Party;
     [Export] private Control[] AddActorControls;
     [Export] private BattlebackDisplayComponent[] Battlebacks;
+    [Export] private BattlebackLayers BattlebackLayers;
     [Export] private ColorRect Backdrop;
     [Export] private ColorRect Photograph;
     [Export] private ColorRect ScreenTint;
@@ -162,6 +163,7 @@ internal partial class DisplayLayout : Node
 
         foreach (BattlebackDisplayComponent battleback in Battlebacks)
             battleback.ConfigureDisplay(VisibleBattleRect);
+        BattlebackLayers.ConfigureDisplay(VisibleBattleRect);
 
         Rect2 coverage = VisibleBattleRect.Grow(32);
         Fill(Backdrop, coverage);

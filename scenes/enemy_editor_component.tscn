@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://chwhfaladnv86" path="res://scenes/stat_adjustment_editor.tscn" id="6_adjst"]
 [ext_resource type="StyleBox" uid="uid://ividp3svjft4" path="res://assets/tab_selected.tres" id="7_tabsel"]
 
-[node name="EnemyEditorComponent" type="TabContainer" unique_id=438065555 node_paths=PackedStringArray("EnemyDropdown", "EmotionDropdown", "XPosBox", "YPosBox", "LayerBox", "FallsOffScreenCheckbox", "GrayscaleOnDefeatCheckbox", "VisibleCheckbox", "RemoveButton", "Tabs", "StatAdjustmentEditor")]
+[node name="EnemyEditorComponent" type="TabContainer" unique_id=438065555 node_paths=PackedStringArray("EnemyDropdown", "EmotionDropdown", "XPosBox", "YPosBox", "LayerBox", "FallsOffScreenCheckbox", "GrayscaleOnDefeatCheckbox", "PreventBattlebackCheckbox", "PreventBGMCheckbox", "VisibleCheckbox", "RemoveButton", "StatAdjustmentEditor")]
 offset_right = 200.0
 offset_bottom = 375.0
 mouse_filter = 2
@@ -25,9 +25,10 @@ YPosBox = NodePath("Edit/VBoxContainer/YPos/YPosInput")
 LayerBox = NodePath("Edit/VBoxContainer/Layer/LayerInput")
 FallsOffScreenCheckbox = NodePath("Edit/VBoxContainer/FallsOffScreen")
 GrayscaleOnDefeatCheckbox = NodePath("Edit/VBoxContainer/GrayTint")
+PreventBattlebackCheckbox = NodePath("Edit/VBoxContainer/PreventBattleback")
+PreventBGMCheckbox = NodePath("Edit/VBoxContainer/PreventBGM")
 VisibleCheckbox = NodePath("Edit/VBoxContainer/Visible")
 RemoveButton = NodePath("Edit/VBoxContainer/Remove")
-Tabs = NodePath("")
 StatAdjustmentEditor = NodePath("Adjust Stats")
 
 [node name="Edit" type="MarginContainer" parent="." unique_id=817793439]
@@ -146,6 +147,22 @@ theme_override_fonts/font = ExtResource("2_qooje")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Grayscale On Defeat"
+
+[node name="PreventBattleback" type="CheckBox" parent="Edit/VBoxContainer" unique_id=1730411001]
+layout_mode = 2
+tooltip_text = "Prevents this enemy from changing the battleback"
+theme_override_fonts/font = ExtResource("2_qooje")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Prevent Battleback Changes"
+
+[node name="PreventBGM" type="CheckBox" parent="Edit/VBoxContainer" unique_id=1730411002]
+layout_mode = 2
+tooltip_text = "Prevents this enemy from changing the BGM"
+theme_override_fonts/font = ExtResource("2_qooje")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Prevent BGM Changes"
 
 [node name="Visible" type="CheckBox" parent="Edit/VBoxContainer" unique_id=1186235395]
 layout_mode = 2

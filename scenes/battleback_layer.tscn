@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="1_bbdsp"]
+
+[node name="Layer" type="TextureRect"]
+use_parent_material = true
+stretch_mode = 1
+script = ExtResource("1_bbdsp")
+Tiles = 3

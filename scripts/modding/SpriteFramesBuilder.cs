@@ -15,6 +15,17 @@ public class SpriteFramesBuilder
     private int Columns;
 
     /// <summary>
+    /// The default frame rate for PartyMember portrait sprite animations.
+    /// </summary>
+    public const double DefaultPartyMemberFPS = 4.615385d;
+
+    /// <summary>
+    /// The default frame rate for Enemy sprite animations.
+    /// </summary>
+    public const double DefaultEnemyFPS = 5d;
+    
+
+    /// <summary>
     /// Creates a new SpriteFramesBuilder.<br/>You can call <see cref="AddAnimation"/> to different emotions to the list of animations.
     /// </summary>
     /// <param name="atlasPath">The path to the atlas file. Either a full path from the root mods folder, or a <c>res://</c> path to one of the game's own textures.<br/>

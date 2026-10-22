@@ -42,12 +42,15 @@ internal sealed class HumphreyGrande : Enemy
             await DialogueManager.Instance.WaitForDialogue();
             AnimationManager.Instance.TintScreen(-255, -255, -255, 0, 0.5f);
             await Wait.Milliseconds(1000);
+            FadeBGM(0.001f, 3f);
             await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 0.1f);
             await AnimationManager.Instance.WaitForHumphreySwallow();
             await AnimationManager.Instance.WaitForTintScreen(-255, -255, -255, 0, 0.1f);
             BattleLogManager.Instance.ClearBattleLog();
             foreach (PartyMember member in SelectAllTargets())
                 BattleManager.Instance.Damage(this, member, () => member.CurrentStats.MaxHP * 0.25f, false, 0.5f, neverCrit: true, ignoreEmotion: true);
+            ChangeBGM("boss_humphrey2");
+            AddBattlebackLayer(3, "battleback_dw_humphrey");
             BattleManager.Instance.ReplaceEnemy(this, "HumphreyFace", offset: new Vector2(0, -60));
             await Wait.Milliseconds(2000);
             await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 1f);

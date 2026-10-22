@@ -235,6 +235,13 @@ public partial class BattleManager : Node
 	private bool ResumingStartOfTurn = false;
 	private bool BattleStartForcesOnly = false;
 	private bool SpawnHooksArmed = false;
+	private bool BattleBGMPending;
+	private readonly List<Enemy> IntroOmoris = [];
+	private Action PendingStageBGM;
+	private int BattleGeneration;
+	private readonly List<(CanvasItem Item, Vector2 Home)> IntroUIHomes = [];
+	private Tween IntroUITween;
+	private const int IntroBGMDelayFrames = 14;
 	private readonly HashSet<Actor> SpawnedActors = [];
 	private bool TransformingEnemy;
 
@@ -287,8 +294,8 @@ public partial class BattleManager : Node
 			Enemies = enemies;
 			CurrentStage = -1;
 			GameManager.Instance.ForceSetBattleback(preset.Battleback);
-			AudioManager.Instance.ForcePlayBGM(preset.BGM, 1f, (float)preset.BGMPitch);
-			AudioManager.Instance.ForceSetBGMLoopOffset(preset.BGMLoopPoint);
+			GameManager.Instance.BattlebackLayers.Clear();
+			AudioManager.Instance.BGM.Stop();
 		}
 		else
 		{
@@ -298,8 +305,8 @@ public partial class BattleManager : Node
 			StageSelectorSpinBox.MaxValue = stages.Count - 1;
 			StageSelectorSpinBox.Value = startingStage;
 			GameManager.Instance.ForceSetBattleback(preset.Stages[CurrentStage].Battleback);
-			AudioManager.Instance.ForcePlayBGM(preset.Stages[CurrentStage].BGM, 1f, (float)preset.Stages[CurrentStage].BGMPitch);
-			AudioManager.Instance.ForceSetBGMLoopOffset(preset.Stages[CurrentStage].BGMLoopPoint);
+			GameManager.Instance.BattlebackLayers.Clear();
+			AudioManager.Instance.BGM.Stop();
 		}
 
 		Items = preset.Items.ToDictionary(x => x.Key, x => Math.Min(x.Value, MaxItemCount));
@@ -334,9 +341,11 @@ public partial class BattleManager : Node
 
 		DamageNumber.CacheTexture(ResourceLoader.Load<Texture2D>("res://assets/system/Damage.png"));
 
+		BattleBGMPending = true;
 		CallDeferred(MethodName.PreBattle);
 
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
+		ArmBattleIntro();
 
 		IsBattling = true;
 	}
@@ -355,6 +364,26 @@ public partial class BattleManager : Node
 
 	private async void PreBattle()
 	{
+		if (BattleBGMPending || IntroOmoris.Count > 0)
+		{
+			int generation = BattleGeneration;
+			await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+			if (generation != BattleGeneration)
+				return;
+			if (RestartQueued)
+			{
+				Reset();
+				ReloadPreset();
+				return;
+			}
+			if (await RunBattleIntro())
+				return;
+			if (BattleBGMPending)
+			{
+				PlayPresetBGM(1f);
+				BattleBGMPending = false;
+			}
+		}
 		SpawnHooksArmed = true;
 		foreach (PartyMemberComponent member in CurrentParty.ToList())
 			RunGuarded(member.Actor.ApplyPassiveStatModifiers, $"{member.Actor.Name}.ApplyPassiveStatModifiers");
@@ -427,6 +456,101 @@ public partial class BattleManager : Node
 			return;
 		}
 		SetPhase(BattlePhase.FightRun);
+	}
+
+	private async Task<bool> RunBattleIntro()
+	{
+		if (IntroOmoris.Count == 0)
+			return false;
+		int generation = BattleGeneration;
+		bool finished = await AnimationManager.Instance.PlayOmoriIntro(IntroOmoris,
+			() => RestartQueued || generation != BattleGeneration);
+		if (generation != BattleGeneration)
+			return true;
+		if (!finished)
+		{
+			Reset();
+			ReloadPreset();
+			return true;
+		}
+		SlideInUIAfterIntro();
+		Action music = PendingStageBGM;
+		if (music == null && BattleBGMPending)
+			music = () => PlayPresetBGM(1f);
+		PendingStageBGM = null;
+		BattleBGMPending = false;
+		IntroOmoris.Clear();
+		if (music != null)
+			StartBGMAfterIntro(music, generation);
+		return false;
+	}
+
+	private async void StartBGMAfterIntro(Action start, int generation)
+	{
+		for (int i = 0; i < IntroBGMDelayFrames; i++)
+			await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+		if (generation == BattleGeneration && !RestartQueued && (Phase != BattlePhase.BattleOver || InDeathBeat))
+			start();
+	}
+
+	private void ArmBattleIntro()
+	{
+		IntroOmoris.Clear();
+		IntroOmoris.AddRange(Enemies.Select(x => x.Actor).OfType<OmoriEnemy>().Where(x => !x.IsToast));
+		if (IntroOmoris.Count == 0)
+			return;
+		HideUIForIntro();
+		foreach (Enemy omori in IntroOmoris)
+			omori.SetOpacity(0f);
+		AnimationManager.Instance.SpawnOmoriIntros(IntroOmoris);
+	}
+
+	private void HideUIForIntro()
+	{
+		float offsetX = DisplayLayout.Instance?.OffsetX ?? 0f;
+		HideForIntro(BattleLogManager.Instance, new Vector2(BattleLogManager.Instance.Position.X, -100f));
+		HideForIntro(EnergyBar, new Vector2(EnergyBar.Position.X, 480f));
+		foreach (PartyMemberComponent member in CurrentParty)
+		{
+			Control card = member.GetParent<Control>();
+			float x = member.Position < 2
+				? -offsetX - card.GetNode<Control>("Battlecard").Size.X
+				: 640f + offsetX;
+			HideForIntro(card, new Vector2(x, card.Position.Y));
+		}
+	}
+
+	private void HideForIntro(CanvasItem item, Vector2 hidden)
+	{
+		IntroUIHomes.Add((item, item.Get("position").AsVector2()));
+		item.Set("position", hidden);
+	}
+
+	private void SlideInUIAfterIntro()
+	{
+		IntroUITween?.Kill();
+		IntroUITween = CreateTween().SetParallel();
+		foreach ((CanvasItem item, Vector2 home) in IntroUIHomes)
+		{
+			if (item == EnergyBar)
+				MenuManager.Instance.SlideInEnergyBar();
+			else if (IsInstanceValid(item))
+				IntroUITween.TweenProperty(item, "position", home, 15f / 60f)
+					.SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.Out).SetDelay(1f / 60f);
+		}
+		IntroUITween.Chain().TweenCallback(Callable.From(IntroUIHomes.Clear));
+	}
+
+	private void RestoreUIHomes()
+	{
+		IntroUITween?.Kill();
+		IntroUITween = null;
+		foreach ((CanvasItem item, Vector2 home) in IntroUIHomes)
+		{
+			if (IsInstanceValid(item))
+				item.Set("position", home);
+		}
+		IntroUIHomes.Clear();
 	}
 
 	private void MarkEveryoneActed()
@@ -738,8 +862,10 @@ public partial class BattleManager : Node
 		InActionEffect = false;
 		ActionForcedCrit = false;
 		EndTiersFromFirstTarget();
+		GameManager.Instance.BattlebackLayers.Clear();
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.ResetScreenEffects();
+		RestoreUIHomes();
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
 		MenuManager.Instance.ClearLastSelected();
 		EnergyBar.Visible = false;
@@ -771,6 +897,10 @@ public partial class BattleManager : Node
 		ResumingStartOfTurn = false;
 		BattleStartForcesOnly = false;
 		SpawnHooksArmed = false;
+		BattleBGMPending = false;
+		IntroOmoris.Clear();
+		PendingStageBGM = null;
+		BattleGeneration++;
 		SpawnedActors.Clear();
 		RestartLabel.Visible = false;
 		RestartQueued = false;
@@ -2478,11 +2608,10 @@ public partial class BattleManager : Node
 				return;
 			if (GameType is GameModeType.BossRush)
 			{
-				string previousBGM = Stages[CurrentStage].BGM;
 				CurrentStage++;
 				if (CurrentStage < Stages.Count)
 				{
-					await AdvanceBossRushStage(previousBGM, null);
+					await AdvanceBossRushStage(PlayingTrack(), null);
 					return;
 				}
 			}
@@ -2549,7 +2678,7 @@ public partial class BattleManager : Node
 			});
 			if (GameType is GameModeType.BossRush)
 			{
-				string previousBGM = Stages[CurrentStage].BGM;
+				string playingTrack = PlayingTrack();
 				float currentPosition = AudioManager.Instance.GetBGMPosition();
 				AudioManager.Instance.ForcePlayBGM("xx_victory", 1f, 1f);
 				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
@@ -2559,7 +2688,7 @@ public partial class BattleManager : Node
 					await Wait.Milliseconds(3000);
 					if (StopEndOfBattleForRestart())
 						return;
-					await AdvanceBossRushStage(previousBGM, currentPosition);
+					await AdvanceBossRushStage(playingTrack, currentPosition);
 					return;
 				}
 			}
@@ -2575,14 +2704,26 @@ public partial class BattleManager : Node
 		}
 	}
 
-	private async Task AdvanceBossRushStage(string previousBGM, float? resumePosition)
+	private static string PlayingTrack()
+	{
+		return AudioManager.Instance.BGM.Playing ? AudioManager.Instance.CurrentBGM : "";
+	}
+
+	private async Task AdvanceBossRushStage(string playingTrack, float? resumePosition)
 	{
 		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;
 		SpawnHooksArmed = false;
 		SummonEnemiesForStage(Stages[CurrentStage].Enemies);
+		ArmBattleIntro();
+		if (IntroOmoris.Count > 0)
+		{
+			resumePosition ??= AudioManager.Instance.GetBGMPosition();
+			AudioManager.Instance.BGM.Stop();
+		}
 		GameManager.Instance.ForceSetBattleback(Stages[CurrentStage].Battleback);
+		GameManager.Instance.BattlebackLayers.Clear();
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.ToneBelowUI = false;
 		BattleLogManager.Instance.ClearBattleLog();
@@ -2620,12 +2761,19 @@ public partial class BattleManager : Node
 		if (!Stages[CurrentStage].KeepEnergy)
 			Energy = Math.Clamp(CurrentPreset.StartingEnergy, 0, 10);
 		float position = resumePosition ?? AudioManager.Instance.GetBGMPosition();
-		AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
-			(float)Stages[CurrentStage].BGMPitch);
-		if (previousBGM == Stages[CurrentStage].BGM)
-			AudioManager.Instance.SeekBGM(position);
-		AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
-		AudioManager.Instance.FadeBGMTo(1f, 0.5f);
+		void PlayStageBGM()
+		{
+			AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
+				(float)Stages[CurrentStage].BGMPitch);
+			if (playingTrack == Stages[CurrentStage].BGM)
+				AudioManager.Instance.SeekBGM(position);
+			AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
+			AudioManager.Instance.FadeBGMTo(1f, 0.5f);
+		}
+		if (IntroOmoris.Count > 0)
+			PendingStageBGM = PlayStageBGM;
+		else
+			PlayStageBGM();
 		await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;
@@ -2667,6 +2815,8 @@ public partial class BattleManager : Node
 	{
 		if (StopEndOfBattleForRestart())
 			return;
+		OmoriEnemy owner = Enemies.Select(x => x.Actor).OfType<OmoriEnemy>()
+			.FirstOrDefault(x => x is { IsToast: false, Phase: >= 5, CanChangeBGM: true });
 		SetPhase(BattlePhase.BattleOver);
 		InDeathBeat = true;
 		RestartLabel.Visible = false;
@@ -2678,8 +2828,7 @@ public partial class BattleManager : Node
 		DialogueManager.Instance.QueueMessage("You should just die.", font: DialogueManager.FontType.Jagged);
 		await DialogueManager.Instance.WaitForDialogue();
 		await Wait.Frames(60);
-		if (!AudioManager.Instance.BGMLocked)
-			AudioManager.Instance.FadeBGMTo(0.001f, 4f);
+		owner?.FadeBGM(0.001f, 4f);
 		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 220 / 60f, layer: 22);
 		await Wait.Frames(300);
 		foreach (PartyMemberComponent component in CurrentParty)
@@ -2704,8 +2853,10 @@ public partial class BattleManager : Node
 			if (component.Actor is OmoriEnemy omori)
 				omori.RestoreForDeathBeat();
 		}
-		if (!AudioManager.Instance.BGMLocked)
-			AudioManager.Instance.StopBGM();
+		Enemies.Select(x => x.Actor).OfType<OmoriEnemy>()
+			.Where(x => x is { IsToast: false, Phase: >= 5, CanChangeBattleback: true })
+			.MaxBy(x => x.Phase)?.RebuildLayersForDeathBeat();
+		owner?.StopBGM();
 		PlayMode = true;
 		ClearQueuedCommands();
 		InDeathBeat = false;
@@ -3746,7 +3897,18 @@ public partial class BattleManager : Node
 		if (ActingSubject == original)
 			ActingSubject = null;
 		
-		Enemy replacement = SummonEnemy(who, original.CenterPoint + offset, startingEmotion, original.FallsOffScreen, original.GrayscaleOnDefeat, original.Layer, adjustedStats ?? original.AdjustedStats);
+		BattlePresetEnemy replacementEntry = new()
+		{
+			Name = who,
+			Emotion = startingEmotion,
+			FallsOffScreen = original.FallsOffScreen,
+			GrayscaleOnDefeat = original.GrayscaleOnDefeat,
+			Layer = original.Layer,
+			AdjustedStats = adjustedStats ?? original.AdjustedStats,
+			PreventBattlebackChanges = original.PreventBattlebackChanges,
+			PreventBGMChanges = original.PreventBGMChanges
+		};
+		Enemy replacement = SummonEnemy(replacementEntry, original.CenterPoint + offset)?.Actor;
 		if (replacement != null && index >= 0)
 		{
 			Enemies.Remove(replacement.Component);

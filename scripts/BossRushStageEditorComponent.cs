@@ -16,6 +16,8 @@ internal partial class BossRushStageEditorComponent : Control
     [Export] private PackedScene EnemyEditor;
     [Export] public Node EnemyParent { get; private set; }
 
+    internal bool ChangesLocked;
+
     public override void _Ready()
     {
         AddEnemyButton.Pressed += () =>
@@ -25,6 +27,7 @@ internal partial class BossRushStageEditorComponent : Control
             EnemyEditorComponent editor = EnemyEditor.Instantiate<EnemyEditorComponent>();
             Enemies.AddChild(editor);
             editor.Init(enemySprite);
+            editor.SetChangesLocked(ChangesLocked);
         };
     }
 
@@ -70,7 +73,7 @@ internal partial class BossRushStageEditorComponent : Control
                 editor.Init(enemySprite, enemy.EnemyDropdown.GetItemText(enemy.EnemyDropdown.Selected),
                     new Vector2((float)enemy.XPosBox.Value, (float)enemy.YPosBox.Value), enemy.EmotionDropdown.GetItemText(enemy.EmotionDropdown.Selected),
                     (int)enemy.LayerBox.Value, enemy.FallsOffScreenCheckbox.ButtonPressed, enemy.GrayscaleOnDefeatCheckbox.ButtonPressed,
-                    enemy.GetAdjustedStats());
+                    enemy.GetAdjustedStats(), enemy.PreventBattlebackChanges, enemy.PreventBGMChanges);
             }
         }
     }

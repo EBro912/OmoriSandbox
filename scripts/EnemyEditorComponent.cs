@@ -15,12 +15,41 @@ internal partial class EnemyEditorComponent : Control
 	[Export] public SpinBox LayerBox { get; private set; }
 	[Export] public CheckBox FallsOffScreenCheckbox { get; private set; }
 	[Export] public CheckBox GrayscaleOnDefeatCheckbox { get; private set; }
+	[Export] private CheckBox PreventBattlebackCheckbox;
+	[Export] private CheckBox PreventBGMCheckbox;
 	[Export] private CheckBox VisibleCheckbox;
 	[Export] private Button RemoveButton;
 	[Export] private StatAdjustmentEditor StatAdjustmentEditor;
 
 	private AnimatedSprite2D Animator;
 	private Enemy CurrentEnemy;
+	private bool ChangesLocked;
+	private bool RememberedPreventBattleback;
+	private bool RememberedPreventBGM;
+
+	internal bool PreventBattlebackChanges => ChangesLocked ? RememberedPreventBattleback : PreventBattlebackCheckbox.ButtonPressed;
+	internal bool PreventBGMChanges => ChangesLocked ? RememberedPreventBGM : PreventBGMCheckbox.ButtonPressed;
+
+	internal void SetChangesLocked(bool locked)
+	{
+		if (locked == ChangesLocked)
+			return;
+		ChangesLocked = locked;
+		if (locked)
+		{
+			RememberedPreventBattleback = PreventBattlebackCheckbox.ButtonPressed;
+			RememberedPreventBGM = PreventBGMCheckbox.ButtonPressed;
+			PreventBattlebackCheckbox.ButtonPressed = true;
+			PreventBGMCheckbox.ButtonPressed = true;
+		}
+		else
+		{
+			PreventBattlebackCheckbox.ButtonPressed = RememberedPreventBattleback;
+			PreventBGMCheckbox.ButtonPressed = RememberedPreventBGM;
+		}
+		PreventBattlebackCheckbox.Disabled = locked;
+		PreventBGMCheckbox.Disabled = locked;
+	}
 
 	// registered emotions plus the pseudo-states enemies can be spawned in
 	private static string[] States => [.. Database.GetAllEmotionIds(), "hurt", "toast"];
@@ -66,10 +95,10 @@ internal partial class EnemyEditorComponent : Control
 	{
 		if (!enemy.Position.StartsWith("Vector2"))
 			enemy.Position = "Vector2" + enemy.Position;
-		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, enemy.AdjustedStats);
+		Init(animator, enemy.Name, GD.StrToVar(enemy.Position).AsVector2(), enemy.Emotion, (int)enemy.Layer, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, enemy.AdjustedStats, enemy.PreventBattlebackChanges, enemy.PreventBGMChanges);
 	}
 
-	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen, bool grayscaleOnDefeat, Stats adjustedStats = default)
+	public void Init(AnimatedSprite2D animator, string name, Vector2 position, string emotion, int layer, bool fallsOffScreen, bool grayscaleOnDefeat, Stats adjustedStats = default, bool preventBattlebackChanges = false, bool preventBGMChanges = false)
 	{
 		Animator = animator;
 		Animator.Centered = true;
@@ -100,6 +129,8 @@ internal partial class EnemyEditorComponent : Control
 		UpdateState(emotion);
 		FallsOffScreenCheckbox.ButtonPressed = fallsOffScreen;
 		GrayscaleOnDefeatCheckbox.ButtonPressed = grayscaleOnDefeat;
+		PreventBattlebackCheckbox.ButtonPressed = preventBattlebackChanges;
+		PreventBGMCheckbox.ButtonPressed = preventBGMChanges;
 	}
 
 	public void Populate(string who)

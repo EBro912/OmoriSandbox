@@ -82,6 +82,8 @@ internal sealed class MrJawsumAlt : Enemy
             AnimationManager.Instance.TintOverlay(new Color(1f, 0f, 0f, 0f), 0.5f);
             SetEmotion("angry", true);
             ClearResult();
+            AddBattlebackLayer(3, "battlebacks_dw_jawsum");
+            await Wait.Frames(20);
             DialogueManager.Instance.QueueMessage(this, @"What do you mean we're running low on henchmen!?\! That's impossible!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 3;

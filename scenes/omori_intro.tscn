@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/animation/OmoriIntroSprite.cs" id="1_intro"]
+[ext_resource type="Texture2D" uid="uid://crheduemol746" path="res://assets/pictures/omori_prebattle.png" id="2_sheet"]
+
+[node name="OmoriIntro" type="Sprite2D"]
+texture = ExtResource("2_sheet")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 318, 389)
+script = ExtResource("1_intro")

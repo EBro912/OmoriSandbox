@@ -212,4 +212,11 @@ internal partial class MenuManager : Node
 			EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(140f, 340f), Menu.MoveDuration).SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.Out).SetDelay(Menu.MoveDelay);
 		}
 	}
+
+	internal void SlideInEnergyBar()
+	{
+		EnergyBarTween?.Kill();
+		EnergyBarTween = CreateTween();
+		EnergyBarTween.TweenProperty(EnergyBar, "position", new Vector2(140f, 424f), Menu.MoveDuration).SetTrans(Tween.TransitionType.Circ).SetEase(Tween.EaseType.Out).SetDelay(Menu.MoveDelay);
+	}
 }

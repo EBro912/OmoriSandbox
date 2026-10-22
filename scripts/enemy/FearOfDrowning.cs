@@ -56,6 +56,7 @@ internal sealed class FearOfDrowning : Enemy
             Phase = 2;
             ClearResult();
             await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.4f, 22);
+            AddBattlebackLayer(3, "battleback_bs_fear_drowning_2");
             UpdateSprite();
             await Wait.Frames(60);
             await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.4f, 22);
@@ -66,6 +67,7 @@ internal sealed class FearOfDrowning : Enemy
             Phase = 3;
             ClearResult();
             await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.4f, 22);
+            ChangeBattlebackLayer(3, "battleback_bs_fear_drowning_3");
             UpdateSprite();
             await Wait.Frames(60);
             await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.4f, 22);

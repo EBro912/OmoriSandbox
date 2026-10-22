@@ -32,6 +32,7 @@ internal partial class EditorManager : Node
 			WarnIfNoOneColumnArt();
 		};
 		ItemlessMode.Pressed += WarnIfNoOneColumnArt;
+		LockBGMAndBattleback.Toggled += _ => ApplyChangesLock();
 		foreach (string skin in Database.GetAllWindowSkinIds())
 			WindowSkinDropdown.AddItem(skin);
 		foreach ((string key, CheckBox box) in SettingsMenuManager.Instance.RuleSettings)
@@ -91,6 +92,7 @@ internal partial class EditorManager : Node
 			EnemyEditorComponent editor = EnemyEditor.Instantiate<EnemyEditorComponent>();
 			EnemyTabs.AddChild(editor);
 			editor.Init(enemySprite);
+			editor.SetChangesLocked(LockBGMAndBattleback.ButtonPressed);
 		};
 
 		AddItemButton.Pressed += () =>
@@ -136,6 +138,7 @@ internal partial class EditorManager : Node
 				editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
 				StageTabs.AddChild(editor);
 				editor.CopyFrom(preset);
+				ApplyChangesLock();
 				int total = StageTabs.GetTabCount();
 				StageTabs.SetTabTitle(total - 1, total.ToString());
 				if (total == 1)
@@ -151,6 +154,7 @@ internal partial class EditorManager : Node
 			BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
 			editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
 			StageTabs.AddChild(editor);
+			ApplyChangesLock();
 			int total = StageTabs.GetTabCount();
 			StageTabs.SetTabTitle(total - 1, total.ToString());
 		};
@@ -164,6 +168,7 @@ internal partial class EditorManager : Node
 				StageTabs.AddChild(newEditor);
 				newEditor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
 				newEditor.CopyFrom(editor);
+				ApplyChangesLock();
 				int total = StageTabs.GetTabCount();
 				StageTabs.SetTabTitle(total - 1, total.ToString());
 			}
@@ -405,6 +410,8 @@ internal partial class EditorManager : Node
 						Layer = (int)editor.LayerBox.Value,
 						FallsOffScreen = editor.FallsOffScreenCheckbox.ButtonPressed,
 						GrayscaleOnDefeat = editor.GrayscaleOnDefeatCheckbox.ButtonPressed,
+						PreventBattlebackChanges = editor.PreventBattlebackChanges,
+						PreventBGMChanges = editor.PreventBGMChanges,
 						AdjustedStats = editor.GetAdjustedStats()
 					};
 					if (enemy.Emotion is "hurt" or "toast")
@@ -443,6 +450,8 @@ internal partial class EditorManager : Node
 								Layer = (int)enemyEditor.LayerBox.Value,
 								FallsOffScreen = enemyEditor.FallsOffScreenCheckbox.ButtonPressed,
 								GrayscaleOnDefeat = enemyEditor.GrayscaleOnDefeatCheckbox.ButtonPressed,
+								PreventBattlebackChanges = enemyEditor.PreventBattlebackChanges,
+								PreventBGMChanges = enemyEditor.PreventBGMChanges,
 								AdjustedStats = enemyEditor.GetAdjustedStats()
 							};
 							if (enemy.Emotion is "hurt" or "toast")
@@ -624,8 +633,30 @@ internal partial class EditorManager : Node
 			}
 		}
 
+		ApplyChangesLock();
 		PresetInput.Text = presetName;
 		MainMenuManager.Instance.LastLoadedPreset = presetName;
+	}
+
+	private void ApplyChangesLock()
+	{
+		bool locked = LockBGMAndBattleback.ButtonPressed;
+		foreach (Node child in EnemyTabs.GetChildren())
+		{
+			if (child is EnemyEditorComponent editor)
+				editor.SetChangesLocked(locked);
+		}
+		foreach (Node child in StageTabs.GetChildren())
+		{
+			if (child is not BossRushStageEditorComponent stage)
+				continue;
+			stage.ChangesLocked = locked;
+			foreach (Node subChild in stage.Enemies.GetChildren())
+			{
+				if (subChild is EnemyEditorComponent editor)
+					editor.SetChangesLocked(locked);
+			}
+		}
 	}
 
 	private void ResetPresetDropdown()
@@ -827,6 +858,7 @@ internal partial class EditorManager : Node
 		DisableDamageNumbers.ButtonPressed = false;
 		CombinedBuffsDebuffs.ButtonPressed = false;
 		LockBGMAndBattleback.ButtonPressed = false;
+		ApplyChangesLock();
 		ItemlessMode.Disabled = false;
 		ItemlessMode.ButtonPressed = false;
 		MenuSkinDropdown.Selected = 0;

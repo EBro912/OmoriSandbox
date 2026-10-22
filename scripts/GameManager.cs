@@ -25,6 +25,7 @@ public partial class GameManager : Node
 	[Export] private PackedScene EnemyNode;
 	[Export] private BattlebackDisplayComponent BattlebackParent;
 	[Export] private Node2D BattlebackRoot;
+	[Export] internal BattlebackLayers BattlebackLayers { get; private set; }
 	[Export] private Label FPSLabel;
 	[Export] private Node Party;
 	[Export] private ShaderMaterial GreyscaleMaterial;
@@ -35,6 +36,7 @@ public partial class GameManager : Node
 	private const float GrayscaleFadeDuration = 0.5f;
 	private readonly List<CanvasItem> GrayscaleSprites = [];
 	private Tween GrayscaleFade;
+	private Tween BattlebackFade;
 	internal bool BattlebackLocked { get; set; }
 
 	/// <summary>
@@ -159,6 +161,9 @@ public partial class GameManager : Node
 	/// <summary>
 	/// Sets the battleback.
 	/// </summary>
+	/// <remarks>
+	/// Inside an enemy, use <see cref="Enemy.ChangeBattleback"/> instead. It also respects the enemy's "Prevent Battleback Changes" setting.
+	/// </remarks>
 	/// <param name="name">The name of the battleback to set.</param>
 	public void SetBattleback(string name)
 	{
@@ -174,6 +179,19 @@ public partial class GameManager : Node
 	internal void ForceSetBattleback(string name)
 	{
 		BattlebackParent.SetBattleback(name);
+	}
+
+	internal void FadeBaseBattleback(float opacity, int frames)
+	{
+		BattlebackFade?.Kill();
+		BattlebackFade = null;
+		if (frames <= 0)
+		{
+			BattlebackParent.Modulate = new Color(BattlebackParent.Modulate, opacity);
+			return;
+		}
+		BattlebackFade = BattlebackParent.CreateTween();
+		BattlebackFade.TweenProperty(BattlebackParent, "modulate:a", opacity, frames / 60f);
 	}
 
 	/// <summary>
@@ -460,6 +478,8 @@ public partial class GameManager : Node
 		node.AddChild(component);
 		node.ZIndex -= (int)enemy.Layer;
 		component.SetEnemy(instance, enemy.Emotion, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, (int)enemy.Layer, enemy.AdjustedStats);
+		instance.PreventBattlebackChanges = enemy.PreventBattlebackChanges;
+		instance.PreventBGMChanges = enemy.PreventBGMChanges;
 		return component;
 	}
 

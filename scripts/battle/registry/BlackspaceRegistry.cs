@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Modding;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -179,9 +180,10 @@ internal static class BlackspaceRegistry
 			cost: 0,
 			effect: async (Actor _, Actor _) =>
 			{
+				OmoriEnemy owner = BattleManager.Instance.GetAllEnemies().OfType<OmoriEnemy>()
+					.FirstOrDefault(x => x is { IsToast: false, Phase: >= 5, CanChangeBGM: true });
 				await Wait.Frames(60);
-				if (!AudioManager.Instance.BGMLocked)
-					AudioManager.Instance.FadeBGMTo(0.001f, 6f);
+				owner?.FadeBGM(0.001f, 6f);
 				Task fade = Wait.Frames(360);
 				await AnimationManager.Instance.WaitForTintOverlay(Colors.White, 90 / 60f, layer: 22);
 				await fade;
@@ -192,10 +194,10 @@ internal static class BlackspaceRegistry
 						await omori.AbortBattle();
 				}
 				bool enemiesRemain = BattleManager.Instance.GetAllAliveEnemies().Any(x => x.CurrentHP > 0 || x.IsImmortal);
-				if (enemiesRemain && !BattleManager.Instance.AbortRequested && !AudioManager.Instance.BGMLocked)
+				if (owner != null && enemiesRemain && !BattleManager.Instance.AbortRequested)
 				{
 					BattleManager.Instance.PlayPresetBGM(0.05f);
-					AudioManager.Instance.FadeBGMTo(1f, 180 / 60f);
+					owner.FadeBGM(1f, 180 / 60f);
 				}
 				await AnimationManager.Instance.WaitForTintOverlay(new Color(1, 1, 1, 0), 180 / 60f, layer: 22);
 			},

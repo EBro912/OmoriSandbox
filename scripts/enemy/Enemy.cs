@@ -352,6 +352,200 @@ public abstract class Enemy : Actor
 	/// The layer this enemy is on
 	/// </summary>
 	public int Layer { get; protected set; } = 0;
+
+	internal bool PreventBattlebackChanges { get; set; }
+	internal bool PreventBGMChanges { get; set; }
+
+	/// <summary>
+	/// Whether this enemy may change the battleback.
+	/// </summary>
+	/// <remarks>
+	/// False if the preset locks the BGM and battleback, or if this enemy's preset entry has "Prevent Battleback Changes" on.
+	/// The battleback methods on this enemy do nothing while this is false.
+	/// </remarks>
+	public bool CanChangeBattleback => !PreventBattlebackChanges && !GameManager.Instance.BattlebackLocked;
+
+	/// <summary>
+	/// Whether this enemy may change the BGM.
+	/// </summary>
+	/// <remarks>
+	/// False if the preset locks the BGM and battleback, or if this enemy's preset entry has "Prevent BGM Changes" on.
+	/// The BGM methods on this enemy do nothing while this is false.
+	/// </remarks>
+	public bool CanChangeBGM => !PreventBGMChanges && !AudioManager.Instance.BGMLocked;
+
+	/// <summary>
+	/// Changes the battleback image.
+	/// </summary>
+	/// <remarks>
+	/// Only the battleback itself changes. Any battleback layers stay as they are. Use <see cref="ClearBattlebackLayers"/> to remove them.
+	/// Does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <param name="name">The name of the battleback to show.</param>
+	/// <returns>True if the battleback was changed, false if this enemy can't change it.</returns>
+	public bool ChangeBattleback(string name)
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.ForceSetBattleback(name);
+		return true;
+	}
+
+	/// <summary>
+	/// Adds a battleback layer, which fades in over a third of a second.
+	/// </summary>
+	/// <remarks>
+	/// Layers are numbered images drawn over the battleback, with higher numbers drawn on top. Layers start at 3, and
+	/// numbers below 3 are ignored. Adding to a number that is already in use does nothing.
+	/// Does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <param name="layer">The layer number, 3 or higher.</param>
+	/// <param name="name">The name of the battleback to show on the layer.</param>
+	/// <returns>True if the layer was added, false if this enemy can't change the battleback.</returns>
+	public bool AddBattlebackLayer(int layer, string name)
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.BattlebackLayers.Add(layer, name);
+		return true;
+	}
+
+	/// <summary>
+	/// Removes a battleback layer, fading it out over a third of a second.
+	/// </summary>
+	/// <remarks>
+	/// Once the layer is gone, every higher layer moves down one number. Does nothing for a number with no layer.
+	/// Does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <param name="layer">The layer number.</param>
+	/// <returns>True if the layer was added, false if this enemy can't change the battleback.</returns>
+	public bool RemoveBattlebackLayer(int layer)
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.BattlebackLayers.Remove(layer);
+		return true;
+	}
+
+	/// <summary>
+	/// Swaps the image of a battleback layer immediately.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing for a number with no layer. Also does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <param name="layer">The layer number.</param>
+	/// <param name="name">The name of the battleback to show on the layer.</param>
+	/// <returns>True if the layer was changed, false if this enemy can't change the battleback.</returns>
+	public bool ChangeBattlebackLayer(int layer, string name)
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.BattlebackLayers.Change(layer, name);
+		return true;
+	}
+
+	/// <summary>
+	/// Fades a battleback layer to the given opacity.
+	/// </summary>
+	/// <remarks>
+	/// Layer numbers 0 and 1 fade the battleback itself. Does nothing for a number with no layer, such as 2.
+	/// Does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <param name="layer">The layer number.</param>
+	/// <param name="opacity">The opacity to fade to, from 0 to 1.</param>
+	/// <param name="frames">How long the fade takes, in frames at 60 per second. 0 or less applies it at once.</param>
+	/// <returns>True if the layer was faded, false if this enemy can't change the battleback.</returns>
+	public bool FadeBattlebackLayer(int layer, float opacity, int frames)
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.BattlebackLayers.Fade(layer, opacity, frames);
+		return true;
+	}
+
+	/// <summary>
+	/// Scrolls a battleback layer at a constant speed.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing for a number with no layer. Also does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <param name="layer">The layer number.</param>
+	/// <param name="pixelsPerSecond">How far the layer moves each second.</param>
+	/// <returns>True if the layer began scrolling, false if this enemy can't change the battleback.</returns>
+	public bool ScrollBattlebackLayer(int layer, Vector2 pixelsPerSecond)
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.BattlebackLayers.SetScroll(layer, pixelsPerSecond);
+		return true;
+	}
+
+	/// <summary>
+	/// Removes every battleback layer at once and makes the battleback fully visible again.
+	/// </summary>
+	/// <remarks>
+	/// The battleback image is not changed. Does nothing while <see cref="CanChangeBattleback"/> is false.
+	/// </remarks>
+	/// <returns>True if the layers were cleared, false if this enemy can't change the battleback.</returns>
+	public bool ClearBattlebackLayers()
+	{
+		if (!CanChangeBattleback)
+			return false;
+		GameManager.Instance.BattlebackLayers.Clear();
+		return true;
+	}
+
+	/// <summary>
+	/// Starts a BGM from the beginning.
+	/// </summary>
+	/// <remarks>
+	/// Stops any BGM fade in progress, so the new BGM plays at the given volume.
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <param name="name">The name of the BGM to play.</param>
+	/// <param name="volume">The volume to play the BGM at, from 0.001 to 3.0.</param>
+	/// <param name="pitch">The pitch to play the BGM at, from 0.1 to 2.0.</param>
+	/// <returns>True if the BGM was started, false if this enemy can't change the BGM.</returns>
+	public bool ChangeBGM(string name, float volume = 1f, float pitch = 1f)
+	{
+		if (!CanChangeBGM)
+			return false;
+		AudioManager.Instance.ForcePlayBGM(name, volume, pitch);
+		AudioManager.Instance.FadeBGMTo(volume, 0f);
+		return true;
+	}
+
+	/// <summary>
+	/// Fades the BGM to the given volume.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <param name="volume">The volume to fade to, from 0.001 to 3.0.</param>
+	/// <param name="seconds">How long the fade takes, in seconds.</param>
+	/// <returns>True if the fade was started, false if this enemy can't change the BGM.</returns>
+	public bool FadeBGM(float volume, float seconds)
+	{
+		if (!CanChangeBGM)
+			return false;
+		AudioManager.Instance.FadeBGMTo(volume, seconds);
+		return true;
+	}
+
+	/// <summary>
+	/// Stops the BGM.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <returns>True if the BGM was stopped, false if this enemy can't change the BGM.</returns>
+	public bool StopBGM()
+	{
+		if (!CanChangeBGM)
+			return false;
+		AudioManager.Instance.BGM.Stop();
+		return true;
+	}
 	/// <summary>
 	/// Whether this enemy has a multi-target skill equipped.
 	/// </summary>
