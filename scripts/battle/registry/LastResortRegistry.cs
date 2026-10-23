@@ -1,3 +1,4 @@
+using Godot;
 using System;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
@@ -10,6 +11,28 @@ using static Database;
 
 internal static class LastResortRegistry
 {
+	private static Func<Actor, Actor, Task> ExpandFurther(Vector2? offset, float scale)
+	{
+		return async (_, target) =>
+		{
+			BattleLogManager.Instance.QueueMessage(target, "[actor] expands even further!");
+			await Wait.Milliseconds(500);
+			if (offset is Vector2 cameraOffset)
+				BattleManager.Instance.SetCameraOffset(cameraOffset.X, cameraOffset.Y);
+			BattleManager.Instance.ZoomCamera(scale, 90);
+			await Wait.Frames(180);
+			BattleManager.Instance.ResetCameraZoom(30);
+			await Wait.Frames(30);
+			await AnimationManager.Instance.WaitForAnimation(218, target);
+			target.AddTierStatModifier("AttackUp");
+			target.AddTierStatModifier("DefenseUp");
+			if (target.StatModifiers.TryGetValue("SpeedDown", out StatModifier sd) && sd is TierStatModifier speedDown && speedDown.CurrentTier == 3)
+				speedDown.ReduceTier(2);
+			else if (target.GetStatModifierTier("SpeedDown") < 2)
+				target.AddTierStatModifier("SpeedDown");
+		};
+	}
+
 	internal static void Register()
 	{
 		Enemies.Add("GatorGuyJawsum", () => new GatorGuyJawsum());
@@ -156,20 +179,25 @@ internal static class LastResortRegistry
 			description: "PEExpandFurther",
 			target: SkillTarget.Self,
 			cost: 0,
-			effect: async (_, target) =>
-			{
-				BattleLogManager.Instance.QueueMessage(target, "[actor] expands even further!");
-				await Wait.Milliseconds(500);
-				await AnimationManager.Instance.WaitForAnimation(218, target);
-				target.AddTierStatModifier("AttackUp");
-				target.AddTierStatModifier("DefenseUp");
-				if (target.StatModifiers.TryGetValue("SpeedDown", out StatModifier sd) && sd is TierStatModifier speedDown && speedDown.CurrentTier == 3)
-					speedDown.ReduceTier(2);
-				else if (target.GetStatModifierTier("SpeedDown") < 2)
-					target.AddTierStatModifier("SpeedDown");
-			}
+			effect: ExpandFurther(new Vector2(-10, -100), 3f)
 		);
-		
+
+		Skills["PEExpandFurtherChest"] = new Skill(
+			name: "PEExpandFurtherChest",
+			description: "PEExpandFurtherChest",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: ExpandFurther(null, 2f)
+		);
+
+		Skills["PEExpandFurtherLeft"] = new Skill(
+			name: "PEExpandFurtherLeft",
+			description: "PEExpandFurtherLeft",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: ExpandFurther(new Vector2(150, 20), 2.5f)
+		);
+
 		Skills["PERandomExpand"] = new Skill(
 			name: "PERandomExpand",
 			description: "PERandomExpand",
@@ -177,7 +205,10 @@ internal static class LastResortRegistry
 			cost: 0,
 			effect: (Actor self, Actor target) =>
 			{
-				BattleManager.Instance.QueueForceCommand(self, target, Skills["PEExpandFurther"]);
+				// VANILLA BUG: the roll is 0-2, so EXPAND FURTHER RIGHT can never be picked
+				int rr = GameManager.Instance.Random.RandiRange(0, 2);
+				string key = rr == 1 ? "PEExpandFurther" : rr == 2 ? "PEExpandFurtherChest" : "PEExpandFurtherLeft";
+				BattleManager.Instance.QueueForceCommand(self, target, Skills[key]);
 				return Task.CompletedTask;
 			},
 			hidden: true

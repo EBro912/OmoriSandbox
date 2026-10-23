@@ -15,7 +15,7 @@ internal sealed class PlutoExpandedAlt : Enemy
     public override SpriteFrames Animation =>
         ResourceLoader.Load<SpriteFrames>("res://animations/pluto_expanded.tres");
     protected override Stats Stats => new(10000, 5000, 85, 65, 70, 15, 95);
-    protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEExpandFurther", "PERandomExpand", "PEEarthsFinale"];
+    protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEExpandFurther", "PEExpandFurtherChest", "PEExpandFurtherLeft", "PERandomExpand", "PEEarthsFinale"];
 
     public override bool IsEmotionValid(Emotion emotion)
     {

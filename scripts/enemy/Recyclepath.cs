@@ -9,8 +9,9 @@ namespace OmoriSandbox.Actors;
 internal sealed class Recyclepath : Enemy
 {
     public override string Name => "RECYCLEPATH";
-    public override Vector2 InfoBoxOffset => new(15, -230);
-    public override bool InfoBoxCursorAboveBox => true;
+    // VANILLA BUG: the emotion entries have no info box offsets, so the box sits at the feet with the finger below
+    public override Vector2 InfoBoxOffset => CurrentEmotion.Group == null ? new(15, -230) : Vector2.Zero;
+    public override bool InfoBoxCursorAboveBox => CurrentEmotion.Group == null;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/recyclepath.tres");
 
     protected override Stats Stats => new(1000, 500, 40, 20, 16, 10, 95);

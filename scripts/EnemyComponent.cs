@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
@@ -76,7 +77,10 @@ public partial class EnemyComponent : ActorComponent
 	internal void ShowInfoBox(bool show)
 	{
 		if (show)
+		{
 			InfoBox.Position = Actor.CenterPoint + new Vector2(Actor.InfoBoxOffset.X, Actor.InfoBoxOffset.Y + FeetY);
+			InfoBox.SetCursorAboveBox(Actor.InfoBoxCursorAboveBox);
+		}
 		InfoBox.Show(show);
 		switch (show)
 		{
@@ -89,6 +93,19 @@ public partial class EnemyComponent : ActorComponent
 		}
 
 		Selected = show && Actor.BlinksWhenSelected;
+	}
+
+	internal async Task FadeOutForEscape()
+	{
+		Node2D node = GetParent<Node2D>();
+		for (int frame = 1; frame <= 32; frame++)
+		{
+			await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+			if (!IsInstanceValid(node))
+				return;
+			node.Modulate = node.Modulate with { A = Math.Max(0, 256 - 10 * frame) / 255f };
+		}
+		node.Visible = false;
 	}
 
 	/// <inheritdoc/>

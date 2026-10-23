@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -393,6 +393,7 @@ DisableStatLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableStatLimit")
 ShowMoreInfoCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowMoreInfo")
 ShowStateIconsCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowStateIcons")
 EnemySelectionWrappingCheckbox = NodePath("Tabs/Battle/VBoxContainer/EnemySelectionWrapping")
+PlayFinalDuetCheckbox = NodePath("Tabs/Battle/VBoxContainer/PlayFinalDuet")
 SelectionHoldTimeSlider = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider/HSlider")
 SelectionHoldTimeLabel = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider/Label")
 SelectionChangeSpeedSlider = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldSpeedSlider/HSlider")
@@ -885,6 +886,16 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Enemy Selection Wrapping"
+
+[node name="PlayFinalDuet" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1005852542]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Plays the Final Duet video whenever PLAY is used,
+if you really want to do that to yourself"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Play Final Duet"
 
 [node name="SelectionHoldDelay" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=25689085]
 layout_mode = 2
@@ -1440,6 +1451,42 @@ theme_override_font_sizes/font_size = 24
 text = "Krob"
 horizontal_alignment = 1
 
+[node name="Credits Entry6" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=2076758408]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry6" unique_id=1755087080]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "Blackspace 2x2 Buttons"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry6" unique_id=991395181]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "lilithdev"
+horizontal_alignment = 1
+
+[node name="Credits Entry7" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=1552814574]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry7" unique_id=651899501]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 32
+text = "Energy Cost Star"
+
+[node name="Names" type="Label" parent="Main/Credits/ScrollContainer/VBoxContainer/Credits Entry7" unique_id=1362190416]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+text = "Saffron"
+horizontal_alignment = 1
+
 [node name="Credits Entry4" type="VBoxContainer" parent="Main/Credits/ScrollContainer/VBoxContainer" unique_id=247219291]
 layout_mode = 2
 
@@ -1776,9 +1823,9 @@ theme_override_styles/normal = ExtResource("10_1ajci")
 theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 clip_text = true
+selected = 0
 fit_to_longest_item = false
 item_count = 3
-selected = 0
 popup/item_0/text = "Auto"
 popup/item_0/id = 0
 popup/item_1/text = "Always"

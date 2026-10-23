@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Battle.Registry;
@@ -113,37 +114,36 @@ internal static class OmoriRegistry
 					"[actor] focuses their vision and observes\n[target]!");
 				AnimationManager.Instance.PlayAnimation(4, target);
 				await Wait.Milliseconds(1000);
-				List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
-				PartyMember taunting = members.FirstOrDefault(x => x.HasStatModifier("Taunt"));
-				if (taunting != null)
+				BattleManager battle = BattleManager.Instance;
+				foreach (int slot in new[] { 1, 3 })
 				{
-					await AnimationManager.Instance.WaitForAnimation(4, taunting);
-					if (target is Enemy e)
+					PartyMember charmer = battle.GetPartyMemberAtPosition(slot);
+					if (charmer != null && charmer.HasStatModifier("CharmCheck"))
 					{
-						e.ObserveTarget = taunting;
-						e.ObserveSetThisTurn = true;
+						await Lock(charmer);
+						return;
 					}
-					target.AddStatModifier("ObserveIgnoreTaunt", silent: true);
-					BattleLogManager.Instance.QueueMessage(target, taunting,
-						"[actor] has their eyes on\n[target]!");
-					return;
 				}
 
 				bool multi = GameManager.Instance.Random.RandiRange(1, 2) == 1;
+				List<PartyMember> party = battle.GetAllPartyMembers();
+				PartyMember pick = party[GameManager.Instance.Random.RandiRange(0, party.Count - 1)];
+				List<PartyMember> members = battle.GetAlivePartyMembers();
 				if (multi)
 				{
 					// if the party is multi observed, any enemy that checks for state 185 in their AI is affected
 					// (vanilla technically only checks the first four troop slots)
-					List<Enemy> alive = BattleManager.Instance.GetAllAliveEnemies();
-					Enemy speaker = alive.FirstOrDefault(x => x.ObserveHasMulti);
-					if (speaker != null)
+					for (int i = 0; i < 4; i++)
 					{
-						foreach (Enemy enemy in alive)
-						{
-							enemy.ObserveMultiTarget = true;
-							enemy.ObserveSetThisTurn = true;
-						}
+						Enemy speaker = battle.GetEnemy(i);
+						if (speaker == null || !speaker.ObserveHasMulti)
+							continue;
+						// VANILLA BUG: the multi branch ends with no observe state when its first holder can't act
+						if (!battle.GetAllAliveEnemies().Contains(speaker))
+							return;
 						BattleLogManager.Instance.QueueMessage(speaker, "[actor] has their eyes on everyone!");
+						foreach (PartyMember m in members)
+							m.AddStatModifier("ObserveMulti", silent: true);
 						foreach (PartyMember m in members)
 							AnimationManager.Instance.PlayAnimation(4, m);
 						await Wait.Milliseconds(1000);
@@ -151,16 +151,20 @@ internal static class OmoriRegistry
 					}
 				}
 
-				PartyMember member = members[GameManager.Instance.Random.RandiRange(0, members.Count - 1)];
-				BattleLogManager.Instance.QueueMessage(target, member, "[actor] has their eyes on\n[target]!");
-				await AnimationManager.Instance.WaitForAnimation(4, member);
-				if (target is Enemy en)
+				PartyMember member = null;
+				for (int slot = pick.Component.Position; slot > 0 && member == null; slot--)
 				{
-					en.ObserveTarget = member;
-					en.ObserveSetThisTurn = true;
+					PartyMember atSlot = battle.GetPartyMemberAtPosition(slot);
+					if (atSlot != null && atSlot.CurrentHP > 0)
+						member = atSlot;
 				}
+				member ??= battle.GetPartyMemberAtPosition(0);
+				if (member == null || member.CurrentHP <= 0)
+					return;
+				foreach (PartyMember m in members)
+					m.AddStatModifier("ObserveSingle", silent: true);
+				await Lock(member);
 				member.ClearResult();
-				target.AddStatModifier("ObserveIgnoreTaunt", silent: true);
 			},
 			priority: -1000
 		);
@@ -662,6 +666,20 @@ internal static class OmoriRegistry
 			},
 			hidden: true
 		).WithCustomRequirement((_) => true);
+	}
+
+	private static async Task Lock(PartyMember member)
+	{
+		BattleManager battle = BattleManager.Instance;
+		Enemy enemy = battle.SmoothEnemyTarget(member.LastTargetIndex);
+		if (enemy == null)
+			return;
+		enemy.AddStatModifier("ObserveIgnoreTaunt", silent: true);
+		if (enemy.StatModifiers.TryGetValue("ObserveIgnoreTaunt", out StatModifier held) && held is ObserveStatModifier observe)
+			observe.ObservedBy = member;
+		battle.RecordLastTarget(member, enemy);
+		BattleLogManager.Instance.QueueMessage(enemy, member, "[actor] has their eyes on\n[target]!");
+		await AnimationManager.Instance.WaitForAnimation(4, member);
 	}
 
 	private static void QueueNoStateChange(string name, string stat, string direction)

@@ -176,7 +176,7 @@ public partial class BattleManager : Node
 
 	/// <summary>
 	/// Fired right before an enemy's <see cref="Enemy.ProcessAI"/> decides the action it performs.
-	/// Not fired for the turn-order rolls made while <c>Enemy.PreRolling</c> is set, or for forced commands.
+	/// Not fired for the turn-order rolls made while <c>Enemy.PreRolling</c> is set, for forced commands, or when none of the enemy's skills can be used (it doesn't act).
 	/// </summary>
 	public event EventHandler<AIDecidingEventArgs> AIDeciding;
 
@@ -283,6 +283,7 @@ public partial class BattleManager : Node
 	internal void Init(List<PartyMemberComponent> party, List<EnemyComponent> enemies,
 		List<BattlePresetBossRushStage> stages, BattlePreset preset, int startingStage)
 	{
+		AnimationManager.Instance.Camera.ResetInstant();
 		GameType = preset.Type;
 		CurrentPresetName = preset.Name;
 		CurrentPreset = preset;
@@ -659,7 +660,7 @@ public partial class BattleManager : Node
 				if (CurrentPartyMemberTarget > -1)
 				{
 					CurrentPartyMemberTarget = -1;
-					CurrentEnemyTarget = Enemies.FindIndex(x => !x.Actor.IsToast);
+					CurrentEnemyTarget = Enemies.FindIndex(x => !IsOut(x.Actor));
 					Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 					MenuManager.Instance.MoveDownOpenMenus(false);
 				}
@@ -737,7 +738,7 @@ public partial class BattleManager : Node
 		{
 			if (SelectedAction.Target is SkillTarget.Enemy or SkillTarget.AllyOrEnemy
 			    && CurrentEnemyTarget > -1
-			    && Enemies.Count(x => !x.Actor.IsToast) > 1
+			    && Enemies.Count(x => !IsOut(x.Actor)) > 1
 			    && direction is InputDirection.Left or InputDirection.Right)
 			{
 				int old = CurrentEnemyTarget;
@@ -775,7 +776,7 @@ public partial class BattleManager : Node
 
 		var sortedEnemies = Enemies
 			.Select((enemy, index) => new { Enemy = enemy, Index = index })
-			.Where(e => !e.Enemy.Actor.IsToast)
+			.Where(e => !IsOut(e.Enemy.Actor))
 			.OrderBy(e => e.Enemy.Actor.CenterPoint.X)
 			.ThenBy(e => e.Index)
 			.ToList();
@@ -861,6 +862,8 @@ public partial class BattleManager : Node
 		CommandTargets = [];
 		InActionEffect = false;
 		ActionForcedCrit = false;
+		ActionElementUser = null;
+		ActionElement = null;
 		EndTiersFromFirstTarget();
 		GameManager.Instance.BattlebackLayers.Clear();
 		GameManager.Instance.SetBattlebackGrayscale(false);
@@ -1100,7 +1103,7 @@ public partial class BattleManager : Node
 					TurnCount++;
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
-						if (enemy.Actor.IsToast || !Enemies.Contains(enemy))
+						if (IsOut(enemy.Actor) || !Enemies.Contains(enemy))
 							continue;
 						await RunGuarded(() => enemy.Actor.ProcessStartOfCommands(),
 							$"{enemy.Actor.Name}.ProcessStartOfCommands");
@@ -1110,7 +1113,7 @@ public partial class BattleManager : Node
 					// then rolls it *again* when the enemy actually acts
 					foreach (EnemyComponent enemy in Enemies.ToList())
 					{
-						if (enemy.Actor.IsToast || enemy.Actor.Stunned)
+						if (IsOut(enemy.Actor) || enemy.Actor.Stunned)
 							continue;
 						RunGuarded(() => enemy.Actor.PreRollTurnPriority(), $"{enemy.Actor.Name}.PreRollTurnPriority");
 					}
@@ -1177,7 +1180,7 @@ public partial class BattleManager : Node
 
 				foreach (EnemyComponent enemy in Enemies.ToList())
 				{
-					if (enemy.Actor.IsToast || !Enemies.Contains(enemy))
+					if (IsOut(enemy.Actor) || !Enemies.Contains(enemy))
 						continue;
 					enemy.Actor.SetHurt(false);
 					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
@@ -1203,7 +1206,7 @@ public partial class BattleManager : Node
 	{
 		List<Actor> damaged = [];
 		damaged.AddRange(CurrentParty.Select(x => x.Actor).Where(x => !x.IsToast && x.DamageTakenThisAction > 0));
-		damaged.AddRange(Enemies.Select(x => x.Actor).Where(x => !x.IsToast && x.DamageTakenThisAction > 0));
+		damaged.AddRange(Enemies.Select(x => x.Actor).Where(x => !IsOut(x) && x.DamageTakenThisAction > 0));
 		foreach (Actor actor in damaged)
 		{
 			if (actor.IsToast || actor.Component == null)
@@ -1248,7 +1251,7 @@ public partial class BattleManager : Node
 	private async Task<bool> ResolveEnemyDeath(EnemyComponent enemy)
 	{
 		// enemy may have been removed during ProcessBattleConditions
-		if (!Enemies.Contains(enemy) || enemy.Actor.IsToast)
+		if (!Enemies.Contains(enemy) || IsOut(enemy.Actor))
 		{
 			DeferredDeathEnemies.Remove(enemy);
 			return false;
@@ -1278,7 +1281,7 @@ public partial class BattleManager : Node
 	{
 		foreach (EnemyComponent enemy in Enemies.ToList())
 		{
-			if (!Enemies.Contains(enemy) || enemy.Actor.IsToast || enemy.Actor.CurrentHP > 0 || enemy.Actor.IsImmortal)
+			if (!Enemies.Contains(enemy) || IsOut(enemy.Actor) || enemy.Actor.CurrentHP > 0 || enemy.Actor.IsImmortal)
 				continue;
 			if (DeferredDeathEnemies.Contains(enemy) && !CommandTargets.Contains(enemy.Actor))
 				continue;
@@ -1469,6 +1472,8 @@ public partial class BattleManager : Node
 		idle.ClearResult();
 	}
 
+	private static readonly Skill BlockedTurnSkill = new("", "", SkillTarget.Self, (Actor _, Actor _) => Task.CompletedTask, 0);
+
 	private BattleCommand ResolveCommandForActor(Actor actor)
 	{
 		ActedThisTurn.Add(actor);
@@ -1483,6 +1488,12 @@ public partial class BattleManager : Node
 		}
 		if (actor is Enemy enemy)
 		{
+			if (!enemy.HasUsableSkill)
+			{
+				BattleCommand blocked = enemy.CurrentEmotion.BlocksActions ? new BattleCommand(enemy, enemy, BlockedTurnSkill) : null;
+				StartOwnAction(enemy, blocked);
+				return blocked;
+			}
 			RaiseGuarded(AIDeciding, new AIDecidingEventArgs(enemy), "AIDeciding");
 			BattleCommand decided = enemy.ProcessAI();
 			RaiseGuarded(AIDecided, new AIDecidedEventArgs(enemy, decided), "AIDecided");
@@ -1519,7 +1530,7 @@ public partial class BattleManager : Node
 			return;
 		
 		// skip if the enemy cannot act
-		if (!enemy.HasPreRolledAction || ActedThisTurn.Contains(enemy) || enemy.IsToast || enemy.Stunned)
+		if (!enemy.HasPreRolledAction || ActedThisTurn.Contains(enemy) || IsOut(enemy) || enemy.Stunned)
 			return;
 		RunGuarded(() => RunAsReaction(() => enemy.PreRollTurnPriority(emotionReroll: true)), $"{enemy.Name}.PreRollTurnPriority");
 		if (SettingsMenuManager.Instance.LogDebug)
@@ -1629,7 +1640,7 @@ public partial class BattleManager : Node
 
 			foreach (EnemyComponent e in Enemies.ToList())
 			{
-				if (e.Actor.IsToast || !Enemies.Contains(e))
+				if (IsOut(e.Actor) || !Enemies.Contains(e))
 					continue;
 				foreach (StatModifier modifier in e.Actor.StatModifiers.Values.ToList())
 				{
@@ -1742,7 +1753,7 @@ public partial class BattleManager : Node
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				return;
 			case SkillTarget.Enemy:
-				CurrentEnemyTarget = Enemies.FindIndex(x => !x.Actor.IsToast);
+				CurrentEnemyTarget = Enemies.FindIndex(x => !IsOut(x.Actor));
 				Enemies[CurrentEnemyTarget].ShowInfoBox(true);
 				BattleLogManager.Instance.ClearAndShowMessage("Use on whom?");
 				MenuManager.Instance.MoveDownOpenMenus(false);
@@ -1760,7 +1771,7 @@ public partial class BattleManager : Node
 
 	private void SelectTarget()
 	{
-		if (Enemies.All(x => x.Actor.IsToast))
+		if (Enemies.All(x => IsOut(x.Actor)))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
@@ -2018,6 +2029,7 @@ public partial class BattleManager : Node
 		    && currentAction.Actor.StatModifiers.TryGetValue("Charm", out StatModifier charm)
 		    && charm is CharmStatModifier { CharmedBy: { } charmer } && currentAction.Actor is Enemy)
 			currentAction.Targets = [charmer, .. currentAction.Targets.Skip(1)];
+		ApplyObserveLock(currentAction);
 		switch (currentAction.Action.Target)
 		{
 			case SkillTarget.AllAllies:
@@ -2173,6 +2185,8 @@ public partial class BattleManager : Node
 		RaiseGuarded(ActionStarted, actionArgs, "ActionStarted");
 
 		BeginTiersFromFirstTarget(currentAction.Action, resolvedTargets);
+		ActionElementUser = currentAction.Actor;
+		ActionElement = (currentAction.Action as Skill)?.Element;
 		if (currentAction.Action.Setup != null)
 			await RunGuarded(() => currentAction.Action.Setup(currentAction.Actor, resolvedTargets),
 				$"setup of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
@@ -2189,7 +2203,11 @@ public partial class BattleManager : Node
 		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
 			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
 		InActionEffect = false;
+		AnimationManager.Instance.Camera.StartZoom(1f, 30);
+		AnimationManager.Instance.Camera.ResetCamera(30);
 		ActionForcedCrit = false;
+		ActionElementUser = null;
+		ActionElement = null;
 		EndTiersFromFirstTarget();
 
 		Actor ender = ResolveKeptBattler(currentAction.Actor);
@@ -2249,6 +2267,24 @@ public partial class BattleManager : Node
 		if (energy > 0)
 			Energy = Math.Max(0, Energy - energy);
 		actor.StartSkillCooldown(skill);
+	}
+
+	private void ApplyObserveLock(BattleCommand command)
+	{
+		if (command.Actor is not Enemy || command.Targets is not { Count: > 0 }
+		    || !command.Actor.StatModifiers.TryGetValue("ObserveIgnoreTaunt", out StatModifier lockModifier)
+		    || lockModifier is not ObserveStatModifier { ObservedBy: { } observer })
+			return;
+		if (command.Action.Target != SkillTarget.Enemy
+		    && !(command.Action.Target == SkillTarget.AllyOrEnemy && command.Targets[0] is PartyMember))
+			return;
+		PartyMember slotOne = GetPartyMemberAtPosition(1);
+		PartyMember slotTwo = GetPartyMemberAtPosition(2);
+		// VANILLA BUG: the base game checks KEL's slot here, though its variable is named HERO
+		if ((slotOne != null && slotOne.HasStatModifier("AubreyCounter"))
+		    || (slotTwo != null && (slotTwo.HasStatModifier("Taunt") || slotTwo.HasStatModifier("Charm"))))
+			return;
+		command.Targets = [observer, .. command.Targets.Skip(1)];
 	}
 
 	private void EndCommandWithoutTarget(BattleCommand command)
@@ -2321,6 +2357,53 @@ public partial class BattleManager : Node
 			ForceHideFollowup = true;
 
 		return true;
+	}
+
+	/// <summary>
+	/// Zooms the battlefield in or out over a number of frames.
+	/// </summary>
+	/// <remarks>
+	/// <paramref name="frames"/> are 60 fps game frames.
+	/// The zoom and the offset from <see cref="SetCameraOffset(float, float)"/> reset at the end of every action.
+	/// The battle log, party cards and dialogue box stay as they are.
+	/// </remarks>
+	/// <param name="scale">The zoom to reach, where 1 is normal size.</param>
+	/// <param name="frames">How many frames the zoom takes.</param>
+	public void ZoomCamera(float scale, int frames = 30)
+	{
+		if (scale <= 0f)
+		{
+			GD.PushError($"ZoomCamera needs a scale above 0, got {scale}.");
+			return;
+		}
+		AnimationManager.Instance.Camera.StartZoom(scale, Math.Max(frames, 1));
+	}
+
+	/// <summary>
+	/// Moves the point the camera looks at, away from the center of the screen.
+	/// </summary>
+	/// <remarks>
+	/// Left and up are negative. The offset only shows while the battlefield is zoomed in, and it resets at the end of every action along with the zoom.
+	/// Spawning or moving enemies while the field is zoomed isn't supported.
+	/// </remarks>
+	/// <param name="x">The horizontal offset in pixels. Negative is left.</param>
+	/// <param name="y">The vertical offset in pixels. Negative is up.</param>
+	public void SetCameraOffset(float x, float y)
+	{
+		AnimationManager.Instance.Camera.SetOffset(x, y);
+	}
+
+	/// <summary>
+	/// Zooms the battlefield back to normal size.
+	/// </summary>
+	/// <remarks>
+	/// <paramref name="frames"/> are 60 fps game frames. The camera offset from <see cref="SetCameraOffset(float, float)"/> stays until the action ends, when the zoom and the offset both reset.
+	/// </remarks>
+	/// <param name="frames">How many frames the reset takes.</param>
+	public void ResetCameraZoom(int frames = 30)
+	{
+		frames = Math.Max(frames, 1);
+		AnimationManager.Instance.Camera.StartZoom(1f, frames);
 	}
 
 	/// <summary>
@@ -2484,7 +2567,7 @@ public partial class BattleManager : Node
 			{
 				if (!Enemies.Contains(x))
 					continue;
-				if (!x.Actor.IsToast)
+				if (!IsOut(x.Actor))
 				{
 					x.Actor.ClearResult();
 					x.Actor.DecreaseStatTurnCounter();
@@ -2498,28 +2581,13 @@ public partial class BattleManager : Node
 			InEndOfTurnHooks = true;
 			foreach (EnemyComponent enemy in Enemies.ToList())
 			{
-				if (enemy.Actor.IsToast || !Enemies.Contains(enemy))
+				if (IsOut(enemy.Actor) || !Enemies.Contains(enemy))
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
 			await ResolveEnemyDeaths();
 			await ConvertDeadPartyMembers();
 			InEndOfTurnHooks = false;
-
-			// expire observe predictions the enemy never consumed during its turn
-			// ones set this turn (OBSERVE acts last) survive into the next turn
-			foreach (EnemyComponent enemy in Enemies)
-			{
-				if (enemy.Actor.ObserveSetThisTurn)
-				{
-					enemy.Actor.ObserveSetThisTurn = false;
-				}
-				else
-				{
-					enemy.Actor.ObserveTarget = null;
-					enemy.Actor.ObserveMultiTarget = false;
-				}
-			}
 
 			RaiseGuarded(TurnEnded, "TurnEnded");
 			if (ForcedCommands.Count > 0)
@@ -2672,7 +2740,7 @@ public partial class BattleManager : Node
 			return;
 		}
 		
-		if (Enemies.All(x => x.Actor.IsToast))
+		if (Enemies.All(x => IsOut(x.Actor)))
 		{
 			SetPhase(BattlePhase.BattleOver);
 			InEndOfBattle = true;
@@ -2724,6 +2792,7 @@ public partial class BattleManager : Node
 		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;
+		AnimationManager.Instance.Camera.ResetInstant();
 		SpawnHooksArmed = false;
 		SummonEnemiesForStage(Stages[CurrentStage].Enemies);
 		ArmBattleIntro();
@@ -2744,6 +2813,8 @@ public partial class BattleManager : Node
 		CurrentParty.ForEach(x =>
 		{
 			x.Actor.HasUsedPlotArmor = false;
+			x.Actor.RemoveStatModifier("ObserveSingle");
+			x.Actor.RemoveStatModifier("ObserveMulti");
 			if (Stages[CurrentStage].HealParty)
 			{
 				if (x.Actor.IsToast)
@@ -2914,7 +2985,7 @@ public partial class BattleManager : Node
 		foreach (EnemyComponent component in Enemies.ToList())
 		{
 			Enemy enemy = component.Actor;
-			if (!Enemies.Contains(component) || enemy.IsToast)
+			if (!Enemies.Contains(component) || IsOut(enemy))
 				continue;
 			await RunGuarded(() => enemy.OnEndOfBattle(outcome), $"{enemy.Name}.OnEndOfBattle");
 			if (RestartQueued)
@@ -2996,8 +3067,8 @@ public partial class BattleManager : Node
 	/// <param name="guaranteeCrit">If this attack should guarantee a critical hit.</param>
 	/// <param name="neverCrit">If this attack should never be a critical hit.</param>
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
-	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
-	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
+	/// <param name="attackElement">Overrides the skill's <see cref="Skill.Element"/> and the attacker's emotion "element" in the advantage calculation.<br/>
+	/// Use <c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's emotion group id, <c>"emotion"</c> (also <c>"exploit"</c>) for a hit that is strong against every emotion, or <c>"afraid"</c>.</param>
 	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
 	/// <returns>The final damage after all critical, emotion, juice loss, and stat modifications have been applied, or -1 if the attack missed, was evaded, or a stat modifier turned it into a miss.</returns>
 	public int Damage(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true, float variance = 0.2f,
@@ -3052,17 +3123,16 @@ public partial class BattleManager : Node
 
 		float damage = Math.Max(0, damageFunc());
 		// locked bosses resolve advantage as their locked emotion
-		Emotion selfEmotion = self.EffectiveEmotion;
 		Emotion targetEmotion = target.EffectiveEmotion;
-		DamageContext context = new(self, target, options, juice,
-			reflecting != null ? reflecting.Element : (options.AttackElement ?? selfEmotion.Group?.Id), reflecting != null);
+		string element = reflecting != null ? reflecting.Element : ResolveElement(self, options);
+		DamageContext context = new(self, target, options, juice, element, reflecting != null);
 		ApplyOutcomeRules(context);
 
 		ApplyOverrides(DamagePhase.PreEmotion, ref damage, context);
 
 		int effectiveness = 0;
 		if (!options.IgnoreEmotion)
-			damage = (float)CalculateEmotionModifiers(selfEmotion, targetEmotion, damage, out effectiveness, options.AttackElement);
+			damage = (float)CalculateEmotionModifiers(element, targetEmotion, damage, out effectiveness);
 		context.Effectiveness = effectiveness;
 		bool critical =
 			(self.CurrentStats.LCK * .01f >= GameManager.Instance.Random.Randf() || options.Crit == CritMode.Always ||
@@ -3169,7 +3239,7 @@ public partial class BattleManager : Node
 		options.OnHit?.Invoke();
 		// VANILLA BUG: the moving/dull line and sound re-read the emotions after the hit's own effects
 		if (!options.IgnoreEmotion)
-			CalculateEmotionModifiers(self.EffectiveEmotion, target.EffectiveEmotion, 0, out effectiveness, options.AttackElement);
+			CalculateEmotionModifiers(ResolveElement(self, options), target.EffectiveEmotion, 0, out effectiveness);
 
 		if (juice)
 		{
@@ -3364,8 +3434,8 @@ public partial class BattleManager : Node
 	/// <param name="guaranteeCrit">If this attack should guarantee a critical hit.</param>
 	/// <param name="neverCrit">If this attack should never be a critical hit.</param>
 	/// <param name="ignoreEmotion">If this attack should ignore emotion advantage.</param>
-	/// <param name="attackElement">Overrides the attacker's emotion "element" in the advantage calculation.<br/>
-	/// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.</param>
+	/// <param name="attackElement">Overrides the skill's <see cref="Skill.Element"/> and the attacker's emotion "element" in the advantage calculation.<br/>
+	/// Use <c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's emotion group id, <c>"emotion"</c> (also <c>"exploit"</c>) for a hit that is strong against every emotion, or <c>"afraid"</c>.</param>
 	/// <param name="silent">If this attack should not log anything to the BattleLog. Damage numbers will still display.</param>
 	/// <returns>The JUICE the target lost, at most the JUICE it had, or -1 if the attack missed, was evaded, or a stat modifier turned it into a miss.</returns>
 	public int DamageJuice(Actor self, Actor target, Func<float> damageFunc, bool neverMiss = true,
@@ -3420,7 +3490,7 @@ public partial class BattleManager : Node
 		target = ResolveTransformed(target);
 		double baseHealing = Math.Max(0, healFunc());
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
-		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseHealing, out _);
+		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion.Group?.Id, target.CurrentEmotion, baseHealing, out _);
 		baseHealing = CalculateVariance(baseHealing, variance);
 		int rounded = (int)LimitDamage(DebugScale(RoundHealing(baseHealing)));
 		rounded = target.Heal(rounded, applyDebugScale: false);
@@ -3453,7 +3523,7 @@ public partial class BattleManager : Node
 		target = ResolveTransformed(target);
 		double baseJuice = Math.Max(0, healFunc());
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
-		double finalJuice = CalculateEmotionModifiers(self.CurrentEmotion, target.CurrentEmotion, baseJuice, out _);
+		double finalJuice = CalculateEmotionModifiers(self.CurrentEmotion.Group?.Id, target.CurrentEmotion, baseJuice, out _);
 		finalJuice = CalculateVariance(finalJuice, variance);
 		int rounded = (int)LimitDamage(DebugScale(RoundHealing(finalJuice)));
 		rounded = target.HealJuice(rounded, applyDebugScale: false);
@@ -3504,60 +3574,59 @@ public partial class BattleManager : Node
 	private readonly double[] weakness = [1.5, 2, 2.5];
 	private readonly double[] resistance = [0.8, 0.65, 0.5];
 
-	private double CalculateEmotionModifiers(Emotion self, Emotion target, double damage, out int effect, string attackElement = null)
+	private Actor ActionElementUser;
+	private string ActionElement;
+
+	internal static bool IsEmotionElement(string element)
 	{
-		Emotion neutral = Database.NeutralEmotion;
+		return string.Equals(element, "emotion", StringComparison.OrdinalIgnoreCase)
+			|| string.Equals(element, "exploit", StringComparison.OrdinalIgnoreCase);
+	}
 
-		// the exploit attack element is always a "moving" hit against any emotion
-		if (attackElement == "exploit" && target != neutral)
-		{
-			effect = 1;
-			if (target.DefensiveRateOverrides.TryGetValue("exploit", out float exploitRate))
-				return damage * exploitRate;
-			if (target.Group == null)
-			{
-				GD.PushWarning("Emotion " + target.Id + " has no group or exploit rate, EXPLOIT will deal normal damage to it.");
-				return damage;
-			}
+	private string ResolveElement(Actor self, DamageOptions options)
+	{
+		return options.AttackElement ?? (self == ActionElementUser ? ActionElement : null) ?? self.EffectiveEmotion.Group?.Id;
+	}
 
-			return damage * weakness[TierIndex(target)];
-		}
-
-		// a rate keyed by the attacker's group overrides the tier-based multiplier
-		if (self.Group != null && target.DefensiveRateOverrides.TryGetValue(self.Group.Id, out float groupRate))
-		{
-			effect = groupRate > 1f ? 1 : groupRate < 1f ? -1 : 0;
-			return damage * groupRate;
-		}
-
-		// emotions that are weak to all emotions like afraid check for any emotion
-		if (self.Group != null && target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
-		{
-			effect = emotionRate > 1f ? 1 : emotionRate < 1f ? -1 : 0;
-			return damage * emotionRate;
-		}
-
-		effect = 0;
-		if (self.Group == null || target.Group == null)
-		{
-			return damage;
-		}
-
-		double multiplier = 1.0;
-		if (self.Group.BeatsGroupId == target.Group.Id)
-		{
-			effect = 1;
-			multiplier = weakness[TierIndex(target)];
-		}
-		else if (target.Group.BeatsGroupId == self.Group.Id)
-		{
-			effect = -1;
-			multiplier = resistance[TierIndex(target)];
-		}
-
+	private double CalculateEmotionModifiers(string element, Emotion target, double damage, out int effect)
+	{
+		double multiplier = EmotionMultiplier(element, target);
+		effect = multiplier > 1 ? 1 : multiplier < 1 ? -1 : 0;
 		return damage * multiplier;
 	}
-	
+
+	private double EmotionMultiplier(string element, Emotion target)
+	{
+		if (element == null)
+			return 1;
+
+		if (IsEmotionElement(element))
+		{
+			if (target == Database.NeutralEmotion)
+				return 1;
+			if (target.DefensiveRateOverrides.TryGetValue("exploit", out float exploitRate))
+				return exploitRate;
+			return target.Group == null ? 1 : weakness[TierIndex(target)];
+		}
+
+		if (target.DefensiveRateOverrides.TryGetValue(element, out float rate))
+			return rate;
+
+		if (Database.TryGetEmotionGroup(element, out EmotionGroup group))
+		{
+			if (target.DefensiveRateOverrides.TryGetValue("emotion", out float emotionRate))
+				return emotionRate;
+			if (target.Group == null)
+				return 1;
+			if (group.BeatsGroupId == target.Group.Id)
+				return weakness[TierIndex(target)];
+			if (target.Group.BeatsGroupId == group.Id)
+				return resistance[TierIndex(target)];
+		}
+
+		return 1;
+	}
+
 	private int TierIndex(Emotion emotion)
 	{
 		return Math.Clamp(emotion.Tier - 1, 0, weakness.Length - 1);
@@ -3815,7 +3884,7 @@ public partial class BattleManager : Node
 	/// Special care must be used when using this method, as the old enemy will immediately become invalid.<br/>
 	/// The new enemy spawns at the original's position (plus <paramref name="offset"/>) and index (see <see cref="GetEnemy"/>), feeling the original's emotion, or <paramref name="startingEmotion"/> if it can't feel that one.
 	/// It keeps the original's HP and JUICE (capped at its own maximums), stat modifiers (their <c>OnAdd</c> doesn't run again), <see cref="Actor.Stunned"/> flag,
-	/// OBSERVE prediction and queued forced commands, and its place in the turn.
+	/// queued forced commands, and its place in the turn.
 	/// </remarks>
 	/// <param name="original">The enemy to transform from.</param>
 	/// <param name="who">The database name of the enemy to transform into.</param>
@@ -3845,9 +3914,6 @@ public partial class BattleManager : Node
 		foreach (KeyValuePair<string, StatModifier> entry in original.StatModifiers)
 			transformed.StatModifiers[entry.Key] = entry.Value;
 		transformed.Stunned = original.Stunned;
-		transformed.ObserveTarget = original.ObserveTarget;
-		transformed.ObserveMultiTarget = original.ObserveMultiTarget;
-		transformed.ObserveSetThisTurn = original.ObserveSetThisTurn;
 		transformed.CopyBattlerState(original);
 		transformed.ImmortalReleasePending = original.ImmortalReleasePending;
 		Stats stats = transformed.CurrentStats;
@@ -4263,18 +4329,18 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/>, or null if none is found.</returns>
-	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. See <see cref="GetAllAliveEnemies"/>.</remarks>
+	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>). See <see cref="GetAllAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveEnemy()
 	{
-		List<EnemyComponent> alive = Enemies.Where(x => !x.Actor.IsToast).ToList();
+		List<EnemyComponent> alive = Enemies.Where(x => !IsOut(x.Actor)).ToList();
 		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/> that's not the provided actor, or null if none is found.</returns>
-	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. See <see cref="GetAllAliveEnemies"/>.</remarks>
+	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>). See <see cref="GetAllAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveUniqueEnemy(Actor not)
 	{
-		List<EnemyComponent> alive = Enemies.Where(x => !x.Actor.IsToast && x.Actor != not).ToList();
+		List<EnemyComponent> alive = Enemies.Where(x => !IsOut(x.Actor) && x.Actor != not).ToList();
 		return alive.Count == 0 ? null :  alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
@@ -4282,10 +4348,11 @@ public partial class BattleManager : Node
 	/// <remarks>
 	/// An enemy is alive until it's defeated and becomes toast, so this includes enemies at 0 HP that are waiting on forced
 	/// commands queued during the action that knocked them out, or that hold IMMORTAL (see <see cref="Enemy.AddImmortal"/>).
+	/// Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>).
 	/// </remarks>
 	public List<Enemy> GetAllAliveEnemies()
 	{
-		return Enemies.Select(x => x.Actor).Where(x => !x.IsToast).ToList();
+		return Enemies.Select(x => x.Actor).Where(x => !IsOut(x)).ToList();
 	}
 
 	/// <returns>All current <see cref="Enemy"/>s, including both alive and dead enemies. See <see cref="GetAllAliveEnemies"/> to only select alive enemies.</returns>
@@ -4295,14 +4362,16 @@ public partial class BattleManager : Node
 	}
 
 	/// <summary>
-	/// Checks if an <see cref="Actor"/> is valid for targeting, as in, they are not toast and have not been despawned.
+	/// Checks if an <see cref="Actor"/> is valid for targeting, as in, they are not toast, have not escaped and have not been despawned.
 	/// </summary>
 	/// <param name="actor">The <see cref="Actor"/> to check.</param>
 	/// <returns>True if the actor is considered invalid.</returns>
 	public bool IsInvalidTarget(Actor actor)
 	{
-		return actor == null || actor.IsToast || actor.Component == null;
+		return actor == null || actor.IsToast || actor is Enemy { HasEscaped: true } || actor.Component == null;
 	}
+
+	private static bool IsOut(Enemy enemy) => enemy.IsToast || enemy.HasEscaped;
 
 	/// <returns>The <see cref="BattleCommand"/> that is currently being processed.</returns>
 	public BattleCommand GetCurrentCommand()
@@ -4396,7 +4465,7 @@ public partial class BattleManager : Node
 	internal Enemy SmoothEnemyTarget(int index)
 	{
 		Enemy enemy = GetEnemy(index);
-		return enemy != null && !enemy.IsToast ? enemy : GetAllAliveEnemies().FirstOrDefault();
+		return enemy != null && !IsOut(enemy) ? enemy : GetAllAliveEnemies().FirstOrDefault();
 	}
 
 	internal PartyMember SmoothPartyTarget(int index)

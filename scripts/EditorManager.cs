@@ -17,7 +17,6 @@ internal partial class EditorManager : Node
 	private GameModeType EditorMode = GameModeType.Normal;
 	private const int EnemiesTabIdx = 3;
 	private const int BossRushTabIdx = 4;
-	private bool ItemlessBeforeBlackspace;
 	private static readonly string[] RuleChoices = ["Use Global", "On", "Off"];
 	private readonly Dictionary<string, OptionButton> RuleDropdowns = [];
 
@@ -26,11 +25,7 @@ internal partial class EditorManager : Node
 		BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
 		foreach (string skin in Database.GetAllMenuSkinIds())
 			MenuSkinDropdown.AddItem(skin);
-		MenuSkinDropdown.ItemSelected += _ =>
-		{
-			ApplyMenuSkinToItemless();
-			WarnIfNoOneColumnArt();
-		};
+		MenuSkinDropdown.ItemSelected += _ => WarnIfNoOneColumnArt();
 		ItemlessMode.Pressed += WarnIfNoOneColumnArt;
 		LockBGMAndBattleback.Toggled += _ => ApplyChangesLock();
 		foreach (string skin in Database.GetAllWindowSkinIds())
@@ -519,7 +514,6 @@ internal partial class EditorManager : Node
 		ItemlessMode.Disabled = false;
 		ItemlessMode.ButtonPressed = preset.ItemlessMode;
 		MenuSkinDropdown.Selected = Math.Max(0, Database.GetAllMenuSkinIds().ToList().IndexOf(Database.ResolveMenuSkinId(preset.MenuSkin)));
-		ApplyMenuSkinToItemless();
 		Toastless.ButtonPressed = preset.Toastless;
 		WindowSkinDropdown.Selected = Math.Max(0, Database.GetAllWindowSkinIds().ToList().IndexOf(Database.ResolveWindowSkinId(preset.WindowSkin)));
 		foreach ((string key, OptionButton dropdown) in RuleDropdowns)
@@ -672,23 +666,6 @@ internal partial class EditorManager : Node
 			MainMenuManager.Instance.PopulatePresetDropdown(preset.Name);
 			if (preset.Type is GameModeType.Normal)
 				ImportPresetDropdown.AddItem(preset.Name);
-		}
-	}
-
-	private void ApplyMenuSkinToItemless()
-	{
-		if (Database.GetMenuSkin(MenuSkinDropdown.GetItemText(MenuSkinDropdown.Selected)).ForcesItemless)
-		{
-			if (!ItemlessMode.Disabled)
-				ItemlessBeforeBlackspace = ItemlessMode.ButtonPressed;
-			ItemlessMode.ButtonPressed = true;
-			ItemlessMode.Disabled = true;
-		}
-		else if (ItemlessMode.Disabled)
-		{
-			ItemlessMode.Disabled = false;
-			// only update the checkbox if it wasn't already checked manually
-			ItemlessMode.ButtonPressed = ItemlessBeforeBlackspace;
 		}
 	}
 

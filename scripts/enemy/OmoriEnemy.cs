@@ -58,7 +58,7 @@ internal sealed class OmoriEnemy : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral";
+        return emotion.Id is "neutral" or "happy" or "ecstatic" or "manic" or "sad" or "depressed" or "miserable" or "angry" or "enraged" or "furious" or "afraid";
     }
 
     public override BattleCommand ProcessAI()

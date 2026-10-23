@@ -49,6 +49,7 @@ internal static class EmotionsRegistry
 			.WithBlocksActions()
 			.WithDefensiveRate("emotion", 1.5f)
 			.WithDefensiveRate("exploit", 1.5f)
+			.WithDefensiveRate("afraid", 1.5f)
 			.WithAsset(EmotionAsset.Vanilla(12, 3, 2)));
 		AddEmotion(new Emotion("stressed")
 			.WithBlocksActions()

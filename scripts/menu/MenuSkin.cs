@@ -38,7 +38,6 @@ public sealed class MenuSkin
 	/// <summary>Whether the skin has its own one-column ATTACK and SKILL art.</summary>
 	public bool HasOneColumnCommands => OneColumnTexture != null;
 
-	internal bool ForcesItemless { get; init; }
 	internal bool BlackspaceEnergyBar { get; init; }
 
 	/// <summary>

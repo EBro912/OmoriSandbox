@@ -510,6 +510,8 @@ internal static class FarawayRegistry
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] catches you!");
+				BattleManager.Instance.SetCameraOffset(0, -100);
+				BattleManager.Instance.ZoomCamera(2f, 90);
 				AudioManager.Instance.PlaySFX("SE_bs_ghost_moving", pitch: 0.5f, volume: 0.9f);
 				await Wait.AnimationFrames(4);
 				AnimationManager.Instance.InitShake(Shake.FromFlash(255, 100, 5));

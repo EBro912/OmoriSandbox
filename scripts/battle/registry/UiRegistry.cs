@@ -28,10 +28,11 @@ internal static class UiRegistry
 				new Rect2(654, 213, 179, 39), new Rect2(835, 213, 179, 39), new Rect2(654, 254, 179, 39), new Rect2(835, 254, 179, 39),
 				battleAtlas, new Rect2(654, 458, 360, 41), new Rect2(654, 499, 360, 40))
 			.WithOneColumnCommands(oneColumnArt, new Rect2(1, 1, 360, 40), new Rect2(1, 41, 360, 40)));
-		AddBuiltInMenuSkin("Blackspace", new MenuSkin(battleAtlas,
-				new Rect2(654, 131, 179, 39), new Rect2(835, 131, 179, 39), new Rect2(654, 172, 179, 39), new Rect2(835, 172, 179, 39),
+		Texture2D blackspaceCommands = ResourceLoader.Load<Texture2D>("res://assets/system/BattleCommands_BlackSpace.png");
+		AddBuiltInMenuSkin("Blackspace", new MenuSkin(blackspaceCommands,
+				new Rect2(0, 0, 179, 39), new Rect2(181, 0, 179, 39), new Rect2(0, 41, 179, 39), new Rect2(181, 41, 179, 39),
 				battleAtlas, new Rect2(654, 295, 360, 39), new Rect2(654, 335, 360, 40))
-			{ ForcesItemless = true, BlackspaceEnergyBar = true }
+			{ BlackspaceEnergyBar = true }
 			.WithOneColumnCommands(battleAtlas, new Rect2(292, 480, 360, 40), new Rect2(292, 520, 360, 40)));
 		#endregion
 

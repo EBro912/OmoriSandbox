@@ -59,7 +59,7 @@ public sealed class DamageContext
     public int Effectiveness { get; internal set; }
 
     /// <summary>
-    /// The attack element passed to the damage call, such as <c>"exploit"</c>, or null when the attacker's emotion is used.
+    /// The attack element passed to the damage call, such as <c>"sad"</c> or <c>"emotion"</c>, or null when the skill's element or the attacker's emotion is used.
     /// </summary>
     public string AttackElement => Options.AttackElement;
 
@@ -84,7 +84,10 @@ public sealed class DamageContext
     /// </summary>
     public bool IsReflected { get; }
 
-    internal string Element { get; }
+    /// <summary>
+    /// The element the hit resolved to: the damage call's <see cref="AttackElement"/>, else the running skill's element, else the attacker's emotion group, or null.
+    /// </summary>
+    public string Element { get; }
 
     internal DamageContext(Actor attacker, Actor defender, DamageOptions options, bool isJuice, string element, bool isReflected)
     {

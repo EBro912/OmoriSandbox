@@ -219,6 +219,7 @@ internal static class EquipmentRegistry
 			// vanilla force-casts OBSERVE on a random enemy for every wearer at battle start
 			Enemy target = BattleManager.Instance.GetRandomAliveEnemy();
 			await Wait.Milliseconds(1000);
+			BattleManager.Instance.RecordLastTarget(actor, target);
 			await Skills["Observe"].Effect(actor, [target]);
 		});
 

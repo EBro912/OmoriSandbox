@@ -28,7 +28,7 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 
 	public void ApplySkin(MenuSkin skin)
 	{
-		if (Itemless || skin.ForcesItemless)
+		if (Itemless)
 		{
 			SetColumnLayout(skin.HasOneColumnCommands ? skin : Database.GetMenuSkin(Database.DefaultMenuSkin));
 			return;

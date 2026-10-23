@@ -55,7 +55,8 @@ public sealed record DamageOptions
     /// Overrides the attacker's emotion "element" in the advantage calculation.
     /// </summary>
     /// <remarks>
-    /// Currently only <c>"exploit"</c> is supported, used by Perfectheart's EXPLOIT to always deal advantage damage.
+    /// Use <c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's emotion group id, <c>"emotion"</c> (also <c>"exploit"</c>) for a hit that is strong against every emotion, or <c>"afraid"</c>.
+    /// It also overrides the running skill's <see cref="Skill.Element"/>.
     /// </remarks>
     public string AttackElement { get; init; }
 

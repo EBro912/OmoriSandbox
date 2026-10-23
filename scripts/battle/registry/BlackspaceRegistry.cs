@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Editor;
 using OmoriSandbox.Modding;
 
 namespace OmoriSandbox.Battle.Registry;
@@ -184,9 +185,10 @@ internal static class BlackspaceRegistry
 					.FirstOrDefault(x => x is { IsToast: false, Phase: >= 5, CanChangeBGM: true });
 				await Wait.Frames(60);
 				owner?.FadeBGM(0.001f, 6f);
-				Task fade = Wait.Frames(360);
 				await AnimationManager.Instance.WaitForTintOverlay(Colors.White, 90 / 60f, layer: 22);
-				await fade;
+				await Wait.Frames(360);
+				if (SettingsMenuManager.Instance.PlayFinalDuet)
+					await AnimationManager.Instance.WaitForVideoInternal("res://assets/movies/final_duet.ogv", layer: 100);
 				BattleManager.Instance.PlayMode = false;
 				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
 				{

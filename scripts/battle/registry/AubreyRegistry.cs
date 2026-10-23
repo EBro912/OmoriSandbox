@@ -84,6 +84,7 @@ internal static class AubreyRegistry
 				BattleLogManager.Instance.QueueMessage(target, "[actor] readies her bat!");
 				target.AddStatModifier("Taunt");
 				target.AddStatModifier("AubreyCounter");
+				target.AddStatModifier("CharmCheck", silent: true);
 				await Task.CompletedTask;
 			},
 			priority: 2000

@@ -69,6 +69,7 @@ public partial class AnimationManager : Node
 	private const int IntroDrawingFrames = 10;
 	private const int IntroLastDrawing = 21;
 
+	internal BattleCamera Camera { get; } = new();
 	private float Shake = 0f;
 	private float ShakePwr = 0f;
 	private float ShakeSpd = 0f;
@@ -497,7 +498,9 @@ public partial class AnimationManager : Node
 			UpdateShake();
 		}
 		
-		BattlebackRoot.Position = new Vector2((float)Math.Round(Shake), 0);
+		Camera.Tick();
+		BattlebackRoot.Scale = new Vector2(Camera.Scale, Camera.Scale);
+		BattlebackRoot.Position = Camera.FieldPosition() + new Vector2((float)Math.Round(Shake), 0);
 
 		foreach (PlayingAnimation playing in PlayingAnimations)
 		{
@@ -819,6 +822,35 @@ public partial class AnimationManager : Node
 			return null;
 		}
 		return player;
+	}
+
+	internal async Task WaitForVideoInternal(string path, int layer = 0, float volume = 1f)
+	{
+		if (!path.EndsWith(".ogv", StringComparison.OrdinalIgnoreCase))
+			GD.PushWarning("Videos should be .ogv files, " + path + " may not play correctly!");
+		VideoStreamPlayer player = new()
+		{
+			Stream = new VideoStreamTheora { File = path },
+			Size = new Vector2(640, 480),
+			Expand = true,
+			Volume = Math.Clamp(volume, 0f, 2f),
+			Bus = "SFX",
+			ZIndex = layer
+		};
+		AddChild(player);
+		player.Play();
+		if (!player.IsPlaying())
+		{
+			GD.PrintErr("Failed to play video: " + path);
+			player.QueueFree();
+			return;
+		}
+		
+		await ToSignal(player, VideoStreamPlayer.SignalName.Finished);
+		if (IsInstanceValid(player))
+		{
+			player.QueueFree();
+		}
 	}
 
 	/// <summary>
@@ -1248,6 +1280,7 @@ public partial class AnimationManager : Node
 
 	internal void ResetScreenEffects()
 	{
+		Camera.ResetInstant();
 		StopScreenToneTween();
 		BelowUI = false;
 		UIToneDimmed = false;

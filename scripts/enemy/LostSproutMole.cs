@@ -12,7 +12,7 @@ internal sealed class LostSproutMole : Enemy
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/sprout_mole.tres");
 
     protected override Stats Stats => new(170, 75, 22, 10, 13, 5, 95);
-	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround"];
+	protected override string[] EquippedSkills => ["LSMAttack", "LSMDoNothing", "LSMRunAround", "SESAttack", "SESBreadRoll"];
 	protected internal override bool ObserveHasMulti => true;
 
 	public override bool IsEmotionValid(Emotion emotion)
@@ -21,11 +21,14 @@ internal sealed class LostSproutMole : Enemy
 	}
     public override BattleCommand ProcessAI()
     {
+	    // VANILLA BUG: the angry entry's observe lines use SESAME's ATTACK and BREAD ROLL
 	    if (HasMultiTargetObserve())
-		    return new BattleCommand(this, SelectTargets(1), Skills["LSMRunAround"]);
+		    return CurrentEmotion.Id == "angry"
+			    ? new BattleCommand(this, SelectAllTargets(), Skills["SESBreadRoll"])
+			    : new BattleCommand(this, SelectTargets(1), Skills["LSMRunAround"]);
 	    
 	    if (HasObserveTarget(out PartyMember observe))
-		    return new BattleCommand(this, observe, Skills["LSMAttack"]);
+		    return new BattleCommand(this, observe, Skills[CurrentEmotion.Id == "angry" ? "SESAttack" : "LSMAttack"]);
 		
 		switch (CurrentEmotion.Id)
 		{

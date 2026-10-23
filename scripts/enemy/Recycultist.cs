@@ -8,8 +8,9 @@ namespace OmoriSandbox.Actors;
 internal sealed class Recycultist : Enemy
 {
     public override string Name => "RECYCULTIST";
-    public override Vector2 InfoBoxOffset => new(0, -255);
-    public override bool InfoBoxCursorAboveBox => true;
+    // VANILLA BUG: the emotion entries have no info box offsets, so the box sits at the feet with the finger below
+    public override Vector2 InfoBoxOffset => CurrentEmotion.Group == null ? new(0, -255) : Vector2.Zero;
+    public override bool InfoBoxCursorAboveBox => CurrentEmotion.Group == null;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/recycultist_{(FacingLeft ? "left" : "right")}.tres");
 
     // instead of making an entire other enemy for the right facing animation

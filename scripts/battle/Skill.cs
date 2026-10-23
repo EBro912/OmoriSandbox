@@ -39,6 +39,15 @@ public class Skill : BattleAction
 	private readonly List<string> PassiveModifiers = [];
 
 	/// <summary>
+	/// The emotion element this skill's hits use, or null for the user's current emotion.
+	/// </summary>
+	/// <remarks>
+	/// Use <c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's emotion group id for that group's element, <c>"emotion"</c> (also <c>"exploit"</c>) for a hit that is strong against every emotion, or <c>"afraid"</c>.
+	/// It applies to the user's hits during the skill's setup and effect. A damage call's <c>attackElement</c> overrides it. Element names are compared as written, so use the lowercase ids.
+	/// </remarks>
+	public string Element { get; }
+
+	/// <summary>
 	/// Whether the given <param name="actor"> meets the requirements to use this skill.</param>
 	/// </summary>
 	/// <remarks>
@@ -189,12 +198,14 @@ public class Skill : BattleAction
 	/// <param name="priority">The skill's speed, added to the user's SPD for turn order.</param>
 	/// <param name="showFollowups">Whether this skill causes the followup bubbles to appear.</param>
 	/// <param name="setup">Optional code that runs before the skill applies, like an RPG Maker <c>setup action</c>.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, int priority = 0, bool showFollowups = false, Func<Actor, Actor, Task> setup = null)
+	/// <param name="element">Optional emotion element of this skill's hits, see <see cref="Element"/>.</param>
+	public Skill(string name, string description, SkillTarget target, Func<Actor, Actor, Task> effect, int cost, bool hidden = false, int priority = 0, bool showFollowups = false, Func<Actor, Actor, Task> setup = null, string element = null)
 		: base(name, description, target, priority, effect, setup)
 	{
 		BaseCost = cost;
 		Hidden = hidden;
 		ShowFollowups = showFollowups;
+		Element = element;
 	}
 	
 	/// <summary>
@@ -209,12 +220,14 @@ public class Skill : BattleAction
 	/// <param name="priority">The skill's speed, added to the user's SPD for turn order.</param>
 	/// /// <param name="showFollowups">Whether this skill causes the followup bubbles to appear.</param>
 	/// <param name="setup">Optional code that runs before the skill applies, like an RPG Maker <c>setup action</c>.</param>
-	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, int priority = 0, bool showFollowups = false, Func<Actor, IReadOnlyList<Actor>, Task> setup = null)
+	/// <param name="element">Optional emotion element of this skill's hits, see <see cref="Element"/>.</param>
+	public Skill(string name, string description, SkillTarget target, Func<Actor, IReadOnlyList<Actor>, Task> effect, int cost, bool hidden = false, int priority = 0, bool showFollowups = false, Func<Actor, IReadOnlyList<Actor>, Task> setup = null, string element = null)
 		: base(name, description, target, priority, effect, setup)
 	{
 		BaseCost = cost;
 		Hidden = hidden;
 		ShowFollowups = showFollowups;
+		Element = element;
 	}
 
 	/// <summary>

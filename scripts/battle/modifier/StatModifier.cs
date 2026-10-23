@@ -237,8 +237,8 @@ public class StatModifier
     /// Makes the defender recover HP (or JUICE) from hits instead of taking them.
     /// </summary>
     /// <remarks>
-    /// Attack elements are emotion group ids (<c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's group) and <c>"exploit"</c>.
-    /// With no elements, every hit is absorbed. Hits from a neutral attacker have no element.
+    /// Attack elements are emotion group ids (<c>"happy"</c>, <c>"sad"</c>, <c>"angry"</c> or a mod's group), <c>"afraid"</c>, and <c>"emotion"</c> (also <c>"exploit"</c>, the two match each other).
+    /// With no elements, every hit is absorbed. A hit has no element only when neither the damage call nor the skill names one and the attacker is neutral.
     /// When one modifier absorbs a hit and another reflects it, absorbing wins.
     /// An absorbed hit triggers <see cref="BattleManager.Healed"/>, with the attacker as the healer, and not <see cref="BattleManager.DamageDealt"/>.
     /// </remarks>
@@ -263,14 +263,21 @@ public class StatModifier
         return this;
     }
 
+    private static bool Matches(HashSet<string> elements, string element)
+    {
+        if (elements.Contains(element))
+            return true;
+        return BattleManager.IsEmotionElement(element) && (elements.Contains("emotion") || elements.Contains("exploit"));
+    }
+
     internal bool Absorbs(string element)
     {
-        return AbsorbElements != null && (AbsorbElements.Count == 0 || (element != null && AbsorbElements.Contains(element)));
+        return AbsorbElements != null && (AbsorbElements.Count == 0 || (element != null && Matches(AbsorbElements, element)));
     }
 
     internal bool Reflects(string element)
     {
-        return ReflectElements != null && (ReflectElements.Count == 0 || (element != null && ReflectElements.Contains(element)));
+        return ReflectElements != null && (ReflectElements.Count == 0 || (element != null && Matches(ReflectElements, element)));
     }
 
     internal virtual StateIcon[] GetStateIcons()

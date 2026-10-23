@@ -376,12 +376,13 @@ internal static class UnderwaterHighwayRegistry
 			 description: "PHExploitEmotion",
 			 target: SkillTarget.Enemy,
 			 cost: 0,
+			 element: "emotion",
 			 effect: async (self, target) =>
 			 {
 				 await AnimationManager.Instance.WaitForAnimation(124, target);
 				 BattleLogManager.Instance.QueueMessage(self, target, "[actor] exploits [target]'s\nEMOTIONS!");
 				 // vanilla implements EXPLOIT as an attack with the EMOTION element; the attacker keeps their own emotion stats
-				 BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0f, neverCrit: true, attackElement: "exploit");
+				 BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0f, neverCrit: true);
 			 }
 		);
 

@@ -15,7 +15,7 @@ internal sealed class PlutoExpanded : Enemy
     public override SpriteFrames Animation =>
         ResourceLoader.Load<SpriteFrames>("res://animations/pluto_expanded.tres");
     protected override Stats Stats => new(3000, 1500, 52, 32, 22, 10, 95);
-    protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEExpandFurther", "PEEarthsFinale"];
+    protected override string[] EquippedSkills => ["PEAttack", "PESubmissionHold", "PEHeadbutt", "PEDoNothing", "PEExpandFurther", "PEExpandFurtherChest", "PEEarthsFinale"];
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -58,7 +58,7 @@ internal sealed class PlutoExpanded : Enemy
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, "You have all gotten stronger.");
             DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"But...\! so have I.");
             await DialogueManager.Instance.WaitForDialogue();
-            BattleManager.Instance.ForceCommand(this, this, Skills["PEExpandFurther"]);
+            BattleManager.Instance.ForceCommand(this, this, Skills["PEExpandFurtherChest"]);
             HasSpoken = true;
         }
     }

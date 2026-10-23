@@ -59,21 +59,13 @@ internal class ModdedEnemy : Enemy
             return new BattleCommand(this, this, new EmptyAction());
         }
         
-        PartyMember observed = ObserveTarget;
-        bool observedAll = ObserveMultiTarget;
-        if (!PreRolling)
-        {
-            ObserveTarget = null;
-            ObserveMultiTarget = false;
-        }
-
         foreach (JsonEnemyAIEntry entry in data.Entries)
         {
-            if (observedAll && entry.Skill == JsonEnemy.ObserveMultiSkill)
+            if (entry.Skill == JsonEnemy.ObserveMultiSkill && HasMultiTargetObserve())
                 if (TryUseSkill(entry, out BattleCommand command))
                     return command;
 
-            if (observed != null && entry.Skill == JsonEnemy.ObserveSingleSkill)
+            if (entry.Skill == JsonEnemy.ObserveSingleSkill && HasObserveTarget(out PartyMember observed))
                 if (TryUseSkill(entry, out BattleCommand command, observed))
                     return command;
 

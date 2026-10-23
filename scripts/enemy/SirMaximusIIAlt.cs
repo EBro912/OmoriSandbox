@@ -16,6 +16,11 @@ internal sealed class SirMaximusIIAlt : Enemy
 
     protected override Stats Stats => new(3500, 2000, 70, 95, 70, 10, 95);
 
+    public override Stats GetBaseStats()
+    {
+        return (CurrentEmotion.Group == null ? Stats : new Stats(3500, 1500, 70, 95, 70, 10, 95)) + AdjustedStats;
+    }
+
     protected override string[] EquippedSkills => ["SMIAttack", "SMIIDoNothing", "SMIStrikeTwice", "SMIISpin", "SMUltimateAttack"];
     protected internal override bool ObserveHasMulti => true;
 

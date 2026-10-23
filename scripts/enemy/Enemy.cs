@@ -145,8 +145,9 @@ public abstract class Enemy : Actor
 	/// </summary>
 	/// <remarks>
 	/// This only includes alive party members by default. The member who charmed this enemy comes first, then a taunting party member.
-	/// Taunts are ignored while this enemy has the <c>"ObserveIgnoreTaunt"</c> stat modifier, which OBSERVE usually gives the enemy it targets.
+	/// Taunts are ignored while this enemy has the <c>"ObserveIgnoreTaunt"</c> stat modifier, which OBSERVE gives the enemy at the observing member's last target.
 	/// A charmed enemy's single-target skill aimed at the party goes to the member who charmed it when the skill runs, whatever target it was given.
+	/// An enemy with that modifier sends its single-target attacks on the party to the observing member for its next two actions, unless the exception in <see cref="ObserveStatModifier"/>'s remarks holds.
 	/// </remarks>
 	/// <returns>The <see cref="PartyMember"/> that will be targeted.</returns>
 	protected virtual PartyMember SelectTarget()
@@ -329,7 +330,8 @@ public abstract class Enemy : Actor
 	/// <remarks>
 	/// Return null to take no action. That action is skipped, and once the enemy has no actions left the turn goes on with the next actor.<br/>
 	/// An enemy with more than one action this turn (see <see cref="Actor.ActionTimes"/>) is asked again for each action, and returning null uses up that action. It's also asked again right after it uses an instant skill that doesn't use up an action (see <see cref="Skill.WithInstantCast"/>).
-	/// Unless something changed <see cref="Actor.RemainingActions"/> this turn, <c>ActionTimes - RemainingActions</c> is the number of actions it has already taken this turn.
+	/// Unless something changed <see cref="Actor.RemainingActions"/> this turn, <c>ActionTimes - RemainingActions</c> is the number of actions it has already taken this turn.<br/>
+	/// Not called while none of the enemy's skills can be used, such as while AFRAID. A skill made usable with <see cref="Skill.WithCustomRequirement"/> keeps the AI running.
 	/// </remarks>
 	/// <returns>The <see cref="BattleCommand"/> that the enemy will perform on their turn, or null for no action.</returns>
 	public abstract BattleCommand ProcessAI();
@@ -563,14 +565,18 @@ public abstract class Enemy : Actor
 	internal bool HasMultiTargetPartySkill =>
 		Skills.Values.Any(x => x.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
 	/// <summary>
-	/// Vanilla's <c>Passive State: 184</c> "Observe: Has Multi". Only these enemies can be the one OBSERVE
-	/// reports as having "eyes on everyone". The party-wide prediction it creates is read by every enemy's AI.
+	/// Whether this enemy can be the one OBSERVE reports as having its eyes on everyone.
 	/// </summary>
+	/// <remarks>
+	/// Only the first four enemy slots are checked, in order, defeated enemies included. When OBSERVE rolls its multi-target branch,
+	/// the first enemy found logs the line and every living party member is marked, which every enemy's <see cref="HasMultiTargetObserve"/> reads.
+	/// If that enemy is defeated or has escaped, OBSERVE marks nobody. With none in those slots, OBSERVE takes its single-target branch instead.
+	/// </remarks>
 	protected internal virtual bool ObserveHasMulti => false;
 
 	/// <summary>
 	/// True while <see cref="BattleManager"/> evaluates <see cref="ProcessAI"/> for turn ordering only.
-	/// <see cref="ProcessAI"/> must not change state, consume predictions or queue actions while this is set.
+	/// <see cref="ProcessAI"/> must not change state or queue actions while this is set.
 	/// </summary>
 	/// <remarks>
 	/// In vanilla OMORI, enemy AI is rolled at the start of the turn, again whenever the enemy's emotion group changes
@@ -599,6 +605,8 @@ public abstract class Enemy : Actor
 
 	private bool EmotionRerolling;
 
+	internal bool HasUsableSkill => Skills.Values.Any(CanUse);
+
 	internal void PreRollTurnPriority(bool emotionReroll = false)
 	{
 		PreRolling = true;
@@ -606,7 +614,7 @@ public abstract class Enemy : Actor
 		HasPreRolledAction = true;
 		try
 		{
-			TurnPriority = ProcessAI()?.Action.Priority ?? 0;
+			TurnPriority = HasUsableSkill ? (ProcessAI()?.Action.Priority ?? 0) : 0;
 		}
 		finally
 		{
@@ -634,6 +642,27 @@ public abstract class Enemy : Actor
 	/// Called when the enemy is defeated, right before it becomes toast.
 	/// </summary>
 	public virtual async Task OnDefeat() { await Task.CompletedTask; }
+
+	/// <summary>
+	/// Whether this enemy escaped from the battle.
+	/// </summary>
+	public bool HasEscaped { get; private set; }
+
+	/// <summary>
+	/// Makes this enemy leave the battle without being defeated.
+	/// </summary>
+	/// <remarks>
+	/// The enemy will still exist in the enemy list, even after fading out. Use <see cref="HasEscaped"/> to check if this is the case.
+	/// </remarks>
+	public async Task Escape()
+	{
+		if (IsToast || HasEscaped || Component == null)
+			return;
+		HasEscaped = true;
+		RemoveAllStatModifiers(force: true);
+		Component.ShowInfoBox(false);
+		await Component.FadeOutForEscape();
+	}
 
 	/// <summary>
 	/// Gives this enemy IMMORTAL. It can drop to 0 HP, but it doesn't die until <see cref="RemoveImmortal"/> is called.
@@ -693,40 +722,37 @@ public abstract class Enemy : Actor
 		return true;
 	}
 
-	internal PartyMember ObserveTarget;
-	internal bool ObserveMultiTarget;
-	internal bool ObserveSetThisTurn;
-
 	/// <summary>
-	/// Whether this enemy is currently observing a target.
+	/// Whether a party member is marked by a single-target OBSERVE.
 	/// </summary>
-	/// <param name="target">The observed target, if any.</param>
-	/// <returns>True if <paramref name="target"/> is not null.</returns>
+	/// <remarks>
+	/// Each call picks one of the living marked party members at random. Reading the mark doesn't use it up: it lasts until the end of
+	/// the turn after the one OBSERVE was used in, so every enemy's check passes on every action in that time.
+	/// </remarks>
+	/// <param name="target">A random marked party member, or null if none is marked.</param>
+	/// <returns>True if a living party member is marked.</returns>
 	protected bool HasObserveTarget(out PartyMember target)
 	{
-		target = ObserveTarget;
-		if (ObserveTarget == null) 
+		List<PartyMember> marked = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.HasStatModifier("ObserveSingle"));
+		if (marked.Count == 0)
+		{
+			target = null;
 			return false;
-		if (PreRolling)
-			return true;
-		ObserveTarget = null;
-		ObserveMultiTarget = false;
+		}
+		target = marked[GameManager.Instance.Random.RandiRange(0, marked.Count - 1)];
 		return true;
-
 	}
 
 	/// <summary>
-	/// Whether this enemy is currently observing everyone.
+	/// Whether the party is marked by a multi-target OBSERVE.
 	/// </summary>
-	/// <returns>True if the enemy is observing everyone.</returns>
+	/// <remarks>
+	/// Reading the mark doesn't use it up: it lasts until the end of the turn after the one OBSERVE was used in,
+	/// so every enemy's check passes on every action in that time. See <see cref="ObserveHasMulti"/>.
+	/// </remarks>
+	/// <returns>True if a living party member is marked.</returns>
 	protected bool HasMultiTargetObserve()
 	{
-		if (!ObserveMultiTarget)
-			return false;
-		if (PreRolling)
-			return true;
-		ObserveTarget = null;
-		ObserveMultiTarget = false;
-		return true;
+		return BattleManager.Instance.GetAlivePartyMembers().Any(x => x.HasStatModifier("ObserveMulti"));
 	}
 }

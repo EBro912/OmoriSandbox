@@ -59,6 +59,9 @@ public sealed class Emotion
 	/// <summary>
 	/// Defensive damage multipliers against specific attack elements by element id.<br/>
 	/// </summary>
+	/// <remarks>
+	/// A key is an emotion group id (that group's element), <c>"emotion"</c> (every group element that has no key of its own), <c>"exploit"</c> (the EMOTION element, also named <c>"emotion"</c>), <c>"afraid"</c> (the AFRAID element), or any custom element name a skill uses.
+	/// </remarks>
 	public IReadOnlyDictionary<string, float> DefensiveRateOverrides => Rates;
 	private readonly Dictionary<string, float> Rates = [];
 
@@ -177,6 +180,9 @@ public sealed class Emotion
 	/// <summary>
 	/// Sets a defensive damage multiplier against a specific attack element. See <see cref="DefensiveRateOverrides"/>.
 	/// </summary>
+	/// <remarks>
+	/// The element is an emotion group id (that group's element), <c>"emotion"</c> (every group element that has no key of its own), <c>"exploit"</c> (the EMOTION element, also named <c>"emotion"</c>), <c>"afraid"</c> (the AFRAID element), or any custom element name a skill uses.
+	/// </remarks>
 	public Emotion WithDefensiveRate(string elementId, float multiplier)
 	{
 		if (Frozen())

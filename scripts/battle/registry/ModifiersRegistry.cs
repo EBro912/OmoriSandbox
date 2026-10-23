@@ -80,7 +80,10 @@ internal static class ModifiersRegistry
 		Modifiers.Add("HitRateDown", () => new StatModifier(2, new StatBonus(StatType.HIT, -55)));
 		Modifiers.Add("PhotographHitRateDown", () => new StatModifier(1, new StatBonus(StatType.HIT, -25)));
 		Modifiers.Add("Charm", () => new CharmStatModifier(1).WithActionEndTicking());
-		Modifiers.Add("ObserveIgnoreTaunt", () => new StatModifier(2).WithActionEndTicking());
+		Modifiers.Add("ObserveIgnoreTaunt", () => new ObserveStatModifier(2).WithActionEndTicking());
+		Modifiers.Add("ObserveSingle", () => new StatModifier(2));
+		Modifiers.Add("ObserveMulti", () => new StatModifier(2));
+		Modifiers.Add("CharmCheck", () => new StatModifier(1));
 		Modifiers.Add("SpaceExHusbandBlock", () => new SpaceExHusbandStatModifier());
 		Modifiers.Add("Stockpile", () => new TierStatModifier().WithMaxTier(3));
 		Modifiers.Add("PlutoCharging", () => new StatModifier(2, new StatBonus(StatType.DEF, 3f)));

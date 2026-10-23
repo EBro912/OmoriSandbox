@@ -55,6 +55,7 @@ internal static class HeroRegistry
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] draws [target]'s\nattention.");
 				RemoveObserveIgnoreTaunt();
+				self.AddStatModifier("CharmCheck", silent: true);
 				await AnimationManager.Instance.WaitForScreenAnimation(90, false);
 				target.AddStatModifier("Charm");
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier charmMod) &&

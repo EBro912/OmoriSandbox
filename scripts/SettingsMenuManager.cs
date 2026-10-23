@@ -296,6 +296,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ShowMoreInfo", ShowMoreInfoCheckbox.ButtonPressed);
 		config.SetValue("Settings", "ShowStateIcons", ShowStateIconsCheckbox.ButtonPressed);
 		config.SetValue("Settings", "EnemySelectionWrapping", EnemySelectionWrappingCheckbox.ButtonPressed);
+		config.SetValue("Settings", "PlayFinalDuet", PlayFinalDuetCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SelectionHoldTime", SelectionHoldTimeSlider.Value);
 		config.SetValue("Settings", "SelectionChangeSpeed", SelectionChangeSpeedSlider.Value);
 		config.SetValue("Settings", "UseConsoleSpd", UseConsoleSpdCheckbox.ButtonPressed);
@@ -376,6 +377,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "ShowMoreInfo", false);
 		config.SetValue("Settings", "ShowStateIcons", false);
 		config.SetValue("Settings", "EnemySelectionWrapping", false);
+		config.SetValue("Settings", "PlayFinalDuet", false);
 		config.SetValue("Settings", "SelectionHoldTime", 0.4d);
 		config.SetValue("Settings", "SelectionChangeSpeed", 0.1d);
 		config.SetValue("Settings","UseConsoleSpd", false);
@@ -544,9 +546,6 @@ public partial class SettingsMenuManager : Control
 	public bool SpaceExHusbandReleaseEnergy => Rule("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox);
 	public bool ReleaseEnergyAnyParty => Rule("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox);
 	public bool PerTargetBuffTiers => Rule("PerTargetBuffTiers", PerTargetBuffTiersCheckbox);
-	/// <summary>
-	/// Whether enemies that end the battle early in the base game end it here too, instead of being defeated.
-	/// </summary>
 	public bool AllowEnemyAbort => Rule("AllowEnemyAbort", AllowEnemyAbortCheckbox);
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
 	public bool CombinedAccuracy => Rule("CombinedAccuracy", CombinedAccuracyCheckbox);
@@ -557,6 +556,7 @@ public partial class SettingsMenuManager : Control
 	public bool InstantDialogue => DialogueSpeedSlider.Value >= DialogueSpeedSlider.MaxValue;
 	public bool TextSkip => TextSkipCheckbox.ButtonPressed;
 	public bool EnemySelectionWrapping => EnemySelectionWrappingCheckbox.ButtonPressed;
+	public bool PlayFinalDuet => PlayFinalDuetCheckbox.ButtonPressed;
 	public double SelectionHoldTime => SelectionHoldTimeSlider.Value;
 	public double SelectionChangeSpeed => SelectionChangeSpeedSlider.Value;
 	public double RestartHoldTime => RestartHoldTimeSlider.Value;
@@ -585,6 +585,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox ShowMoreInfoCheckbox;
 	[Export] private CheckBox ShowStateIconsCheckbox;
 	[Export] private CheckBox EnemySelectionWrappingCheckbox;
+	[Export] private CheckBox PlayFinalDuetCheckbox;
 	[Export] private HSlider SelectionHoldTimeSlider;
 	[Export] private Label SelectionHoldTimeLabel;
 	[Export] private HSlider SelectionChangeSpeedSlider;
