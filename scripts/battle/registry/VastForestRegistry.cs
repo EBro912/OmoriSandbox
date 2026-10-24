@@ -19,6 +19,7 @@ internal static class VastForestRegistry
 		Enemies.Add("KiteKid (Epilogue)", () => new KiteKidAlt());
 		Enemies.Add("KidsKite", () => new KidsKite());
 		Enemies.Add("KidsKite (Epilogue)", () => new KidsKiteAlt());
+		Enemies.Add("ForestBunny", () => new ForestBunny());
 
 		// FOREST BUNNY? //
 		Skills["FBQAttack"] = new Skill(
@@ -238,6 +239,71 @@ internal static class VastForestRegistry
 					BattleManager.Instance.Damage(self, member,
 						() => self.CurrentStats.ATK * 2 - member.CurrentStats.DEF, false);
 				}
+			}
+		);
+
+		// FOREST BUNNY //
+		Skills["FBAttack"] = new Skill(
+			name: "FBAttack",
+			description: "FBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] nibbles at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["FBDoNothing"] = new Skill(
+			name: "FBDoNothing",
+			description: "FBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_falls_over", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is hopping around!");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["FBBeCute"] = new Skill(
+			name: "FBBeCute",
+			description: "FBBeCute",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				target.AddStatModifier("AttackDown", silent: true);
+				await AnimationManager.Instance.WaitForAnimation(148, self);
+				await AnimationManager.Instance.WaitForAnimation(215, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target]!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s ATTACK fell...");
+			}
+		);
+
+		Skills["FBSadEyes"] = new Skill(
+			name: "FBSadEyes",
+			description: "FBSadEyes",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks sadly at [target].");
+				bool canBeSad = target.IsEmotionValid("sad");
+				BattleManager.Instance.MakeSad(target, silent: true);
+				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardless of the tier the target reaches
+				if (canBeSad)
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels SAD.");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "sad");
+				await Task.CompletedTask;
+			},
+			setup: async (self, _) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(149, self);
 			}
 		);
 	}

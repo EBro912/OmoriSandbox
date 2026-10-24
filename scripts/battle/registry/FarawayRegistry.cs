@@ -24,6 +24,8 @@ internal static class FarawayRegistry
 		Enemies.Add("Vance", () => new Vance());
 		Enemies.Add("TheHooligans", () => new TheHooligans());
 		Enemies.Add("Jackson", () => new Jackson());
+		Enemies.Add("Wasp", () => new Wasp());
+		Enemies.Add("Housefly", () => new Housefly());
 
 		// AUBREY (Enemy) //
 
@@ -290,7 +292,7 @@ internal static class FarawayRegistry
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				// VANILLA BUG: prints the success text even when the emotion is blocked
+				// DIALOGUE QUIRK: prints the success text even when the emotion is blocked
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of\n[target]!\n[target] feels ANGRY!");
 				if (target.CurrentEmotion.Group?.Id != "angry")
 					target.SetEmotion("angry", true);
@@ -344,7 +346,7 @@ internal static class FarawayRegistry
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				// VANILLA BUG: prints the success text even when the emotion is blocked
+				// DIALOGUE QUIRK: prints the success text even when the emotion is blocked
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] starts making fun of [target]!\n[target] feels SAD.");
 				if (target.CurrentEmotion.Group?.Id != "sad")
 					target.SetEmotion("sad", true);
@@ -403,7 +405,7 @@ internal static class FarawayRegistry
 			cost: 0,
 			effect: async (self, target) =>
 			{
-				// VANILLA BUG: prints the success text even when the emotion is blocked
+				// DIALOGUE QUIRK: prints the success text even when the emotion is blocked
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] said mean things about [target]!\n[target] feels SAD.");
 				if (target.CurrentEmotion.Group?.Id != "sad")
 					target.SetEmotion("sad", true);
@@ -522,6 +524,94 @@ internal static class FarawayRegistry
 				await Wait.Frames(34);
 				foreach (Actor target in targets)
 					BattleManager.Instance.Damage(self, target, () => 999, neverMiss: false, 0f, neverCrit: true);
+			}
+		);
+
+		// WASP //
+		Skills["WSPAttack"] = new Skill(
+			name: "WSPAttack",
+			description: "WSPAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] stings [target].");
+				BattleManager.Instance.Damage(self, target, () => 15, false, 0.25f, neverCrit: true);
+			}
+		);
+
+		Skills["WSPDoNothing"] = new Skill(
+			name: "WSPDoNothing",
+			description: "WSPDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] flies around quickly!");
+				await Task.CompletedTask;
+			}
+		);
+
+		// HOUSEFLY //
+		Skills["HFAttack"] = new Skill(
+			name: "HFAttack",
+			description: "HFAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				AnimationManager.Instance.PlayAnimation(122, target);
+				await Wait.Frames(60);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] landed on [target]'s face.");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] slaps themself in the face!");
+				BattleManager.Instance.Damage(self, target, () => 1, false, 0f, neverCrit: true);
+			},
+			setup: async (_, _) =>
+			{
+				AudioManager.Instance.PlaySFX("ba_bug_buzz", 1f, 0.8f);
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["HFDoNothing"] = new Skill(
+			name: "HFDoNothing",
+			description: "HFDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] buzzes around quickly!");
+				await Task.CompletedTask;
+			},
+			setup: async (_, _) =>
+			{
+				AudioManager.Instance.PlaySFX("ba_bug_buzz", 1f, 0.8f);
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["HFAnnoy"] = new Skill(
+			name: "HFAnnoy",
+			description: "HFAnnoy",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] buzzes around [target]'s ear!");
+				bool canBeAngry = target.IsEmotionValid("angry");
+				BattleManager.Instance.MakeAngry(target, silent: true);
+				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
+				if (canBeAngry)
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+				await Task.CompletedTask;
+			},
+			setup: async (_, _) =>
+			{
+				AudioManager.Instance.PlaySFX("ba_bug_buzz", 1f, 1f);
+				await Task.CompletedTask;
 			}
 		);
 	}

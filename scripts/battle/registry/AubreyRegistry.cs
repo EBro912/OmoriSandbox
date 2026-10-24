@@ -369,7 +369,7 @@ internal static class AubreyRegistry
 				AnimationManager.Instance.PlayScreenAnimation(38, false);
 				await Wait.Milliseconds(2000);
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] eggs [actor] on!");
-				// VANILLA BUG: always prints the tier-1 ANGRY line, whatever tier the user reaches, even when the add changed nothing
+				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line, whatever tier the user reaches, even when the add changed nothing
 				BattleManager.Instance.MakeAngry(self, silent: true);
 				BattleLogManager.Instance.QueueMessage(self, "[actor] feels ANGRY!");
 			},
@@ -449,7 +449,7 @@ internal static class AubreyRegistry
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] tells [actor] to focus!");
 				self.AddStatModifier("DefenseUp", silent: true);
 				BattleManager.Instance.MakeHappy(self);
-				// VANILLA BUG: prints the DEFENSE line even when the stat is already at its limit
+				// DIALOGUE QUIRK: prints the DEFENSE line even when the stat is already at its limit
 				BattleLogManager.Instance.QueueMessage(self, "[actor]'s DEFENSE rose!!");
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
@@ -511,14 +511,14 @@ internal static class AubreyRegistry
 				int juiceBefore = self.CurrentJuice;
 				self.Heal(BattleManager.PercentOf(self.CurrentStats.MaxHP, 75));
 				self.HealJuice(BattleManager.PercentOf(self.CurrentStats.MaxJuice, 50));
-				// VANILLA BUG: prints the success line even when the stat is already at its limit
+				// DIALOGUE QUIRK: prints the success line even when the stat is already at its limit
 				self.AddTierStatModifier("DefenseUp", 3);
 				QueueEmotionLine(self, "happy", lookHero3Ecstatic);
 				int heal = self.CurrentHP - hpBefore;
 				if (heal > 0)
 					BattleLogManager.Instance.QueueMessage(self, $"[actor] recovers {heal} HEART!");
 				int juice = self.CurrentJuice - juiceBefore;
-				// VANILLA BUG: the JUICE line is skipped when the target had no JUICE before the heal
+				// DIALOGUE QUIRK: the JUICE line is skipped when the target had no JUICE before the heal
 				if (juiceBefore > 0 && juice > 0)
 					BattleLogManager.Instance.QueueMessage(self, $"[actor] recovers {juice} JUICE...");
 				return Task.CompletedTask;

@@ -237,7 +237,7 @@ internal static class UnderwaterHighwayRegistry
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target]!\nIt was kind of cute...");
 			  bool canBeHappy = target.IsEmotionValid("happy");
 			  BattleManager.Instance.MakeHappy(target, silent: true);
-			  // VANILLA BUG: always prints the tier-1 HAPPY line, whatever tier the target reaches
+			  // DIALOGUE QUIRK: always prints the tier-1 HAPPY line, whatever tier the target reaches
 			  if (canBeHappy)
 				  BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
 			  else
@@ -254,7 +254,7 @@ internal static class UnderwaterHighwayRegistry
 		  setup: async (self, target) =>
 		  {
 			  await AnimationManager.Instance.WaitForAnimation(297, self);
-			  // VANILLA BUG: always prints the tier-1 SAD line, even when the emotion didn't change
+			  // DIALOGUE QUIRK: always prints the tier-1 SAD line, even when the emotion didn't change
 			  BattleLogManager.Instance.QueueMessage(self, target, "Tears well up in [actor]'s eyes.\n[target] feels SAD.");
 			  BattleManager.Instance.MakeSad(target, silent: true);
 		  }
@@ -272,7 +272,7 @@ internal static class UnderwaterHighwayRegistry
 			  BattleLogManager.Instance.QueueMessage(self, target, "[actor] accidently says something\nmean.");
 			  bool canBeAngry = target.IsEmotionValid("angry");
 			  BattleManager.Instance.MakeAngry(target, silent: true);
-			  // VANILLA BUG: always prints the tier-1 ANGRY line, whatever tier the target reaches
+			  // DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
 			  if (canBeAngry)
 				  BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
 			  else

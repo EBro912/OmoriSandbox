@@ -162,7 +162,7 @@ internal static class KelRegistry
 				foreach (Actor member in targets)
 				{
 					BattleManager.Instance.MakeAngry(member, silent: true);
-					// VANILLA BUG: prints the tier line even when the friend was already FURIOUS
+					// DIALOGUE QUIRK: prints the tier line even when the friend was already FURIOUS
 					if (member.CurrentEmotion.Group?.Id == "angry")
 						BattleLogManager.Instance.QueueMessage(member.CurrentEmotion.FeelsMessage(member.Name));
 				}
@@ -219,7 +219,7 @@ internal static class KelRegistry
 					AnimationManager.Instance.PlayAnimation(75, target);
 				}
 
-				// VANILLA BUG: reuses PEP TALK's battle text, so the user cheers themselves on
+				// DIALOGUE QUIRK: reuses PEP TALK's battle text, so the user cheers themselves on
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] cheers on [target]!");
 				BattleManager.Instance.MakeHappy(target);
 			},
@@ -281,7 +281,7 @@ internal static class KelRegistry
 			{
 				await AnimationManager.Instance.WaitForAnimation(60, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] throws a SNOWBALL at\n[target]!");
-				// VANILLA BUG: always prints the tier-1 SAD line, whatever tier the target reaches
+				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardless of the tier the target reaches
 				QueueTierOneEmotionLine(target, "sad", BattleManager.Instance.MakeSad(target, silent: true));
 			},
 			effect: async (self, target) =>

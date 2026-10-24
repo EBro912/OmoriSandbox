@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
@@ -17,6 +18,8 @@ internal static class OtherworldRegistry
 		Enemies.Add("Pluto", () => new Pluto());
 		Enemies.Add("LeftArm", () => new LeftArm());
 		Enemies.Add("RightArm", () => new RightArm());
+		Enemies.Add("SpaceBunny", () => new SpaceBunny());
+		Enemies.Add("UFO", () => new UFO());
 
 		// SPACE EX BOYFRIEND //
 		Skills["SEBAttack"] = new Skill(
@@ -348,6 +351,107 @@ internal static class OtherworldRegistry
 			{
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 				await Task.CompletedTask;
+			}
+		);
+
+		// SPACE BUNNY //
+		Skills["SPBAttack"] = new Skill(
+			name: "SPBAttack",
+			description: "SPBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] bops into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["SPBDoNothing"] = new Skill(
+			name: "SPBDoNothing",
+			description: "SPBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_space_out", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is spacing out.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["SPBBunnyBeam"] = new Skill(
+			name: "SPBBunnyBeam",
+			description: "SPBBunnyBeam",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(158, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] fires a laser!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		// U.F.O. //
+		Skills["UFOAttack"] = new Skill(
+			name: "UFOAttack",
+			description: "UFOAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] crashes into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["UFODoNothing"] = new Skill(
+			name: "UFODoNothing",
+			description: "UFODoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_space_out", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is losing interest.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["UFOOrangeBeam"] = new Skill(
+			name: "UFOOrangeBeam",
+			description: "UFOOrangeBeam",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(159, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] fires an orange laser!");
+				int juice = (int)Math.Floor(target.CurrentStats.MaxJuice * 0.1f);
+				if (BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, new DamageOptions { NeverMiss = false, Crit = CritMode.Never, ShowJuiceLoss = juice == 0 }) >= 0 && juice > 0)
+				{
+					int gained = target.HealJuice(juice);
+					if (!target.IsToast)
+						BattleManager.Instance.SpawnDamageNumber(gained, target, DamageType.JuiceGain);
+				}
+			}
+		);
+
+		Skills["UFOStrangeBeam"] = new Skill(
+			name: "UFOStrangeBeam",
+			description: "UFOStrangeBeam",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(161, target);
+				BattleManager.Instance.RandomEmotion(target, silent: true);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] flashes a strange light!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] feels a random EMOTION!");
+				await Wait.Frames(120);
 			}
 		);
 	}

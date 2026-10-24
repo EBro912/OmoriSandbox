@@ -101,7 +101,7 @@ internal static class BlackspaceRegistry
 					new DamageOptions { Crit = CritMode.Never });
 				await animation;
 				Task statDown = AnimationManager.Instance.WaitForAnimation(215, target);
-				// VANILLA BUG: prints the "fell." line even when DEFENSE is already at its limit
+				// DIALOGUE QUIRK: prints the "fell." line even when DEFENSE is already at its limit
 				target.AddTierStatModifier("DefenseDown", silent: true);
 				BattleLogManager.Instance.QueueMessage(self, target, "[target]'s DEFENSE fell.");
 				await statDown;
@@ -122,7 +122,7 @@ internal static class BlackspaceRegistry
 					new DamageOptions { NeverMiss = false, Crit = CritMode.Never });
 				await animation;
 				Task statDown = AnimationManager.Instance.WaitForAnimation(215, target);
-				// VANILLA BUG: prints the "STATS fell." line even when the stats are already at their limit
+				// DIALOGUE QUIRK: prints the "STATS fell." line even when the stats are already at their limit
 				target.AddTierStatModifier("SpeedDown", silent: true);
 				target.AddTierStatModifier("AttackDown", silent: true);
 				target.AddTierStatModifier("DefenseDown", silent: true);
@@ -142,7 +142,7 @@ internal static class BlackspaceRegistry
 				await Wait.Frames(10);
 				await AnimationManager.Instance.WaitForAnimation(25, target);
 				BattleLogManager.Instance.QueueMessage(self, "[actor] erases the enemy.");
-				// VANILLA BUG: prints the "feels AFRAID." line even when the target doesn't become AFRAID
+				// DIALOGUE QUIRK: prints the "feels AFRAID." line even when the target doesn't become AFRAID
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] feels AFRAID.");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 4 - target.CurrentStats.DEF,
 					new DamageOptions { NeverMiss = false, Crit = CritMode.Never });
@@ -163,7 +163,7 @@ internal static class BlackspaceRegistry
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 5 - target.CurrentStats.DEF,
 					new DamageOptions { Crit = CritMode.Never });
 				await Wait.Frames(20);
-				// VANILLA BUG: prints the "feels AFRAID." and "fell." lines even when the target doesn't become AFRAID or DEFENSE is already at its limit
+				// DIALOGUE QUIRK: prints the "feels AFRAID." and "fell." lines even when the target doesn't become AFRAID or DEFENSE is already at its limit
 				target.SetEmotion("afraid", true);
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] feels AFRAID.");
 				await Wait.Frames(4);

@@ -96,7 +96,7 @@ internal static class ItemsRegistry
 				AnimationManager.Instance.PlayAnimation(214, target);
 				// coffee heals, uses emotion, and has a variance due to an oversight
 				BattleManager.Instance.Heal(self, target, () => target.CurrentStats.MaxJuice * 0.1);
-				// VANILLA BUG: prints the success line even when the stat is already at its limit
+				// DIALOGUE QUIRK: prints the success line even when the stat is already at its limit
 				target.AddTierStatModifier("SpeedUp", 3);
 				await Task.CompletedTask;
 			},

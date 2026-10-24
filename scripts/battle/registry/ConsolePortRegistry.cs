@@ -33,7 +33,7 @@ internal static class ConsolePortRegistry
 				AnimationManager.Instance.PlayAnimation(218, self);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks at [target].");
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] eggs [actor] on!");
-				// VANILLA BUG: always prints the ANGRY and ATTACK lines, even when AUBREY is already ANGRY or her ATTACK can't go higher
+				// DIALOGUE QUIRK: always prints the ANGRY and ATTACK lines, even when AUBREY is already ANGRY or her ATTACK can't go higher
 				BattleManager.Instance.MakeAngry(self, silent: true);
 				self.AddTierStatModifier("AttackUp", silent: true);
 				BattleLogManager.Instance.QueueMessage(self, "[actor] feels ANGRY!\n[actor]'s ATTACK rose!!");
@@ -57,7 +57,7 @@ internal static class ConsolePortRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks at [target].");
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] tells [actor] to focus!");
 				self.Heal(500);
-				// VANILLA BUG: always prints the HAPPY and DEFENSE lines, even when AUBREY is already HAPPY or her DEFENSE can't go higher
+				// DIALOGUE QUIRK: always prints the HAPPY and DEFENSE lines, even when AUBREY is already HAPPY or her DEFENSE can't go higher
 				BattleManager.Instance.MakeHappy(self, silent: true);
 				self.AddTierStatModifier("DefenseUp", silent: true);
 				BattleLogManager.Instance.QueueMessage(self, "[actor] feels HAPPY!\n[actor]'s DEFENSE rose!!");
@@ -98,7 +98,7 @@ internal static class ConsolePortRegistry
 				if (damage > -1)
 				{
 					BattleManager.Instance.MakeHappy(self, silent: true);
-					// VANILLA BUG: prints the HAPPY line even when AUBREY was already HAPPY
+					// DIALOGUE QUIRK: prints the HAPPY line even when AUBREY was already HAPPY
 					if (self.CurrentEmotion.Id is "happy" or "ecstatic")
 						BattleLogManager.Instance.QueueMessage(self.CurrentEmotion.FeelsMessage(self.Name));
 				}
@@ -415,7 +415,7 @@ internal static class ConsolePortRegistry
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] used coffee.");
-				// VANILLA BUG: prints the SPEED line even when the stat is already at its limit
+				// DIALOGUE QUIRK: prints the SPEED line even when the stat is already at its limit
 				target.AddTierStatModifier("SpeedUp", 3, silent: true);
 				BattleLogManager.Instance.QueueMessage(self, target, "[target]'s SPEED rose!");
 				await AnimationManager.Instance.WaitForAnimation(218, target);

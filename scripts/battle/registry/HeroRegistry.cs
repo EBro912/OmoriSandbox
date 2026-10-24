@@ -80,7 +80,7 @@ internal static class HeroRegistry
 				if (target.StatModifiers.TryGetValue("Charm", out StatModifier enchantMod) &&
 					enchantMod is CharmStatModifier enchantState)
 					enchantState.CharmedBy = self as PartyMember;
-				// VANILLA BUG: always prints the tier-1 HAPPY line, whatever tier the target reaches
+				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
 				QueueTierOneEmotionLine(target, "happy", BattleManager.Instance.MakeHappy(target, silent: true));
 			},
 			effect: async (_, _) =>
@@ -185,7 +185,7 @@ internal static class HeroRegistry
 					BattleLogManager.Instance.QueueMessage(self, enemy, "[actor] smiles at [target]!");
 					AnimationManager.Instance.PlayAnimation(276, enemy);
 					enemy.AddTierStatModifier("AttackDown");
-					// VANILLA BUG: always prints the tier-1 HAPPY line, whatever tier the target reaches
+					// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
 					QueueTierOneEmotionLine(enemy, "happy", BattleManager.Instance.MakeHappy(enemy, silent: true));
 					AnimationManager.Instance.PlayAnimation(219, enemy);
 				}

@@ -130,7 +130,7 @@ internal static class AbyssRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] is drenched in dark liquid!");
 				BattleLogManager.Instance.QueueMessage(self, target, "[target] feels weaker...");
 				AnimationManager.Instance.PlayAnimation(215, target);
-				// VANILLA BUG: prints the "fell." lines even when a stat is already at its limit
+				// DIALOGUE QUIRK: prints the "fell." lines even when a stat is already at its limit
 				target.AddTierStatModifier("AttackDown", silent: true);
 				target.AddTierStatModifier("DefenseDown", silent: true);
 				target.AddTierStatModifier("SpeedDown", silent: true);

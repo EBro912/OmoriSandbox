@@ -265,7 +265,7 @@ internal static class BasilRegistry
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] and [target] mull over SAD thoughts!");
 				foreach (Actor member in targets)
 				{
-					// VANILLA BUG: prints the held tier line even when the add changed nothing
+					// DIALOGUE QUIRK: prints the held tier line even when the add changed nothing
 					if (member.CurrentEmotion.Group?.Id == "sad")
 						BattleLogManager.Instance.QueueMessage(member.CurrentEmotion.FeelsMessage(member.Name));
 					BattleManager.Instance.HealJuice(self, member, () => member.CurrentStats.MaxJuice * 0.25f, 0.2f, silent: true);
@@ -293,7 +293,7 @@ internal static class BasilRegistry
 				BattleLogManager.Instance.QueueMessage(self, first, "[actor] and [target] comfort each other!");
 				foreach (Actor member in targets)
 				{
-					// VANILLA BUG: prints the held tier line even when the add changed nothing
+					// DIALOGUE QUIRK: prints the held tier line even when the add changed nothing
 					if (member.CurrentEmotion.Group?.Id == "happy")
 						BattleLogManager.Instance.QueueMessage(member.CurrentEmotion.FeelsMessage(member.Name));
 					BattleManager.Instance.Heal(self, member, () => member.CurrentStats.MaxHP * 0.25f, silent: true);
