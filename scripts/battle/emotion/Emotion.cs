@@ -74,7 +74,9 @@ public sealed class Emotion
 	/// Whether this emotion can be felt again right after it is removed. See <see cref="WithReapplyAllowed"/>.
 	/// </summary>
 	public bool ReapplyAllowed { get; private set; }
-	
+
+	private readonly EmotionImmunity Immunity = new();
+
 	internal bool Registered;
 
 	internal string FeelsMessage(string actorName)
@@ -211,5 +213,25 @@ public sealed class Emotion
 			return this;
 		ReapplyAllowed = true;
 		return this;
+	}
+
+	/// <summary>
+	/// Makes an actor feeling this emotion unable to feel the given emotions, like STRESSED OUT blocking AFRAID.
+	/// </summary>
+	/// <remarks>
+	/// Each id blocks only that emotion. Neutral can't be blocked.
+	/// </remarks>
+	/// <param name="emotionIds">The ids of the emotions to block.</param>
+	public Emotion WithEmotionImmunity(params string[] emotionIds)
+	{
+		if (Frozen())
+			return this;
+		Immunity.Add(emotionIds);
+		return this;
+	}
+
+	internal bool BlocksEmotion(Emotion emotion)
+	{
+		return Immunity.Blocks(emotion);
 	}
 }

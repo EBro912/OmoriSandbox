@@ -48,12 +48,12 @@
 [ext_resource type="Texture2D" uid="uid://dy720f7vg7l3t" path="res://assets/atlases/battleATLAS.png" id="39_bjg73"]
 [ext_resource type="Script" uid="uid://beu57fpcp01nm" path="res://scripts/menu/AutofitLabel.cs" id="44_nvyfr"]
 [ext_resource type="Material" path="res://assets/screen_blend_shader.tres" id="45_scrbl"]
-[ext_resource type="Script" path="res://scripts/display/DisplayLayout.cs" id="46_layout"]
+[ext_resource type="Script" uid="uid://dotagv8cmfu7r" path="res://scripts/display/DisplayLayout.cs" id="46_layout"]
 [ext_resource type="FontFile" uid="uid://c1ffiobkf516l" path="res://fonts/OMORI_GAME2_Numbers.ttf" id="47_nmbrs"]
 [ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="48_hpicn"]
 [ext_resource type="Texture2D" uid="uid://bbstna42lmri8" path="res://assets/system/energy_icon.png" id="49_enicn"]
 [ext_resource type="Texture2D" uid="uid://dloultqjkhtr5" path="res://assets/pictures/omori_succumb.png" id="50_succm"]
-[ext_resource type="Script" path="res://scripts/BattlebackLayers.cs" id="51_bblyr"]
+[ext_resource type="Script" uid="uid://dqh5trpiq2nkt" path="res://scripts/BattlebackLayers.cs" id="51_bblyr"]
 [ext_resource type="PackedScene" path="res://scenes/battleback_layer.tscn" id="52_bblsc"]
 [ext_resource type="PackedScene" path="res://scenes/omori_intro.tscn" id="53_intro"]
 
@@ -65,7 +65,7 @@ blend_mode = 1
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
-[node name="DisplayLayout" type="Node" parent="." node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "Photograph", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
+[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "Photograph", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
 script = ExtResource("46_layout")
 Layers = [NodePath("../BattleCanvas"), NodePath("../MainMenu/Main"), NodePath("../MainMenu/Editor")]
 Party = NodePath("../BattleCanvas/UI/Party")
@@ -242,13 +242,13 @@ stretch_mode = 1
 script = ExtResource("19_vc5cj")
 Tiles = 3
 
-[node name="BattlebackLayers" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot"]
+[node name="BattlebackLayers" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot" unique_id=2096792278]
 z_index = -100
 use_parent_material = true
 script = ExtResource("51_bblyr")
 LayerScene = ExtResource("52_bblsc")
 
-[node name="WidescreenBackdrop" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot"]
+[node name="WidescreenBackdrop" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot" unique_id=1402025733]
 z_index = -101
 offset_right = 640.0
 offset_bottom = 480.0
@@ -355,7 +355,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0)
 
-[node name="Succumb" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects"]
+[node name="Succumb" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1760093902]
 visible = false
 z_index = -3
 offset_right = 640.0
@@ -480,7 +480,7 @@ offset_right = 180.0
 offset_bottom = 55.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1, 0)
+scale = Vector2(1, 1e-05)
 pivot_offset_ratio = Vector2(0.5, 0.5)
 texture = ExtResource("36_bjg73")
 draw_center = false
@@ -501,11 +501,11 @@ grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
 [node name="Text" type="RichTextLabel" parent="BattleCanvas/UI/DialogueBox" unique_id=1194128622]
+clip_contents = false
 offset_left = -162.0
 offset_top = -46.0
 offset_right = 162.0
 offset_bottom = 48.0
-clip_contents = false
 theme_override_constants/line_separation = 1
 theme_override_constants/outline_size = 4
 bbcode_enabled = true
@@ -608,6 +608,7 @@ region_rect = Rect2(363, 85, 289, 28)
 script = ExtResource("24_tel4y")
 
 [node name="PartyMenu" type="Control" parent="BattleCanvas/UI" unique_id=1479423303 node_paths=PackedStringArray("FightSprite", "RunSprite", "PlaySprite", "CursorSprite")]
+visible = false
 z_index = -1
 layout_mode = 1
 anchors_preset = 7
@@ -638,7 +639,7 @@ texture = ExtResource("39_bjg73")
 region_enabled = true
 region_rect = Rect2(654, 499, 360, 40)
 
-[node name="Play" type="Sprite2D" parent="BattleCanvas/UI/PartyMenu"]
+[node name="Play" type="Sprite2D" parent="BattleCanvas/UI/PartyMenu" unique_id=461971160]
 visible = false
 position = Vector2(-180, -92)
 texture = ExtResource("39_bjg73")
@@ -705,7 +706,6 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -180.0
-offset_top = 0.0
 offset_right = 180.0
 offset_bottom = 95.0
 grow_horizontal = 2
@@ -869,7 +869,6 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -180.0
-offset_top = 0.0
 offset_right = 180.0
 offset_bottom = 95.0
 grow_horizontal = 2

@@ -38,6 +38,7 @@ internal static class LastResortRegistry
 		Enemies.Add("GatorGuyJawsum", () => new GatorGuyJawsum());
 		Enemies.Add("MrJawsum", () => new MrJawsum());
 		Enemies.Add("PlutoExpanded", () => new PlutoExpanded());
+		Enemies.Add("GatorGuy", () => new GatorGuy());
 
 		// Gator Guy //
 		Skills["GGAttack"] = new Skill(
@@ -73,11 +74,9 @@ internal static class LastResortRegistry
 			effect: async (self, target) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] gets rough.");
-				await Wait.Milliseconds(100);
-				AnimationManager.Instance.PlayAnimation(123, target);
+				await AnimationManager.Instance.WaitForAnimation(123, target);
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF, false, neverCrit: true);
-				await Wait.Milliseconds(917);
-				AnimationManager.Instance.PlayAnimation(123, target);
+				await Wait.Frames(8);
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 1.5f - target.CurrentStats.DEF, false, neverCrit: true);
 			}
 		);

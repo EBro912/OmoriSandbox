@@ -14,6 +14,10 @@ internal static class PyreflyForestRegistry
 		Enemies.Add("KingCrawler", () => new KingCrawler());
 		Enemies.Add("KingCarnivore", () => new KingCarnivore());
 		Enemies.Add("Root", () => new Root());
+		Enemies.Add("BugBunny", () => new BugBunny());
+		Enemies.Add("RareBear", () => new RareBear());
+		Enemies.Add("SproutMole?", () => new SproutMoleQuestion());
+		Enemies.Add("GhostBunny", () => new GhostBunny());
 
 		// LOST SPROUT MOLE //
 		Skills["LSMAttack"] = new Skill(
@@ -37,7 +41,7 @@ internal static class PyreflyForestRegistry
 			cost: 0,
 			effect: async (_, target) =>
 			{
-				AudioManager.Instance.PlaySFX("BA_do_nothing_dance");
+				AudioManager.Instance.PlaySFX("BA_do_nothing_dance", volume: 0.9f);
 				BattleLogManager.Instance.QueueMessage(target, "[actor] is rolling around.");
 				await Task.CompletedTask;
 			}
@@ -52,10 +56,10 @@ internal static class PyreflyForestRegistry
 			{
 				AnimationManager.Instance.PlayScreenAnimation(200, targets[0] is Enemy);
 				BattleLogManager.Instance.QueueMessage(self, targets[0], "[actor] runs around!");
-				await Wait.Milliseconds(100);
+				await Wait.Frames(10);
 				BattleManager.Instance.Damage(self, targets[0],
 					() => self.CurrentStats.ATK * 1.5f - targets[0].CurrentStats.DEF, false);
-				await Wait.Milliseconds(917);
+				await Wait.Frames(55);
 				BattleManager.Instance.Damage(self, targets[0],
 					() => self.CurrentStats.ATK * 1.5f - targets[0].CurrentStats.DEF, false);
 			},
@@ -232,6 +236,183 @@ internal static class PyreflyForestRegistry
 				}
 			},
 			hidden: true
+		);
+
+		// BUG BUNNY //
+		Skills["BGBAttack"] = new Skill(
+			name: "BGBAttack",
+			description: "BGBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(286, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] bites [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["BGBDoNothing"] = new Skill(
+			name: "BGBDoNothing",
+			description: "BGBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_dance", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] tries to balance on its head. ");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["BGBSuddenJump"] = new Skill(
+			name: "BGBSuddenJump",
+			description: "BGBSuddenJump",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			priority: 999,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(8, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] suddenly lunges at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentEmotion.Id switch
+				{
+					"happy" => self.CurrentStats.ATK * 2 + 2 - target.CurrentStats.DEF,
+					"ecstatic" => self.CurrentStats.ATK * 2 + 5,
+					"manic" => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF,
+					_ => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF
+				}, false);
+			}
+		);
+
+		Skills["BGBScuttle"] = new Skill(
+			name: "BGBScuttle",
+			description: "BGBScuttle",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: (_, _) => Task.CompletedTask,
+			setup: async (self, target) =>
+			{
+				bool applied = BattleManager.Instance.MakeHappy(target, silent: true);
+				await AnimationManager.Instance.WaitForAnimation(218, target);
+				BattleLogManager.Instance.QueueMessage(self, "[actor] happily scuttles around.");
+				BattleLogManager.Instance.QueueMessage("It was really cute!");
+				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
+				if (applied)
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+			}
+		);
+
+		// RARE BEAR //
+		Skills["RBAttack"] = new Skill(
+			name: "RBAttack",
+			description: "RBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(127, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slashes at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["RBRoar"] = new Skill(
+			name: "RBRoar",
+			description: "RBRoar",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForScreenAnimation(175, target is Enemy);
+				BattleLogManager.Instance.QueueMessage(self, "[actor] lets out a huge roar!");
+				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
+				BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
+				BattleManager.Instance.MakeAngry(target, silent: true);
+			}
+		);
+
+		// SPROUT MOLE? //
+		Skills["SMQAttack"] = new Skill(
+			name: "SMQAttack",
+			description: "SMQAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(126, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slaps [target]?");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["SMQDoNothing"] = new Skill(
+			name: "SMQDoNothing",
+			description: "SMQDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_dance", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is rolling around?");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["SMQRunAround"] = new Skill(
+			name: "SMQRunAround",
+			description: "SMQRunAround",
+			target: SkillTarget.XRandomEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] runs around!");
+				await AnimationManager.Instance.WaitForScreenAnimation(200, targets[0] is Enemy);
+				foreach (Actor target in targets)
+				{
+					BattleManager.Instance.Damage(self, target, () => self.CurrentEmotion.Id switch
+					{
+						"happy" => self.CurrentStats.ATK * 2 + 5 - target.CurrentStats.DEF,
+						"ecstatic" => self.CurrentStats.ATK * 2 + 7 - target.CurrentStats.DEF,
+						"manic" => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF,
+						_ => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF
+					}, false);
+				}
+			}
+		).WithRandomTargets(2);
+
+		// GHOST BUNNY //
+		Skills["GHBAttack"] = new Skill(
+			name: "GHBAttack",
+			description: "GHBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] phases through [target]!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor] feels tired.");
+				BattleManager.Instance.DamageJuice(self, target, () => target.CurrentJuice * 0.20f, new DamageOptions { NeverMiss = false, Crit = CritMode.Never });
+			}
+		);
+
+		Skills["GHBDoNothing"] = new Skill(
+			name: "GHBDoNothing",
+			description: "GHBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] floats in place.");
+				await Task.CompletedTask;
+			},
+			setup: (_, _) =>
+			{
+				AudioManager.Instance.PlaySFX("SE_creepy_tune");
+				return Task.CompletedTask;
+			}
 		);
 	}
 }

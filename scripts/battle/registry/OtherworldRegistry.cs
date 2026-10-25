@@ -20,6 +20,8 @@ internal static class OtherworldRegistry
 		Enemies.Add("RightArm", () => new RightArm());
 		Enemies.Add("SpaceBunny", () => new SpaceBunny());
 		Enemies.Add("UFO", () => new UFO());
+		Enemies.Add("DustBunny", () => new DustBunny());
+		Enemies.Add("VenusFlytrap", () => new VenusFlytrap());
 
 		// SPACE EX BOYFRIEND //
 		Skills["SEBAttack"] = new Skill(
@@ -452,6 +454,83 @@ internal static class OtherworldRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] flashes a strange light!");
 				BattleLogManager.Instance.QueueMessage(target, "[actor] feels a random EMOTION!");
 				await Wait.Frames(120);
+			}
+		);
+
+		// DUST BUNNY //
+		Skills["DBDoNothing"] = new Skill(
+			name: "DBDoNothing",
+			description: "DBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_falls_over", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is trying to keep");
+				BattleLogManager.Instance.QueueMessage(target, "itself together.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["DBScatter"] = new Skill(
+			name: "DBScatter",
+			description: "DBScatter",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] can't hold itself together");
+				BattleLogManager.Instance.QueueMessage("and explodes!");
+				AnimationManager.Instance.PlayAnimation(122, self);
+				foreach (Actor target in targets)
+				{
+					if (BattleManager.Instance.Damage(self, target, () => self.CurrentStats.MaxHP, false, 0f, neverCrit: true) >= 0)
+					{
+						self.Damage(self.CurrentHP);
+						self.ClearResult();
+					}
+				}
+				await Task.CompletedTask;
+			}
+		);
+
+		// VENUS FLYTRAP //
+		Skills["VFTAttack"] = new Skill(
+			name: "VFTAttack",
+			description: "VFTAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(126, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] strikes [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["VFTDoNothing"] = new Skill(
+			name: "VFTDoNothing",
+			description: "VFTDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_dance", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is chomping at nothing.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["VFTCrunch"] = new Skill(
+			name: "VFTCrunch",
+			description: "VFTCrunch",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(157, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] chomps [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
 			}
 		);
 	}

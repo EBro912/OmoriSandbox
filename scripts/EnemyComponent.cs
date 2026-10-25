@@ -39,6 +39,7 @@ public partial class EnemyComponent : ActorComponent
 		Enemy = enemy;
 		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
 		Actor.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
+		sprite.FlipH = Actor.Mirrored;
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox_moreinfo.tscn")
 				.Instantiate<EnemyMoreInfoBox>();

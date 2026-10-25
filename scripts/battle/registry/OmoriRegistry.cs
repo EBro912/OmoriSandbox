@@ -565,7 +565,7 @@ internal static class OmoriRegistry
 				AnimationManager.Instance.PlayAnimation(219, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] trips [target]!");
 				AddTierThreeStatModifier(target, "SpeedDown");
-				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardlesso of the tier the target reaches
+				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardless of the tier the target reaches
 				QueueTierOneEmotionLine(target, "sad", BattleManager.Instance.MakeSad(target, silent: true));
 			},
 			effect: async (self, target) =>

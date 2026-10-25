@@ -1284,15 +1284,17 @@ public abstract class Actor
 	public virtual bool IsEmotionValid(Emotion emotion) { return !IsImmuneToEmotion(emotion); }
 
 	/// <summary>
-	/// Whether something this actor wears or has applied blocks the given emotion.
-	/// See <see cref="Equipment.WithEmotionImmunity"/> and <see cref="StatModifier.WithEmotionImmunity"/>.
+	/// Whether something this actor wears, has applied or currently feels blocks the given emotion.
+	/// See <see cref="Equipment.WithEmotionImmunity"/>, <see cref="StatModifier.WithEmotionImmunity"/> and <see cref="Emotion.WithEmotionImmunity"/>.
 	/// </summary>
 	/// <param name="emotion">The emotion to check.</param>
-	/// <returns>True if an equipped item or an active stat modifier blocks the emotion. Neutral is never blocked.</returns>
+	/// <returns>True if an equipped item, an active stat modifier or the current emotion blocks the emotion. Neutral is never blocked.</returns>
 	public bool IsImmuneToEmotion(Emotion emotion)
 	{
 		if (emotion == null || emotion.Id == "neutral")
 			return false;
+		if (CurrentEmotion != null && CurrentEmotion.BlocksEmotion(emotion))
+			return true;
 		foreach (Equipment item in EquippedItems)
 		{
 			if (item != null && item.BlocksEmotion(emotion))

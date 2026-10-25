@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
@@ -20,6 +21,14 @@ internal static class UnderwaterHighwayRegistry
 		Enemies.Add("Snaley 2", () => new SnaleyTwo());
 		Enemies.Add("Snaley 3", () => new SnaleyThree());
 		Enemies.Add("ShadyMole", () => new ShadyMole());
+		Enemies.Add("Mussel", () => new Mussel());
+		Enemies.Add("ReverseMermaid", () => new ReverseMermaid());
+		Enemies.Add("SharkFin", () => new SharkFin());
+		Enemies.Add("Squizzard", () => new Squizzard());
+		Enemies.Add("LabRat", () => new LabRat());
+		Enemies.Add("SlimeBunny", () => new SlimeBunny());
+		Enemies.Add("Watermimic", () => new Watermimic());
+		Enemies.Add("WormBot", () => new WormBot());
 
 		// SLIME GIRLS //
 		Skills["ComboAttack"] = new Skill(
@@ -676,7 +685,7 @@ internal static class UnderwaterHighwayRegistry
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] lobs DYNAMITE!");
-				await AnimationManager.Instance.WaitForScreenAnimation(270, targets[0] is Enemy);
+				await AnimationManager.Instance.WaitForScreenAnimation(270, self is Enemy);
 				// shady mole's dynamite hits the enemies too
 				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
 					BattleManager.Instance.Damage(self, ally, () => 25, false, 0.25f, neverCrit: true);
@@ -693,5 +702,572 @@ internal static class UnderwaterHighwayRegistry
 			effect: async (Actor _, Actor _) => { await Task.CompletedTask; },
 			hidden: true
 		);
+
+		// MUSSEL //
+		Skills["MUSAttack"] = new Skill(
+			name: "MUSAttack",
+			description: "MUSAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(124, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] punches [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["MUSFlex"] = new Skill(
+			name: "MUSFlex",
+			description: "MUSFlex",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(218, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] flexes and feels its best!");
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s HIT RATE rose!");
+				target.AddStatModifier("Flex");
+			}
+		);
+
+		Skills["MUSHide"] = new Skill(
+			name: "MUSHide",
+			description: "MUSHide",
+			target: SkillTarget.Self,
+			cost: 0,
+			priority: 1000,
+			effect: async (_, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(178, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] hides in its shell.");
+				target.AddStatModifier("Guard");
+			}
+		);
+
+		// REVERSE MERMAID //
+		Skills["RVMAttack"] = new Skill(
+			name: "RVMAttack",
+			description: "RVMAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[target] bumps into [actor]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["RVMDoNothing"] = new Skill(
+			name: "RVMDoNothing",
+			description: "RVMDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_weird", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] does a backflip!");
+				BattleLogManager.Instance.QueueMessage("WOW!");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["RVMRunAround"] = new Skill(
+			name: "RVMRunAround",
+			description: "RVMRunAround",
+			target: SkillTarget.XRandomEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] runs amok!");
+				foreach (Actor target in targets)
+				{
+					await AnimationManager.Instance.WaitForAnimation(123, target);
+					BattleManager.Instance.Damage(self, target, () => self.CurrentEmotion.Id switch
+					{
+						"happy" => self.CurrentStats.ATK * 2 + 5 - target.CurrentStats.DEF,
+						"ecstatic" => self.CurrentStats.ATK * 2 + 7 - target.CurrentStats.DEF,
+						"manic" => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF,
+						_ => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF
+					}, false);
+				}
+			}
+		).WithRandomTargets(2);
+
+		// SHARK FIN //
+		Skills["SHFAttack"] = new Skill(
+			name: "SHFAttack",
+			description: "SHFAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(124, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] charges at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["SHFDoNothing"] = new Skill(
+			name: "SHFDoNothing",
+			description: "SHFDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_dance", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] swims in a circle.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["SHFBite"] = new Skill(
+			name: "SHFBite",
+			description: "SHFBite",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(157, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] chomps [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentEmotion.Id switch
+				{
+					"angry" => self.CurrentStats.ATK * 3,
+					"enraged" => self.CurrentStats.ATK * 3 + 5,
+					"furious" => self.CurrentStats.ATK * 4,
+					_ => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF
+				}, false);
+			}
+		);
+
+		Skills["SHFWorkUp"] = new Skill(
+			name: "SHFWorkUp",
+			description: "SHFWorkUp",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: async (self, target) =>
+			{
+				target.AddTierStatModifier("SpeedUp", silent: true);
+				bool applied = BattleManager.Instance.MakeAngry(target, silent: true);
+				await AnimationManager.Instance.WaitForAnimation(218, target);
+				BattleLogManager.Instance.QueueMessage(self, "[actor] works itself up!");
+				// DIALOGUE QUIRK: prints the SPEED line even when the stat is already at its limit
+				BattleLogManager.Instance.QueueMessage(self, "[actor]'s SPEED increased!");
+				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
+				if (applied)
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+			},
+			effect: (_, _) => Task.CompletedTask
+		);
+
+		// SQUIZZARD //
+		Skills["SQZAttack"] = new Skill(
+			name: "SQZAttack",
+			description: "SQZAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses magic on [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["SQZDoNothing"] = new Skill(
+			name: "SQZDoNothing",
+			description: "SQZDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_weird", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] mutters nonsense.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["SQZSquidWard"] = new Skill(
+			name: "SQZSquidWard",
+			description: "SQZSquidWard",
+			target: SkillTarget.Ally,
+			cost: 0,
+			priority: 1000,
+			setup: async (_, target) =>
+			{
+				Task playing = AnimationManager.Instance.WaitForAnimation(178, target);
+				target.AddTierStatModifier("DefenseUp", silent: true);
+				await playing;
+			},
+			effect: (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] creates a squid ward.");
+				// DIALOGUE QUIRK: prints the DEFENSE line even when the stat is already at its limit
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s DEFENSE increased.");
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["SQZSquidMagic"] = new Skill(
+			name: "SQZSquidMagic",
+			description: "SQZSquidMagic",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] uses squid magic!");
+				BattleLogManager.Instance.QueueMessage("Everyone feels weird...");
+				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(161, member)));
+				for (int slot = 0; slot < 4; slot++)
+				{
+					int roll = GameManager.Instance.Random.RandiRange(0, 2);
+					PartyMember member = targets.OfType<PartyMember>().FirstOrDefault(x => x.Component.Position == slot);
+					if (member != null)
+						SquidMagicEmotion(member, slot, roll);
+				}
+			}
+		);
+
+		// LAB RAT //
+		Skills["LRAttack"] = new Skill(
+			name: "LRAttack",
+			description: "LRAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(125, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] fires a tiny mouse laser!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentEmotion.Id switch
+				{
+					"happy" => self.CurrentStats.ATK * 2 + 5 - target.CurrentStats.DEF,
+					"ecstatic" => self.CurrentStats.ATK * 2 + 7 - target.CurrentStats.DEF,
+					"manic" => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF,
+					_ => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF
+				}, false);
+			}
+		);
+
+		Skills["LRDoNothing"] = new Skill(
+			name: "LRDoNothing",
+			description: "LRDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_INK", 0.7f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] lets out a little steam.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["LRHappyGas"] = new Skill(
+			name: "LRHappyGas",
+			description: "LRHappyGas",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			setup: async (Actor self, IReadOnlyList<Actor> targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] releases HAPPY gas!");
+				await AnimationManager.Instance.WaitForScreenAnimation(181, targets[0] is Enemy);
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+					BattleManager.Instance.MakeHappy(member, silent: true);
+			},
+			effect: (Actor _, IReadOnlyList<Actor> _) => Task.CompletedTask
+		);
+
+		// SLIME BUNNY //
+		Skills["SLBAttack"] = new Skill(
+			name: "SLBAttack",
+			description: "SLBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(128, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] nuzzles up against [target].");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["SLBDoNothing"] = new Skill(
+			name: "SLBDoNothing",
+			description: "SLBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Drink", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] smiles at everyone.");
+				await Task.CompletedTask;
+			}
+		);
+
+		bool stickySpeedChanged = false;
+		Skills["SLBSticky"] = new Skill(
+			name: "SLBSticky",
+			description: "SLBSticky",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeSad(target, silent: true);
+				int before = target.GetStatModifierTier("SpeedDown") + target.GetStatModifierTier("SpeedUp");
+				target.AddTierStatModifier("SpeedDown", silent: true);
+				stickySpeedChanged = target.GetStatModifierTier("SpeedDown") + target.GetStatModifierTier("SpeedUp") != before;
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(219, target);
+				BattleLogManager.Instance.QueueMessage(self, "[actor] feels lonely and cries.");
+				if (stickySpeedChanged)
+				{
+					BattleLogManager.Instance.QueueMessage(self, target, "[target]'s SPEED fell!");
+				}
+				else
+				{
+					BattleLogManager.Instance.QueueMessage(self, target, "[target]'s SPEED can't go");
+					BattleLogManager.Instance.QueueMessage(self, target, "any lower!");
+				}
+				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardless of the tier the target reaches
+				BattleLogManager.Instance.QueueMessage(target, "[actor] feels SAD.");
+			}
+		);
+
+		// WATERMIMIC //
+		Skills["WMMRubberBand"] = new Skill(
+			name: "WMMRubberBand",
+			description: "WMMRubberBand",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_rubberband", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] flings a RUBBER BAND!");
+				BattleManager.Instance.Damage(self, target, () => 60, false, 0f, neverCrit: true);
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["WMMJacks"] = new Skill(
+			name: "WMMJacks",
+			description: "WMMJacks",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] throws JACKS ");
+				BattleLogManager.Instance.QueueMessage("everywhere!");
+				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(122, member)));
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => 40, false, 0f, neverCrit: true);
+			}
+		);
+
+		Skills["WMMDynamite"] = new Skill(
+			name: "WMMDynamite",
+			description: "WMMDynamite",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] lobs a stick of DYNAMITE!");
+				BattleLogManager.Instance.QueueMessage("OH NO!");
+				await AnimationManager.Instance.WaitForScreenAnimation(172, targets[0] is Enemy);
+				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
+					BattleManager.Instance.Damage(self, ally, () => 100, false, 0f, neverCrit: true);
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => 100, false, 0f, neverCrit: true);
+			}
+		);
+
+		Skills["WMMTomato"] = new Skill(
+			name: "WMMTomato",
+			description: "WMMTomato",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] throws a TOMATO!");
+				await AnimationManager.Instance.WaitForAnimation(216, target);
+				BattleManager.Instance.Heal(self, target, () => 150, 0f);
+			}
+		);
+
+		Skills["WMMGrapes"] = new Skill(
+			name: "WMMGrapes",
+			description: "WMMGrapes",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] throws a GRAPE!");
+				await AnimationManager.Instance.WaitForAnimation(217, target);
+				if (BattleManager.Instance.RollHit(self, target))
+					BattleManager.Instance.HealJuice(self, target, () => 30, 0f);
+			}
+		);
+
+		Skills["WMMFrenchFries"] = new Skill(
+			name: "WMMFrenchFries",
+			description: "WMMFrenchFries",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] throws FRENCH FRIES!");
+				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(216, member)));
+				foreach (Actor target in targets)
+					BattleManager.Instance.Heal(self, target, () => 50, 0f);
+			}
+		);
+
+		Skills["WMMConfetti"] = new Skill(
+			name: "WMMConfetti",
+			description: "WMMConfetti",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: (Actor self, IReadOnlyList<Actor> targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] throws CONFETTI!");
+				// DIALOGUE QUIRK: prints "Everyone feels HAPPY!" even when a target's emotion can't move
+				BattleLogManager.Instance.QueueMessage("Everyone feels HAPPY!");
+				AudioManager.Instance.PlaySFX("GEN_ta_da", 1f, 0.9f);
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+					BattleManager.Instance.MakeHappy(member, silent: true);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["WMMRainCloud"] = new Skill(
+			name: "WMMRainCloud",
+			description: "WMMRainCloud",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: (Actor self, IReadOnlyList<Actor> targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] summons a RAIN CLOUD!");
+				// DIALOGUE QUIRK: prints "Everyone feels SAD." even when a target's emotion can't move
+				BattleLogManager.Instance.QueueMessage("Everyone feels SAD.");
+				for (int i = 0; i < 3; i++)
+					AudioManager.Instance.PlaySFX("BA_sad_level_2", 1f, 0.9f);
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+					BattleManager.Instance.MakeSad(member, silent: true);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["WMMAirHorn"] = new Skill(
+			name: "WMMAirHorn",
+			description: "WMMAirHorn",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: (Actor self, IReadOnlyList<Actor> targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] uses a GIANT AIRHORN!");
+				// DIALOGUE QUIRK: prints "Everyone feels ANGRY!" even when a target's emotion can't move
+				BattleLogManager.Instance.QueueMessage("Everyone feels ANGRY!");
+				AudioManager.Instance.PlaySFX("SE_airhorn", 1f, 0.9f);
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+					BattleManager.Instance.MakeAngry(member, silent: true);
+				return Task.CompletedTask;
+			}
+		);
+
+		// WORM-BOT //
+		Skills["WBTAttack"] = new Skill(
+			name: "WBTAttack",
+			description: "WBTAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(125, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["WBTDoNothing"] = new Skill(
+			name: "WBTDoNothing",
+			description: "WBTDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_roar", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] crunches loudly!");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["WBTLaser"] = new Skill(
+			name: "WBTLaser",
+			description: "WBTLaser",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(158, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] fires a laser at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
+			}
+		);
+	}
+
+	private static readonly string[][] SquidMagicGroups = [["sad", "angry", "happy"], ["happy", "angry", "sad"], ["angry", "happy", "sad"], ["sad", "happy", "angry"]];
+
+	private static void SquidMagicEmotion(PartyMember member, int slot, int roll)
+	{
+		string group = SquidMagicGroups[slot][roll];
+		string[] tiers = group switch
+		{
+			"sad" => ["sad", "depressed", "miserable"],
+			"angry" => ["angry", "enraged", "furious"],
+			_ => ["happy", "ecstatic", "manic"]
+		};
+		string[] others = group switch
+		{
+			"sad" => ["happy", "ecstatic", "manic", "angry", "enraged", "furious", "afraid"],
+			"angry" => ["happy", "ecstatic", "manic", "sad", "depressed", "miserable", "afraid"],
+			_ => ["angry", "enraged", "furious", "sad", "depressed", "miserable", "afraid"]
+		};
+		RemoveEmotions(member, others);
+		string held = member.CurrentEmotion.Id;
+		if (held == tiers[2])
+			return;
+		if (held == tiers[1])
+		{
+			RemoveEmotions(member, tiers[1], tiers[0]);
+			// VANILLA BUG: SQUID MAGIC's HAPPY branch stops at ECSTATIC
+			AddEmotion(member, group == "happy" ? tiers[1] : tiers[2]);
+		}
+		else if (held == tiers[0])
+		{
+			RemoveEmotions(member, tiers[0]);
+			AddEmotion(member, tiers[1]);
+		}
+		else
+			AddEmotion(member, tiers[0]);
+	}
+
+	private static void RemoveEmotions(PartyMember member, params string[] emotions)
+	{
+		foreach (string emotion in emotions)
+		{
+			if (member.CurrentEmotion.Id == emotion)
+				member.SetEmotion("neutral", silent: true);
+			member.ClearResult();
+		}
+	}
+
+	private static void AddEmotion(PartyMember member, string emotion)
+	{
+		member.SetEmotion(emotion, silent: true);
+		member.ClearResult();
 	}
 }

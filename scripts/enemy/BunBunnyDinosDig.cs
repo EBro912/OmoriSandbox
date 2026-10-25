@@ -1,0 +1,60 @@
+using Godot;
+using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
+
+namespace OmoriSandbox.Actors;
+
+internal sealed class BunBunnyDinosDig : Enemy
+{
+    public override string Name => "BUN BUNNY";
+    public override Vector2 InfoBoxOffset => new(0, -175);
+    public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/bun_bunny.tres");
+    protected override Stats Stats => new(700, 1400, 65, 35, 1, 10, 95);
+
+    public override bool IsEmotionValid(Emotion emotion)
+    {
+        return emotion.Id is "neutral" or "happy" or "sad" or "angry" or "afraid";
+    }
+
+    protected override string[] EquippedSkills => ["BBAttack", "BBDoNothing", "BBHide"];
+
+    public override BattleCommand ProcessAI()
+    {
+        if (HasObserveTarget(out PartyMember observe))
+            return new BattleCommand(this, observe, Skills["BBAttack"]);
+
+        switch (CurrentEmotion.Group?.Id)
+        {
+            case "happy":
+                if (Roll() < 41)
+                    goto attack;
+                if (Roll() < 31)
+                    goto doNothing;
+                goto hide;
+            case "sad":
+                if (Roll() < 31)
+                    goto attack;
+                if (Roll() < 51)
+                    goto doNothing;
+                goto hide;
+            case "angry":
+                if (Roll() < 56)
+                    goto attack;
+                if (Roll() < 26)
+                    goto doNothing;
+                goto hide;
+            default:
+                if (Roll() < 41)
+                    goto attack;
+                if (Roll() < 41)
+                    goto doNothing;
+                goto hide;
+        }
+    attack:
+        return new BattleCommand(this, SelectTarget(), Skills["BBAttack"]);
+    doNothing:
+        return new BattleCommand(this, this, Skills["BBDoNothing"]);
+    hide:
+        return new BattleCommand(this, this, Skills["BBHide"]);
+    }
+}

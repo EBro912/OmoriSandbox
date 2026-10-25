@@ -12,9 +12,22 @@ public sealed class AubreyCounterModifier : StatModifier
 
     public override void OverrideDamage(DamagePhase phase, ref float damage, DamageContext context)
     {
-        Actor attacker = context.Attacker;
-        Actor defender = context.Defender;
-        if (phase is not DamagePhase.PostApply || context.IsAttacking || attacker is not Enemy || context.Outcome != DamageOutcome.Normal)
+        if (phase is not DamagePhase.PostApply || context.IsAttacking || context.Outcome != DamageOutcome.Normal)
+            return;
+        Respond(context.Attacker, context.Defender);
+    }
+
+    /// <inheritdoc/>
+    public override void OverrideHeal(DamagePhase phase, ref float amount, HealContext context)
+    {
+        if (phase is not DamagePhase.PostApply || context.IsHealer)
+            return;
+        Respond(context.Healer, context.Target);
+    }
+
+    private static void Respond(Actor attacker, Actor defender)
+    {
+        if (attacker is not Enemy)
             return;
 
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();

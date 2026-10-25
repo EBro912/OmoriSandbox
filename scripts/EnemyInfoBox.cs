@@ -28,6 +28,7 @@ public partial class EnemyInfoBox : Control
 	internal virtual void SetEnemy(Enemy enemy)
 	{
 		Enemy = enemy;
+		Scale = new Vector2(Enemy.Mirrored ? -1f : 1f, 1f);
 		HPBar.MaxValue = Enemy.CurrentStats.MaxHP;
 		HPBar.Value = Enemy.CurrentHP;
 		RefreshName();

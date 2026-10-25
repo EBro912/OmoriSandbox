@@ -105,6 +105,11 @@ public abstract class Enemy : Actor
 	public virtual bool BlinksWhenSelected => true;
 
 	/// <summary>
+	/// Whether this enemy is mirrored horizontally, including their info box.
+	/// </summary>
+	public virtual bool Mirrored => false;
+
+	/// <summary>
 	/// Position of this enemy's damage numbers relative to the actor's "feet" (the bottom of the sprite).
 	/// Behaves the same as vanilla's DamageOffsetX and DamageOffsetY note tags. Defaults to <c>Vector2.Zero</c> if not specified.
 	/// </summary>
@@ -740,6 +745,18 @@ public abstract class Enemy : Actor
 			return false;
 		}
 		target = marked[GameManager.Instance.Random.RandiRange(0, marked.Count - 1)];
+		return true;
+	}
+
+	private protected bool HasTargetWithEmotion(string emotionId, out PartyMember target)
+	{
+		List<PartyMember> matching = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.CurrentEmotion.Id == emotionId);
+		if (matching.Count == 0)
+		{
+			target = null;
+			return false;
+		}
+		target = matching[GameManager.Instance.Random.RandiRange(0, matching.Count - 1)];
 		return true;
 	}
 

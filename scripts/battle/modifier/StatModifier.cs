@@ -421,6 +421,19 @@ public class StatModifier
     {
         OverrideDamage(phase, ref damage, context.Attacker, context.Defender, context.IsAttacking, context.IsCritical, context.NeverMiss);
     }
+
+    /// <summary>
+    /// Called while HEART or JUICE is being restored by <c>BattleManager.Heal</c> or <c>BattleManager.HealJuice</c>, to change the amount at various phases.
+    /// </summary>
+    /// <remarks>
+    /// Heals run the <see cref="DamagePhase.PreEmotion"/>, <see cref="DamagePhase.PreVariance"/>, <see cref="DamagePhase.PreRounding"/>,
+    /// <see cref="DamagePhase.PreApply"/> and <see cref="DamagePhase.PostApply"/> phases. The healer's modifiers run first, except in
+    /// <see cref="DamagePhase.PostApply"/>, where the target's run first. Changes made during <see cref="DamagePhase.PostApply"/> are ignored.
+    /// </remarks>
+    /// <param name="phase">The <see cref="DamagePhase"/> the heal is in.</param>
+    /// <param name="amount">A reference to the current amount at this point in the calculation. During <see cref="DamagePhase.PostApply"/>, the final amount, the one the heal number shows.</param>
+    /// <param name="context">The healer, target and heal details. The same instance is passed to every phase and modifier of one heal.</param>
+    public virtual void OverrideHeal(DamagePhase phase, ref float amount, HealContext context) { }
     
     /// <summary>
     /// Allows modifying the cost of skills.

@@ -3487,17 +3487,7 @@ public partial class BattleManager : Node
 		ArgumentNullException.ThrowIfNull(self);
 		ArgumentNullException.ThrowIfNull(target);
 		ArgumentNullException.ThrowIfNull(healFunc);
-		target = ResolveTransformed(target);
-		double baseHealing = Math.Max(0, healFunc());
-		// vanilla's bugged healing reads the raw emotions, ignoring locks
-		baseHealing = CalculateEmotionModifiers(self.CurrentEmotion.Group?.Id, target.CurrentEmotion, baseHealing, out _);
-		baseHealing = CalculateVariance(baseHealing, variance);
-		int rounded = (int)LimitDamage(DebugScale(RoundHealing(baseHealing)));
-		rounded = target.Heal(rounded, applyDebugScale: false);
-		SpawnDamageNumber(rounded, target, DamageType.Heal);
-		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} HEART!");
-		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, false), "Healed");
-		return rounded;
+		return HealCore(self, target, healFunc, variance, silent, false);
 	}
 
 	/// <summary>
@@ -3520,17 +3510,60 @@ public partial class BattleManager : Node
 		ArgumentNullException.ThrowIfNull(self);
 		ArgumentNullException.ThrowIfNull(target);
 		ArgumentNullException.ThrowIfNull(healFunc);
+		return HealCore(self, target, healFunc, variance, silent, true);
+	}
+
+	private int HealCore(Actor self, Actor target, Func<double> healFunc, float variance, bool silent, bool juice)
+	{
 		target = ResolveTransformed(target);
-		double baseJuice = Math.Max(0, healFunc());
+		HealContext context = new(self, target, juice);
+		double amount = Math.Max(0, healFunc());
+		amount = ApplyHealOverrides(DamagePhase.PreEmotion, amount, context);
 		// vanilla's bugged healing reads the raw emotions, ignoring locks
-		double finalJuice = CalculateEmotionModifiers(self.CurrentEmotion.Group?.Id, target.CurrentEmotion, baseJuice, out _);
-		finalJuice = CalculateVariance(finalJuice, variance);
-		int rounded = (int)LimitDamage(DebugScale(RoundHealing(finalJuice)));
-		rounded = target.HealJuice(rounded, applyDebugScale: false);
-		SpawnDamageNumber(rounded, target, DamageType.JuiceGain);
-		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} JUICE!");
-		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, true), "Healed");
+		amount = CalculateEmotionModifiers(self.CurrentEmotion.Group?.Id, target.CurrentEmotion, amount, out _);
+		amount = ApplyHealOverrides(DamagePhase.PreVariance, amount, context);
+		amount = CalculateVariance(amount, variance);
+		amount = ApplyHealOverrides(DamagePhase.PreRounding, amount, context);
+		int rounded = (int)LimitDamage(DebugScale(RoundHealing(amount)));
+		rounded = Math.Max(0, (int)ApplyHealOverrides(DamagePhase.PreApply, rounded, context));
+		rounded = juice ? target.HealJuice(rounded, applyDebugScale: false) : target.Heal(rounded, applyDebugScale: false);
+		SpawnDamageNumber(rounded, target, juice ? DamageType.JuiceGain : DamageType.Heal);
+		if (!silent) BattleLogManager.Instance.QueueMessage(self, target, $"[target] recovered {rounded} {(juice ? "JUICE" : "HEART")}!");
+		ApplyHealOverrides(DamagePhase.PostApply, rounded, context);
+		RaiseGuarded(Healed, new HealedEventArgs(self, target, rounded, juice), "Healed");
 		return rounded;
+	}
+
+	private double ApplyHealOverrides(DamagePhase phase, double amount, HealContext context)
+	{
+		float value = (float)amount;
+		float original = value;
+		TierReactionDepth++;
+		try
+		{
+			if (phase == DamagePhase.PostApply)
+			{
+				RunHealOverrides(context.Target, false, phase, ref value, context);
+				RunHealOverrides(context.Healer, true, phase, ref value, context);
+			}
+			else
+			{
+				RunHealOverrides(context.Healer, true, phase, ref value, context);
+				RunHealOverrides(context.Target, false, phase, ref value, context);
+			}
+		}
+		finally
+		{
+			TierReactionDepth--;
+		}
+		return value == original ? amount : value;
+	}
+
+	private static void RunHealOverrides(Actor actor, bool healing, DamagePhase phase, ref float amount, HealContext context)
+	{
+		context.IsHealer = healing;
+		foreach (StatModifier mod in actor.StatModifiers.Values)
+			mod.OverrideHeal(phase, ref amount, context);
 	}
 
 	/// <summary>

@@ -20,6 +20,7 @@ internal static class VastForestRegistry
 		Enemies.Add("KidsKite", () => new KidsKite());
 		Enemies.Add("KidsKite (Epilogue)", () => new KidsKiteAlt());
 		Enemies.Add("ForestBunny", () => new ForestBunny());
+		Enemies.Add("LostSproutMole (Vast Forest)", () => new LostSproutMoleVF());
 
 		// FOREST BUNNY? //
 		Skills["FBQAttack"] = new Skill(
@@ -274,12 +275,17 @@ internal static class VastForestRegistry
 			description: "FBBeCute",
 			target: SkillTarget.Enemy,
 			cost: 0,
-			effect: async (self, target) =>
+			setup: (_, target) =>
 			{
 				target.AddStatModifier("AttackDown", silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
 				await AnimationManager.Instance.WaitForAnimation(148, self);
 				await AnimationManager.Instance.WaitForAnimation(215, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target]!");
+				// DIALOGUE QUIRK: prints the ATTACK line even when the stat is already at its limit
 				BattleLogManager.Instance.QueueMessage(target, "[actor]'s ATTACK fell...");
 			}
 		);

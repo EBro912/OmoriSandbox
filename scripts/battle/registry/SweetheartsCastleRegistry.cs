@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
@@ -17,6 +18,12 @@ internal static class SweetheartsCastleRegistry
 		Enemies.Add("SirMaximusII", () => new SirMaximusII());
 		Enemies.Add("SirMaximusIII", () => new SirMaximusIII());
 		Enemies.Add("FearOfDrowning", () => new FearOfDrowning());
+		Enemies.Add("Harold", () => new Harold());
+		Enemies.Add("HorseButt", () => new HorseButt());
+		Enemies.Add("HorseHead", () => new HorseHead());
+		Enemies.Add("Lucius", () => new Lucius());
+		Enemies.Add("Marsha", () => new Marsha());
+		Enemies.Add("Therese", () => new Therese());
 
 		// SWEETHEART //
 		Skills["SHAttack"] = new Skill(
@@ -559,6 +566,395 @@ internal static class SweetheartsCastleRegistry
 				}
 			},
 			hidden: true
+		);
+
+		// HAROLD //
+		Skills["HARAttack"] = new Skill(
+			name: "HARAttack",
+			description: "HARAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(3, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] swings his sword at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["HARDoNothing"] = new Skill(
+			name: "HARDoNothing",
+			description: "HARDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_falls_over", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] adjusts his helmet.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["HARProtect"] = new Skill(
+			name: "HARProtect",
+			description: "HARProtect",
+			target: SkillTarget.Self,
+			cost: 0,
+			priority: 1000,
+			effect: async (_, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(178, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] protects himself.");
+				target.AddStatModifier("Guard");
+			}
+		);
+
+		Skills["HARWink"] = new Skill(
+			name: "HARWink",
+			description: "HARWink",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeHappy(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(148, self);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target].");
+				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
+				if (target.IsEmotionValid("happy"))
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+			}
+		);
+
+		// HORSE BUTT //
+		Skills["HBTAttack"] = new Skill(
+			name: "HBTAttack",
+			description: "HBTAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] stomps on [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+			}
+		);
+
+		Skills["HBTDoNothing"] = new Skill(
+			name: "HBTDoNothing",
+			description: "HBTDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("SE_fart", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] farts.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["HBTKick"] = new Skill(
+			name: "HBTKick",
+			description: "HBTKick",
+			target: SkillTarget.XRandomEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] kicks with gusto!");
+				foreach (Actor target in targets)
+				{
+					await AnimationManager.Instance.WaitForAnimation(123, target);
+					BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+					await Wait.Frames(8);
+					BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+				}
+			}
+		);
+
+		Skills["HBTPrance"] = new Skill(
+			name: "HBTPrance",
+			description: "HBTPrance",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeHappy(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Horse", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] prances around.");
+				await Task.CompletedTask;
+			}
+		);
+
+		// HORSE HEAD //
+		Skills["HHDAttack"] = new Skill(
+			name: "HHDAttack",
+			description: "HHDAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] bites [target]'s arm.");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["HHDDoNothing"] = new Skill(
+			name: "HHDDoNothing",
+			description: "HHDDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("GEN_bump", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] burps.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["HHDLick"] = new Skill(
+			name: "HHDLick",
+			description: "HHDLick",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeAngry(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] licks [target]'s hair");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
+				if (target.IsEmotionValid("angry"))
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+			}
+		);
+
+		Skills["HHDWhinny"] = new Skill(
+			name: "HHDWhinny",
+			description: "HHDWhinny",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeHappy(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Horse", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] whinnies happily!");
+				await Task.CompletedTask;
+			}
+		);
+
+		// LUCIUS //
+		Skills["LUCAttack"] = new Skill(
+			name: "LUCAttack",
+			description: "LUCAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, "[actor] tries casting a spell...");
+				BattleLogManager.Instance.QueueMessage(self, "[actor] did something magical!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["LUCDoNothing"] = new Skill(
+			name: "LUCDoNothing",
+			description: "LUCDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Drink", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] tries casting a spell...");
+				BattleLogManager.Instance.QueueMessage("But nothing happened...");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["LUCFireMagic"] = new Skill(
+			name: "LUCFireMagic",
+			description: "LUCFireMagic",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] tries casting a spell...");
+				BattleLogManager.Instance.QueueMessage("LUCIUS sets the party on fire!");
+				await AnimationManager.Instance.WaitForScreenAnimation(184, targets[0] is Enemy);
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.25f, false);
+			}
+		);
+
+		Skills["LUCMisfireMagic"] = new Skill(
+			name: "LUCMisfireMagic",
+			description: "LUCMisfireMagic",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] tries casting a spell...");
+				BattleLogManager.Instance.QueueMessage("LUCIUS sets everyone on fire!");
+				await AnimationManager.Instance.WaitForScreenAnimation(185, self is Enemy);
+				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
+					BattleManager.Instance.Damage(self, ally, () => ally.CurrentHP * 0.25f, false);
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.25f, false);
+			}
+		);
+
+		// MARSHA //
+		Skills["MARAttack"] = new Skill(
+			name: "MARAttack",
+			description: "MARAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] swings her axe at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["MARDoNothing"] = new Skill(
+			name: "MARDoNothing",
+			description: "MARDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Drink", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] falls over. ");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["MARSpin"] = new Skill(
+			name: "MARSpin",
+			description: "MARSpin",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] spins quickly!");
+				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(123, member)));
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["MARChop"] = new Skill(
+			name: "MARChop",
+			description: "MARChop",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(124, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams her axe into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		// THERESE //
+		Skills["THRAttack"] = new Skill(
+			name: "THRAttack",
+			description: "THRAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoots an arrow at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["THRDoNothing"] = new Skill(
+			name: "THRDoNothing",
+			description: "THRDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_falls_over", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] drops an arrow.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["THRSnipe"] = new Skill(
+			name: "THRSnipe",
+			description: "THRSnipe",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			element: "emotion",
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(124, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] snipes [target]'s weak point!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2, false);
+			}
+		);
+
+		Skills["THRInsult"] = new Skill(
+			name: "THRInsult",
+			description: "THRInsult",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeAngry(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] calls [target] a poopy head!");
+				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
+				if (target.IsEmotionValid("angry"))
+					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
+				else
+					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK, false);
+				AnimationManager.Instance.PlayAnimation(122, target);
+				await Wait.Frames(90);
+			}
+		);
+
+		Skills["THRDoubleShot"] = new Skill(
+			name: "THRDoubleShot",
+			description: "THRDoubleShot",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] fires two arrows!");
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+				await Wait.Frames(8);
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
 		);
 	}
 }

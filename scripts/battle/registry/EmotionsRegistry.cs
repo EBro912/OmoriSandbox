@@ -53,6 +53,7 @@ internal static class EmotionsRegistry
 			.WithAsset(EmotionAsset.Vanilla(12, 3, 2)));
 		AddEmotion(new Emotion("stressed")
 			.WithBlocksActions()
+			.WithEmotionImmunity("afraid")
 			.WithStatBonuses(new StatBonus(StatType.ATK, 1.2f), new StatBonus(StatType.DEF, 0.9f))
 			.WithAsset(EmotionAsset.Vanilla(2, 1, 0)));
 		#endregion
