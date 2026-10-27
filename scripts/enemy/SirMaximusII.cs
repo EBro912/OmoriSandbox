@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -82,8 +81,8 @@ internal sealed class SirMaximusII : Enemy
         return Task.CompletedTask;
     }
 
-    private bool FirstDialogue = false;
-    private bool UltimateAttack = false;
+    private bool FirstDialogue;
+    private bool UltimateAttack;
     
     public override async Task ProcessBattleConditions()
     {

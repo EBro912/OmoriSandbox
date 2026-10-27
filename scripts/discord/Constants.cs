@@ -1,5 +1,3 @@
-using System;
-
 namespace Discord
 {
     internal static class Constants

@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
@@ -53,7 +52,7 @@ internal sealed class HumphreyFace : Enemy
 	}
 	
 
-	private int MessageIndex = 0;
+	private int MessageIndex;
 	private bool SkipFirst = true;
 
 	public override Task OnStartOfBattle()

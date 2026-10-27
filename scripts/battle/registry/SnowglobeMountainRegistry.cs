@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -275,7 +275,7 @@ internal static class SnowglobeMountainRegistry
 				await AnimationManager.Instance.WaitForAnimation(205, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] engulfs [target] in snow!");
 				// DIALOGUE QUIRK: names the user instead of the target in the SPEED and DEFENSE lines
-				// DIALOGUE QUIRK: prints the SPEED and DEFENSE lines whether or not either stat changed
+				// DIALOGUE QUIRK: prints the SPEED and DEFENSE lines whether either stat changed
 				BattleLogManager.Instance.QueueMessage(self, "[actor]'s SPEED fell.");
 				BattleLogManager.Instance.QueueMessage(self, "[actor]'s DEFENSE fell.");
 				// DIALOGUE QUIRK: logs no damage line

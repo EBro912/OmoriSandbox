@@ -28,7 +28,7 @@ internal sealed class TheMaverick : Enemy
         return SelectTargetWithHighest(StatType.SPD);
     }
 
-    private int Stage = 0;
+    private int Stage;
     public override async Task ProcessBattleConditions()
     {
 

@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -29,6 +28,9 @@ internal static class UnderwaterHighwayRegistry
 		Enemies.Add("SlimeBunny", () => new SlimeBunny());
 		Enemies.Add("Watermimic", () => new Watermimic());
 		Enemies.Add("WormBot", () => new WormBot());
+		Enemies.Add("FishBunny", () => new FishBunny());
+		Enemies.Add("SnotBubble", () => new SnotBubble());
+		Enemies.Add("SproutMole??", () => new SproutMoleDoubleQuestion());
 
 		// SLIME GIRLS //
 		Skills["ComboAttack"] = new Skill(
@@ -102,7 +104,7 @@ internal static class UnderwaterHighwayRegistry
 					"MOLLY fires her stingers!\n[target] gets struck!");
 				await AnimationManager.Instance.WaitForAnimation(193, target);
 				int damage = BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2, false, neverCrit: true);
-				if (damage > -1)
+				if (damage > -1 && RollLuckStateChance(self, target, 1))
 				{
 					target.AddTierStatModifier("SpeedDown", 3, silent: true);
 				}
@@ -228,6 +230,9 @@ internal static class UnderwaterHighwayRegistry
 				}
 				await Wait.Milliseconds(400);
 				AnimationManager.Instance.TintScreen(0, 0, 0, 0, 1f);
+				// VANILLA BUG: adds the RANDOM EMOTION marker but never rolls the random emotion
+				foreach (PartyMember member in targets.OfType<PartyMember>().Where(x => x.CurrentHP > 0))
+					member.AddStatModifier("RandomEmotion", silent: true);
 				await Wait.Milliseconds(664);
 				AnimationManager.Instance.ToneBelowUI = wasBelowUI;
 			}
@@ -540,7 +545,7 @@ internal static class UnderwaterHighwayRegistry
 			{
 				await AnimationManager.Instance.WaitForAnimation(123, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] nibbles at [target]!");
-				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0.2f);
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
 		);
 		
@@ -921,13 +926,9 @@ internal static class UnderwaterHighwayRegistry
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses squid magic!");
 				BattleLogManager.Instance.QueueMessage("Everyone feels weird...");
 				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(161, member)));
-				for (int slot = 0; slot < 4; slot++)
-				{
-					int roll = GameManager.Instance.Random.RandiRange(0, 2);
-					PartyMember member = targets.OfType<PartyMember>().FirstOrDefault(x => x.Component.Position == slot);
-					if (member != null)
-						SquidMagicEmotion(member, slot, roll);
-				}
+				foreach (PartyMember member in targets.OfType<PartyMember>().Where(x => x.CurrentHP > 0))
+					member.AddStatModifier("RandomEmotion", silent: true);
+				RandomPlayerEmotion();
 			}
 		);
 
@@ -969,14 +970,14 @@ internal static class UnderwaterHighwayRegistry
 			description: "LRHappyGas",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			setup: async (Actor self, IReadOnlyList<Actor> targets) =>
+			setup: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] releases HAPPY gas!");
 				await AnimationManager.Instance.WaitForScreenAnimation(181, targets[0] is Enemy);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
 					BattleManager.Instance.MakeHappy(member, silent: true);
 			},
-			effect: (Actor _, IReadOnlyList<Actor> _) => Task.CompletedTask
+			effect: (_, _) => Task.CompletedTask
 		);
 
 		// SLIME BUNNY //
@@ -1108,7 +1109,7 @@ internal static class UnderwaterHighwayRegistry
 				BattleLogManager.Instance.QueueMessage(self, "[actor] throws a GRAPE!");
 				await AnimationManager.Instance.WaitForAnimation(217, target);
 				if (BattleManager.Instance.RollHit(self, target))
-					BattleManager.Instance.HealJuice(self, target, () => 30, 0f);
+					BattleManager.Instance.HealJuice(self, target, () => 30);
 			}
 		);
 
@@ -1131,13 +1132,13 @@ internal static class UnderwaterHighwayRegistry
 			description: "WMMConfetti",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			effect: (Actor self, IReadOnlyList<Actor> targets) =>
+			effect: (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] throws CONFETTI!");
 				// DIALOGUE QUIRK: prints "Everyone feels HAPPY!" even when a target's emotion can't move
 				BattleLogManager.Instance.QueueMessage("Everyone feels HAPPY!");
 				AudioManager.Instance.PlaySFX("GEN_ta_da", 1f, 0.9f);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
 					BattleManager.Instance.MakeHappy(member, silent: true);
 				return Task.CompletedTask;
 			}
@@ -1148,14 +1149,14 @@ internal static class UnderwaterHighwayRegistry
 			description: "WMMRainCloud",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			effect: (Actor self, IReadOnlyList<Actor> targets) =>
+			effect: (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] summons a RAIN CLOUD!");
 				// DIALOGUE QUIRK: prints "Everyone feels SAD." even when a target's emotion can't move
 				BattleLogManager.Instance.QueueMessage("Everyone feels SAD.");
 				for (int i = 0; i < 3; i++)
 					AudioManager.Instance.PlaySFX("BA_sad_level_2", 1f, 0.9f);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
 					BattleManager.Instance.MakeSad(member, silent: true);
 				return Task.CompletedTask;
 			}
@@ -1166,13 +1167,13 @@ internal static class UnderwaterHighwayRegistry
 			description: "WMMAirHorn",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			effect: (Actor self, IReadOnlyList<Actor> targets) =>
+			effect: (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses a GIANT AIRHORN!");
 				// DIALOGUE QUIRK: prints "Everyone feels ANGRY!" even when a target's emotion can't move
 				BattleLogManager.Instance.QueueMessage("Everyone feels ANGRY!");
 				AudioManager.Instance.PlaySFX("SE_airhorn", 1f, 0.9f);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
 					BattleManager.Instance.MakeAngry(member, silent: true);
 				return Task.CompletedTask;
 			}
@@ -1217,6 +1218,206 @@ internal static class UnderwaterHighwayRegistry
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
 			}
 		);
+
+		// FISH BUNNY //
+		Skills["FSBAttack"] = new Skill(
+			name: "FSBAttack",
+			description: "FSBAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(122, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] swims into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["FSBDoNothing"] = new Skill(
+			name: "FSBDoNothing",
+			description: "FSBDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_dance", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] swims in a circle. ");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["FSBSchooling"] = new Skill(
+			name: "FSBSchooling",
+			description: "FSBSchooling",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(145, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] calls for friends!");
+				if (self is Enemy enemy)
+					ReinforcementSlots.Summon(enemy, ReinforcementSlots.FishBunny);
+			}
+		);
+
+		// SNOT BUBBLE //
+		Task inflateAnimation = Task.CompletedTask;
+		Skills["SNTInflate"] = new Skill(
+			name: "SNTInflate",
+			description: "SNTInflate",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: async (_, target) =>
+			{
+				BattleManager.Instance.ZoomCamera(2f, 60);
+				await Wait.Frames(90);
+				inflateAnimation = AnimationManager.Instance.WaitForAnimation(218, target);
+				target.AddTierStatModifier("AttackUp", silent: true);
+			},
+			effect: async (self, _) =>
+			{
+				await inflateAnimation;
+				BattleLogManager.Instance.QueueMessage(self, "[actor]'s snot inflated!");
+				// DIALOGUE QUIRK: prints the ATTACK line even when ATTACK is already at its limit
+				BattleLogManager.Instance.QueueMessage(self, "[actor]'s ATTACK rose!");
+			}
+		);
+
+		Skills["SNTPop"] = PopSkill("SNTPop");
+
+		Skills["SNTPopOnDeath"] = PopSkill("SNTPopOnDeath");
+
+		// SPROUT MOLE?? //
+		Skills["SMQQAttack"] = new Skill(
+			name: "SMQQAttack",
+			description: "SMQQAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(125, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] fires a laser at [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["SMQQDoNothing"] = new Skill(
+			name: "SMQQDoNothing",
+			description: "SMQQDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_space_out", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s eye glows a little.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["SMQQExplode"] = new Skill(
+			name: "SMQQExplode",
+			description: "SMQQExplode",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			setup: (self, _) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] sheds a single tear...");
+				BattleLogManager.Instance.QueueMessage("and gloriously explodes!");
+				return Task.CompletedTask;
+			},
+			effect: (self, targets) =>
+			{
+				AnimationManager.Instance.PlayScreenAnimation(172, self is Enemy);
+				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
+					Explode(self, ally, 50f);
+				foreach (Actor target in targets)
+					Explode(self, target, 50f);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["SMQQStrangeLaser"] = new Skill(
+			name: "SMQQStrangeLaser",
+			description: "SMQQStrangeLaser",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(161, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor]'s eyes emits a strange");
+				BattleLogManager.Instance.QueueMessage(self, target, "light. [target] felt strange.");
+				target.AddStatModifier("RandomEmotion", silent: true);
+				RandomPlayerEmotion();
+			}
+		);
+	}
+
+	private static Skill PopSkill(string name)
+	{
+		return new Skill(
+			name: name,
+			description: name,
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			setup: (self, _) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] explodes!");
+				BattleLogManager.Instance.QueueMessage("Snot flies everywhere!");
+				return Task.CompletedTask;
+			},
+			effect: async (self, targets) =>
+			{
+				AnimationManager.Instance.PlayScreenAnimation(189, targets[0] is Enemy);
+				await Wait.Frames(40);
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK + target.CurrentStats.MaxHP * 0.25f,
+						new DamageOptions
+						{
+							NeverMiss = false,
+							Variance = 0f,
+							Crit = CritMode.Never,
+							OnHit = () =>
+							{
+								self.CurrentHP = 0;
+								self.ClearResult();
+							}
+						});
+				if (self is Enemy enemy)
+				{
+					if (!enemy.IsImmortal)
+						enemy.CurrentHP = 0;
+					enemy.RemoveImmortal();
+				}
+			}
+		);
+	}
+
+	private static void Explode(Actor self, Actor target, float damage)
+	{
+		BattleManager.Instance.Damage(self, target, () => damage,
+			new DamageOptions
+			{
+				NeverMiss = false,
+				Variance = 0f,
+				Crit = CritMode.Never,
+				OnHit = () =>
+				{
+					self.CurrentHP = 0;
+					self.ClearResult();
+				}
+			});
+	}
+
+	private static void RandomPlayerEmotion()
+	{
+		for (int slot = 0; slot < 4; slot++)
+		{
+			int roll = GameManager.Instance.Random.RandiRange(0, 2);
+			PartyMember member = BattleManager.Instance.GetAlivePartyMembers()
+				.FirstOrDefault(x => x.Component.Position == slot && x.HasStatModifier("RandomEmotion"));
+			if (member != null)
+				SquidMagicEmotion(member, slot, roll);
+		}
 	}
 
 	private static readonly string[][] SquidMagicGroups = [["sad", "angry", "happy"], ["happy", "angry", "sad"], ["angry", "happy", "sad"], ["sad", "happy", "angry"]];

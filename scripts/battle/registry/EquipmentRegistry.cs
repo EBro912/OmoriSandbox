@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -57,7 +57,7 @@ internal static class EquipmentRegistry
 		Equipment["Blender"] = new Equipment("Blender", [new StatBonus(StatType.MaxJuice, 30), new StatBonus(StatType.ATK, 7), new StatBonus(StatType.HIT, 100)]);
 		Equipment["Baking Pan"] = new Equipment("Baking Pan", [new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.ATK, 6), new StatBonus(StatType.HIT, 100)]);
 		Equipment["Tenderizer"] = new Equipment("Tenderizer",[new StatBonus(StatType.ATK, 30), new StatBonus(StatType.HIT, 100)]);
-		Equipment["LOL Sword"] = new Equipment("LOL Sword", [new StatBonus(StatType.MaxJuice, 10), new StatBonus(StatType.ATK, 14), new StatBonus(StatType.HIT, 100)]).WithStartOfBattleEffect((actor) =>
+		Equipment["LOL Sword"] = new Equipment("LOL Sword", [new StatBonus(StatType.MaxJuice, 10), new StatBonus(StatType.ATK, 14), new StatBonus(StatType.HIT, 100)]).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "happy", 1, true);
 			return Task.CompletedTask;
@@ -93,7 +93,7 @@ internal static class EquipmentRegistry
 		Equipment["Cough Mask"] = new Equipment("Cough Mask", [new StatBonus(StatType.MaxHP, 25), new StatBonus(StatType.MaxJuice, 25), 
 			new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, 10), 
 			new StatBonus(StatType.SPD, 10), new StatBonus(StatType.LCK, 10)], true);
-		Equipment["Daisy"] = new Equipment("Daisy", [new StatBonus(StatType.MaxHP, 10)], true).WithStartOfBattleEffect((actor) =>
+		Equipment["Daisy"] = new Equipment("Daisy", [new StatBonus(StatType.MaxHP, 10)], true).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "happy", 1, true);
 			return Task.CompletedTask;
@@ -101,7 +101,7 @@ internal static class EquipmentRegistry
 		Equipment["Eye Patch"] = new Equipment("Eye Patch", [new StatBonus(StatType.ATK, 7), new StatBonus(StatType.HIT, -25)], true);
 		Equipment["Faux Tail"] = new Equipment("Faux Tail", new StatBonus(StatType.SPD, 15), true);
 		Equipment["Fedora"] = new Equipment("Fedora", new StatBonus(StatType.DEF, 5), true);
-		Equipment["Finger"] = new Equipment("Finger", [new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, -5)], true).WithStartOfBattleEffect((actor) =>
+		Equipment["Finger"] = new Equipment("Finger", [new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, -5)], true).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "angry", 1, true);
 			return Task.CompletedTask;
@@ -116,13 +116,13 @@ internal static class EquipmentRegistry
 		Equipment["Hard Hat"] = new Equipment("Hard Hat", new StatBonus(StatType.DEF, 6), true);
 		Equipment["Headband"] = new Equipment("Headband", [new StatBonus(StatType.MaxJuice, 20), new StatBonus(StatType.ATK, 10), 
 			new StatBonus(StatType.DEF, 3), new StatBonus(StatType.SPD, 15)], true);
-		Equipment["Heart String"] = new Equipment("Heart String", [new StatBonus(StatType.MaxHP, 30)], true).WithStartOfBattleEffect((actor) =>
+		Equipment["Heart String"] = new Equipment("Heart String", [new StatBonus(StatType.MaxHP, 30)], true).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "happy", 1, true);
 			return Task.CompletedTask;
 		});
 		Equipment["High Heels"] = new Equipment("High Heels", [new StatBonus(StatType.ATK, 10), new StatBonus(StatType.SPD, 10)], true);
-		Equipment["Homework"] = new Equipment("Homework", true).WithStartOfBattleEffect((actor) =>
+		Equipment["Homework"] = new Equipment("Homework", true).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "sad", 1, true);
 			return Task.CompletedTask;
@@ -131,7 +131,7 @@ internal static class EquipmentRegistry
 		{
 			return [new StatBonus(StatType.DEF, 2 + BattleManager.Instance.Energy)];
 		});
-		Equipment["Magical Bean"] = new Equipment("Magical Bean", true).WithStartOfBattleEffect((actor) =>
+		Equipment["Magical Bean"] = new Equipment("Magical Bean", true).WithStartOfBattleEffect(actor =>
 		{
 			EmotionGroup rolled = RollRandomEmotionGroup();
 			if (rolled != null)
@@ -142,7 +142,7 @@ internal static class EquipmentRegistry
 		Equipment["Paper Bag"] = new Equipment("Paper Bag", [new StatBonus(StatType.MaxHP, 40), new StatBonus(StatType.DEF, 13)], true).WithImmunityToAllEmotions("stressed");
 		Equipment["Hector"] = new Equipment("Hector", true);
 		Equipment["Pretty Bow"] = new Equipment("Pretty Bow", [new StatBonus(StatType.MaxHP, 50), new StatBonus(StatType.ATK, 10), new StatBonus(StatType.DEF, 3)], true);
-		Equipment["Punching Bag"] = new Equipment("Punching Bag", true).WithStartOfBattleEffect((actor) =>
+		Equipment["Punching Bag"] = new Equipment("Punching Bag", true).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "angry", 1, true);
 			return Task.CompletedTask;
@@ -152,7 +152,7 @@ internal static class EquipmentRegistry
 		{
 			return [new StatBonus(StatType.ATK, 1 + (2 * BattleManager.Instance.Energy)), new StatBonus(StatType.DEF, 5)];
 		});
-		Equipment["Deep Poetry Book"] = new Equipment("Deep Poetry Book", true).WithStartOfBattleEffect((actor) =>
+		Equipment["Deep Poetry Book"] = new Equipment("Deep Poetry Book", true).WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "sad", 1, true);
 			return Task.CompletedTask;
@@ -171,7 +171,7 @@ internal static class EquipmentRegistry
 		});
 		Equipment["Wedding Ring"] = new Equipment("Wedding Ring", [new StatBonus(StatType.MaxHP, 10), new StatBonus(StatType.MaxJuice, 10), 
 			new StatBonus(StatType.ATK, 3), new StatBonus(StatType.DEF, 3), new StatBonus(StatType.SPD, 3), new StatBonus(StatType.LCK, 3)], true)
-			.WithStartOfBattleEffect((actor) =>
+			.WithStartOfBattleEffect(actor =>
 		{
 			BattleManager.Instance.MakeEmotionTier(actor, "happy", 1, true);
 			return Task.CompletedTask;
@@ -199,7 +199,7 @@ internal static class EquipmentRegistry
 			new StatBonus(StatType.ATK, 20), new StatBonus(StatType.DEF, 20), new StatBonus(StatType.SPD, 20),
 			new StatBonus(StatType.LCK, 20)
 		], true);
-		Equipment["Chef's Hat"] = new Equipment("Chef's Hat", new StatBonus(StatType.DEF, 15), true).WithStartOfTurnEffect((actor) =>
+		Equipment["Chef's Hat"] = new Equipment("Chef's Hat", new StatBonus(StatType.DEF, 15), true).WithStartOfTurnEffect(actor =>
 		{
 			int juice = (int)Math.Floor(actor.CurrentStats.MaxJuice * 0.05);
 			juice = actor.HealJuice(juice);

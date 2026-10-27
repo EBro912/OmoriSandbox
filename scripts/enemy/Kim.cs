@@ -28,7 +28,7 @@ internal sealed class Kim : Enemy
         return SelectTargetWithHighest(StatType.SPD);
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         if (!HasSpoken && IsBelowHP(0.5f))

@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -38,6 +38,11 @@ internal static class OrangeOasisRegistry
 		Enemies.Add("MilkshakeBunny", () => new MilkshakeBunny());
 		Enemies.Add("PancakeBunny", () => new PancakeBunny());
 		Enemies.Add("SSSnake", () => new SSSnake());
+		Enemies.Add("Dorothi (Train)", () => new DorothiTrain());
+		Enemies.Add("Copypasta", () => new Copypasta());
+		Enemies.Add("Chicken?", () => new ChickenQuestion());
+		Enemies.Add("Chicken? (Chicken Ball)", () => new ChickenQuestionBall());
+		Enemies.Add("Chicken? (Weak)", () => new ChickenQuestionWeak());
 
 		// Unbread Twins //
 		Skills["UBTAttack"] = new Skill(
@@ -973,6 +978,75 @@ internal static class OrangeOasisRegistry
 					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
 				else
 					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+			}
+		);
+
+		// DOROTHI (TRAIN) //
+		Skills["DRTLiar"] = new Skill(
+			name: "DRTLiar",
+			description: "DRTLiar",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "Liar.");
+				await Task.CompletedTask;
+			}
+		);
+
+		// COPYPASTA //
+		Skills["COPAttack"] = new Skill(
+			name: "COPAttack",
+			description: "COPAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] bops [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+			}
+		);
+
+		Skills["COPDuplicate"] = new Skill(
+			name: "COPDuplicate",
+			description: "COPDuplicate",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(145, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] copies itself!");
+				if (self is Enemy enemy)
+					ReinforcementSlots.Summon(enemy, ReinforcementSlots.Copypasta);
+			}
+		);
+
+		// CHICKEN? //
+		Skills["CHKRunAway"] = new Skill(
+			name: "CHKRunAway",
+			description: "CHKRunAway",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] runs away.");
+				// VANILLA BUG: RUN AWAY's "wait:120" has no space, so the base never waits after it
+				if (target is Enemy enemy)
+					await enemy.Escape();
+			}
+		);
+
+		Skills["CHKDoNothing"] = new Skill(
+			name: "CHKDoNothing",
+			description: "CHKDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_INK", 0.7f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] clucks.");
+				await Task.CompletedTask;
 			}
 		);
 	}

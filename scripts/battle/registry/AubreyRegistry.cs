@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -30,7 +30,7 @@ internal static class AubreyRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PepTalk"] = new Skill(
 			name: "PEP TALK",
 			description: "Makes a friend or foe HAPPY.\nCost: 5",
@@ -105,7 +105,7 @@ internal static class AubreyRegistry
 			},
 			hidden: true
 		// COUNTER itself is gated on afraid/stressed, the forced counterattack must still fire
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["PowerHit"] = new Skill(
 			name: "POWER HIT",
@@ -311,7 +311,7 @@ internal static class AubreyRegistry
 					() => (self.CurrentStats.ATK * 2 + self.CurrentStats.LCK) - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtOmori2"] = new Skill(
 			name: "Look At Omori 2",
@@ -332,7 +332,7 @@ internal static class AubreyRegistry
 					() => (self.CurrentStats.ATK * 3 + self.CurrentStats.LCK) - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtOmori3"] = new Skill(
 			name: "Look At Omori 3",
@@ -353,7 +353,7 @@ internal static class AubreyRegistry
 					false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtKel1"] = new Skill(
 			name: "Look At Kel 1",
@@ -375,7 +375,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtKel2"] = new Skill(
 			name: "Look At Kel 2",
@@ -402,7 +402,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtKel3"] = new Skill(
 			name: "Look At Kel 3",
@@ -429,7 +429,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtHero1"] = new Skill(
 			name: "Look At Hero 1",
@@ -454,7 +454,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["LookAtHero2"] = new Skill(
 			name: "Look At Hero 2",
@@ -483,7 +483,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		bool lookHero3Ecstatic = false;
 		Skills["LookAtHero3"] = new Skill(
@@ -524,7 +524,7 @@ internal static class AubreyRegistry
 				return Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 
 		Skills["ARWAttack"] = new Skill(
@@ -541,7 +541,7 @@ internal static class AubreyRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["Homerun"] = new Skill(
 			name: "HOMERUN",
@@ -558,8 +558,7 @@ internal static class AubreyRegistry
 				// the instant-defeat effect only applies if the attack lands
 				if (damage > -1)
 				{
-					int roll = GameManager.Instance.Random.RandiRange(0, 99);
-					if (roll < 11)
+					if (RollLuckStateChance(self, target, 0.1))
 					{
 						target.Damage(target.CurrentHP);
 					}

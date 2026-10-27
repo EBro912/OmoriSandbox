@@ -1,5 +1,5 @@
-using OmoriSandbox.Battle.Emotions;
 using System.Collections.Generic;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Battle;
 

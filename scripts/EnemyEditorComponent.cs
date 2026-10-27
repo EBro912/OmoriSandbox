@@ -66,25 +66,25 @@ internal partial class EnemyEditorComponent : Control
 			AreaDropdown.SetItemMetadata(AreaDropdown.ItemCount - 1, key);
 		}
 		AreaDropdown.Selected = 0;
-		AreaDropdown.ItemSelected += (idx) => FillEnemies(AreaDropdown.GetItemMetadata((int)idx).AsString());
+		AreaDropdown.ItemSelected += idx => FillEnemies(AreaDropdown.GetItemMetadata((int)idx).AsString());
 
 		foreach (string member in Database.GetAllEnemyNames())
 			EnemyDropdown.AddItem(member);
 
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex("LostSproutMole");
-		EnemyDropdown.ItemSelected += (idx) => Populate(EnemyDropdown.GetItemText((int)idx));
+		EnemyDropdown.ItemSelected += idx => Populate(EnemyDropdown.GetItemText((int)idx));
 		// scroll the (long) enemy list to the current enemy when the dropdown is opened
 		PopupMenu popup = EnemyDropdown.GetPopup();
 		popup.AboutToPopup += () => popup.SetFocusedItem(EnemyDropdown.Selected);
 		StatAdjustmentEditor.StatsAdjusted += RefreshStatDisplay;
-		EmotionDropdown.ItemSelected += (idx) => UpdateState(EmotionDropdown.GetItemText((int)idx));
+		EmotionDropdown.ItemSelected += idx => UpdateState(EmotionDropdown.GetItemText((int)idx));
 
-		VisibleCheckbox.Toggled += (pressed) => Animator.Visible = pressed;
+		VisibleCheckbox.Toggled += pressed => Animator.Visible = pressed;
 
-		XPosBox.ValueChanged += (value) => Animator.GlobalPosition = new Vector2((float)value, Animator.GlobalPosition.Y);
-		YPosBox.ValueChanged += (value) => Animator.GlobalPosition = new Vector2(Animator.GlobalPosition.X, (float)value);
+		XPosBox.ValueChanged += value => Animator.GlobalPosition = new Vector2((float)value, Animator.GlobalPosition.Y);
+		YPosBox.ValueChanged += value => Animator.GlobalPosition = new Vector2(Animator.GlobalPosition.X, (float)value);
 
-		LayerBox.ValueChanged += (value) => Animator.ZIndex = -5 - (int)value;
+		LayerBox.ValueChanged += value => Animator.ZIndex = -5 - (int)value;
 	}
 
 	public void Init(AnimatedSprite2D animator)

@@ -1,7 +1,7 @@
-using OmoriSandbox.Actors;
-using OmoriSandbox.Battle.Emotions;
 using System;
 using System.Collections.Generic;
+using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Battle.Modifier;
 

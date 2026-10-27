@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 
@@ -21,6 +20,9 @@ public sealed class MinionBarrierModifier : StatModifier
             return;
         
         if (damage <= 0)
+            return;
+
+        if (defender is MrJawsumAlt { BarrierHasFriends: false })
             return;
 
         List<Enemy> allEnemies = BattleManager.Instance.GetAllAliveEnemies();

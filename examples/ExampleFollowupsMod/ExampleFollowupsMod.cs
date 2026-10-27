@@ -54,7 +54,7 @@ public partial class ExampleFollowupsMod : Mod
                     () => (self.CurrentStats.ATK * 2) + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
             },
             hidden: true
-        ).WithCustomRequirement((_) => true));
+        ).WithCustomRequirement(_ => true));
 
         RegisterSkill("ExTrip", new Skill(
             name: "Trip EX",
@@ -75,7 +75,7 @@ public partial class ExampleFollowupsMod : Mod
                     () => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
             },
             hidden: true
-        ).WithCustomRequirement((_) => true));
+        ).WithCustomRequirement(_ => true));
 
         // a custom release energy. this will use 10 energy instead of 3.
         RegisterSkill("ReleaseEnergyEx", new Skill(
@@ -104,7 +104,7 @@ public partial class ExampleFollowupsMod : Mod
                 }
             },
             hidden: true
-        ).WithCustomRequirement((_) => true));
+        ).WithCustomRequirement(_ => true));
 
         // load vanilla graphics
         // modded textures would use .FromModTexture instead, as shown below

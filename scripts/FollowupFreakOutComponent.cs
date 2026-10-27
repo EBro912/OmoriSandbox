@@ -10,11 +10,11 @@ internal partial class FollowupFreakOutComponent : Node
 
     private const float FPS = 30f;
     private float FrameDuration = 1f / FPS;
-    private float FrameTimer = 0f;
-    private int ColorCounter = 0;
+    private float FrameTimer;
+    private int ColorCounter;
     private Vector2 Origin;
 
-    private int BlinkIndex = 0;
+    private int BlinkIndex;
     private readonly int[] BlinkColors = [255, 200, 150];
 
     public override void _Ready()
@@ -22,7 +22,7 @@ internal partial class FollowupFreakOutComponent : Node
         Origin = Target.Position;
     }
 
-    private bool WasActive = false;
+    private bool WasActive;
 
     public override void _Process(double delta)
     {

@@ -1,9 +1,8 @@
-using Godot;
 using System.Threading.Tasks;
-
+using Godot;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Perfectheart : Enemy
@@ -23,11 +22,11 @@ internal sealed class Perfectheart : Enemy
         return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 
-    private bool SecondPhase = false;
-    private bool HasSpoken = false;
+    private bool SecondPhase;
+    private bool HasSpoken;
 
-    private int Variable1001 = 0;
-    private Sprite2D OverlaySprite = null;
+    private int Variable1001;
+    private Sprite2D OverlaySprite;
 
     public override BattleCommand ProcessAI()
     {

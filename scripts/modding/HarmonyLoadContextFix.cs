@@ -1,9 +1,10 @@
-using Godot;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Loader;
+using Godot;
+using HarmonyLib;
 
 namespace OmoriSandbox.Modding;
 
@@ -24,7 +25,7 @@ internal static class HarmonyLoadContextFix
 	{
 		try
 		{
-			InstallProxy(typeof(HarmonyLib.Harmony).Assembly);
+			InstallProxy(typeof(Harmony).Assembly);
 		}
 		catch (Exception ex)
 		{

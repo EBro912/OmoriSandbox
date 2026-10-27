@@ -1,9 +1,9 @@
-using Godot;
-using OmoriSandbox.Actors;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Godot;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
@@ -43,11 +43,11 @@ public partial class BattleLogManager : Control
 	/// <summary>
 	/// Returns true when the battle log is busy with messages.
 	/// </summary>
-	public bool IsProcessingMessage { get; private set; } = false;
+	public bool IsProcessingMessage { get; private set; }
 
 	// tracks the current "generation" of messages
 	// if the battlelog is ever cleared and the queue is emptied, lingering message events won't fire
-	private int Generation = 0;
+	private int Generation;
 	public static BattleLogManager Instance { get; private set; }
 
 	public override void _EnterTree()
@@ -316,7 +316,7 @@ public partial class BattleLogManager : Control
 			return result;
 		}
 
-		string[] words = text.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+		string[] words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 		StringBuilder line = new(words[0]);
 
 		for (int i = 1; i < words.Length; i++)

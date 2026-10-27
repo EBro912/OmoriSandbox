@@ -1,8 +1,8 @@
-using Godot;
-using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
 

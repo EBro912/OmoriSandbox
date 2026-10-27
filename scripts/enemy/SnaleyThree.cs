@@ -39,8 +39,8 @@ public class SnaleyThree : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    private bool ReleasedEnergy = false;
-    private bool PendingRelease = false;
+    private bool ReleasedEnergy;
+    private bool PendingRelease;
 
     public override async Task ProcessBattleConditions()
     {

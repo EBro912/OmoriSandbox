@@ -1,8 +1,7 @@
-using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -55,7 +54,7 @@ internal sealed class Mutantheart : Enemy
         }
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
 
     public override async Task ProcessBattleConditions()
     {

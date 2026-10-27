@@ -1,8 +1,8 @@
-using OmoriSandbox.Actors;
-using OmoriSandbox.Battle.Emotions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using OmoriSandbox.Actors;
+using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Battle;
 

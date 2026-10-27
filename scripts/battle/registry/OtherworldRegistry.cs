@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -22,6 +22,7 @@ internal static class OtherworldRegistry
 		Enemies.Add("UFO", () => new UFO());
 		Enemies.Add("DustBunny", () => new DustBunny());
 		Enemies.Add("VenusFlytrap", () => new VenusFlytrap());
+		Enemies.Add("Wormhole", () => new Wormhole());
 
 		// SPACE EX BOYFRIEND //
 		Skills["SEBAttack"] = new Skill(
@@ -531,6 +532,47 @@ internal static class OtherworldRegistry
 				await AnimationManager.Instance.WaitForAnimation(157, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] chomps [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		// WORMHOLE //
+		Skills["WHAttack"] = new Skill(
+			name: "WHAttack",
+			description: "WHAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slaps [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, neverCrit: true);
+			}
+		);
+
+		Skills["WHDoNothing"] = new Skill(
+			name: "WHDoNothing",
+			description: "WHDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_do_nothing_space_out", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is wiggling around...");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["WHOpenWormhole"] = new Skill(
+			name: "WHOpenWormhole",
+			description: "WHOpenWormhole",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(145, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] opens up a wormhole!");
+				if (self is Enemy enemy)
+					ReinforcementSlots.Summon(enemy, ReinforcementSlots.Wormhole);
 			}
 		);
 	}

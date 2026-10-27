@@ -1,8 +1,3 @@
-using Godot;
-using Newtonsoft.Json;
-using OmoriSandbox.Battle;
-using OmoriSandbox.Menu;
-using OmoriSandbox.Editor;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Godot;
+using Newtonsoft.Json;
 using OmoriSandbox.Animation;
+using OmoriSandbox.Battle;
+using OmoriSandbox.Editor;
+using OmoriSandbox.Menu;
 using FileAccess = Godot.FileAccess;
 
 namespace OmoriSandbox.Modding;

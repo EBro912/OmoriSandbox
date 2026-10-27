@@ -1,8 +1,8 @@
 ﻿using Godot;
 using OmoriSandbox;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
-using OmoriSandbox.Actors;
 using OmoriSandbox.Modding;
 
 namespace AquaMod;

@@ -1,7 +1,7 @@
-using Godot;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Editor;
@@ -29,17 +29,17 @@ public partial class DialogueManager : Node2D
 	[Export] private VBoxContainer ChoiceTextParent;
 
 	private Queue<MessageBox> MessageQueue = [];
-	private bool HasChoice = false;
+	private bool HasChoice;
 
 	private const float TEXT_SPEED = 1f / 60f;
 	private const float TEXT_SIZE = 32.5f;
-	private bool WaitingForInput = false;
-	private bool IsTyping = false;
-	private bool WaitingForAnimation = false;
-	private bool WaitingForTimer = false;
-	private bool WaitingForChoice = false;
-	private double CharTimer = 0;
-	private int CurrentMessageLength = 0;
+	private bool WaitingForInput;
+	private bool IsTyping;
+	private bool WaitingForAnimation;
+	private bool WaitingForTimer;
+	private bool WaitingForChoice;
+	private double CharTimer;
+	private int CurrentMessageLength;
 	private int CharsTillSound = 1;
 	private Dictionary<int, List<Pause>> PauseIndices = [];
 	private RichTextLabel Measure;
@@ -50,7 +50,7 @@ public partial class DialogueManager : Node2D
 
 	private Vector2 CursorNormalPos = new(140, 37.5f);
 	private string[] CurrentChoices;
-	private int ChoiceIndex = 0;
+	private int ChoiceIndex;
 	private readonly MenuRepeat ChoiceRepeat = new();
 
 	private const float CHOICE_BOX_RIGHT = 180f;
@@ -580,7 +580,7 @@ public partial class DialogueManager : Node2D
 	}
 
 	// invalidates pending pause timers from earlier messages/dialogues
-	private int PauseGeneration = 0;
+	private int PauseGeneration;
 
 	private void WaitForTimer(double duration)
 	{

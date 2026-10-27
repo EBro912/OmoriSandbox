@@ -21,6 +21,6 @@ internal static class CommonSkillsRegistry
 			},
 			priority: 2000
 			// guard can always be used regardless of emotion
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 	}
 }

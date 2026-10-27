@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Newtonsoft.Json;
 using OmoriSandbox.Battle;
 
 namespace OmoriSandbox.Editor;
@@ -121,8 +120,8 @@ internal partial class EditorManager : Node
 			Results.Text = string.Join(", ", results);
 		};
 
-		StartingEnergySlider.ValueChanged += (value) => StartingEnergyValue.Text = value.ToString();
-		FollowupTierSlider.ValueChanged += (value) => FollowupTierValue.Text = value.ToString();
+		StartingEnergySlider.ValueChanged += value => StartingEnergyValue.Text = value.ToString();
+		FollowupTierSlider.ValueChanged += value => FollowupTierValue.Text = value.ToString();
 
 		ImportButton.Pressed += () =>
 		{

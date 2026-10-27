@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace OmoriSandbox.Modding;
 
 internal struct JsonEnemyMod
@@ -36,7 +38,7 @@ internal struct JsonEnemyMod
             report.Error("enemies", Name, "Missing required field 'atlas'");
             return false;
         }
-        if (Atlas.Contains("..") || Atlas.Contains("://") || System.IO.Path.IsPathRooted(Atlas))
+        if (Atlas.Contains("..") || Atlas.Contains("://") || Path.IsPathRooted(Atlas))
         {
             report.Error("enemies", Name, $"Invalid atlas path '{Atlas}' (path traversal not allowed)");
             return false;

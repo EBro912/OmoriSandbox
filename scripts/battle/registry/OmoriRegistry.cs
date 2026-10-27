@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 
@@ -32,7 +31,7 @@ internal static class OmoriRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["SadPoem"] = new Skill(
 			name: "SAD POEM",
@@ -464,7 +463,7 @@ internal static class OmoriRegistry
 					false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["AttackAgain2"] = new Skill(
 			name: "Attack Again 2",
@@ -482,7 +481,7 @@ internal static class OmoriRegistry
 					() => (self.CurrentStats.ATK * 2) + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["AttackAgain3"] = new Skill(
 			name: "Attack Again 3",
@@ -503,7 +502,7 @@ internal static class OmoriRegistry
 					() => (self.CurrentStats.ATK * 2) + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["Trip1"] = new Skill(
 			name: "Trip 1",
@@ -523,7 +522,7 @@ internal static class OmoriRegistry
 					() => self.CurrentStats.ATK + self.CurrentStats.LCK - target.CurrentStats.DEF, false);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["Trip2"] = new Skill(
 			name: "Trip 2",
@@ -549,7 +548,7 @@ internal static class OmoriRegistry
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["Trip3"] = new Skill(
 			name: "Trip 3",
@@ -575,7 +574,7 @@ internal static class OmoriRegistry
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["ReleaseEnergy1"] = new Skill(
 			name: "Release Energy 1",
@@ -605,7 +604,7 @@ internal static class OmoriRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["ReleaseEnergy2"] = new Skill(
 			name: "Release Energy 2",
@@ -635,7 +634,7 @@ internal static class OmoriRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["ReleaseEnergy3"] = new Skill(
 			name: "Release Energy 3",
@@ -665,7 +664,7 @@ internal static class OmoriRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 	}
 
 	private static async Task Lock(PartyMember member)

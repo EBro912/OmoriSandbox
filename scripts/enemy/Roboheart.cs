@@ -1,6 +1,5 @@
-using Godot;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -71,7 +70,7 @@ internal sealed class Roboheart : Enemy
         return new BattleCommand(this, this, Skills["RHSnack"]);
     }
 
-    private int Stage = 0;
+    private int Stage;
     public override async Task ProcessBattleConditions()
     {
         if (Stage > 1)

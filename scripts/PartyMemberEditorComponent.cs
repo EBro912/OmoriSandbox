@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Extensions;
-using System.Linq;
 
 namespace OmoriSandbox.Editor;
 internal partial class PartyMemberEditorComponent : Control
@@ -47,14 +48,14 @@ internal partial class PartyMemberEditorComponent : Control
 			ActorDropdown.AddItem(member);
 
 		ActorDropdown.Selected = ActorDropdown.GetItemIndex("Omori");
-		ActorDropdown.ItemSelected += (idx) =>
+		ActorDropdown.ItemSelected += idx =>
 		{
 			Populate(ActorDropdown.GetItemText((int)idx));
 			FilterWeapons(FilterEquippableCheckbox.ButtonPressed);
 			RefreshSelected((int)LevelSlider.Value - 1);
 			RecalculateStats();
 		};
-		EmotionDropdown.ItemSelected += (idx) =>
+		EmotionDropdown.ItemSelected += idx =>
 		{
 			UpdateState(EmotionDropdown.GetItemText((int)idx));
 			RecalculateStats();
@@ -63,7 +64,7 @@ internal partial class PartyMemberEditorComponent : Control
 		WeaponDropdown.AddItem("None");
 		foreach (string weapon in Database.GetAllWeaponNames())
 			WeaponDropdown.AddItem(weapon);
-		WeaponDropdown.ItemSelected += (item) =>
+		WeaponDropdown.ItemSelected += item =>
 		{
 			SelectWeapon(WeaponDropdown.GetItemText((int)item));
 			RecalculateStats();
@@ -72,7 +73,7 @@ internal partial class PartyMemberEditorComponent : Control
 		CharmDropdown.AddItem("None");
 		foreach (string charm in Database.GetAllCharmNames())
 			CharmDropdown.AddItem(charm);
-		CharmDropdown.ItemSelected += (item) =>
+		CharmDropdown.ItemSelected += item =>
 		{
 			if (item == 0)
 				SelectedCharm = null;
@@ -88,7 +89,7 @@ internal partial class PartyMemberEditorComponent : Control
 		AddSkillSlotButton.Pressed += AddSkillSlot;
 		SetSkillSlotCount(4);
 
-		FilterEquippableCheckbox.Toggled += (toggled) =>
+		FilterEquippableCheckbox.Toggled += toggled =>
 		{
 			FilterWeapons(toggled);
 			RecalculateStats();
@@ -96,13 +97,13 @@ internal partial class PartyMemberEditorComponent : Control
 
 		StatAdjustmentEditor.StatsAdjusted += RecalculateStats;
 
-		LevelSlider.ValueChanged += (value) =>
+		LevelSlider.ValueChanged += value =>
 		{
 			LevelSliderValue.Text = value.ToString();
 			int level = (int)value - 1;
 			BaseStats = new Stats(SelectedPartyMember.HPTree[level], SelectedPartyMember.JuiceTree[level],
 				SelectedPartyMember.ATKTree[level], SelectedPartyMember.DEFTree[level],
-				SelectedPartyMember.SPDTree[level], SelectedPartyMember.BaseLuck, 0);
+				SelectedPartyMember.SPDTree[level], SelectedPartyMember.BaseLuck);
 			RecalculateStats();
 		};
 	}
@@ -181,7 +182,7 @@ internal partial class PartyMemberEditorComponent : Control
 
 	private static string EquipmentItem(string name)
 	{
-		return name == null || name.Equals("none", System.StringComparison.OrdinalIgnoreCase) ? "None" : name;
+		return name == null || name.Equals("none", StringComparison.OrdinalIgnoreCase) ? "None" : name;
 	}
 
 	public void Populate(string who)
@@ -346,7 +347,7 @@ internal partial class PartyMemberEditorComponent : Control
 	private void RefreshSelected(int index)
 	{
 		BaseStats = new Stats(SelectedPartyMember.HPTree[index], SelectedPartyMember.JuiceTree[index], 
-			SelectedPartyMember.ATKTree[index], SelectedPartyMember.DEFTree[index],SelectedPartyMember.SPDTree[index], SelectedPartyMember.BaseLuck, 0);
+			SelectedPartyMember.ATKTree[index], SelectedPartyMember.DEFTree[index],SelectedPartyMember.SPDTree[index], SelectedPartyMember.BaseLuck);
 		SelectWeapon(WeaponDropdown.GetItemText(WeaponDropdown.Selected));
 		SelectCharm(CharmDropdown.GetItemText(CharmDropdown.Selected));
 	}

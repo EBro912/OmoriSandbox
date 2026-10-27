@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Battle.Registry;
@@ -76,7 +76,7 @@ internal static class ItemsRegistry
 			target: SkillTarget.Ally,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses GRAPE SODA!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses GRAPE SODA!");
 				AnimationManager.Instance.PlayAnimation(212, target);
 				// grape soda uses emotion due to an oversight
 				BattleManager.Instance.HealJuice(self, target, () => target.CurrentStats.MaxJuice * 0.8);
@@ -92,7 +92,7 @@ internal static class ItemsRegistry
 			target: SkillTarget.Ally,
 			effect: async (self, target) =>
 			{
-				BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses COFFEE!");
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses COFFEE!");
 				AnimationManager.Instance.PlayAnimation(214, target);
 				// coffee heals, uses emotion, and has a variance due to an oversight
 				BattleManager.Instance.Heal(self, target, () => target.CurrentStats.MaxJuice * 0.1);
@@ -110,7 +110,7 @@ internal static class ItemsRegistry
 		   target: SkillTarget.Ally,
 		   effect: async (self, target) =>
 		   {
-			   BattleLogManager.Instance.QueueMessage(self, target, $"[actor] uses ☐☐☐!");
+			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses ☐☐☐!");
 			   AnimationManager.Instance.PlayAnimation(215, target);
 			   // ☐☐☐ uses emotion due to an oversight
 			   BattleManager.Instance.Heal(self, target, () => 50, 0f);

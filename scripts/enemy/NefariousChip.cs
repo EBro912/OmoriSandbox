@@ -1,6 +1,5 @@
-using Godot;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -70,7 +69,7 @@ internal sealed class NefariousChip : Enemy
         return new BattleCommand(this, SelectTargets(4), Skills["NCCookiesHappy"]);
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.5f) && !HasSpoken)

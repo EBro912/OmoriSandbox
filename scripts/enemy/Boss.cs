@@ -1,6 +1,6 @@
-using Godot;
 using System;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -24,7 +24,7 @@ internal sealed class Boss : Enemy
     public override Vector2 InfoBoxOffset => new(0, -320);
     public override Vector2 DamageNumberOffset => new(0, -60);
 
-    private int Stage = 0;
+    private int Stage;
 
     public override BattleCommand ProcessAI()
     {

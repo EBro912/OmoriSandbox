@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -30,7 +30,7 @@ internal static class BasilRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["BodySlam"] = new Skill(
 			name: "BODY SLAM",
@@ -245,7 +245,7 @@ internal static class BasilRegistry
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["Mull"] = new Skill(
 			name: "Mull",
@@ -273,7 +273,7 @@ internal static class BasilRegistry
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithTiersFromFirstTarget().WithCustomRequirement((_) => true);
+		).WithTiersFromFirstTarget().WithCustomRequirement(_ => true);
 
 		Skills["Comfort"] = new Skill(
 			name: "Comfort",
@@ -301,7 +301,7 @@ internal static class BasilRegistry
 				await Task.CompletedTask;
 			},
 			hidden: true
-		).WithTiersFromFirstTarget().WithCustomRequirement((_) => true);
+		).WithTiersFromFirstTarget().WithCustomRequirement(_ => true);
 
 		Skills["ReleaseEnergyBasil"] = new Skill(
 			name: "Release Energy Basil",
@@ -347,6 +347,6 @@ internal static class BasilRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 	}
 }

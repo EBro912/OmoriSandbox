@@ -74,6 +74,7 @@ internal static class ModifiersRegistry
 		Modifiers.Add("CallForFriendDelay", () => new CallForFriendDelayModifier());
 		Modifiers.Add("Stunned", () => new StunnedModifier().WithReapplyAllowed());
 		Modifiers.Add("Tickle", () => new StatModifier(1));
+		Modifiers.Add("RandomEmotion", () => new StatModifier(1));
 		Modifiers.Add("MinionBarrier", () => new MinionBarrierModifier());
 		Modifiers.Add("Taunt", () => new StatModifier(1));
 		Modifiers.Add("AubreyCounter", () => new AubreyCounterModifier(1));

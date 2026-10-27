@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -88,7 +87,7 @@ internal sealed class SirMaximusIIIAlt : Enemy
         return new BattleCommand(this, this, Skills["SMIIIFlex"]);
     }
     
-    private bool UltimateAttack = false;
+    private bool UltimateAttack;
 
     public override Task OnStartOfBattle()
     {

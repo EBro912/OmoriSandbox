@@ -1,5 +1,5 @@
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -29,7 +29,7 @@ internal static class SunnyRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["SRWAltAttack"] = new Skill(
 			name: "SRWAltAttack",
@@ -46,7 +46,7 @@ internal static class SunnyRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CalmDown"] = new Skill(
 			name: "CALM DOWN",
@@ -67,7 +67,7 @@ internal static class SunnyRegistry
 			},
 			priority: 2000
 			// calm down can be used while afraid
-		).WithCustomRequirement((actor) => actor.CurrentEmotion.Id is not "stressed");
+		).WithCustomRequirement(actor => actor.CurrentEmotion.Id is not "stressed");
 
 		Skills["BrokenCalmDown"] = new Skill(
 			name: "CALM DOWN",
@@ -81,7 +81,7 @@ internal static class SunnyRegistry
 				BattleManager.Instance.Energy = 0;
 			},
 			priority: 1999
-		).WithCustomRequirement((actor) => actor.CurrentEmotion.Id is not "stressed");
+		).WithCustomRequirement(actor => actor.CurrentEmotion.Id is not "stressed");
 
 		Skills["Focus"] = new Skill(
 			name: "FOCUS",

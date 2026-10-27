@@ -1,9 +1,9 @@
-using Godot;
 using System;
 using System.Threading.Tasks;
+using Godot;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle.Modifier;
-using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -21,7 +21,7 @@ internal static class LastResortRegistry
 				BattleManager.Instance.SetCameraOffset(cameraOffset.X, cameraOffset.Y);
 			BattleManager.Instance.ZoomCamera(scale, 90);
 			await Wait.Frames(180);
-			BattleManager.Instance.ResetCameraZoom(30);
+			BattleManager.Instance.ResetCameraZoom();
 			await Wait.Frames(30);
 			await AnimationManager.Instance.WaitForAnimation(218, target);
 			target.AddTierStatModifier("AttackUp");
@@ -91,7 +91,7 @@ internal static class LastResortRegistry
 			setup: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] gives orders to attack!\nEveryone feels ANGRY!");
-				AudioManager.Instance.PlaySFX("SE_dinosaur", 0.8f, 1f);
+				AudioManager.Instance.PlaySFX("SE_dinosaur", 0.8f);
 				await Wait.Milliseconds(250);
 				foreach (Actor enemy in targets)
 				{

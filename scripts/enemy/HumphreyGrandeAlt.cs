@@ -3,7 +3,6 @@ using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 

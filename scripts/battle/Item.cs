@@ -1,7 +1,7 @@
-using OmoriSandbox.Actors;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle;
 

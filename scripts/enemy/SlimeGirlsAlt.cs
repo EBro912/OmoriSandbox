@@ -1,6 +1,5 @@
-using Godot;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -24,7 +23,7 @@ internal sealed class SlimeGirlsAlt : Enemy
 		return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
 	}
 
-	private int Stage = 0;
+	private int Stage;
 
 	public override BattleCommand ProcessAI()
 	{

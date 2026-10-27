@@ -1,8 +1,8 @@
+using System.Collections.Generic;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
-using System.Collections.Generic;
 
 namespace OmoriSandbox;
 

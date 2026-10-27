@@ -1,5 +1,5 @@
-using OmoriSandbox.Actors;
 using System;
+using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Modifier;
 

@@ -8,7 +8,7 @@ internal abstract partial class Menu : Control
 	[Export] protected CursorBounce CursorSprite;
 	protected List<string> Options = [];
 	protected List<Vector2I> CursorPositions = [];
-	public int CursorIndex { get; protected set; } = 0;
+	public int CursorIndex { get; protected set; }
 	protected bool Empty = false;
 	protected Tween Tween;
 

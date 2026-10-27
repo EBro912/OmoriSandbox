@@ -1,15 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Extensions;
 using OmoriSandbox.Menu;
 using OmoriSandbox.Modding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using FileAccess = Godot.FileAccess;
 
 namespace OmoriSandbox.Animation;
 
@@ -70,10 +71,10 @@ public partial class AnimationManager : Node
 	private const int IntroLastDrawing = 21;
 
 	internal BattleCamera Camera { get; } = new();
-	private float Shake = 0f;
-	private float ShakePwr = 0f;
-	private float ShakeSpd = 0f;
-	private int ShakeDuration = 0;
+	private float Shake;
+	private float ShakePwr;
+	private float ShakeSpd;
+	private int ShakeDuration;
 	private float ShakeDirection = 1f;
 
 	public static AnimationManager Instance { get; private set; }
@@ -789,7 +790,7 @@ public partial class AnimationManager : Node
 
 	private VideoStreamPlayer SpawnVideo(string path, int layer, float volume)
 	{
-		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || System.IO.Path.IsPathRooted(path))
+		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || Path.IsPathRooted(path))
 		{
 			GD.PushError($"Invalid video path '{path}' (path traversal not allowed)");
 			return null;

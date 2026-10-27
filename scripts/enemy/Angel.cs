@@ -40,7 +40,7 @@ internal sealed class Angel : Enemy
         return Task.CompletedTask;
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         if (!HasSpoken && IsBelowHP(0.5f))

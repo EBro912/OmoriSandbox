@@ -1,8 +1,7 @@
-using Godot;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
+using Godot;
 using OmoriSandbox;
 
 namespace Discord;
@@ -11,8 +10,8 @@ internal class DiscordManager
 {
     private Discord DiscordSDK;
     private Activity Activity;
-    private bool DiscordDisabled = false;
-    private static bool ResolverRegistered = false;
+    private bool DiscordDisabled;
+    private static bool ResolverRegistered;
 
     public DiscordManager()
     {
@@ -20,7 +19,7 @@ internal class DiscordManager
         {
             RegisterNativeResolver();
             DiscordSDK = new Discord(1410108043525488812, (ulong)CreateFlags.NoRequireDiscord);
-            Activity = new Activity()
+            Activity = new Activity
             {
                 Details = "On the Main Menu",
                 Timestamps =
@@ -35,7 +34,7 @@ internal class DiscordManager
                 Instance = false
             };
 
-            DiscordSDK.GetActivityManager().UpdateActivity(Activity, (result) =>
+            DiscordSDK.GetActivityManager().UpdateActivity(Activity, result =>
             {
                 if (result == Result.Ok)
                 {
@@ -112,21 +111,21 @@ internal class DiscordManager
     {
         if (DiscordDisabled) return;
         Activity.Details = "On the Main Menu";
-        DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
+        DiscordSDK.GetActivityManager().UpdateActivity(Activity, _ => { });
     }
 
     public void SetEditingPreset(GameModeType mode)
     {
         if (DiscordDisabled) return;
         Activity.Details = $"Editing a {(mode is GameModeType.Normal ? "Normal" : "Boss Rush")} Preset";
-        DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
+        DiscordSDK.GetActivityManager().UpdateActivity(Activity, _ => { });
     }
 
     public void SetBattling(int enemies)
     {
         if (DiscordDisabled) return;
         Activity.Details = enemies == 1 ? "Battling 1 Enemy" : $"Battling {enemies} Enemies";
-        DiscordSDK.GetActivityManager().UpdateActivity(Activity, (_) => { });
+        DiscordSDK.GetActivityManager().UpdateActivity(Activity, _ => { });
     }
 
     public void Shutdown()

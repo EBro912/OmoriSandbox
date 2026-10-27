@@ -1,13 +1,11 @@
+using System;
+using System.Collections.Generic;
 using Godot;
 using HarmonyLib;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using OmoriSandbox.Extensions;
 using OmoriSandbox.Menu;
 
 namespace OmoriSandbox.Modding;

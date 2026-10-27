@@ -1,7 +1,5 @@
 using Godot;
 using OmoriSandbox.Actors;
-using OmoriSandbox.Battle;
-using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;

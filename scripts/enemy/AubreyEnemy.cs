@@ -1,5 +1,5 @@
-using Godot;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
@@ -48,8 +48,8 @@ internal sealed class AubreyEnemy : Enemy
         return Task.CompletedTask;
     }
 
-    private int Stage = 0;
-    private int Turn = 0;
+    private int Stage;
+    private int Turn;
     
     private static readonly string[] ChurchGoerLines =
     [

@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -51,7 +49,7 @@ internal sealed class KingCrawler : Enemy
         return new BattleCommand(this, SelectAllTargets(), Skills["KCRam"]);
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.5f) && !HasSpoken)
@@ -63,18 +61,17 @@ internal sealed class KingCrawler : Enemy
     }
 
     // vanilla bug: reinforcements are never removed from the troop list, so a dead mole keeps its index, causing the
-    // CallForFriendDelay below to fail
+    // CallForFriendDelay in ReinforcementSlots.Summon to fail
     private readonly List<Enemy> Moles = [];
-    private readonly List<int> MoleSlots = [];   // reinforcement slot used by each summon
 
     private static bool Alive(Enemy e) =>
         e?.Component != null && !e.IsToast;
 
     public override async Task ProcessEndOfTurn()
     {
-        // eat every living mole in troop order at turn end
+        // eat every living mole among the first seven in troop order at turn end
         HashSet<Enemy> eaten = [];
-        foreach (Enemy mole in Moles.Where(Alive))
+        foreach (Enemy mole in Moles.Take(7).Where(Alive))
         {
             DialogueManager.Instance.QueueMessage("KING CRAWLER eats a SPROUT MOLE!");
             await DialogueManager.Instance.WaitForDialogue();
@@ -93,21 +90,9 @@ internal sealed class KingCrawler : Enemy
         DialogueManager.Instance.QueueMessage("A SPROUT MOLE appears!");
         await DialogueManager.Instance.WaitForDialogue();
 
-        // first reinforcement slot without a living mole, then stun the troop index that slot's branch names
-        int slot = Moles.Where((m, i) => MoleSlots[i] == 2).Any(Living) 
-            ? Moles.Where((m, i) => MoleSlots[i] == 3).Any(Living) ? 0 : 3
-            : 2;
-        if (slot == 0)
-            return;
-        Enemy summoned = BattleManager.Instance.SummonEnemy("LostSproutMole", CenterPoint - new Vector2(100, 0), layer: Layer + 1);
-        Moles.Add(summoned);
-        MoleSlots.Add(slot);
-        Enemy stunned = Moles[slot - 2];   // troop index slot-1 == Moles[slot-2]
-        if (Living(stunned))
-        {
-            stunned.AddStatModifier("CallForFriendDelay", silent: true);
-            stunned.ClearResult();
-        }
+        Enemy summoned = ReinforcementSlots.Summon(this, ReinforcementSlots.KingCrawler);
+        if (summoned != null)
+            Moles.Add(summoned);
     }
 
     public override Task OnDefeat()

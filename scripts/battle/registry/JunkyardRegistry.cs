@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -98,7 +98,7 @@ internal static class JunkyardRegistry
 			description: "DUSlowDownAll",
 			target: SkillTarget.AllEnemies,
 			cost: 0,
-			setup: (Actor self, IReadOnlyList<Actor> targets) =>
+			setup: (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] slows down...");
 				// DIALOGUE QUIRK: prints the "SPEED fell." line even when SPEED is already at its limit
@@ -109,9 +109,9 @@ internal static class JunkyardRegistry
 					member.AddTierStatModifier("SpeedDown", silent: true);
 				return Task.CompletedTask;
 			},
-			effect: async (Actor _, IReadOnlyList<Actor> targets) =>
+			effect: async (_, targets) =>
 			{
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Cast<Actor>().Concat(targets))
+				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
 					await AnimationManager.Instance.WaitForAnimation(220, member);
 			}
 		).WithTiersFromFirstTarget();

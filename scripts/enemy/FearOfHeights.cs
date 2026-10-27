@@ -1,8 +1,8 @@
-using Godot;
 using System.Threading.Tasks;
+using Godot;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Actors;
 internal sealed class FearOfHeights : Enemy
@@ -31,8 +31,7 @@ internal sealed class FearOfHeights : Enemy
             return new BattleCommand(this, SelectAllTargets(), Skills["FOHGrab"]);
         if (Roll() < 31)
             return new BattleCommand(this, this, Skills["FOHHands"]);
-        else
-            return new BattleCommand(this, SelectTarget(), Skills["FOHShove"]);
+        return new BattleCommand(this, SelectTarget(), Skills["FOHShove"]);
     }
 
     private int TurnsLeft = 11;

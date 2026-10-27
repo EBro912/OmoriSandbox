@@ -1,10 +1,9 @@
-using Godot;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
+using Godot;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Editor;
-using OmoriSandbox.Modding;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -15,6 +14,7 @@ internal static class BlackspaceRegistry
 	internal static void Register()
 	{
 		Enemies.Add("OmoriEnemy", () => new OmoriEnemy());
+		Enemies.Add("Merci", () => new Merci());
 
 		// FINAL OMORI //
 		
@@ -205,6 +205,6 @@ internal static class BlackspaceRegistry
 			},
 			hidden: true,
 			priority: 2000
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 	}
 }

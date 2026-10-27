@@ -3,7 +3,6 @@ using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 
@@ -23,7 +22,7 @@ internal sealed class HumphreySwarmAlt : Enemy
     }
 
     // prevent race condition between two triggers
-    private bool HasTransformed = false;
+    private bool HasTransformed;
     
     public override BattleCommand ProcessAI()
     {

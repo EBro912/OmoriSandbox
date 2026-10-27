@@ -13,7 +13,8 @@ public sealed class PlotArmorStatModifier : StatModifier
     public bool HasAnnounced = false;
 
     /// <inheritdoc/>
-    public PlotArmorStatModifier() : base() { }
+    public PlotArmorStatModifier()
+    { }
 
     /// <inheritdoc/>
     public override void OverrideDamage(DamagePhase phase, ref float damage, Actor attacker, Actor defender, bool isAttacking,

@@ -1,5 +1,4 @@
 using Godot;
-
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 

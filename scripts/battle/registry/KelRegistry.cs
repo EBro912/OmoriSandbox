@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -33,7 +33,7 @@ internal static class KelRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["Annoy"] = new Skill(
 			name: "ANNOY",
 			description: "Makes a friend or foe ANGRY.\nCost: 5",
@@ -329,7 +329,7 @@ internal static class KelRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["Encourage"] = new Skill(
 			name: "ENCOURAGE",
@@ -369,7 +369,7 @@ internal static class KelRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToOmori2"] = new Skill(
 			name: "Pass To Omori 2",
 			description: "Kel Followup",
@@ -391,7 +391,7 @@ internal static class KelRegistry
 				BattleManager.Instance.MakeEmotionTier(first, "happy", 1, true);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToOmori3"] = new Skill(
 			name: "Pass To Omori 3",
 			description: "Kel Followup",
@@ -413,7 +413,7 @@ internal static class KelRegistry
 				BattleManager.Instance.MakeEmotionTier(first, "happy", 2, true);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToAubrey1"] = new Skill(
 			name: "Pass To Aubrey 1",
 			description: "Kel Followup",
@@ -433,7 +433,7 @@ internal static class KelRegistry
 					() => second.CurrentStats.ATK + self.CurrentStats.ATK - target.CurrentStats.DEF);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToAubrey2"] = new Skill(
 			name: "Pass To Aubrey 2",
 			description: "Kel Followup",
@@ -453,7 +453,7 @@ internal static class KelRegistry
 					() => (second.CurrentStats.ATK * 2f) + self.CurrentStats.ATK - target.CurrentStats.DEF);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToAubrey3"] = new Skill(
 			name: "Pass To Aubrey 3",
 			description: "Kel Followup",
@@ -473,7 +473,7 @@ internal static class KelRegistry
 					() => (second.CurrentStats.ATK * 2f) + (self.CurrentStats.ATK * 2f) - target.CurrentStats.DEF);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToHero1"] = new Skill(
 			name: "Pass To Hero 1",
 			description: "Kel Followup",
@@ -496,7 +496,7 @@ internal static class KelRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToHero2"] = new Skill(
 			name: "Pass To Hero 2",
 			description: "Kel Followup",
@@ -519,7 +519,7 @@ internal static class KelRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["PassToHero3"] = new Skill(
 			name: "Pass To Hero 3",
 			description: "Kel Followup",
@@ -549,7 +549,7 @@ internal static class KelRegistry
 				}
 			},
 			hidden: true
-		).WithTiersFromFirstTarget().WithCustomRequirement((_) => true);
+		).WithTiersFromFirstTarget().WithCustomRequirement(_ => true);
 	}
 
 	private static void QueueEmotionTierLine(Actor who, string groupId, int tier)

@@ -20,14 +20,15 @@ internal sealed class Abbi : Enemy
     }
 
     private readonly Enemy[] Tentacles = new Enemy[4];
-    private readonly int[] Offsets = [-200, -80, 40, 180];
 
     public override Task OnStartOfBattle()
     {
         for (int i = 0; i < 4; i++)
+            ReviveTentacle();
+        foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
         {
-            Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
-                layer: Layer + 1);
+            enemy.RemoveStatModifier("CallForFriendDelay");
+            enemy.ClearResult();
         }
         return Task.CompletedTask;
     }
@@ -48,18 +49,12 @@ internal sealed class Abbi : Enemy
     internal void ReviveTentacle()
     {
         // VANILLA BUG: the delay state is added to the slot's first, already-dead tentacle, so a revived tentacle can act right away
-        for (int i = 0; i < 4; i++)
-        {
-            if (Tentacles[i]?.Component == null || Tentacles[i].IsToast)
-            {
-                Tentacles[i] = BattleManager.Instance.SummonEnemy("Tentacle", CenterPoint + new Vector2(Offsets[i], -80),
-                    layer: Layer + 1);
-                return;
-            }
-        }
+        Enemy tentacle = ReinforcementSlots.Summon(this, ReinforcementSlots.Abbi);
+        if (tentacle != null)
+            Tentacles[ReinforcementSlots.SlotOf(tentacle, ReinforcementSlots.Abbi) - 2] = tentacle;
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.5f) && !HasSpoken)

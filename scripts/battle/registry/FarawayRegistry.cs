@@ -1,8 +1,8 @@
-using Godot;
 using System.Threading.Tasks;
+using Godot;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle.Modifier;
-using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -610,7 +610,7 @@ internal static class FarawayRegistry
 			},
 			setup: async (_, _) =>
 			{
-				AudioManager.Instance.PlaySFX("ba_bug_buzz", 1f, 1f);
+				AudioManager.Instance.PlaySFX("ba_bug_buzz");
 				await Task.CompletedTask;
 			}
 		);

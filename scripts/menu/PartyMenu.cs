@@ -69,7 +69,7 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 		base.OnOpen(memory);
 	}
 
-	private bool WaitForSecondRun = false;
+	private bool WaitForSecondRun;
 
 	protected override void OnSelect()
 	{

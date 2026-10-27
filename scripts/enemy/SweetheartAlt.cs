@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Godot;
-
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -17,7 +16,7 @@ internal sealed class SweetheartAlt : Enemy
 	protected override string[] EquippedSkills => ["SHAttack", "SharpInsult", "SwingMace", "Brag"];
 	protected internal override bool ObserveHasMulti => true;
 
-	private int Stage = 0;
+	private int Stage;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{

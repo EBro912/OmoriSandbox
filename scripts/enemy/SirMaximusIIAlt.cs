@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -84,7 +83,7 @@ internal sealed class SirMaximusIIAlt : Enemy
     }
 
 
-    private bool UltimateAttack = false;
+    private bool UltimateAttack;
 
     public override Task OnStartOfBattle()
     {

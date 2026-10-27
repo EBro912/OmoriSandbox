@@ -12,7 +12,7 @@ internal sealed class Recyclepath : Enemy
     // VANILLA BUG: the emotion entries have no info box offsets, so the box sits at the feet with the finger below
     public override Vector2 InfoBoxOffset => CurrentEmotion.Group == null ? new(15, -230) : Vector2.Zero;
     public override bool InfoBoxCursorAboveBox => CurrentEmotion.Group == null;
-    public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/recyclepath.tres");
+    public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/recyclepath.tres");
 
     protected override Stats Stats => new(1000, 500, 40, 20, 16, 10, 95);
 
@@ -22,11 +22,6 @@ internal sealed class Recyclepath : Enemy
     {
         return emotion.Id is "neutral" or "happy" or "ecstatic" or "manic" or "sad" or "depressed" or "miserable" or "angry" or "enraged" or "furious" or "afraid";
     }
-
-    private Enemy LeftRecycultist;
-    private Enemy RightRecycultist;
-    private Enemy SummonedLeft;
-    private Enemy SummonedRight;
 
     public override BattleCommand ProcessAI()
     {
@@ -43,29 +38,10 @@ internal sealed class Recyclepath : Enemy
     internal void SummonRecycultist()
     {
         // VANILLA BUG: the starting RECYCULTISTS never count as summons, so the one on the left is always summoned first, and the delay hits the starting RECYCULTIST on that side instead of the new one
-        Enemy delayed;
-        if (SummonedRight?.Component == null || SummonedRight.IsToast)
-        {
-            SummonedRight = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
-                fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
-            delayed = RightRecycultist;
-        }
-        else if (SummonedLeft?.Component == null || SummonedLeft.IsToast)
-        {
-            SummonedLeft = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
-                fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
-            delayed = LeftRecycultist;
-        }
-        else
-            return;
-        if (delayed?.Component != null && !delayed.IsToast)
-        {
-            delayed.AddStatModifier("CallForFriendDelay", silent: true);
-            delayed.ClearResult();
-        }
+        ReinforcementSlots.Summon(this, ReinforcementSlots.Recyclepath);
     }
     
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         
@@ -91,10 +67,10 @@ internal sealed class Recyclepath : Enemy
     public override Task OnStartOfBattle()
     {
         AddImmortal();
-        LeftRecycultist = BattleManager.Instance.SummonEnemy("RecycultistLeft", CenterPoint + new Vector2(225, 35),
-            fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
-        RightRecycultist = BattleManager.Instance.SummonEnemy("RecycultistRight", CenterPoint + new Vector2(-225, 35),
-            fallsOffScreen: false, layer: Math.Max(0, Layer - 1));
+        ReinforcementSlots.AddTroopMember(this, ReinforcementSlots.Recyclepath, BattleManager.Instance.SummonEnemy("RecycultistRight",
+            CenterPoint + new Vector2(-247, 52), fallsOffScreen: false, layer: Math.Max(0, Layer - 1)));
+        ReinforcementSlots.AddTroopMember(this, ReinforcementSlots.Recyclepath, BattleManager.Instance.SummonEnemy("RecycultistLeft",
+            CenterPoint + new Vector2(233, 52), fallsOffScreen: false, layer: Math.Max(0, Layer - 1)));
         return Task.CompletedTask;
     }
 

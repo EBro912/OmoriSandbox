@@ -1,7 +1,7 @@
+using System.Linq;
 using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using System.Linq;
 
 namespace OmoriSandbox.Actors;
 internal sealed class Creepypasta : Enemy

@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Discord
 {
@@ -90,7 +89,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct User
+    internal struct User
     {
         public Int64 Id;
 
@@ -107,7 +106,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct OAuth2Token
+    internal struct OAuth2Token
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string AccessToken;
@@ -120,7 +119,7 @@ namespace Discord
 
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct ImageDimensions
+    internal struct ImageDimensions
     {
         public UInt32 Width;
 
@@ -128,7 +127,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct ActivityTimestamps
+    internal struct ActivityTimestamps
     {
         public Int64 Start;
 
@@ -136,7 +135,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct ActivityAssets
+    internal struct ActivityAssets
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string LargeImage;
@@ -152,7 +151,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct PartySize
+    internal struct PartySize
     {
         public Int32 CurrentSize;
 
@@ -160,7 +159,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct ActivityParty
+    internal struct ActivityParty
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string Id;
@@ -171,7 +170,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct ActivitySecrets
+    internal struct ActivitySecrets
     {
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
         public string Match;
@@ -184,7 +183,7 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct Activity
+    internal struct Activity
     {
         public ActivityType Type;
 
@@ -213,14 +212,14 @@ namespace Discord
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    internal partial struct Presence
+    internal struct Presence
     {
         public Status Status;
 
         public Activity Activity;
     }
 
-    internal partial class ResultException : Exception
+    internal class ResultException : Exception
     {
         public ResultException(Result result) : base(result.ToString()) { }
     }
@@ -228,13 +227,13 @@ namespace Discord
     internal partial class Discord : IDisposable
     {
         [StructLayout(LayoutKind.Sequential)]
-        internal partial struct FFIEvents
+        internal struct FFIEvents
         {
 
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal partial struct FFIMethods
+        internal struct FFIMethods
         {
             [UnmanagedFunctionPointer(CallingConvention.Winapi)]
             internal delegate void DestroyHandler(IntPtr MethodsPtr);
@@ -316,7 +315,7 @@ namespace Discord
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal partial struct FFICreateParams
+        internal struct FFICreateParams
         {
             internal Int64 ClientId;
 
@@ -452,7 +451,7 @@ namespace Discord
         }
     }
 
-    internal partial class MonoPInvokeCallbackAttribute : Attribute
+    internal class MonoPInvokeCallbackAttribute : Attribute
     {
 
     }
@@ -460,13 +459,13 @@ namespace Discord
     internal partial class ActivityManager
     {
         [StructLayout(LayoutKind.Sequential)]
-        internal partial struct FFIEvents
+        internal struct FFIEvents
         {
 
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal partial struct FFIMethods
+        internal struct FFIMethods
         {
             [UnmanagedFunctionPointer(CallingConvention.Winapi)]
             internal delegate Result RegisterCommandMethod(IntPtr methodsPtr, [MarshalAs(UnmanagedType.LPStr)]string command);

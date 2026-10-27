@@ -49,7 +49,7 @@ internal sealed class KiteKid : Enemy
         }
     }
 
-    private bool HasSpoken = false;
+    private bool HasSpoken;
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.25f) && !HasSpoken)

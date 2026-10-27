@@ -1,6 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -18,6 +19,7 @@ internal static class PyreflyForestRegistry
 		Enemies.Add("RareBear", () => new RareBear());
 		Enemies.Add("SproutMole?", () => new SproutMoleQuestion());
 		Enemies.Add("GhostBunny", () => new GhostBunny());
+		Enemies.Add("PottedPlant", () => new PottedPlant());
 
 		// LOST SPROUT MOLE //
 		Skills["LSMAttack"] = new Skill(
@@ -414,5 +416,91 @@ internal static class PyreflyForestRegistry
 				return Task.CompletedTask;
 			}
 		);
+
+		// POTTED PLANT //
+		Skills["PPAttack"] = new Skill(
+			name: "PPAttack",
+			description: "PPAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(126, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["PPDoNothing"] = new Skill(
+			name: "PPDoNothing",
+			description: "PPDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Drink", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is resting in its pot. ");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["PPTrip"] = new Skill(
+			name: "PPTrip",
+			description: "PPTrip",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				target.AddTierStatModifier("SpeedDown", silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(171, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[target] trips on [actor]'s roots.");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+				// DIALOGUE QUIRK: prints the SPEED line even when SPEED is already at its limit
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s SPEED fell.");
+				AnimationManager.Instance.PlayAnimation(215, target);
+				await Wait.Frames(60);
+			}
+		);
+
+		Skills["PPExplode"] = new Skill(
+			name: "PPExplode",
+			description: "PPExplode",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			setup: (self, _) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] explodes!");
+				return Task.CompletedTask;
+			},
+			effect: (self, targets) =>
+			{
+				AnimationManager.Instance.PlayScreenAnimation(172, self is Enemy);
+				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
+					Explode(self, ally, 40f);
+				foreach (Actor target in targets)
+					Explode(self, target, 40f);
+				return Task.CompletedTask;
+			}
+		);
+	}
+
+	private static void Explode(Actor self, Actor target, float damage)
+	{
+		BattleManager.Instance.Damage(self, target, () => damage,
+			new DamageOptions
+			{
+				NeverMiss = false,
+				Variance = 0f,
+				Crit = CritMode.Never,
+				OnHit = () =>
+				{
+					self.CurrentHP = 0;
+					self.ClearResult();
+				}
+			});
 	}
 }

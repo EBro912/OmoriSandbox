@@ -34,7 +34,7 @@ internal sealed class TheHooligans : Enemy
         return Task.CompletedTask;
     }
 
-    private int Stage = 0;
+    private int Stage;
     public override async Task ProcessBattleConditions()
     {
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();

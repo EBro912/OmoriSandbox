@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -436,7 +436,7 @@ internal static class ConsolePortRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 			}
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		
 		Skills["BMHThrowMoney"] = new Skill(
 			name: "BMHThrowMoney",

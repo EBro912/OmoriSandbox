@@ -1,12 +1,9 @@
-using System;
-using Godot;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class MrJawsum : Enemy
@@ -25,8 +22,7 @@ internal sealed class MrJawsum : Enemy
     }
 
     private readonly Enemy[] Gators = new Enemy[2];
-    private readonly int[] Offsets = [-145, 145];
-    private int Stage = 0;
+    private int Stage;
 
     public override BattleCommand ProcessAI()
     {
@@ -41,16 +37,13 @@ internal sealed class MrJawsum : Enemy
 
     internal void SpawnGatorGuy()
     {
-        for (int i = 0; i < 2; i++)
+        Enemy gator = ReinforcementSlots.Summon(this, ReinforcementSlots.MrJawsum);
+        if (gator == null)
         {
-            if (Gators[i]?.Component == null || Gators[i].IsToast)
-            {
-                Gators[i] = BattleManager.Instance.SummonEnemy("GatorGuyJawsum",
-                    new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));
-                return;
-            }
+            GD.PushWarning("Tried to summon more than 2 gator guys!");
+            return;
         }
-        GD.PushWarning("Tried to summon more than 2 gator guys!");
+        Gators[ReinforcementSlots.SlotOf(gator, ReinforcementSlots.MrJawsum) - 2] = gator;
     }
 
     public override async Task ProcessBattleConditions()
@@ -101,8 +94,6 @@ internal sealed class MrJawsum : Enemy
         AddStatModifier("MinionBarrier");
         SpawnGatorGuy();
         SpawnGatorGuy();
-        foreach (Enemy gator in Gators)
-            gator.AddStatModifier("CallForFriendDelay", silent: true);
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");
         await DialogueManager.Instance.WaitForDialogue();
     }

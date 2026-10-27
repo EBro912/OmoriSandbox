@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Godot;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox;
 
@@ -63,6 +64,6 @@ public static class Wait
     /// <param name="frames">The number of 15fps animation frames to wait for.</param>
     public static async Task AnimationFrames(int frames)
     {
-        await Seconds(frames / Animation.AnimationManager.FPS);
+        await Seconds(frames / AnimationManager.FPS);
     }
 }

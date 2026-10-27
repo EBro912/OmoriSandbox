@@ -48,8 +48,8 @@ internal sealed class PlutoExpanded : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    private bool HasSpoken = false;
-    private bool HasMentionedFlex = false;
+    private bool HasSpoken;
+    private bool HasMentionedFlex;
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.5f) && !HasSpoken)

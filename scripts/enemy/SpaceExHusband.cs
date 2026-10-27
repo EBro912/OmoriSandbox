@@ -1,9 +1,9 @@
-using Godot;
 using System.Threading.Tasks;
+using Godot;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Animation;
- 
+
 namespace OmoriSandbox.Actors;
 
 internal sealed class SpaceExHusband : Enemy
@@ -119,10 +119,10 @@ internal sealed class SpaceExHusband : Enemy
     }
     
     private string Memory = "neutral";
-    private bool Achieved = false;
-    private int IceCounter = 0;
-    private int FailWindow = 0;
-    private string LastGroup = null;
+    private bool Achieved;
+    private int IceCounter;
+    private int FailWindow;
+    private string LastGroup;
 
     public override async Task ProcessEndOfTurn()
     {

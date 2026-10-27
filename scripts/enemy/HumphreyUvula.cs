@@ -31,7 +31,7 @@ internal sealed class HumphreyUvula : Enemy
 		@"Please wait to be digested.\! There is a queue, so you'll have to wait.",
 		@"Do you see anyone else struggling?\! Behave yourselves, foodstuff!",
 	];
-	private int Taunt = 0;
+	private int Taunt;
 	private Tween BreatheTween;
 
 	public override async Task OnStartOfBattle()

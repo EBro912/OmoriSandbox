@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Godot;
 using System.Linq;
+using Godot;
 
 namespace OmoriSandbox;
 

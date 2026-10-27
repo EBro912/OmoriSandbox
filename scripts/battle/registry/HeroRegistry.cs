@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle.Modifier;
-using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -31,7 +31,7 @@ internal static class HeroRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["Massage"] = new Skill(
 			name: "MASSAGE",
 			description: "Removes a friend or foe's EMOTION.\nCost: 5",
@@ -357,7 +357,7 @@ internal static class HeroRegistry
 					Skills["OAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["CallOmori2"] = new Skill(
 			name: "Call Omori 2",
 			description: "Hero Followup",
@@ -376,7 +376,7 @@ internal static class HeroRegistry
 					Skills["OAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 		Skills["CallOmori3"] = new Skill(
 			name: "Call Omori 3",
 			description: "Hero Followup",
@@ -395,7 +395,7 @@ internal static class HeroRegistry
 					Skills["OAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CallAubrey1"] = new Skill(
 			name: "Call Aubrey 1",
@@ -415,7 +415,7 @@ internal static class HeroRegistry
 					Skills["AAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CallAubrey2"] = new Skill(
 			name: "Call Aubrey 2",
@@ -435,7 +435,7 @@ internal static class HeroRegistry
 					Skills["AAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CallAubrey3"] = new Skill(
 			name: "Call Aubrey 3",
@@ -455,7 +455,7 @@ internal static class HeroRegistry
 					Skills["AAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CallKel1"] = new Skill(
 			name: "Call Kel 1",
@@ -477,7 +477,7 @@ internal static class HeroRegistry
 					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CallKel2"] = new Skill(
 			name: "Call Kel 2",
@@ -499,7 +499,7 @@ internal static class HeroRegistry
 					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["CallKel3"] = new Skill(
 			name: "Call Kel 3",
@@ -521,7 +521,7 @@ internal static class HeroRegistry
 					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["HRWAttack"] = new Skill(
 			name: "Attack",
@@ -537,7 +537,7 @@ internal static class HeroRegistry
 			},
 			hidden: true,
 			showFollowups: true
-		).WithCustomRequirement((_) => true);
+		).WithCustomRequirement(_ => true);
 
 		Skills["FirstAid"] = new Skill(
 			name: "FIRST AID",

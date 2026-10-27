@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -66,7 +65,7 @@ internal sealed class SirMaximusIAlt : Enemy
         return new BattleCommand(this, SelectTargets(2), Skills["SMIStrikeTwice"]);
     }
     
-    private bool UltimateAttack = false;
+    private bool UltimateAttack;
 
     public override Task OnStartOfBattle()
     {

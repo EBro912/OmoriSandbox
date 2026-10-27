@@ -1,4 +1,4 @@
-using System.Numerics;
+using System;
 using Godot;
 using OmoriSandbox.Actors;
 using Vector2 = Godot.Vector2;
@@ -12,7 +12,7 @@ internal partial class PlayingAnimation : Node2D
 
 	private const int Rate = 4;
 
-	public int CurrentFrame { get; private set; } = 0;
+	public int CurrentFrame { get; private set; }
 	internal float FrameTimer;
 	public readonly RPGMAnimatedSprite Animation;
 	public Vector2 DrawPosition { get; private set; }
@@ -84,7 +84,7 @@ internal partial class PlayingAnimation : Node2D
 		}
 	}
 
-	private static Vector2 Truncate(Vector2 v) => new(System.MathF.Truncate(v.X), System.MathF.Truncate(v.Y));
+	private static Vector2 Truncate(Vector2 v) => new(MathF.Truncate(v.X), MathF.Truncate(v.Y));
 
 	public bool AdvanceFrame()
 	{

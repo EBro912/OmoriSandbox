@@ -1,7 +1,6 @@
 using System;
 using Godot;
 using OmoriSandbox.Extensions;
-using Range = Godot.Range;
 
 namespace OmoriSandbox.Editor;
 
@@ -43,13 +42,13 @@ internal partial class BattlebackBGMEditorComponent : Control
         }
         
         BattlebackDropdown.Selected = BattlebackDropdown.GetItemIndex("battleback_vf_default");
-		BattlebackDropdown.ItemSelected += (idx) =>
+		BattlebackDropdown.ItemSelected += idx =>
 		{
 			string battleback = BattlebackDropdown.GetItemText((int)idx);
 			BattlebackPreview.SetBattleback(battleback);	
 		};
 				
-		BGMDropdown.ItemSelected += (idx) =>
+		BGMDropdown.ItemSelected += idx =>
 		{
 			BGMPreview.Stop();
 			BGMPlayerTimer.Text = "00:00.00";
@@ -103,7 +102,7 @@ internal partial class BattlebackBGMEditorComponent : Control
 			LoopPoint.Value = BGMPlayer.Value;
 		};
 
-		LoopPoint.ValueChanged += (value) =>
+		LoopPoint.ValueChanged += value =>
 		{
 			if (BGMPreview.Stream is AudioStreamOggVorbis s)
 			{
@@ -112,12 +111,12 @@ internal partial class BattlebackBGMEditorComponent : Control
 			}
 		};
 
-		BGMPlayer.ValueChanged += (value) =>
+		BGMPlayer.ValueChanged += value =>
 		{
 			BGMPlayerTimer.Text = TimeSpan.FromSeconds(value).ToString(@"mm\:ss\.ff");
 		};
 
-		BGMPitch.ValueChanged += (value) =>
+		BGMPitch.ValueChanged += value =>
 		{
 			BGMPreview.PitchScale = (float)value;
 		};
@@ -208,7 +207,7 @@ internal partial class BattlebackBGMEditorComponent : Control
 	    set => LoopPoint.Value = value > 0 ? value : TrackLoopPoint;
     }
 
-    private bool PreviewingBGM = false;
+    private bool PreviewingBGM;
     private double TrackLoopPoint;
     private AudioStreamPlayer BGMPreview;
     private BattlebackDisplayComponent BattlebackPreview;

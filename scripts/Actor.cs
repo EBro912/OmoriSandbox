@@ -1,11 +1,11 @@
-using Godot;
-using OmoriSandbox.Battle;
-using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Battle.Modifier;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
+using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
+using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Actors;
@@ -146,7 +146,7 @@ public abstract class Actor
 
 	private static long LastModifierSequence;
 
-	private int _CurrentHP = 0;
+	private int _CurrentHP;
 	/// <summary>
 	/// The actor's current HP. Updating this value will fire <see cref="OnHPChanged"/>.
 	/// </summary>
@@ -160,7 +160,7 @@ public abstract class Actor
 		}
 	} 
 
-	private int _CurrentJuice = 0;
+	private int _CurrentJuice;
 
 	/// <summary>
     /// The actor's current Juice. Updating this value will fire <see cref="OnJuiceChanged"/>.

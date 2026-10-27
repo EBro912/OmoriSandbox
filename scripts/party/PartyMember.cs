@@ -1,8 +1,8 @@
 using System;
-using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -97,7 +97,7 @@ public abstract class PartyMember : Actor
         // init stats
         Level = actor.Level;
         int idx = Math.Clamp(actor.Level, 1, HPTree.Length) - 1;
-		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck, 0) + actor.AdjustedStats);
+		SetBaseStats(new Stats(HPTree[idx], JuiceTree[idx], ATKTree[idx], DEFTree[idx], SPDTree[idx], BaseLuck) + actor.AdjustedStats);
 
 		if (startToast)
 		{

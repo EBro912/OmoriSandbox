@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Godot;
 using OmoriSandbox.Actors;
@@ -5,9 +8,6 @@ using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Modding;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OmoriSandbox;
 

@@ -1,9 +1,6 @@
-using System;
-using Godot;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -18,13 +15,11 @@ internal sealed class UnbreadTwinsAlt : Enemy
     protected override Stats Stats => new(10000, 5000, 90, 1, 80, 10, 95);
     protected override string[] EquippedSkills => ["UBTAttack", "UBTDoNothing", "UBTCheerUp", "UBTCook", "UBTBakeBread"];
 
-    private static readonly string[] SpawnPool = ["Slice (Epilogue)", "Sourdough (Epilogue)", "Sesame (Epilogue)"];
-    private int Stage = 0;
+    private int Stage;
 
     private readonly Enemy[] Breads = new Enemy[2];
     // Unbread Twins only ever bake bread twice
-    private int Bakes = 0;
-    private readonly int[] Offsets = [-270, 200];
+    private int Bakes;
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -161,24 +156,15 @@ internal sealed class UnbreadTwinsAlt : Enemy
         }
     }
 
-    private Enemy FirstBread;
-
     public void SpawnBread()
     {
-        for (int i = 0; i < 2; i++)
+        Enemy bread = ReinforcementSlots.Summon(this, ReinforcementSlots.UnbreadTwinsEpilogue);
+        if (bread == null)
         {
-            if (Breads[i]?.Component != null && !Breads[i].IsToast)
-                continue;
-            Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
-            // the common event stuns the new bread (troop index 1 on bake 1, index 2 on bake 2) unless the first bread is
-            // already dead at bake 2, in which case the slot-2 branch re-adds and the stun lands on the corpse
-            if (Bakes == 0 || (FirstBread?.Component != null && !FirstBread.IsToast))
-                Breads[i].AddStatModifier("CallForFriendDelay", silent: true);
-            if (Bakes == 0)
-                FirstBread = Breads[i];
-            Bakes++;
+            GD.PushWarning("Tried to summon more than 2 breads!");
             return;
         }
-        GD.PushWarning("Tried to summon more than 2 breads!");
+        Breads[ReinforcementSlots.SlotOf(bread, ReinforcementSlots.UnbreadTwinsEpilogue) - 2] = bread;
+        Bakes++;
     }
 }

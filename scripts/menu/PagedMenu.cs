@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using OmoriSandbox.Battle;
 
 namespace OmoriSandbox.Menu;
 
 internal abstract partial class PagedMenu : Menu
 {
-	public int Page { get; protected set; } = 0;
+	public int Page { get; protected set; }
 
 	protected List<Vector2I> Positions = [new(22, 54), new(192, 54), new(22, 76), new(192, 76)];
 

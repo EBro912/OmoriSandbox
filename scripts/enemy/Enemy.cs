@@ -1,8 +1,8 @@
 using System;
-using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
@@ -354,11 +354,11 @@ public abstract class Enemy : Actor
 	/// <remarks>
 	/// Setting this value directly should be avoided as the player can set this manually in the preset settings.
 	/// </remarks>
-	public bool GrayscaleOnDefeat = false;
+	public bool GrayscaleOnDefeat;
 	/// <summary>
 	/// The layer this enemy is on
 	/// </summary>
-	public int Layer { get; protected set; } = 0;
+	public int Layer { get; protected set; }
 
 	internal bool PreventBattlebackChanges { get; set; }
 	internal bool PreventBGMChanges { get; set; }

@@ -103,10 +103,10 @@ internal sealed class PlutoExpandedEarth : Enemy
         }
     }
 
-    private bool Triggered = false;
-    private bool PendingCharge = false;
-    private bool Charging = false;
-    private bool HasMentionedFlex = false;
+    private bool Triggered;
+    private bool PendingCharge;
+    private bool Charging;
+    private bool HasMentionedFlex;
     public override async Task ProcessBattleConditions()
     {
         // the first ProcessBattleConditions after the queued Finale is the one following the Finale itself

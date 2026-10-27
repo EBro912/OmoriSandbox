@@ -34,11 +34,11 @@ public class Aqua : Enemy
         return emotion.Id is "neutral";
     }
 
-    private int Mercy = 0;
-    private bool Attacked = false;
+    private int Mercy;
+    private bool Attacked;
     private HashSet<string> UsedActs = [];
-    private int Duplicates = 0;
-    private bool UsedOmega = false;
+    private int Duplicates;
+    private bool UsedOmega;
 
     public void AddMercy(string act)
     {

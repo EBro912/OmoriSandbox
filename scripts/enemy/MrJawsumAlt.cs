@@ -1,12 +1,9 @@
-using System;
-using Godot;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Actors;
 internal sealed class MrJawsumAlt : Enemy
@@ -25,8 +22,48 @@ internal sealed class MrJawsumAlt : Enemy
     }
 
     private readonly Enemy[] Gators = new Enemy[2];
-    private readonly int[] Offsets = [-145, 145];
-    private int Stage = 0;
+    private int Stage;
+    private int BarrierHP;
+    private int BarrierJuice;
+
+    // VANILLA BUG: the Boss Rush summon doesn't refresh MR. JAWSUM, so after a lone mid-turn SUMMON MINION a hit on him that lands before he's refreshed isn't shared with the new gators
+    internal bool BarrierHasFriends { get; private set; }
+
+    private void RefreshBarrier() => BarrierHasFriends = BattleManager.Instance.GetAllAliveEnemies().Count > 1;
+
+    private void RefreshBarrierOnChange(ref int seen, int value)
+    {
+        if (value == seen)
+            return;
+        seen = value;
+        RefreshBarrier();
+    }
+
+    private void BarrierActionStarted(object sender, ActionEventArgs e)
+    {
+        if (StillInBattle() && e.Actor == this)
+            RefreshBarrier();
+    }
+
+    private void BarrierActionEnded(object sender, ActionEventArgs e)
+    {
+        if (StillInBattle() && e.Targets.Contains(this) && !(e.Actor == this && e.Action == Skills["MJSummonGator"]))
+            RefreshBarrier();
+    }
+
+    private bool StillInBattle()
+    {
+        if (BattleManager.Instance.GetAllEnemies().Contains(this))
+            return true;
+        UnhookBarrier();
+        return false;
+    }
+
+    private void UnhookBarrier()
+    {
+        BattleManager.Instance.ActionStarted -= BarrierActionStarted;
+        BattleManager.Instance.ActionEnded -= BarrierActionEnded;
+    }
 
     public override BattleCommand ProcessAI()
     {
@@ -41,16 +78,13 @@ internal sealed class MrJawsumAlt : Enemy
 
     internal void SpawnGatorGuy()
     {
-        for (int i = 0; i < 2; i++)
+        Enemy gator = ReinforcementSlots.Summon(this, ReinforcementSlots.MrJawsumBossRush);
+        if (gator == null)
         {
-            if (Gators[i]?.Component == null || Gators[i].IsToast)
-            {
-                Gators[i] = BattleManager.Instance.SummonEnemy("GatorGuyJawsum (Boss Rush)",
-                    new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));
-                return;
-            }
+            GD.PushWarning("Tried to summon more than 2 gator guys!");
+            return;
         }
-        GD.PushWarning("Tried to summon more than 2 gator guys!");
+        Gators[ReinforcementSlots.SlotOf(gator, ReinforcementSlots.MrJawsumBossRush) - 2] = gator;
     }
 
     public override async Task ProcessBattleConditions()
@@ -92,6 +126,7 @@ internal sealed class MrJawsumAlt : Enemy
 
     public override async Task OnDefeat()
     {
+        UnhookBarrier();
         DialogueManager.Instance.QueueMessage(this, "You let yourselves be foiled by a bunch of children!?");
         DialogueManager.Instance.QueueMessage(this, "WHAT DID I EVEN HIRE YOU FOR!?");
         await DialogueManager.Instance.WaitForDialogue();
@@ -99,16 +134,37 @@ internal sealed class MrJawsumAlt : Enemy
 
     public override async Task OnStartOfBattle()
     {
+        BarrierHP = CurrentHP;
+        BarrierJuice = CurrentJuice;
+        OnHPChanged += (_, _) => RefreshBarrierOnChange(ref BarrierHP, CurrentHP);
+        OnJuiceChanged += (_, _) => RefreshBarrierOnChange(ref BarrierJuice, CurrentJuice);
+        OnStatModifierAdded += (_, _) => RefreshBarrier();
+        OnStatModifierRemoved += (_, _) => RefreshBarrier();
+        OnEmotionChanged += (_, _) => RefreshBarrier();
+        BattleManager.Instance.ActionStarted += BarrierActionStarted;
+        BattleManager.Instance.ActionEnded += BarrierActionEnded;
         AddStatModifier("MinionBarrier");
         SpawnGatorGuy();
         SpawnGatorGuy();
-        foreach (Enemy gator in Gators)
-            gator.AddStatModifier("CallForFriendDelay", silent: true);
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");
         await DialogueManager.Instance.WaitForDialogue();
     }
+
+    public override Task ProcessStartOfTurn()
+    {
+        RefreshBarrier();
+        return Task.CompletedTask;
+    }
+
+    public override Task ProcessEndOfTurn()
+    {
+        RefreshBarrier();
+        return Task.CompletedTask;
+    }
+
     public override async Task OnEndOfBattle(BattleOutcome outcome)
     {
+        UnhookBarrier();
         if (outcome == BattleOutcome.Defeat) {
             DialogueManager.Instance.QueueMessage(CenterPoint, "[wave freq=20.0][font_size=43]JAWHAW[font_size=58]HAW[font_size=73]HAW!!!");
             DialogueManager.Instance.QueueMessage(this, "That's what happens when you mess with MR. JAWSUM!");

@@ -66,7 +66,7 @@ internal sealed class Pluto : Enemy
         return Task.CompletedTask;
     }
 
-    private bool HasExpanded = false;
+    private bool HasExpanded;
     public override async Task ProcessBattleConditions()
     {
         if (IsBelowHP(0.5f) && !HasExpanded)

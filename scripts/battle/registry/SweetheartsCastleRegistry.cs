@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
-using OmoriSandbox.Animation;
 using OmoriSandbox.Actors;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -24,6 +24,7 @@ internal static class SweetheartsCastleRegistry
 		Enemies.Add("Lucius", () => new Lucius());
 		Enemies.Add("Marsha", () => new Marsha());
 		Enemies.Add("Therese", () => new Therese());
+		Enemies.Add("Dorothi", () => new Dorothi());
 
 		// SWEETHEART //
 		Skills["SHAttack"] = new Skill(
@@ -954,6 +955,54 @@ internal static class SweetheartsCastleRegistry
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 				await Wait.Frames(8);
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		// DOROTHI //
+		Skills["DORAttack"] = new Skill(
+			name: "DORAttack",
+			description: "DORAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(129, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] stomps on [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["DORAttackTwice"] = new Skill(
+			name: "DORAttackTwice",
+			description: "DORAttackTwice",
+			target: SkillTarget.XRandomEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] kicks with its hind legs.");
+				foreach (Actor target in targets)
+				{
+					await AnimationManager.Instance.WaitForAnimation(123, target);
+					BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+				}
+			}
+		).WithRandomTargets(2);
+
+		Skills["DORSelfHappy"] = new Skill(
+			name: "DORSelfHappy",
+			description: "DORSelfHappy",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeHappy(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (_, target) =>
+			{
+				AudioManager.Instance.PlaySFX("BA_Horse", 1f, 0.9f);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] prances around!");
+				await Task.CompletedTask;
 			}
 		);
 	}

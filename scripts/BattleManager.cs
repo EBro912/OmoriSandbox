@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
@@ -5,13 +9,8 @@ using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
-using OmoriSandbox.Menu;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using OmoriSandbox.Extensions;
+using OmoriSandbox.Menu;
 
 namespace OmoriSandbox;
 
@@ -56,13 +55,13 @@ public partial class BattleManager : Node
 	private int InstantPriorityStart;
 	private bool HideFollowupBeforeInstant;
 	private readonly List<BattleCommand> ForcedCommands = [];
-	private int ForcedCountAtCommandStart = 0;
+	private int ForcedCountAtCommandStart;
 	private IReadOnlyList<Actor> CommandTargets = [];
 	private IReadOnlyList<Actor> TierTargets = [];
 	private readonly Dictionary<string, List<int>> TierLandings = [];
 	private readonly Dictionary<(string, Actor), int> TierSteps = [];
 	private int TierReactionDepth;
-	private PendingFollowupData PendingFollowup = null;
+	private PendingFollowupData PendingFollowup;
 	private readonly HashSet<BattleMenuOption> DisabledMenuOptions = [];
 
 	// vanilla only spends followup energy when the followup is actually used, so the
@@ -70,7 +69,7 @@ public partial class BattleManager : Node
 	private sealed record PendingFollowupData(BattleCommand Command, PartyMemberComponent User, FollowupEntry Entry);
 	private readonly List<Actor> PriorityActors = [];
 	private readonly HashSet<EnemyComponent> DeferredDeathEnemies = [];
-	private BattleCommand CurrentCommand = null;
+	private BattleCommand CurrentCommand;
 	private Timer Delay;
 	private readonly List<Node2D> DyingEnemies = [];
 	private Tween FallTween;
@@ -80,7 +79,7 @@ public partial class BattleManager : Node
 	public const int MaxItemCount = 99;
 	private Dictionary<string, int> Items = [];
 	private BattleAction SelectedAction;
-	private int _Energy = 0;
+	private int _Energy;
 
 	/// <summary>
 	/// The amount of Energy the party currently has.
@@ -187,12 +186,12 @@ public partial class BattleManager : Node
 	/// </summary>
 	public event EventHandler<AIDecidedEventArgs> AIDecided;
 
-	private bool FollowupActive = false;
-	private bool FollowupSelected = false;
-	private bool ForceHideFollowup = false;
+	private bool FollowupActive;
+	private bool FollowupSelected;
+	private bool ForceHideFollowup;
 	private int FollowupTier = 1;
-	private bool DamageNumbersDisabled = false;
-	private bool DebugDamageHeld = false;
+	private bool DamageNumbersDisabled;
+	private bool DebugDamageHeld;
 	private bool InActionEffect;
 	private bool ActionForcedCrit;
 
@@ -203,7 +202,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	public bool ToastlessMode { get; private set; }
 
-	private bool RestartQueued = false;
+	private bool RestartQueued;
 	private double RestartTimer;
 
 	private readonly MenuRepeat DirectionRepeat = new();
@@ -211,7 +210,7 @@ public partial class BattleManager : Node
 	/// <summary>
 	/// Whether a battle is currently ongoing.
 	/// </summary>
-	public bool IsBattling { get; private set; } = false;
+	public bool IsBattling { get; private set; }
 
 	/// <summary>
 	/// The battle's turn count. Starts from 0 at battle start and resets in every new battle and Boss Rush stage.
@@ -221,20 +220,20 @@ public partial class BattleManager : Node
 	/// </remarks>
 	public int TurnCount { get; private set; }
 
-	private bool ProcessedStartOfTurn = false;
-	private bool ProcessedStartOfCommands = false;
-	private bool ProcessedEndOfTurn = false;
-	private bool InEndOfTurnHooks = false;
-	private bool InStartOfTurnHooks = false;
-	private bool InEndOfBattle = false;
+	private bool ProcessedStartOfTurn;
+	private bool ProcessedStartOfCommands;
+	private bool ProcessedEndOfTurn;
+	private bool InEndOfTurnHooks;
+	private bool InStartOfTurnHooks;
+	private bool InEndOfBattle;
 	internal bool AbortRequested { get; private set; }
 	internal bool PlayMode { get; set; }
 	private bool DeathBeatUsed;
 	private bool InDeathBeat;
 	internal int BattleStartEnergy { get; private set; }
-	private bool ResumingStartOfTurn = false;
-	private bool BattleStartForcesOnly = false;
-	private bool SpawnHooksArmed = false;
+	private bool ResumingStartOfTurn;
+	private bool BattleStartForcesOnly;
+	private bool SpawnHooksArmed;
 	private bool BattleBGMPending;
 	private readonly List<Enemy> IntroOmoris = [];
 	private Action PendingStageBGM;
@@ -2815,6 +2814,7 @@ public partial class BattleManager : Node
 			x.Actor.HasUsedPlotArmor = false;
 			x.Actor.RemoveStatModifier("ObserveSingle");
 			x.Actor.RemoveStatModifier("ObserveMulti");
+			x.Actor.RemoveStatModifier("RandomEmotion");
 			if (Stages[CurrentStage].HealParty)
 			{
 				if (x.Actor.IsToast)

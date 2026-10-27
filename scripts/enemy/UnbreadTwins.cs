@@ -1,9 +1,6 @@
-using System;
-using Godot;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -18,13 +15,11 @@ internal sealed class UnbreadTwins : Enemy
 	protected override Stats Stats => new(7500, 5000, 65, 1, 57, 10, 95);
 	protected override string[] EquippedSkills => ["UBTAttack", "UBTDoNothing", "UBTCheerUp", "UBTCook", "UBTBakeBread"];
 
-	private static readonly string[] SpawnPool = ["BunBunny", "Creepypasta", "Slice", "Sourdough", "Sesame", "LivingBread"];
-	private int Stage = 0;
+	private int Stage;
 
 	private readonly Enemy[] Breads = new Enemy[2];
 	// Unbread Twins only ever bake bread twice
-	private int Bakes = 0;
-	private readonly int[] Offsets = [-270, 200];
+	private int Bakes;
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
@@ -161,27 +156,15 @@ internal sealed class UnbreadTwins : Enemy
 		}
 	}
 
-	private Enemy FirstBread;
-
 	public void SpawnBread()
 	{
-		for (int i = 0; i < 2; i++)
+		Enemy bread = ReinforcementSlots.Summon(this, ReinforcementSlots.UnbreadTwins);
+		if (bread == null)
 		{
-			if (Breads[i]?.Component != null && !Breads[i].IsToast)
-				continue;
-			Breads[i] = BattleManager.Instance.SummonEnemy(SpawnPool[GameManager.Instance.Random.RandiRange(0, SpawnPool.Length - 1)], new Vector2(CenterPoint.X + Offsets[i], CenterPoint.Y), layer: Math.Max(0, Layer - 1));
-			// the common event stuns troop index 0 (the Twins themselves) on the first bake and index 1 (the first enemy summoned)
-			// on the second, so bake 2 costs the first bread the rest of this turn if it is still alive
-			if (Bakes == 0)
-				FirstBread = Breads[i];
-			else if (FirstBread?.Component != null && !FirstBread.IsToast)
-			{
-				FirstBread.AddStatModifier("CallForFriendDelay", silent: true);
-				FirstBread.ClearResult();
-			}
-			Bakes++;
+			GD.PushWarning("Tried to summon more than 2 breads!");
 			return;
 		}
-		GD.PushWarning("Tried to summon more than 2 breads!");
+		Breads[ReinforcementSlots.SlotOf(bread, ReinforcementSlots.UnbreadTwins) - 1] = bread;
+		Bakes++;
 	}
 }

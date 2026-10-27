@@ -9,11 +9,11 @@ internal partial class KeybindButton : Control
     public Key CurrentKey { get; private set; }
     public InputEvent CurrentControllerBinding { get; private set; }
     public InputEvent DefaultControllerBinding { get; private set; }
-    private bool WaitingForInput = false;
+    private bool WaitingForInput;
     private bool CapturingController;
     private InputEvent InputToRelease;
     private const double WaitTimeout = 10d;
-    private double WaitTime = 0;
+    private double WaitTime;
 
     // only one keybind may capture input at a time
     private static KeybindButton CurrentlyCapturing;

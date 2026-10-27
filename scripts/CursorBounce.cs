@@ -1,5 +1,4 @@
 using Godot;
-using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 
 namespace OmoriSandbox;

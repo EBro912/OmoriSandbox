@@ -1,17 +1,13 @@
-using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using OmoriSandbox.Animation;
+using Godot;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
-using OmoriSandbox.Actors;
-using OmoriSandbox.Editor;
-using OmoriSandbox.Extensions;
+using OmoriSandbox.Battle.Registry;
 using OmoriSandbox.Menu;
 using OmoriSandbox.Modding;
-using OmoriSandbox.Battle.Registry;
 
 namespace OmoriSandbox.Battle;
 
@@ -640,6 +636,12 @@ public class Database
 	{
 		IReadOnlyList<EmotionGroup> pool = GetRandomEmotionGroups();
 		return pool.Count == 0 ? null : pool[GameManager.Instance.Random.RandiRange(0, pool.Count - 1)];
+	}
+
+	internal static bool RollLuckStateChance(Actor user, Actor target, double chance)
+	{
+		chance *= Math.Max(1 + (user.CurrentStats.LCK - target.CurrentStats.LCK) * 0.001, 0);
+		return GameManager.Instance.Random.Randf() < chance;
 	}
 
 	internal static bool AddTierThreeStatModifier(Actor target, string modifier, bool silentAtLimit = false)

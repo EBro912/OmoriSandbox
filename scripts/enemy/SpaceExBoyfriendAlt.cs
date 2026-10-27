@@ -1,6 +1,5 @@
-using Godot;
 using System.Threading.Tasks;
-
+using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -37,7 +36,7 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
         return base.GetEmotionStatBonuses(emotion);
     }
 
-    private int Stage = 0;
+    private int Stage;
     public override BattleCommand ProcessAI()
     {
         if (HasObserveTarget(out PartyMember observe))

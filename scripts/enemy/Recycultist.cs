@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;

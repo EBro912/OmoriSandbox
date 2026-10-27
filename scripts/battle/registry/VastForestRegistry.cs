@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle.Emotions;
-using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -21,6 +21,10 @@ internal static class VastForestRegistry
 		Enemies.Add("KidsKite (Epilogue)", () => new KidsKiteAlt());
 		Enemies.Add("ForestBunny", () => new ForestBunny());
 		Enemies.Add("LostSproutMole (Vast Forest)", () => new LostSproutMoleVF());
+		Enemies.Add("Salli", () => new Salli());
+		Enemies.Add("Cindi", () => new Cindi());
+		Enemies.Add("Nanci", () => new Nanci());
+		Enemies.Add("Lili", () => new Lili());
 
 		// FOREST BUNNY? //
 		Skills["FBQAttack"] = new Skill(
@@ -310,6 +314,189 @@ internal static class VastForestRegistry
 			setup: async (self, _) =>
 			{
 				await AnimationManager.Instance.WaitForAnimation(149, self);
+			}
+		);
+
+		// SALLI //
+		Skills["SALAttack"] = new Skill(
+			name: "SALAttack",
+			description: "SALAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(144, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] runs into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		bool salliSpeedChanged = false;
+		Skills["SALSpeedUp"] = new Skill(
+			name: "SALSpeedUp",
+			description: "SALSpeedUp",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				int before = target.GetStatModifierTier("SpeedUp") + target.GetStatModifierTier("SpeedDown");
+				target.AddTierStatModifier("SpeedUp", silent: true);
+				salliSpeedChanged = target.GetStatModifierTier("SpeedUp") + target.GetStatModifierTier("SpeedDown") != before;
+				return Task.CompletedTask;
+			},
+			effect: async (_, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(218, target);
+				BattleLogManager.Instance.QueueMessage(target, "[actor] starts speeding around the room!");
+				if (salliSpeedChanged)
+				{
+					BattleLogManager.Instance.QueueMessage(target, "[actor]'s SPEED rose!");
+				}
+				else
+				{
+					BattleLogManager.Instance.QueueMessage(target, "[actor]'s SPEED can't go");
+					BattleLogManager.Instance.QueueMessage(target, "any higher!");
+				}
+			}
+		);
+
+		Skills["SALLiar"] = new Skill(
+			name: "SALLiar",
+			description: "SALLiar",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "Liar.");
+				await Task.CompletedTask;
+			}
+		);
+
+		// CINDI //
+		Skills["CINAttack"] = new Skill(
+			name: "CINAttack",
+			description: "CINAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(144, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] punches [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["CINSlam"] = new Skill(
+			name: "CINSlam",
+			description: "CINSlam",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			element: "afraid",
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(123, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams her arm into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
+			}
+		).WithHPCost(0, 0.1f);
+
+		Skills["CINLiar"] = new Skill(
+			name: "CINLiar",
+			description: "CINLiar",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "Liar.");
+				await Task.CompletedTask;
+			}
+		);
+
+		// NANCI //
+		Skills["NANAttack"] = new Skill(
+			name: "NANAttack",
+			description: "NANAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(129, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] stabs her claws into [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["NANSelfAngry"] = new Skill(
+			name: "NANSelfAngry",
+			description: "NANSelfAngry",
+			target: SkillTarget.Self,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				BattleManager.Instance.MakeAngry(target, silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] starts boiling up!");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["NANLiar"] = new Skill(
+			name: "NANLiar",
+			description: "NANLiar",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "Liar.");
+				await Task.CompletedTask;
+			}
+		);
+
+		// LILI //
+		Skills["LILAttack"] = new Skill(
+			name: "LILAttack",
+			description: "LILAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(144, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] stares into [target]'s soul!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
+			}
+		);
+
+		Skills["LILSadEyes"] = new Skill(
+			name: "LILSadEyes",
+			description: "LILSadEyes",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (_, target) =>
+			{
+				target.AddTierStatModifier("AttackDown", silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(149, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[target] saw sadness in [actor]'s eyes.");
+				// DIALOGUE QUIRK: the base drops this line's period (its "+ '.'" is a separate statement)
+				BattleLogManager.Instance.QueueMessage(self, target, "[target] became reluctant to attack [actor]");
+			}
+		);
+
+		Skills["LILLiar"] = new Skill(
+			name: "LILLiar",
+			description: "LILLiar",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "Liar.");
+				await Task.CompletedTask;
 			}
 		);
 	}
