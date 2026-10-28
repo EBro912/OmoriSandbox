@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bfxcherish001"]
+
+[ext_resource type="Texture2D" uid="uid://bi2tnggbr827o" path="res://assets/pictures/player_skill_cherish.png" id="1_texture"]
+
+[node name="Cherish" type="TextureRect"]
+z_index = -4
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_texture")

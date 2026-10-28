@@ -183,8 +183,11 @@ internal static class BlackspaceRegistry
 			{
 				OmoriEnemy owner = BattleManager.Instance.GetAllEnemies().OfType<OmoriEnemy>()
 					.FirstOrDefault(x => x is { IsToast: false, Phase: >= 5, CanChangeBGM: true });
+				owner?.FadeOutBGS(300f);
 				await Wait.Frames(60);
+				owner?.FadeOutBGS(6f);
 				owner?.FadeBGM(0.001f, 6f);
+				owner?.StopBGS();
 				await AnimationManager.Instance.WaitForTintOverlay(Colors.White, 90 / 60f, layer: 22);
 				await Wait.Frames(360);
 				if (SettingsMenuManager.Instance.PlayFinalDuet)

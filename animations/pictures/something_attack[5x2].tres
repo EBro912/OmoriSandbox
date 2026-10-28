@@ -1,0 +1,155 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://bsmthattack52"]
+
+[ext_resource type="Texture2D" uid="uid://bnhi5gn3nb8cl" path="res://assets/pictures/something_attack[5x2].png" id="1_satck"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa000"]
+atlas = ExtResource("1_satck")
+region = Rect2(0, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa001"]
+atlas = ExtResource("1_satck")
+region = Rect2(640, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa002"]
+atlas = ExtResource("1_satck")
+region = Rect2(1280, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa003"]
+atlas = ExtResource("1_satck")
+region = Rect2(1920, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa004"]
+atlas = ExtResource("1_satck")
+region = Rect2(2560, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa005"]
+atlas = ExtResource("1_satck")
+region = Rect2(0, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa006"]
+atlas = ExtResource("1_satck")
+region = Rect2(640, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa007"]
+atlas = ExtResource("1_satck")
+region = Rect2(1280, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sa008"]
+atlas = ExtResource("1_satck")
+region = Rect2(1920, 480, 640, 480)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa000")
+}],
+"loop": false,
+"name": &"default",
+"speed": 60.0
+}, {
+"frames": [{
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa000")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa001")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa002")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa003")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa004")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa005")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa006")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa004")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa005")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa006")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa004")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa005")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa006")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa007")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa008")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 60.0
+}, {
+"frames": [{
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa000")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa001")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa002")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa003")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa004")
+}],
+"loop": false,
+"name": &"stab_windup",
+"speed": 60.0
+}, {
+"frames": [{
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa005")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa006")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa004")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa005")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa006")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa004")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa005")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa006")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa007")
+}, {
+"duration": 5.0,
+"texture": SubResource("AtlasTexture_sa008")
+}],
+"loop": false,
+"name": &"stab",
+"speed": 60.0
+}]

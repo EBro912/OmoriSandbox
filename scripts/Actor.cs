@@ -542,7 +542,7 @@ public abstract class Actor
 	/// Whether this actor can use its skill <paramref name="skill"/> right now.
 	/// </summary>
 	/// <remarks>
-	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default),
+	/// False when the actor doesn't have the skill, its requirement fails (while AFRAID or STRESSED OUT by default) or a status effect the actor has seals it,
 	/// the skill is disallowed or cooling down (see <see cref="Skill.WithUseDisallowed"/> and <see cref="GetSkillCooldown(Skill)"/>),
 	/// or the actor can't pay its JUICE, HP or Energy cost.
 	/// </remarks>
@@ -569,7 +569,7 @@ public abstract class Actor
 
 	private SkillUseFailure? GetUseFailure(Skill skill, bool includeRequirementAndJuice)
 	{
-		if (includeRequirementAndJuice && !skill.MeetsRequirements(this))
+		if (includeRequirementAndJuice && (!skill.MeetsRequirements(this) || IsSealed(skill)))
 			return SkillUseFailure.Requirement;
 		if (skill.UseDisallowed)
 			return SkillUseFailure.UseDisallowed;
@@ -584,6 +584,11 @@ public abstract class Actor
 		if (this is PartyMember && BattleManager.Instance != null && BattleManager.Instance.Energy < skill.EnergyCost(this))
 			return SkillUseFailure.Energy;
 		return null;
+	}
+
+	private bool IsSealed(Skill skill)
+	{
+		return StatModifiers.Values.Any(mod => mod.SealedSkills.Any(key => Database.TryGetSkill(key, out Skill sealedSkill) && sealedSkill == skill));
 	}
 
 	private readonly Dictionary<Skill, int> SkillCooldowns = [];
@@ -1503,6 +1508,9 @@ public abstract class Actor
 	/// <summary>
 	/// Called when the battle is over, but before the end-of-battle options appear.
 	/// </summary>
+	/// <remarks>
+	/// After every actor's hook and the <see cref="BattleManager.BattleEnded"/> event have run, the battle clears any screen tint or overlay, stops the BGS and turns <see cref="OmoriSandbox.Animation.AnimationManager.ToneBelowUI"/> off, so an effect started here doesn't stay on the end screen.
+	/// </remarks>
 	/// <param name="outcome">How the battle ended.</param>
 	public virtual async Task OnEndOfBattle(BattleOutcome outcome) { await Task.CompletedTask; }
 

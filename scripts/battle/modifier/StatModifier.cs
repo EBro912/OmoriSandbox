@@ -155,6 +155,14 @@ public class StatModifier
         return this;
     }
 
+    internal IReadOnlyCollection<string> SealedSkills { get; private set; } = [];
+
+    internal StatModifier WithSealedSkills(params string[] keys)
+    {
+        SealedSkills = keys;
+        return this;
+    }
+
     private readonly List<float> ActionPlus = [];
 
     /// <summary>

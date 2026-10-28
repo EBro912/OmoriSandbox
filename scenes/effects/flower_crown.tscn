@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bfxflowercrwn"]
+
+[ext_resource type="SpriteFrames" uid="uid://68syofv06s0d" path="res://animations/flower_crown.tres" id="1_frames"]
+
+[node name="FlowerCrown" type="AnimatedSprite2D"]
+z_index = 20
+position = Vector2(320, 239.5)
+sprite_frames = ExtResource("1_frames")

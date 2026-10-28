@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using OmoriSandbox.Animation;
 
 namespace OmoriSandbox;
 
@@ -28,7 +29,6 @@ internal partial class DisplayLayout : Node
     [Export] private BattlebackDisplayComponent[] Battlebacks;
     [Export] private BattlebackLayers BattlebackLayers;
     [Export] private ColorRect Backdrop;
-    [Export] private ColorRect Photograph;
     [Export] private ColorRect ScreenTint;
     [Export] private SubViewport PerfectheartViewport;
     [Export] private Node2D PerfectheartOverlayParent;
@@ -167,7 +167,9 @@ internal partial class DisplayLayout : Node
 
         Rect2 coverage = VisibleBattleRect.Grow(32);
         Fill(Backdrop, coverage);
-        Fill(Photograph, coverage);
+        ColorRect photograph = AnimationManager.Instance?.LivePhotograph;
+        if (photograph != null)
+            Fill(photograph, coverage);
         Fill(ScreenTint, coverage);
 
         PerfectheartViewport.Size = new Vector2I(Width, LogicalHeight);
@@ -177,6 +179,11 @@ internal partial class DisplayLayout : Node
 
         StatusBar.OffsetLeft = StatusBarLeft - OffsetX;
         StatusBar.OffsetRight = StatusBarRight - OffsetX;
+    }
+
+    internal void FillCoverage(Control control)
+    {
+        Fill(control, VisibleBattleRect.Grow(32));
     }
 
     private static void Fill(Control control, Rect2 rect)

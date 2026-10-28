@@ -29,6 +29,9 @@ internal sealed class OmoriEnemy : Enemy
     internal bool StunArmed { get; set; }
     internal bool ForcedPending { get; set; }
     internal bool StunRanThisTurn { get; set; }
+    
+    private string PendingBgs;
+    private Skill PendingBgsSkill;
 
     private static readonly Dictionary<int, string[][]> Taunts = new()
     {
@@ -58,7 +61,9 @@ internal sealed class OmoriEnemy : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id is "neutral" or "happy" or "ecstatic" or "manic" or "sad" or "depressed" or "miserable" or "angry" or "enraged" or "furious" or "afraid";
+        // in base game, changing omori's emotion has weird unintended side effects
+        // for now, just make him resist everything
+        return emotion.Id is "neutral";
     }
 
     public override BattleCommand ProcessAI()
@@ -226,6 +231,16 @@ internal sealed class OmoriEnemy : Enemy
         AudioManager.Instance.PlaySFX("BA_ear_ringing", volume: 0.9f);
         _ = AnimationManager.Instance.FadeSuccumb(leavingFirst, 1f, 60 / 60f);
         await Wait.Frames(120);
+        string phaseBgs = Phase switch
+        {
+            3 => "b_omori_01",
+            4 => "b_omori_02",
+            5 => "b_omori_03",
+            6 => "b_omori_04",
+            _ => null
+        };
+        if (phaseBgs != null)
+            ChangeBGS(phaseBgs, 0.9f);
         DialogueManager.Instance.QueueMessage(Phase <= 4 ? "OMORI did not succumb." : "OMORI will not succumb.");
         await DialogueManager.Instance.WaitForDialogue();
         _ = AnimationManager.Instance.FadeSuccumb(leavingFirst, 0f, 1f);
@@ -272,8 +287,10 @@ internal sealed class OmoriEnemy : Enemy
 
     private void ForceSignatureAttack()
     {
+        UnhookPendingBgs();
         if (Phase == 2)
         {
+            ChangeBGS("b_omori_01", 0.9f);
             BattleManager.Instance.ForceCommand(this, SelectTargets(4), Skills["OMERedHands"]);
             return;
         }
@@ -285,8 +302,44 @@ internal sealed class OmoriEnemy : Enemy
             6 => "OMEFinalAttack",
             _ => null
         };
-        if (skill != null)
-            BattleManager.Instance.ForceCommand(this, BattleManager.Instance.SmoothPartyTarget(LastTargetIndex), Skills[skill]);
+        if (skill == null)
+            return;
+        if (Phase == 3)
+            ChangeBGS("b_omori_02", 0.9f);
+        BattleManager.Instance.ForceCommand(this, BattleManager.Instance.SmoothPartyTarget(LastTargetIndex), Skills[skill]);
+        if (Phase is 4 or 5)
+        {
+            PendingBgs = Phase == 4 ? "b_omori_03" : "b_omori_04";
+            PendingBgsSkill = Skills[skill];
+            BattleManager.Instance.ActionEnded += PendingBgsActionEnded;
+        }
+    }
+
+    private void PendingBgsActionEnded(object sender, ActionEventArgs e)
+    {
+        if (!BattleManager.Instance.GetAllEnemies().Contains(this))
+        {
+            UnhookPendingBgs();
+            return;
+        }
+        if (e.Actor != this || e.Action != PendingBgsSkill)
+            return;
+        string name = PendingBgs;
+        UnhookPendingBgs();
+        ChangeBGS(name, 0.9f);
+    }
+
+    private void UnhookPendingBgs()
+    {
+        BattleManager.Instance.ActionEnded -= PendingBgsActionEnded;
+        PendingBgs = null;
+        PendingBgsSkill = null;
+    }
+
+    public override Task OnEndOfBattle(BattleOutcome outcome)
+    {
+        UnhookPendingBgs();
+        return Task.CompletedTask;
     }
 
     internal void RestoreForDeathBeat()
@@ -299,6 +352,7 @@ internal sealed class OmoriEnemy : Enemy
         SaidThirty = false;
         StunArmed = false;
         ForcedPending = false;
+        UnhookPendingBgs();
     }
 
     internal void RebuildLayersForDeathBeat()

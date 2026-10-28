@@ -170,6 +170,22 @@ public class Skill : BattleAction
 	private Func<Actor, bool> Requirement = actor => !actor.CurrentEmotion.BlocksActions;
 
 	/// <summary>
+	/// The function that is run after the skill is used. See <see cref="WithAfterUse"/>.
+	/// </summary>
+	public Func<PartyMember, Task> AfterUse { get; private set; }
+
+	/// <summary>
+	/// Sets a function to run after the skill is used.
+	/// </summary>
+	/// <param name="afterUse">The function that should run after the skill is used.</param>
+	/// <returns></returns>
+	public Skill WithAfterUse(Func<PartyMember, Task> afterUse)
+	{
+		AfterUse = afterUse;
+		return this;
+	}
+
+	/// <summary>
 	/// The battle log message shown when this skill's requirement fails at execution time
 	/// for a reason other than the actor being afraid/stressed. When null, nothing is shown.
 	/// Supports the [actor] tag.

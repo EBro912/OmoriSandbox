@@ -112,31 +112,199 @@ public abstract class PartyMember : Actor
 
 		EquippedSkills = actor.Skills;
 
-		AddEquippedSkills();
+		InitialSkills.AddRange(Skills.Keys);
+		ResetSkillModel();
 
 		return true;
 	}
 
-	private void AddEquippedSkills()
+	private string AttackSkill;
+	private readonly List<string> InitialSkills = [];
+	private readonly List<string> PresetSkills = [];
+	private readonly List<string> Learned = [];
+	private readonly List<string> Slots = [null, null, null, null];
+
+	/// <summary>
+	/// Skills the member has learned during this battle.
+	/// </summary>
+	/// <remarks>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
+	/// </remarks>
+	public IReadOnlyList<string> LearnedSkills => Learned;
+
+	/// <summary>
+	/// The member's battle skill slots. An empty slot is null.
+	/// </summary>
+	/// <remarks>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
+	/// </remarks>
+	public IReadOnlyList<string> SkillSlots => Slots;
+
+	internal bool SkillModelChanged { get; private set; }
+
+	/// <summary>
+	/// Learns a skill. A newly learned skill goes into the first empty slot, if there is one.
+	/// </summary>
+	/// <remarks>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
+	/// </remarks>
+	/// <param name="skill">The skill's key.</param>
+	public void LearnSkill(string skill)
 	{
-		foreach (string s in EquippedSkills)
+		if (string.IsNullOrWhiteSpace(skill))
+			return;
+		Learn(skill);
+		SkillModelChanged = true;
+		RebuildSkills();
+	}
+
+	/// <summary>
+	/// Forgets a skill. Its slots keep it.
+	/// </summary>
+	/// <remarks>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
+	/// </remarks>
+	/// <param name="skill">The skill's key.</param>
+	public void ForgetSkill(string skill)
+	{
+		Learned.Remove(skill);
+		SkillModelChanged = true;
+		RebuildSkills();
+	}
+
+	/// <summary>
+	/// Puts a skill in a battle slot.
+	/// </summary>
+	/// <remarks>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/> as the attack.
+	/// </remarks>
+	/// <param name="slot">The slot, from 0. A slot past the end adds empty slots up to it.</param>
+	/// <param name="skill">The skill's key. Can include an unlearned skill.</param>
+	public void EquipSkill(int slot, string skill)
+	{
+		if (slot < 0)
+		{
+			GD.PushError($"Invalid skill slot {slot} for {Name}.");
+			return;
+		}
+		ExtendSlots(slot);
+		Slots[slot] = string.IsNullOrWhiteSpace(skill) ? null : skill;
+		SkillModelChanged = true;
+		RebuildSkills();
+	}
+
+	/// <summary>
+	/// Empties a battle slot, and learns its skill again unless <paramref name="relearn"/> is false.
+	/// </summary>
+	/// <remarks>
+	/// A skill that wasn't learned yet can land in another empty slot when it's learned again.<br/>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
+	/// </remarks>
+	/// <param name="slot">The slot, from 0. A slot past the end adds empty slots up to it.</param>
+	/// <param name="relearn">Whether the slot's skill is learned again before the slot empties.</param>
+	public void UnequipSkill(int slot, bool relearn = true)
+	{
+		if (slot < 0)
+		{
+			GD.PushError($"Invalid skill slot {slot} for {Name}.");
+			return;
+		}
+		string held = slot < Slots.Count ? Slots[slot] : null;
+		if (relearn && held != null)
+			Learn(held);
+		ExtendSlots(slot);
+		Slots[slot] = null;
+		SkillModelChanged = true;
+		RebuildSkills();
+	}
+
+	/// <summary>
+	/// Marks skills as already learned, without equipping them.
+	/// </summary>
+	/// <remarks>
+	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
+	/// </remarks>
+	/// <param name="skills">The skills' keys.</param>
+	public void SeedLearnedSkills(params string[] skills)
+	{
+		foreach (string skill in skills ?? [])
+		{
+			if (!string.IsNullOrWhiteSpace(skill) && !Learned.Contains(skill))
+				Learned.Add(skill);
+		}
+		SkillModelChanged = true;
+		RebuildSkills();
+	}
+
+	internal void SetAttackSkill(string skill)
+	{
+		AttackSkill = skill;
+		SkillModelChanged = true;
+		RebuildSkills();
+	}
+
+	internal void ResetSkillModel()
+	{
+		AttackSkill = EquippedSkills is { Length: > 0 } ? EquippedSkills[0] : null;
+		PresetSkills.Clear();
+		PresetSkills.AddRange(InitialSkills);
+		if (EquippedSkills != null)
+			PresetSkills.AddRange(EquippedSkills.Skip(1).Where(s => !string.IsNullOrWhiteSpace(s)));
+		Learned.Clear();
+		Slots.Clear();
+		Slots.AddRange(new string[4]);
+		SkillModelChanged = false;
+		RebuildSkills(true);
+	}
+
+	private void Learn(string skill)
+	{
+		if (Learned.Contains(skill))
+			return;
+		Learned.Add(skill);
+		int empty = Slots.IndexOf(null);
+		if (empty >= 0)
+			Slots[empty] = skill;
+	}
+
+	private void ExtendSlots(int slot)
+	{
+		while (Slots.Count <= slot)
+			Slots.Add(null);
+	}
+
+	private void RebuildSkills(bool report = false)
+	{
+		Skills.Clear();
+		foreach (string s in PresetSkills.Prepend(AttackSkill).Concat(Slots))
 		{
 			if (string.IsNullOrWhiteSpace(s))
 				continue;
 
 			if (Database.TryGetSkill(s, out Skill skill))
 			{
-				if (!Skills.TryAdd(s, skill)) 
+				if (!Skills.TryAdd(s, skill) && report)
 					GD.PushWarning($"Actor {Name} already has skill {s} equipped! Skipping...");
 				continue;
 			}
-			GD.PrintErr("Unknown skill: " + s);
+			if (report)
+				GD.PrintErr("Unknown skill: " + s);
 		}
 	}
 
 	/// <summary>
-	/// Replaces one of this party member's skills with another. The <paramref name="to"/> skill will be added regardless.
+	/// Replaces one of this party member's skills with another. Does nothing if the member doesn't have <paramref name="from"/> or <paramref name="to"/> doesn't exist.
 	/// </summary>
+	/// <remarks>
+	/// The replacement takes <paramref name="from"/>'s place and lasts through later skill changes in this battle. The member's skills go back to the preset's when the battle ends, so in Boss Rush a replacement doesn't carry over to the next stage.
+	/// </remarks>
 	/// <param name="from">The skill to replace.</param>
 	/// <param name="to">The replacement skill.</param>
 	public void ReplaceSkill(string from, string to)
@@ -152,12 +320,24 @@ public abstract class PartyMember : Actor
 			else
 				Skills.TryAdd(entry.Key, entry.Value);
 		}
+		for (int i = 0; i < PresetSkills.Count; i++)
+		{
+			if (PresetSkills[i] == from)
+				PresetSkills[i] = to;
+		}
+		for (int i = 0; i < Slots.Count; i++)
+		{
+			if (Slots[i] == from)
+				Slots[i] = to;
+		}
+		if (AttackSkill == from)
+			AttackSkill = to;
+		SkillModelChanged = true;
 	}
 
 	internal void RestoreEquippedSkills()
 	{
-		Skills.Clear();
-		AddEquippedSkills();
+		ResetSkillModel();
 	}
 
 	/// <summary>

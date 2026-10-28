@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -374,6 +374,7 @@ Logo = NodePath("../Logo")
 OmoriFace = NodePath("../Omori")
 MasterSlider = NodePath("Tabs/Audio/VBoxContainer/MasterSlider/HSlider")
 BGMSlider = NodePath("Tabs/Audio/VBoxContainer/BGMSlider/HSlider")
+BGSSlider = NodePath("Tabs/Audio/VBoxContainer/BGSSlider/HSlider")
 SFXSlider = NodePath("Tabs/Audio/VBoxContainer/SFXSlider/HSlider")
 TestSFXButton = NodePath("Tabs/Audio/VBoxContainer/TestSFX")
 FullscreenCheckbox = NodePath("Tabs/Graphics/VBoxContainer/Fullscreen")
@@ -613,6 +614,27 @@ theme_override_font_sizes/font_size = 25
 text = "BGM"
 
 [node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Audio/VBoxContainer/BGMSlider" unique_id=1367396440]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.001
+value = 0.5
+scrollable = false
+
+[node name="BGSSlider" type="HBoxContainer" parent="Main/Settings/Tabs/Audio/VBoxContainer" unique_id=430471278]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 29
+
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Audio/VBoxContainer/BGSSlider" unique_id=535714193]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "BGS"
+
+[node name="HSlider" type="HSlider" parent="Main/Settings/Tabs/Audio/VBoxContainer/BGSSlider" unique_id=543715967]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 8

@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bfxsuccumb001"]
+
+[ext_resource type="Texture2D" uid="uid://dloultqjkhtr5" path="res://assets/pictures/omori_succumb.png" id="1_texture"]
+
+[node name="Succumb" type="TextureRect"]
+z_index = -3
+offset_right = 640.0
+offset_bottom = 480.0
+texture = ExtResource("1_texture")

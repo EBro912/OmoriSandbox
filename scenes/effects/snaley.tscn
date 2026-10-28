@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://bfxsnaley0001"]
+
+[ext_resource type="Texture2D" uid="uid://cx8spaqhfx12l" path="res://assets/pictures/Snaley.png" id="1_texture"]
+
+[node name="Snaley" type="TextureRect"]
+z_index = 20
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 400.0
+offset_right = 900.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("1_texture")

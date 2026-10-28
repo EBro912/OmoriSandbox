@@ -373,11 +373,11 @@ public abstract class Enemy : Actor
 	public bool CanChangeBattleback => !PreventBattlebackChanges && !GameManager.Instance.BattlebackLocked;
 
 	/// <summary>
-	/// Whether this enemy may change the BGM.
+	/// Whether this enemy may change the BGM and BGS.
 	/// </summary>
 	/// <remarks>
 	/// False if the preset locks the BGM and battleback, or if this enemy's preset entry has "Prevent BGM Changes" on.
-	/// The BGM methods on this enemy do nothing while this is false.
+	/// The BGM and BGS methods on this enemy do nothing while this is false.
 	/// </remarks>
 	public bool CanChangeBGM => !PreventBGMChanges && !AudioManager.Instance.BGMLocked;
 
@@ -553,6 +553,71 @@ public abstract class Enemy : Actor
 		AudioManager.Instance.BGM.Stop();
 		return true;
 	}
+
+	/// <summary>
+	/// Starts a background sound (BGS) from the beginning, or updates the volume and pitch if it is already playing.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <param name="name">The name of the BGS to play.</param>
+	/// <param name="volume">The volume to play the BGS at, from 0.001 to 3.0.</param>
+	/// <param name="pitch">The pitch to play the BGS at, from 0.1 to 2.0.</param>
+	/// <returns>True if the BGS was started, false if this enemy can't change the BGM.</returns>
+	public bool ChangeBGS(string name, float volume = 1f, float pitch = 1f)
+	{
+		if (!CanChangeBGM)
+			return false;
+		AudioManager.Instance.ForcePlayBGS(name, volume, pitch);
+		return true;
+	}
+
+	/// <summary>
+	/// Fades the BGS out, then stops it.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <param name="seconds">How long the fade takes, in seconds.</param>
+	/// <returns>True if the fade was started, false if this enemy can't change the BGM.</returns>
+	public bool FadeOutBGS(float seconds)
+	{
+		if (!CanChangeBGM)
+			return false;
+		AudioManager.Instance.ForceFadeOutBGS(seconds);
+		return true;
+	}
+
+	/// <summary>
+	/// Fades the BGS out, then stops it, and waits for the fade to finish.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <param name="seconds">How long the fade takes, in seconds.</param>
+	/// <returns>True if the fade finished, false if this enemy can't change the BGM.</returns>
+	public async Task<bool> WaitForFadeOutBGS(float seconds)
+	{
+		if (!CanChangeBGM)
+			return false;
+		await AudioManager.Instance.WaitForForceFadeOutBGS(seconds);
+		return true;
+	}
+
+	/// <summary>
+	/// Stops the BGS at once.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while <see cref="CanChangeBGM"/> is false.
+	/// </remarks>
+	/// <returns>True if the BGS was stopped, false if this enemy can't change the BGM.</returns>
+	public bool StopBGS()
+	{
+		if (!CanChangeBGM)
+			return false;
+		AudioManager.Instance.ForceStopBGS();
+		return true;
+	}
 	/// <summary>
 	/// Whether this enemy has a multi-target skill equipped.
 	/// </summary>
@@ -707,7 +772,7 @@ public abstract class Enemy : Actor
 	/// </summary>
 	/// <remarks>
 	/// With the Allow Enemies to Abort Battle rule on, this enemy is held at its current HP, its <see cref="OnDefeat"/> runs for its lines, and the battle ends once the current action finishes, even with other enemies left. With the rule off, it is defeated instead, as if it died normally.<br/>
-	/// Call it from <see cref="ProcessBattleConditions"/>.
+	/// Call it from <see cref="ProcessBattleConditions"/> or <see cref="ProcessEndOfTurn"/>. From the end of a turn, the battle ends once the turn-end hooks finish.
 	/// </remarks>
 	/// <returns>True if the battle will end as aborted, false if this enemy is defeated instead.</returns>
 	public async Task<bool> AbortBattle()

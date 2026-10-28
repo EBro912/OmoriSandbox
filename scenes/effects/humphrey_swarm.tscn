@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bfxhumswarm01"]
+
+[ext_resource type="Texture2D" uid="uid://cwgfyge72pv7d" path="res://assets/pictures/bt_humphrey.png" id="1_texture"]
+
+[node name="HumphreySwarm" type="TextureRect"]
+z_index = -4
+offset_right = 640.0
+offset_bottom = 959.00055
+texture = ExtResource("1_texture")

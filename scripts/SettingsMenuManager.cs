@@ -81,6 +81,11 @@ public partial class SettingsMenuManager : Control
 			SetBusVolume("BGM", (float)value);
 		};
 
+		BGSSlider.ValueChanged += value =>
+		{
+			SetBusVolume("BGS", (float)value);
+		};
+
 		SFXSlider.ValueChanged += value =>
 		{
 			SetBusVolume("SFX",  (float)value);
@@ -144,6 +149,7 @@ public partial class SettingsMenuManager : Control
 		MasterSlider.Value = (float)config.GetValue("Settings", "MasterVolume", 0.75f);
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
 		BGMSlider.Value = (float)config.GetValue("Settings", "BGMVolume", 0.5f);
+		BGSSlider.Value = (float)config.GetValue("Settings", "BGSVolume", 0.5f);
 		ShowFPSCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowFPS", true);
 		LogDebugCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "LogDebugMessages", false);
 		PreventRunCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PreventAccidentalRun", false);
@@ -283,6 +289,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "PixelSnapping", PixelSnappingCheckbox.ButtonPressed);
 		config.SetValue("Settings", "MasterVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("Master")));
 		config.SetValue("Settings", "BGMVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGM")));
+		config.SetValue("Settings", "BGSVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGS")));
 		config.SetValue("Settings", "SFXVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("SFX")));
 		config.SetValue("Settings", "BattlelogSpeed", (int)BattlelogSpeedSlider.Value);
 		config.SetValue("Settings", "ActionDelay", (int)ActionDelaySlider.Value);
@@ -364,6 +371,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "EdgePortraits", false);
 		config.SetValue("Settings", "MasterVolume", 0.75f);
 		config.SetValue("Settings", "BGMVolume", 0.5f);
+		config.SetValue("Settings", "BGSVolume", 0.5f);
 		config.SetValue("Settings", "SFXVolume", 1f);
 		config.SetValue("Settings", "BattlelogSpeed", 3);
 		config.SetValue("Settings", "ActionDelay", 3);
@@ -566,6 +574,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private AnimatedSprite2D OmoriFace;
 	[Export] private HSlider MasterSlider;
 	[Export] private HSlider BGMSlider;
+	[Export] private HSlider BGSSlider;
 	[Export] private HSlider SFXSlider;
 	[Export] private Button TestSFXButton;
 	[Export] private CheckBox FullscreenCheckbox;

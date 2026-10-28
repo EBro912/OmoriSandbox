@@ -27,23 +27,39 @@ public partial class AnimationManager : Node
 
 	[Export] private Node2D BattlebackRoot;
 	[Export] private Node2D EnemyAnimations;
-	[Export] private AnimatedSprite2D ReleaseEnergy;
-	[Export] private AnimatedSprite2D ReleaseEnergyBasil;
-	[Export] private AnimatedSprite2D RedHands;
-	[Export] private AnimatedSprite2D FlowerCrown;
-	[Export] private ColorRect Photograph;
-	[Export] private TextureRect Snaley;
-	[Export] private TextureRect HumphreySwarm;
-	[Export] private TextureRect Encore;
-	[Export] private TextureRect Cherish;
-	[Export] private TextureRect Succumb;
-	[Export] private AnimatedSprite2D HumphreySwallow;
-	[Export] private AnimatedSprite2D HumphreyFaceSwallow;
+	[Export] private PackedScene ReleaseEnergyScene;
+	[Export] private PackedScene ReleaseEnergyBasilScene;
+	[Export] private PackedScene RedHandsScene;
+	[Export] private PackedScene FlowerCrownScene;
+	[Export] private PackedScene OmoriSpecialAnimationScene;
+	[Export] private PackedScene BasilSpecialAnimationScene;
+	[Export] private PackedScene PhotographScene;
+	[Export] private PackedScene SnaleyScene;
+	[Export] private PackedScene HumphreySwarmScene;
+	[Export] private PackedScene EncoreScene;
+	[Export] private PackedScene CherishScene;
+	[Export] private PackedScene SuccumbScene;
+	[Export] private Node2D Pictures;
+	[Export] private PackedScene HumphreySwallowScene;
+	[Export] private PackedScene HumphreyFaceSwallowScene;
 	[Export] private PackedScene PerfectheartOverlaySprite;
 	[Export] private PackedScene OmoriIntroScene;
 	[Export] private Node2D PerfectheartOverlayParent;
 	[Export] private Node2D FullScreenEffectNode;
 	[Export] private ColorRect ScreenTint;
+	private AnimatedSprite2D ReleaseEnergy;
+	private AnimatedSprite2D ReleaseEnergyBasil;
+	private AnimatedSprite2D RedHands;
+	private AnimatedSprite2D FlowerCrown;
+	private ColorRect Photograph;
+	private TextureRect Snaley;
+	private TextureRect HumphreySwarm;
+	private TextureRect Encore;
+	private TextureRect Cherish;
+	private TextureRect Succumb;
+	private AnimatedSprite2D HumphreySwallow;
+	private AnimatedSprite2D HumphreyFaceSwallow;
+	internal ColorRect LivePhotograph => IsInstanceValid(Photograph) ? Photograph : null;
 	private ColorRect ScreenTone;
 	private ShaderMaterial ScreenToneMaterial;
 	private Tween ScreenToneTween;
@@ -502,6 +518,8 @@ public partial class AnimationManager : Node
 		Camera.Tick();
 		BattlebackRoot.Scale = new Vector2(Camera.Scale, Camera.Scale);
 		BattlebackRoot.Position = Camera.FieldPosition() + new Vector2((float)Math.Round(Shake), 0);
+		Pictures.Scale = Vector2.One / BattlebackRoot.Scale;
+		Pictures.Position = -BattlebackRoot.Position / BattlebackRoot.Scale;
 
 		foreach (PlayingAnimation playing in PlayingAnimations)
 		{
@@ -860,14 +878,15 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForReleaseEnergy()
 	{
-		ReleaseEnergy.Visible = true;
+		if (!IsInstanceValid(ReleaseEnergy))
+			ReleaseEnergy = SpawnEffect<AnimatedSprite2D>(ReleaseEnergyScene);
 		ReleaseEnergy.Modulate = Colors.Transparent;
 		AudioManager.Instance.PlaySFX("BA_release_energy", 1, 0.9f);
 		ReleaseEnergy.Play();
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(ReleaseEnergy, "modulate:a", 1f, 0.5f);
-		await ToSignal(ReleaseEnergy, AnimatedSprite2D.SignalName.AnimationFinished);
-		ReleaseEnergy.Visible = false;
+		await UntilSignalOrFreed(ReleaseEnergy, AnimatedSprite2D.SignalName.AnimationFinished);
+		FreeEffect(ref ReleaseEnergy);
 	}
 
 	/// <summary>
@@ -876,7 +895,8 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public  async Task WaitForReleaseEnergyBasil()
 	{
-		ReleaseEnergyBasil.Visible = true;
+		if (!IsInstanceValid(ReleaseEnergyBasil))
+			ReleaseEnergyBasil = SpawnEffect<AnimatedSprite2D>(ReleaseEnergyBasilScene);
 		ReleaseEnergyBasil.Modulate = Colors.Transparent;
 		AudioManager.Instance.PlaySFX("BA_release_energy", 1, 0.9f);
 		ReleaseEnergyBasil.Play();
@@ -885,7 +905,7 @@ public partial class AnimationManager : Node
 		tween.TweenInterval(2.5f);
 		tween.TweenProperty(ReleaseEnergyBasil, "modulate:a", 0f, 0.5f);
 		await ToSignal(tween, Tween.SignalName.Finished);
-		ReleaseEnergyBasil.Visible = false;
+		FreeEffect(ref ReleaseEnergyBasil);
 	}
 
 	/// <summary>
@@ -894,11 +914,12 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForRedHands()
 	{
-		RedHands.Visible = true;
+		if (!IsInstanceValid(RedHands))
+			RedHands = SpawnEffect<AnimatedSprite2D>(RedHandsScene);
 		AudioManager.Instance.PlaySFX("SE_red_hands", 0.8f, 0.9f);
 		RedHands.Play();
-		await ToSignal(RedHands, AnimatedSprite2D.SignalName.AnimationFinished);
-		RedHands.Visible = false;
+		await UntilSignalOrFreed(RedHands, AnimatedSprite2D.SignalName.AnimationFinished);
+		FreeEffect(ref RedHands);
 	}
 
 	/// <summary>
@@ -907,11 +928,12 @@ public partial class AnimationManager : Node
 	/// <returns>An awaitable <see cref="Task"/> that will complete whenever the animation finishes playing.</returns>
 	public async Task WaitForFlowerCrown()
 	{
-		FlowerCrown.Visible = true;
+		if (!IsInstanceValid(FlowerCrown))
+			FlowerCrown = SpawnEffect<AnimatedSprite2D>(FlowerCrownScene);
 		AudioManager.Instance.PlaySFX("SE_red_hands", 0.8f, 0.9f);
 		FlowerCrown.Play();
-		await ToSignal(FlowerCrown, AnimatedSprite2D.SignalName.AnimationFinished);
-		FlowerCrown.Visible = false;
+		await UntilSignalOrFreed(FlowerCrown, AnimatedSprite2D.SignalName.AnimationFinished);
+		FreeEffect(ref FlowerCrown);
 	}
 
 
@@ -932,25 +954,12 @@ public partial class AnimationManager : Node
 			return;
 		}
 
-		Sprite2D effectTex = new()
-		{
-			Texture = ResourceLoader.Load<Texture2D>(effect),
-			Position = new Vector2(320f, 150f),
-			Scale = new Vector2(2f, 2f),
-			Modulate = Colors.Transparent,
-			ZIndex = 20
-		};
-		FullScreenEffectNode.AddChild(effectTex);
-
-		Sprite2D overlayTex = new()
-		{
-			Texture = ResourceLoader.Load<Texture2D>(overlay),
-			Position = Vector2.Zero,
-			Centered = false,
-			Modulate = Colors.Transparent,
-			ZIndex = 20
-		};
-		FullScreenEffectNode.AddChild(overlayTex);
+		Node2D special = OmoriSpecialAnimationScene.Instantiate<Node2D>();
+		Sprite2D effectTex = special.GetNode<Sprite2D>("Effect");
+		effectTex.Texture = ResourceLoader.Load<Texture2D>(effect);
+		Sprite2D overlayTex = special.GetNode<Sprite2D>("Overlay");
+		overlayTex.Texture = ResourceLoader.Load<Texture2D>(overlay);
+		FullScreenEffectNode.AddChild(special);
 
 		Tween overlayTween = GetTree().CreateTween();
 		overlayTween.TweenProperty(overlayTex, "modulate:a", 0.60f, 1f);
@@ -968,21 +977,15 @@ public partial class AnimationManager : Node
 		effectTween.TweenInterval(0.33f);
 		
 		await ToSignal(effectTween, Tween.SignalName.Finished);
-		overlayTex.QueueFree();
-		effectTex.QueueFree();
+		FreeEffect(ref special);
 	}
 
 	internal async Task WaitForBasilSpecialAnimation(string effect, int animationId)
 	{
-		Sprite2D effectTex = new()
-		{
-			Texture = ResourceLoader.Load<Texture2D>(effect),
-			Position = new Vector2(320f, 150f),
-			Scale = new Vector2(2f, 2f),
-			Modulate = Colors.Transparent,
-			ZIndex = 20
-		};
-		FullScreenEffectNode.AddChild(effectTex);
+		Node2D special = BasilSpecialAnimationScene.Instantiate<Node2D>();
+		Sprite2D effectTex = special.GetNode<Sprite2D>("Effect");
+		effectTex.Texture = ResourceLoader.Load<Texture2D>(effect);
+		FullScreenEffectNode.AddChild(special);
 
 		Tween effectTween = GetTree().CreateTween();
 		effectTween.TweenProperty(effectTex, "modulate:a", 1f, 1f);
@@ -996,7 +999,7 @@ public partial class AnimationManager : Node
 		effectTween.TweenInterval(0.33f);
 		
 		await ToSignal(effectTween, Tween.SignalName.Finished);
-		effectTex.QueueFree();
+		FreeEffect(ref special);
 	}
 
 	/// <summary>
@@ -1004,14 +1007,14 @@ public partial class AnimationManager : Node
 	/// </summary>
 	public void PlayPhotograph()
 	{
-		Photograph.Visible = true;
+		if (!IsInstanceValid(Photograph))
+		{
+			Photograph = SpawnEffect<ColorRect>(PhotographScene);
+			DisplayLayout.Instance?.FillCoverage(Photograph);
+		}
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Photograph, "modulate:a", 0f, 1f);
-		tween.TweenCallback(Callable.From(() =>
-		{
-			Photograph.Modulate = Colors.White;
-			Photograph.Visible = false;
-		}));
+		tween.TweenCallback(Callable.From(() => FreeEffect(ref Photograph)));
 	}
 
 	/// <summary>
@@ -1071,7 +1074,7 @@ public partial class AnimationManager : Node
 	/// <remarks>
 	/// While this is false, the default, a tint also changes the menus, the battle log, the energy bar, the portraits and the party's animations and damage numbers.
 	/// While it's true, they keep their colors and only the battleback, the enemies and their animations change, and a dialogue message doesn't dim the party's UI.
-	/// It turns off again when a battle starts or resets, and when a Boss Rush stage changes.
+	/// It turns off again when a battle starts, ends or resets, and when a Boss Rush stage changes.
 	/// </remarks>
 	public bool ToneBelowUI
 	{
@@ -1282,6 +1285,11 @@ public partial class AnimationManager : Node
 	internal void ResetScreenEffects()
 	{
 		Camera.ResetInstant();
+		ClearScreenTints();
+	}
+
+	internal void ClearScreenTints()
+	{
 		StopScreenToneTween();
 		BelowUI = false;
 		UIToneDimmed = false;
@@ -1291,6 +1299,127 @@ public partial class AnimationManager : Node
 		ScreenTintTween = null;
 		ScreenTint.ZIndex = -4;
 		ScreenTint.Color = ColorsExtension.TransparentBlack;
+	}
+
+	internal async Task FadeOutScreenTints(float seconds)
+	{
+		Task tone = WaitForTintScreen(0, 0, 0, 0, seconds);
+		Color overlay = ScreenTint.Color;
+		Task fade = overlay.A > 0f ? WaitForTintOverlay(new Color(overlay.R, overlay.G, overlay.B, 0f), seconds, ScreenTint.ZIndex) : Task.CompletedTask;
+		await Task.WhenAll(tone, fade);
+	}
+
+	private sealed class PictureState
+	{
+		internal Node2D Node;
+		internal Tween Move;
+		internal TaskCompletionSource MoveDone;
+		internal TaskCompletionSource AnimationDone;
+	}
+
+	private readonly Dictionary<int, PictureState> PictureStates = [];
+
+	internal void ShowPicture(int id, string name, Vector2 position, bool centered, Vector2 scale, int opacity)
+	{
+		string framesPath = $"res://animations/pictures/{name}.tres";
+		string path = $"res://assets/pictures/{name}.png";
+		Node2D node;
+		if (ResourceLoader.Exists(framesPath))
+			node = new AnimatedSprite2D { SpriteFrames = ResourceLoader.Load<SpriteFrames>(framesPath), Centered = centered };
+		else if (ResourceLoader.Exists(path))
+			node = new Sprite2D { Texture = ResourceLoader.Load<Texture2D>(path), Centered = centered };
+		else
+		{
+			GD.PushError($"Picture '{name}' was not found in assets/pictures.");
+			return;
+		}
+		if (PictureStates.Remove(id, out PictureState old))
+			RemovePicture(old);
+		PictureState state = new() { Node = node };
+		if (node is AnimatedSprite2D sprite)
+			sprite.AnimationFinished += () => FinishPictureAnimation(state);
+		node.Name = $"Picture{id}";
+		node.Position = position;
+		node.Scale = scale;
+		node.Modulate = new Color(1f, 1f, 1f, opacity / 255f);
+		PictureStates[id] = state;
+		Pictures.AddChild(node);
+		Pictures.MoveChild(node, PictureStates.Keys.Count(other => other < id));
+	}
+
+	internal void MovePicture(int id, Vector2 position, Vector2 scale, int opacity, int frames)
+	{
+		if (frames <= 0 || !PictureStates.TryGetValue(id, out PictureState state))
+			return;
+		StopPictureMove(state);
+		float seconds = frames / 60f;
+		TaskCompletionSource done = new(TaskCreationOptions.RunContinuationsAsynchronously);
+		state.MoveDone = done;
+		state.Move = state.Node.CreateTween().SetParallel().SetTrans(Tween.TransitionType.Linear);
+		state.Move.TweenProperty(state.Node, "position", position, seconds);
+		state.Move.TweenProperty(state.Node, "scale", scale, seconds);
+		state.Move.TweenProperty(state.Node, "modulate:a", opacity / 255f, seconds);
+		state.Move.Finished += () => done.TrySetResult();
+	}
+
+	internal Task WaitForMovePicture(int id, Vector2 position, Vector2 scale, int opacity, int frames)
+	{
+		MovePicture(id, position, scale, opacity, frames);
+		if (frames <= 0 || !PictureStates.TryGetValue(id, out PictureState state))
+			return Task.CompletedTask;
+		return state.MoveDone.Task;
+	}
+
+	internal Task PlayPictureAnimation(int id, string animation)
+	{
+		if (!PictureStates.TryGetValue(id, out PictureState state))
+			return Task.CompletedTask;
+		if (state.Node is not AnimatedSprite2D sprite || !sprite.SpriteFrames.HasAnimation(animation))
+		{
+			GD.PushError($"Picture {id} has no animation '{animation}'.");
+			return Task.CompletedTask;
+		}
+		FinishPictureAnimation(state);
+		sprite.Stop();
+		sprite.Play(animation);
+		if (sprite.SpriteFrames.GetAnimationLoopMode(animation) != SpriteFrames.LoopMode.None)
+			return Task.CompletedTask;
+		state.AnimationDone = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		return state.AnimationDone.Task;
+	}
+
+	internal void ErasePicture(int id)
+	{
+		if (PictureStates.Remove(id, out PictureState state))
+			RemovePicture(state);
+	}
+
+	internal void ClearPictures()
+	{
+		foreach (int id in PictureStates.Keys.ToList())
+			ErasePicture(id);
+	}
+
+	private void RemovePicture(PictureState state)
+	{
+		StopPictureMove(state);
+		FinishPictureAnimation(state);
+		Pictures.RemoveChild(state.Node);
+		state.Node.QueueFree();
+	}
+
+	private static void StopPictureMove(PictureState state)
+	{
+		state.Move?.Kill();
+		state.Move = null;
+		state.MoveDone?.TrySetResult();
+		state.MoveDone = null;
+	}
+
+	private static void FinishPictureAnimation(PictureState state)
+	{
+		state.AnimationDone?.TrySetResult();
+		state.AnimationDone = null;
 	}
 
 	internal Sprite2D SpawnPerfectheartOverlay(Vector2 position)
@@ -1369,7 +1498,8 @@ public partial class AnimationManager : Node
 
 	internal async Task WaitForSnaley()
 	{
-		Snaley.Visible = true;
+		if (!IsInstanceValid(Snaley))
+			Snaley = SpawnEffect<TextureRect>(SnaleyScene);
 		Snaley.Position = new Vector2(400f, 0f);
 		Snaley.Modulate = Colors.Transparent;
 		AudioManager.Instance.PlaySFX("BA_release_energy", volume: 0.9f);
@@ -1380,12 +1510,13 @@ public partial class AnimationManager : Node
 		tween.Parallel().TweenProperty(Snaley, "modulate:a", 0f, 1.5f);
 		tween.TweenInterval(2f);
 		await ToSignal(tween, Tween.SignalName.Finished);
-		Snaley.Visible = false;
+		FreeEffect(ref Snaley);
 	}
 
 	internal async Task WaitForHumphreySwarm()
 	{
-		HumphreySwarm.Visible = true;
+		if (!IsInstanceValid(HumphreySwarm))
+			HumphreySwarm = SpawnEffect<TextureRect>(HumphreySwarmScene);
 		HumphreySwarm.Position = new Vector2(0, -65);
 		Tween tween = GetTree().CreateTween();
 		tween.TweenCallback(Callable.From(() => AudioManager.Instance.PlaySFX("ba_goop", 0.9f, 0.9f))).SetDelay(0.33f);
@@ -1393,44 +1524,48 @@ public partial class AnimationManager : Node
 		tween.TweenCallback(Callable.From(() => TintScreen(-255, -255, -255, 0)));
 		tween.TweenInterval(0.5f);
 		await ToSignal(tween, Tween.SignalName.Finished);
-		HumphreySwarm.Visible = false;
+		FreeEffect(ref HumphreySwarm);
 	}
 
 	internal async Task WaitForHumphreySwallow()
 	{
-		HumphreySwallow.Visible = true;
+		if (!IsInstanceValid(HumphreySwallow))
+			HumphreySwallow = SpawnEffect<AnimatedSprite2D>(HumphreySwallowScene);
 		AudioManager.Instance.PlaySFX("SE_humphrey_burp", volume: 0.9f);
 		HumphreySwallow.Play();
-		await ToSignal(HumphreySwallow, AnimatedSprite2D.SignalName.AnimationFinished);
-		HumphreySwallow.Visible = false;
+		await UntilSignalOrFreed(HumphreySwallow, AnimatedSprite2D.SignalName.AnimationFinished);
+		FreeEffect(ref HumphreySwallow);
 	}
 	
 	internal async Task WaitForHumphreyFaceSwallow()
 	{
-		HumphreyFaceSwallow.Visible = true;
+		if (!IsInstanceValid(HumphreyFaceSwallow))
+			HumphreyFaceSwallow = SpawnEffect<AnimatedSprite2D>(HumphreyFaceSwallowScene);
 		AudioManager.Instance.PlaySFX("SE_humphrey_burp", volume: 0.9f);
 		HumphreyFaceSwallow.Play();
-		await ToSignal(HumphreyFaceSwallow, AnimatedSprite2D.SignalName.AnimationFinished);
-		HumphreyFaceSwallow.Visible = false;
+		await UntilSignalOrFreed(HumphreyFaceSwallow, AnimatedSprite2D.SignalName.AnimationFinished);
+		FreeEffect(ref HumphreyFaceSwallow);
 	}
 
 	internal async Task WaitForEncore()
 	{
 		AudioManager.Instance.PlaySFX("SE_bs_realization", 0.9f, 0.9f);
+		if (!IsInstanceValid(Encore))
+			Encore = SpawnEffect<TextureRect>(EncoreScene);
 		Encore.Modulate = Colors.Transparent;
-		Encore.Visible = true;
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Encore, "modulate:a", 1f, 1.5f);
 		tween.TweenInterval(2f);
 		tween.TweenProperty(Encore, "modulate:a", 0f, 1f);
 		await ToSignal(tween, Tween.SignalName.Finished);
-		Encore.Visible = false;
+		FreeEffect(ref Encore);
 	}
 
 	internal async Task PlayCherish(int index)
 	{
+		if (!IsInstanceValid(Cherish))
+			Cherish = SpawnEffect<TextureRect>(CherishScene);
 		Cherish.Modulate = Colors.Transparent;
-		Cherish.Visible = true;
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Cherish, "modulate:a", 1f, 45 / 60f);
 		await ToSignal(tween, Tween.SignalName.Finished);
@@ -1473,26 +1608,28 @@ public partial class AnimationManager : Node
 
 	internal async Task HideCherish()
 	{
+		if (!IsInstanceValid(Cherish))
+			return;
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Cherish, "modulate:a", 0f, 45 / 60f);
 		await ToSignal(tween, Tween.SignalName.Finished);
-		Cherish.Visible = false;
+		FreeEffect(ref Cherish);
 	}
 
 	internal async Task FadeSuccumb(bool closed, float alpha, float seconds)
 	{
+		if (!IsInstanceValid(Succumb))
+		{
+			Succumb = SpawnEffect<TextureRect>(SuccumbScene, overTint: true);
+			Succumb.Modulate = Colors.Transparent;
+		}
 		using (Texture2D texture = ResourceLoader.Load<Texture2D>(closed ? "res://assets/pictures/omori_succumb_closed.png" : "res://assets/pictures/omori_succumb.png"))
 			Succumb.Texture = texture;
-		if (!Succumb.Visible)
-		{
-			Succumb.Modulate = Colors.Transparent;
-			Succumb.Visible = true;
-		}
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Succumb, "modulate:a", alpha, seconds);
 		await ToSignal(tween, Tween.SignalName.Finished);
 		if (alpha <= 0f)
-			Succumb.Visible = false;
+			FreeEffect(ref Succumb);
 	}
 
 	internal void DespawnAll()
@@ -1500,6 +1637,44 @@ public partial class AnimationManager : Node
 		foreach (Node child in PerfectheartOverlayParent.GetChildren())
 			child.QueueFree();
 		FreeOmoriIntros([.. IntroSprites]);
+		FreeEffect(ref ReleaseEnergy);
+		FreeEffect(ref ReleaseEnergyBasil);
+		FreeEffect(ref RedHands);
+		FreeEffect(ref FlowerCrown);
+		FreeEffect(ref Photograph);
+		FreeEffect(ref Snaley);
+		FreeEffect(ref HumphreySwarm);
+		FreeEffect(ref Encore);
+		FreeEffect(ref Cherish);
+		FreeEffect(ref Succumb);
+		FreeEffect(ref HumphreySwallow);
+		FreeEffect(ref HumphreyFaceSwallow);
+	}
+
+	private T SpawnEffect<T>(PackedScene scene, bool overTint = false) where T : Node
+	{
+		T effect = scene.Instantiate<T>();
+		FullScreenEffectNode.AddChild(effect);
+		FullScreenEffectNode.MoveChild(effect, ScreenTint.GetIndex() + (overTint ? 1 : 0));
+		return effect;
+	}
+
+	private static void FreeEffect<T>(ref T live) where T : Node
+	{
+		T effect = live;
+		live = null;
+		if (!IsInstanceValid(effect))
+			return;
+		effect.GetParent()?.RemoveChild(effect);
+		effect.QueueFree();
+	}
+
+	private static Task UntilSignalOrFreed(Node node, StringName signal)
+	{
+		TaskCompletionSource done = new();
+		node.Connect(signal, Callable.From(done.TrySetResult), (uint)ConnectFlags.OneShot);
+		node.TreeExiting += () => Callable.From(done.TrySetResult).CallDeferred();
+		return done.Task;
 	}
 
 	private PlayingAnimation StartAnimation(int id, Vector2 position, bool targetsEnemy, Actor target = null, int? layer = null)

@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bfxhumswallow"]
+
+[ext_resource type="SpriteFrames" uid="uid://doxsd4fwyvadp" path="res://animations/humphrey_first_swallow.tres" id="1_frames"]
+
+[node name="HumphreySwallow" type="AnimatedSprite2D"]
+z_index = -4
+position = Vector2(320, 240)
+sprite_frames = ExtResource("1_frames")

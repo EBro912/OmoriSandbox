@@ -38,6 +38,8 @@ internal partial class MenuManager : Node
 	private readonly HashSet<Menu> LoweredMenus = [];
 	private readonly MenuRepeat Repeat = new();
 	private MenuSkin ActiveSkin;
+	private MenuSkin PresetSkin;
+	private bool PresetItemless;
 
 	public override void _EnterTree()
 	{
@@ -66,7 +68,27 @@ internal partial class MenuManager : Node
 
 	internal void SetPresetSkin(string menuSkin, bool itemless)
 	{
-		ActiveSkin = Database.GetMenuSkin(Database.ResolveMenuSkinId(menuSkin));
+		PresetSkin = Database.GetMenuSkin(Database.ResolveMenuSkinId(menuSkin));
+		PresetItemless = itemless;
+		UseSkin(PresetSkin, itemless);
+	}
+
+	internal void ApplyBattleSkin(string menuSkin, bool itemless)
+	{
+		UseSkin(Database.GetMenuSkin(Database.ResolveMenuSkinId(menuSkin)), itemless);
+		RefreshEnergy(this, EventArgs.Empty);
+	}
+
+	internal void RestorePresetSkin()
+	{
+		if (ActiveSkin != PresetSkin || BattleMenu.Itemless != PresetItemless)
+			UseSkin(PresetSkin, PresetItemless);
+		RefreshEnergy(this, EventArgs.Empty);
+	}
+
+	private void UseSkin(MenuSkin skin, bool itemless)
+	{
+		ActiveSkin = skin;
 		BattleMenu.Itemless = itemless;
 		EnergyDots.Origin = ActiveSkin.BlackspaceEnergyBar ? new Vector2(1, 229) : new Vector2(363, 1);
 	}

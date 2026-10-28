@@ -8,6 +8,7 @@ using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
+using OmoriSandbox.Battle.Registry;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Extensions;
 using OmoriSandbox.Menu;
@@ -119,6 +120,7 @@ public partial class BattleManager : Node
 	/// <remarks>
 	/// This is NOT fired when the battle is exited early, see <see cref="BattleExited"/>.
 	/// Check <see cref="BattleEndedEventArgs.Outcome"/> to tell a victory, a defeat and an aborted battle apart.
+	/// Once every handler has run, the battle clears any screen tint or overlay, stops the BGS and turns <see cref="AnimationManager.ToneBelowUI"/> off.
 	/// </remarks>
 	public event EventHandler<BattleEndedEventArgs> BattleEnded;
 
@@ -296,6 +298,7 @@ public partial class BattleManager : Node
 			GameManager.Instance.ForceSetBattleback(preset.Battleback);
 			GameManager.Instance.BattlebackLayers.Clear();
 			AudioManager.Instance.BGM.Stop();
+			AudioManager.Instance.ForceStopBGS();
 		}
 		else
 		{
@@ -307,12 +310,14 @@ public partial class BattleManager : Node
 			GameManager.Instance.ForceSetBattleback(preset.Stages[CurrentStage].Battleback);
 			GameManager.Instance.BattlebackLayers.Clear();
 			AudioManager.Instance.BGM.Stop();
+			AudioManager.Instance.ForceStopBGS();
 		}
 
 		Items = preset.Items.ToDictionary(x => x.Key, x => Math.Min(x.Value, MaxItemCount));
 		MenuManager.Instance.SetPresetSkin(preset.MenuSkin, preset.ItemlessMode);
 		Energy = Math.Clamp(preset.StartingEnergy, 0, 10);
 		BattleStartEnergy = Energy;
+		StorySwitches.Reset();
 		FollowupTier = preset.FollowupTier;
 		DamageNumbersDisabled = preset.DisableDamageNumbers;
 		CombinedBuffsDebuffs = preset.CombinedBuffsDebuffs;
@@ -852,6 +857,7 @@ public partial class BattleManager : Node
 		ForceHideFollowup = false;
 		PriorityActors.Clear();
 		DisabledMenuOptions.Clear();
+		BossDisabledAttack = false;
 		DeferredDeathEnemies.Clear();
 		DyingEnemies.Clear();
 		if (FallTween != null && FallTween.IsValid())
@@ -867,6 +873,7 @@ public partial class BattleManager : Node
 		GameManager.Instance.BattlebackLayers.Clear();
 		GameManager.Instance.SetBattlebackGrayscale(false);
 		AnimationManager.Instance.ResetScreenEffects();
+		AnimationManager.Instance.ClearPictures();
 		RestoreUIHomes();
 		MenuManager.Instance.ShowMenu(MenuState.None, true);
 		MenuManager.Instance.ClearLastSelected();
@@ -896,6 +903,7 @@ public partial class BattleManager : Node
 		DeathBeatUsed = false;
 		InDeathBeat = false;
 		BattleStartEnergy = 0;
+		StorySwitches.Reset();
 		ResumingStartOfTurn = false;
 		BattleStartForcesOnly = false;
 		SpawnHooksArmed = false;
@@ -1220,6 +1228,8 @@ public partial class BattleManager : Node
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
 			member.Actor.SetHurt(false);
+			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast && member.Actor.HasStatModifier("PersistentPlotArmor"))
+				member.Actor.CurrentHP = 1;
 			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast)
 			{
 				member.Actor.SetToast();
@@ -1243,6 +1253,14 @@ public partial class BattleManager : Node
 				DialogueManager.Instance.QueueMessage($"{member.Actor.Name.ToUpper()} did not succumb.");
 				await DialogueManager.Instance.WaitForDialogue();
 				pa.HasAnnounced = true;
+			}
+
+			if (member.Actor.StatModifiers.TryGetValue("PersistentPlotArmor", out StatModifier persistent)
+			    && persistent is PersistentPlotArmorStatModifier { AnnouncePending: true } armor)
+			{
+				DialogueManager.Instance.QueueMessage($"{member.Actor.Name.ToUpper()} did not succumb.");
+				await DialogueManager.Instance.WaitForDialogue();
+				armor.AnnouncePending = false;
 			}
 		}
 	}
@@ -2202,6 +2220,8 @@ public partial class BattleManager : Node
 		await RunGuarded(() => currentAction.Action.Effect(currentAction.Actor, resolvedTargets),
 			$"effect of {currentAction.Action.Name} used by {currentAction.Actor.Name}");
 		InActionEffect = false;
+		if (currentAction.Action is Skill { AfterUse: { } afterUse } && currentAction.Actor is PartyMember afterUser)
+			await RunGuarded(() => afterUse(afterUser), $"after use of {currentAction.Action.Name} used by {afterUser.Name}");
 		AnimationManager.Instance.Camera.StartZoom(1f, 30);
 		AnimationManager.Instance.Camera.ResetCamera(30);
 		ActionForcedCrit = false;
@@ -2584,6 +2604,8 @@ public partial class BattleManager : Node
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
+			if (!AbortRequested && Energy == 10 && StorySwitches.BlackSpaceWorld && GetSunnyStandIn().IsEmotionValid("stressed"))
+				await RunGuarded(() => SunnyRegistry.ReleaseStress(GetSunnyStandIn()), "Release Stress");
 			await ResolveEnemyDeaths();
 			await ConvertDeadPartyMembers();
 			InEndOfTurnHooks = false;
@@ -2608,8 +2630,8 @@ public partial class BattleManager : Node
 		}
 
 		// if any forced commands or priority actors were added during ProcessEndOfTurn, run those still
-		if (ForcedCommands.Count > 0 ||
-		    (!BattleStartForcesOnly && PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a))))
+		if (!AbortRequested && (ForcedCommands.Count > 0 ||
+		    (!BattleStartForcesOnly && PriorityActors.Any(a => !ActedThisTurn.Contains(a) && !IsInvalidTarget(a)))))
 		{
 			SetPhase(BattlePhase.PreCommand);
 			return;
@@ -2788,6 +2810,7 @@ public partial class BattleManager : Node
 
 	private async Task AdvanceBossRushStage(string playingTrack, float? resumePosition)
 	{
+		RunGuarded(ClearBossBattleState, "ClearBossBattleState");
 		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;
@@ -2909,6 +2932,7 @@ public partial class BattleManager : Node
 		DialogueManager.Instance.QueueMessage("You should just die.", font: DialogueManager.FontType.Jagged);
 		await DialogueManager.Instance.WaitForDialogue();
 		await Wait.Frames(60);
+		owner?.FadeOutBGS(4f);
 		owner?.FadeBGM(0.001f, 4f);
 		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 220 / 60f, layer: 22);
 		await Wait.Frames(300);
@@ -2938,6 +2962,7 @@ public partial class BattleManager : Node
 			.Where(x => x is { IsToast: false, Phase: >= 5, CanChangeBattleback: true })
 			.MaxBy(x => x.Phase)?.RebuildLayersForDeathBeat();
 		owner?.StopBGM();
+		owner?.ChangeBGS("amb_white_noise", 0.9f);
 		PlayMode = true;
 		ClearQueuedCommands();
 		InDeathBeat = false;
@@ -2959,6 +2984,51 @@ public partial class BattleManager : Node
 			AudioManager.Instance.ForcePlayBGM(CurrentPreset.BGM, volume, (float)CurrentPreset.BGMPitch);
 			AudioManager.Instance.ForceSetBGMLoopOffset(CurrentPreset.BGMLoopPoint);
 		}
+	}
+
+	internal async Task RestoreAfterScriptedEnding()
+	{
+		AnimationManager.Instance.ClearPictures();
+		AudioManager.Instance.ForceStopBGS();
+		if (!AudioManager.Instance.BGMLocked)
+		{
+			string track = GameType is GameModeType.BossRush ? Stages[CurrentStage].BGM : CurrentPreset.BGM;
+			if (!AudioManager.Instance.BGM.Playing || AudioManager.Instance.CurrentBGM != track)
+				PlayPresetBGM(0.05f);
+			AudioManager.Instance.FadeBGMTo(1f, 3f);
+		}
+		await AnimationManager.Instance.FadeOutScreenTints(30 / 60f);
+	}
+
+	private static readonly string[] BossBattleModifiers =
+	[
+		"PersistentPlotArmor", "CalmDownText", "FocusText", "PersistText", "OvercomeText", "HangingEndFight", "PersistCheck",
+		"Drowning1", "Drowning2", "Drowning3", "DrowningFinish", "SpecialImmortal", "BasilSomething", "Immobile", "BasilImmobile",
+		"OmoriAfraid", "Hanging1", "Hanging2", "Hanging3", "Hanging10", "Hanging11", "Hanging12", "Hanging13", "Immortal"
+	];
+
+	internal void ClearBossBattleState()
+	{
+		foreach (PartyMemberComponent component in CurrentParty)
+		{
+			PartyMember member = component.Actor;
+			foreach (string key in BossBattleModifiers)
+				member.RemoveStatModifier(key, force: true);
+			if (member.SkillModelChanged)
+				member.ResetSkillModel();
+		}
+		AudioManager.Instance.ForceStopBGS();
+		AnimationManager.Instance.ClearPictures();
+		StorySwitches.Reset();
+		MenuManager.Instance.RestorePresetSkin();
+		if (BossDisabledAttack)
+		{
+			SetMenuOptionEnabled(BattleMenuOption.Attack, true);
+			BossDisabledAttack = false;
+		}
+		AnimationManager.Instance.ClearScreenTints();
+		foreach (PartyMemberComponent component in CurrentParty)
+			component.UpdateStateIcons();
 	}
 
 	private void ShowEndOfBattleOptions()
@@ -2992,6 +3062,8 @@ public partial class BattleManager : Node
 				return;
 		}
 		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(outcome), "BattleEnded");
+		if (!RestartQueued)
+			RunGuarded(ClearBossBattleState, "ClearBossBattleState");
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
@@ -4163,6 +4235,8 @@ public partial class BattleManager : Node
 		else
 			DisabledMenuOptions.Add(option);
 	}
+
+	internal bool BossDisabledAttack { get; set; }
 
 	/// <summary>
 	/// Whether the given battle menu option is currently enabled. See <see cref="SetMenuOptionEnabled"/>.

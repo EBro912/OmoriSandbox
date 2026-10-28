@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bfxredhands01"]
+
+[ext_resource type="SpriteFrames" uid="uid://cseyj3p0lwirh" path="res://animations/red_hands.tres" id="1_frames"]
+
+[node name="RedHands" type="AnimatedSprite2D"]
+z_index = 20
+position = Vector2(320, 243.5)
+scale = Vector2(1, 1.02937)
+sprite_frames = ExtResource("1_frames")

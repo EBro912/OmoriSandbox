@@ -15,32 +15,22 @@
 [ext_resource type="Script" uid="uid://d18gd83t4is60" path="res://scripts/MenuManager.cs" id="9_ya4ey"]
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="10_choun"]
 [ext_resource type="PackedScene" uid="uid://coa7jio0ejncb" path="res://scenes/log_line.tscn" id="10_trceg"]
-[ext_resource type="SpriteFrames" uid="uid://clatbr34577po" path="res://animations/release_energy.tres" id="11_dp3eg"]
 [ext_resource type="Texture2D" uid="uid://chn8rp07chfy7" path="res://assets/system/mp_icon.png" id="11_eb6dy"]
 [ext_resource type="Script" uid="uid://ckd81otw7er8y" path="res://scripts/AudioManager.cs" id="11_ya4ey"]
 [ext_resource type="Script" uid="uid://cihomi8gnk1uh" path="res://scripts/animation/AnimationManager.cs" id="12_5q0nq"]
 [ext_resource type="PackedScene" uid="uid://bhbqjkkq6e8m1" path="res://scenes/perfectheart_overlay_sprite.tscn" id="13_dgi5k"]
-[ext_resource type="SpriteFrames" uid="uid://cseyj3p0lwirh" path="res://animations/red_hands.tres" id="13_og1vs"]
-[ext_resource type="SpriteFrames" uid="uid://68syofv06s0d" path="res://animations/flower_crown.tres" id="14_2wyq8"]
 [ext_resource type="Script" uid="uid://bcfwwj4klv2cq" path="res://scripts/GameManager.cs" id="14_a8y0u"]
 [ext_resource type="Texture2D" uid="uid://d36ge2cnq6lkj" path="res://assets/battlebacks/battleback_vf_default.png" id="14_og1vs"]
-[ext_resource type="SpriteFrames" uid="uid://bqqlfuslvq0co" path="res://animations/release_energy_basil.tres" id="15_vxglm"]
 [ext_resource type="Script" uid="uid://b0t86bflug3po" path="res://scripts/menu/PartyMenu.cs" id="17_pm3ni"]
 [ext_resource type="Script" uid="uid://cpbjggf3ky6a6" path="res://scripts/BattlebackManager.cs" id="18_txyw0"]
 [ext_resource type="Script" uid="uid://cbac1p51c0gbd" path="res://scripts/menu/BattleMenu.cs" id="18_y6deb"]
 [ext_resource type="Script" uid="uid://co38b7eed26qs" path="res://scripts/menu/SkillMenu.cs" id="19_og1vs"]
 [ext_resource type="Script" uid="uid://b2l2fnonhy17d" path="res://scripts/BattlebackDisplayComponent.cs" id="19_vc5cj"]
 [ext_resource type="Script" uid="uid://bnnng1lk81pyg" path="res://scripts/menu/ItemMenu.cs" id="21_2wyq8"]
-[ext_resource type="Texture2D" uid="uid://cx8spaqhfx12l" path="res://assets/pictures/Snaley.png" id="22_5he1u"]
 [ext_resource type="Script" uid="uid://clg2gcav7pm8q" path="res://scripts/DialogueManager.cs" id="22_5q0nq"]
 [ext_resource type="Texture2D" uid="uid://xnt03w7xslfi" path="res://assets/system/battle_speech_tail.png" id="22_qkpxi"]
-[ext_resource type="Texture2D" uid="uid://cwgfyge72pv7d" path="res://assets/pictures/bt_humphrey.png" id="23_5poiv"]
-[ext_resource type="SpriteFrames" uid="uid://doxsd4fwyvadp" path="res://animations/humphrey_first_swallow.tres" id="24_2cjbq"]
-[ext_resource type="Texture2D" uid="uid://dhp5nf0rejand" path="res://assets/pictures/dark_overlay 2.png" id="24_cjqg0"]
 [ext_resource type="PackedScene" uid="uid://b6d4hja4l4r44" path="res://scenes/cursor.tscn" id="24_qkpxi"]
 [ext_resource type="Script" uid="uid://brg8pn4xipyww" path="res://scripts/EnergyDots.cs" id="24_tel4y"]
-[ext_resource type="SpriteFrames" uid="uid://d0wkdk25n7b1w" path="res://animations/humphrey_face_swallow.tres" id="25_chjal"]
-[ext_resource type="Texture2D" uid="uid://bi2tnggbr827o" path="res://assets/pictures/player_skill_cherish.png" id="25_vchkt"]
 [ext_resource type="Texture2D" uid="uid://b2nt2i2gilu5a" path="res://assets/system/Window.png" id="36_bjg73"]
 [ext_resource type="StyleBox" uid="uid://dwx8wc4k6lqm" path="res://assets/button_normal.tres" id="37_c6pm6"]
 [ext_resource type="StyleBox" uid="uid://bo6p8kgoa573n" path="res://assets/button_pressed.tres" id="38_5he1u"]
@@ -52,10 +42,23 @@
 [ext_resource type="FontFile" uid="uid://c1ffiobkf516l" path="res://fonts/OMORI_GAME2_Numbers.ttf" id="47_nmbrs"]
 [ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="48_hpicn"]
 [ext_resource type="Texture2D" uid="uid://bbstna42lmri8" path="res://assets/system/energy_icon.png" id="49_enicn"]
-[ext_resource type="Texture2D" uid="uid://dloultqjkhtr5" path="res://assets/pictures/omori_succumb.png" id="50_succm"]
 [ext_resource type="Script" uid="uid://dqh5trpiq2nkt" path="res://scripts/BattlebackLayers.cs" id="51_bblyr"]
 [ext_resource type="PackedScene" path="res://scenes/battleback_layer.tscn" id="52_bblsc"]
 [ext_resource type="PackedScene" path="res://scenes/omori_intro.tscn" id="53_intro"]
+[ext_resource type="PackedScene" path="res://scenes/effects/release_energy.tscn" id="54_relen"]
+[ext_resource type="PackedScene" path="res://scenes/effects/release_energy_basil.tscn" id="55_relbs"]
+[ext_resource type="PackedScene" path="res://scenes/effects/red_hands.tscn" id="56_redhd"]
+[ext_resource type="PackedScene" path="res://scenes/effects/flower_crown.tscn" id="57_flcrn"]
+[ext_resource type="PackedScene" path="res://scenes/effects/photograph.tscn" id="58_photo"]
+[ext_resource type="PackedScene" path="res://scenes/effects/snaley.tscn" id="59_snaly"]
+[ext_resource type="PackedScene" path="res://scenes/effects/humphrey_swarm.tscn" id="60_hswrm"]
+[ext_resource type="PackedScene" path="res://scenes/effects/encore.tscn" id="61_encor"]
+[ext_resource type="PackedScene" path="res://scenes/effects/humphrey_swallow.tscn" id="62_hswlw"]
+[ext_resource type="PackedScene" path="res://scenes/effects/humphrey_face_swallow.tscn" id="63_hfswl"]
+[ext_resource type="PackedScene" path="res://scenes/effects/omori_special_animation.tscn" id="64_omspc"]
+[ext_resource type="PackedScene" path="res://scenes/effects/basil_special_animation.tscn" id="65_bsspc"]
+[ext_resource type="PackedScene" path="res://scenes/effects/cherish.tscn" id="66_chrsh"]
+[ext_resource type="PackedScene" path="res://scenes/effects/succumb.tscn" id="67_sccmb"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
 viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
@@ -65,7 +68,7 @@ blend_mode = 1
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
-[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "Photograph", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
+[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
 script = ExtResource("46_layout")
 Layers = [NodePath("../BattleCanvas"), NodePath("../MainMenu/Main"), NodePath("../MainMenu/Editor")]
 Party = NodePath("../BattleCanvas/UI/Party")
@@ -73,7 +76,6 @@ AddActorControls = [NodePath("../MainMenu/Editor/Actors/AddActor1"), NodePath(".
 Battlebacks = [NodePath("../BattleCanvas/UI/BattlebackRoot/Battleback"), NodePath("../MainMenu/Editor/BattlebackPreview")]
 BattlebackLayers = NodePath("../BattleCanvas/UI/BattlebackRoot/BattlebackLayers")
 Backdrop = NodePath("../BattleCanvas/UI/BattlebackRoot/WidescreenBackdrop")
-Photograph = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/Photograph")
 ScreenTint = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/ScreenTint")
 PerfectheartViewport = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
 PerfectheartOverlayParent = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport/PerfectheartOverlayParent")
@@ -131,31 +133,35 @@ EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 EnergyDots = NodePath("../UI/Energy/EnergyDots")
 
-[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "ReleaseEnergy", "ReleaseEnergyBasil", "RedHands", "FlowerCrown", "Photograph", "Snaley", "HumphreySwarm", "Encore", "Cherish", "Succumb", "HumphreySwallow", "HumphreyFaceSwallow", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
+[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "Pictures", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
 script = ExtResource("12_5q0nq")
 BattlebackRoot = NodePath("../UI/BattlebackRoot")
 EnemyAnimations = NodePath("../UI/BattlebackRoot/EnemyAnimations")
-ReleaseEnergy = NodePath("../UI/BattlebackRoot/FullScreenEffects/ReleaseEnergy")
-ReleaseEnergyBasil = NodePath("../UI/BattlebackRoot/FullScreenEffects/ReleaseEnergyBasil")
-RedHands = NodePath("../UI/BattlebackRoot/FullScreenEffects/RedHands")
-FlowerCrown = NodePath("../UI/BattlebackRoot/FullScreenEffects/FlowerCrown")
-Photograph = NodePath("../UI/BattlebackRoot/FullScreenEffects/Photograph")
-Snaley = NodePath("../UI/BattlebackRoot/FullScreenEffects/Snaley")
-HumphreySwarm = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreySwarm")
-Encore = NodePath("../UI/BattlebackRoot/FullScreenEffects/Encore")
-Cherish = NodePath("../UI/BattlebackRoot/FullScreenEffects/Cherish")
-Succumb = NodePath("../UI/BattlebackRoot/FullScreenEffects/Succumb")
-HumphreySwallow = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreySwallow")
-HumphreyFaceSwallow = NodePath("../UI/BattlebackRoot/FullScreenEffects/HumphreyFaceSwallow")
+ReleaseEnergyScene = ExtResource("54_relen")
+ReleaseEnergyBasilScene = ExtResource("55_relbs")
+RedHandsScene = ExtResource("56_redhd")
+FlowerCrownScene = ExtResource("57_flcrn")
+OmoriSpecialAnimationScene = ExtResource("64_omspc")
+BasilSpecialAnimationScene = ExtResource("65_bsspc")
+PhotographScene = ExtResource("58_photo")
+SnaleyScene = ExtResource("59_snaly")
+HumphreySwarmScene = ExtResource("60_hswrm")
+EncoreScene = ExtResource("61_encor")
+CherishScene = ExtResource("66_chrsh")
+SuccumbScene = ExtResource("67_sccmb")
+Pictures = NodePath("../UI/BattlebackRoot/FullScreenEffects/Pictures")
+HumphreySwallowScene = ExtResource("62_hswlw")
+HumphreyFaceSwallowScene = ExtResource("63_hfswl")
 PerfectheartOverlaySprite = ExtResource("13_dgi5k")
 OmoriIntroScene = ExtResource("53_intro")
 PerfectheartOverlayParent = NodePath("../UI/BattlebackRoot/FullScreenEffects/SubViewport/PerfectheartOverlayParent")
 FullScreenEffectNode = NodePath("../UI/BattlebackRoot/FullScreenEffects")
 ScreenTint = NodePath("../UI/BattlebackRoot/FullScreenEffects/ScreenTint")
 
-[node name="AudioManager" type="Node" parent="BattleCanvas" unique_id=943710295 node_paths=PackedStringArray("BGM")]
+[node name="AudioManager" type="Node" parent="BattleCanvas" unique_id=943710295 node_paths=PackedStringArray("BGM", "BGS")]
 script = ExtResource("11_ya4ey")
 BGM = NodePath("../BGM")
+BGS = NodePath("../BGS")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="BattleCanvas/AudioManager" unique_id=1276956349]
 bus = &"SFX"
@@ -192,6 +198,9 @@ bus = &"SFX"
 
 [node name="BGM" type="AudioStreamPlayer" parent="BattleCanvas" unique_id=1290275943]
 bus = &"BGM"
+
+[node name="BGS" type="AudioStreamPlayer" parent="BattleCanvas" unique_id=1978273606]
+bus = &"BGS"
 
 [node name="UI" type="Control" parent="BattleCanvas" unique_id=1860860966]
 layout_mode = 3
@@ -260,90 +269,6 @@ color = Color(0, 0, 0, 1)
 [node name="FullScreenEffects" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot" unique_id=143668311]
 z_as_relative = false
 
-[node name="ReleaseEnergy" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=302289833]
-visible = false
-z_index = 20
-position = Vector2(320, 243.5)
-scale = Vector2(1, 1.01458)
-sprite_frames = ExtResource("11_dp3eg")
-
-[node name="RedHands" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1775720142]
-visible = false
-z_index = 20
-position = Vector2(320, 243.5)
-scale = Vector2(1, 1.02937)
-sprite_frames = ExtResource("13_og1vs")
-
-[node name="FlowerCrown" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1799073211]
-visible = false
-z_index = 20
-position = Vector2(320, 239.5)
-sprite_frames = ExtResource("14_2wyq8")
-
-[node name="ReleaseEnergyBasil" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1264285396]
-visible = false
-z_index = 20
-position = Vector2(320, 239.5)
-sprite_frames = ExtResource("15_vxglm")
-
-[node name="Photograph" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=203532065]
-visible = false
-z_index = -4
-offset_right = 640.0
-offset_bottom = 480.0
-
-[node name="Snaley" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=827367663]
-visible = false
-z_index = 20
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = 400.0
-offset_right = 900.0
-offset_bottom = 500.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-texture = ExtResource("22_5he1u")
-
-[node name="HumphreySwarm" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1112993350]
-visible = false
-z_index = -4
-offset_right = 640.0
-offset_bottom = 959.00055
-texture = ExtResource("23_5poiv")
-
-[node name="Encore" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1396240916]
-visible = false
-z_index = -6
-offset_right = 640.0
-offset_bottom = 544.0
-texture = ExtResource("24_cjqg0")
-
-[node name="Cherish" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1238961025]
-visible = false
-z_index = -4
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("25_vchkt")
-
-[node name="HumphreySwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1791212192]
-visible = false
-z_index = -4
-position = Vector2(320, 240)
-sprite_frames = ExtResource("24_2cjbq")
-
-[node name="HumphreyFaceSwallow" type="AnimatedSprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=250320552]
-visible = false
-z_index = 20
-position = Vector2(320, 240)
-sprite_frames = ExtResource("25_chjal")
-frame = 11
-frame_progress = 1.0
-
 [node name="ScreenTint" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=154174975]
 z_index = -4
 anchors_preset = 15
@@ -355,12 +280,8 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0)
 
-[node name="Succumb" type="TextureRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1760093902]
-visible = false
-z_index = -3
-offset_right = 640.0
-offset_bottom = 480.0
-texture = ExtResource("50_succm")
+[node name="Pictures" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1938274650]
+z_index = 20
 
 [node name="SubViewport" type="SubViewport" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=2079552982]
 disable_3d = true

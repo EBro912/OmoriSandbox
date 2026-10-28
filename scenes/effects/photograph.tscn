@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bfxphotograph"]
+
+[node name="Photograph" type="ColorRect"]
+z_index = -4
+offset_right = 640.0
+offset_bottom = 480.0

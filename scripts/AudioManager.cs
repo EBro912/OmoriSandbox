@@ -14,16 +14,24 @@ namespace OmoriSandbox;
 public partial class AudioManager : Node
 {
 	[Export] internal AudioStreamPlayer BGM { get; private set; }
+	[Export] internal AudioStreamPlayer BGS { get; private set; }
 
 	private readonly List<AudioStreamPlayer> AudioPlayers = [];
 
 	private readonly Dictionary<string, AudioStreamOggVorbis> SFXDictionary = [];
 	private readonly SortedDictionary<string, AudioStreamOggVorbis> BGMDictionary = [];
 	private readonly Dictionary<string, double> BGMLoopOffsets = [];
+	private readonly SortedDictionary<string, AudioStreamOggVorbis> BGSDictionary = [];
+	private readonly Dictionary<string, double> BGSLoopOffsets = [];
 	/// <summary>
 	/// The name of the BGM that was started last, or an empty string if none has played yet.
 	/// </summary>
 	public string CurrentBGM { get; private set; } = "";
+
+	/// <summary>
+	/// The name of the BGS that is playing, or an empty string if none is.
+	/// </summary>
+	public string CurrentBGS { get; private set; } = "";
 
 	/// <summary>
 	/// The current pitch of the BGM, including a pitch fade in progress.
@@ -38,6 +46,7 @@ public partial class AudioManager : Node
 	// reusable tween so multiple pitch tweens don't fight over the BGM
 	private Tween PitchTween;
 	private Tween VolumeTween;
+	private Tween BGSFadeTween;
 
 	public override void _EnterTree()
 	{
@@ -92,6 +101,17 @@ public partial class AudioManager : Node
 		}
 
 		GD.Print($"Preloaded {BGMDictionary.Count} vanilla BGM.");
+
+		foreach (string bgs in ResourceLoader.ListDirectory("res://audio/bgs"))
+		{
+			AudioStreamOggVorbis stream = ResourceLoader.Load<AudioStreamOggVorbis>("res://audio/bgs/" + bgs);
+			stream.Loop = true;
+			stream.LoopOffset = 0;
+			RegisterLoopOffset(BGSLoopOffsets, bgs.GetBaseName(), stream);
+			BGSDictionary.Add(bgs.GetBaseName(), stream);
+		}
+
+		GD.Print($"Preloaded {BGSDictionary.Count} vanilla BGS.");
 	}
 
 	internal void PlaySFX(SFX sfx)
@@ -249,6 +269,186 @@ public partial class AudioManager : Node
 	}
 
 	/// <summary>
+	/// Plays the background sound (BGS) with the given <paramref name="name"/>, which plays alongside the BGM.
+	/// </summary>
+	/// <remarks>
+	/// If that BGS is already playing, only its volume and pitch change. Does nothing while the preset locks the BGM.
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.ChangeBGS"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
+	/// <param name="name">The name of the BGS to play.</param>
+	/// <param name="volume">The volume to play the BGS at, from 0.001 to 3.0.</param>
+	/// <param name="pitch">The pitch to play the BGS at, from 0.1 to 2.0.</param>
+	public void PlayBGS(string name, float volume = 1f, float pitch = 1f)
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored PlayBGS(\"{name}\"), the preset locks the BGM.");
+			return;
+		}
+		ForcePlayBGS(name, volume, pitch);
+	}
+
+	internal void ForcePlayBGS(string name, float volume, float pitch)
+	{
+		if (!TryGetBGS(name, out AudioStreamOggVorbis stream))
+		{
+			GD.PrintErr("Unknown BGS: " + name);
+			return;
+		}
+
+		volume = Math.Clamp(volume, 0.001f, 3f);
+		pitch = Math.Clamp(pitch, 0.1f, 2f);
+
+		if (CurrentBGS != name)
+		{
+			KillBGSFade();
+			stream.LoopOffset = BGSLoopOffsets.GetValueOrDefault(name);
+			CurrentBGS = name;
+			BGS.Stream = stream;
+			BGS.PitchScale = pitch;
+			BGS.VolumeDb = Mathf.LinearToDb(volume);
+			BGS.Play();
+			return;
+		}
+		BGS.PitchScale = pitch;
+		BGS.VolumeDb = Mathf.LinearToDb(volume);
+	}
+
+	/// <summary>
+	/// Fades the BGS out over the given number of <paramref name="seconds"/>, then stops it.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="CurrentBGS"/> is empty from the moment the fade starts, and a fade with no BGS playing does nothing.
+	/// Does nothing while the preset locks the BGM.
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.FadeOutBGS"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
+	/// <param name="seconds">How long the fade takes, in seconds.</param>
+	public void FadeOutBGS(float seconds)
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored FadeOutBGS({seconds}), the preset locks the BGM.");
+			return;
+		}
+		ForceFadeOutBGS(seconds);
+	}
+
+	internal void ForceFadeOutBGS(float seconds)
+	{
+		StartBGSFade(seconds);
+	}
+
+	/// <summary>
+	/// Fades the BGS out over the given number of <paramref name="seconds"/>, then stops it, and waits for the fade to finish.
+	/// </summary>
+	/// <remarks>
+	/// Completes at once if no BGS is playing or while the preset locks the BGM.
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.WaitForFadeOutBGS"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
+	/// <param name="seconds">How long the fade takes, in seconds.</param>
+	public Task WaitForFadeOutBGS(float seconds)
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored WaitForFadeOutBGS({seconds}), the preset locks the BGM.");
+			return Task.CompletedTask;
+		}
+		return WaitForForceFadeOutBGS(seconds);
+	}
+
+	internal async Task WaitForForceFadeOutBGS(float seconds)
+	{
+		if (!StartBGSFade(seconds))
+			return;
+		Tween tween = BGSFadeTween;
+		if (tween != null)
+			await ToSignal(tween, Tween.SignalName.Finished);
+	}
+
+	private bool StartBGSFade(float seconds)
+	{
+		if (CurrentBGS == "")
+			return false;
+		CurrentBGS = "";
+		KillBGSFade();
+		if (seconds <= 0f)
+		{
+			BGS.Stop();
+			return true;
+		}
+		Tween tween = CreateTween();
+		BGSFadeTween = tween;
+		tween.TweenMethod(Callable.From<float>(value => BGS.VolumeLinear = value), BGS.VolumeLinear, 0f, seconds);
+		tween.TweenCallback(Callable.From(BGS.Stop));
+		return true;
+	}
+
+	private void KillBGSFade()
+	{
+		if (BGSFadeTween == null)
+			return;
+		Tween tween = BGSFadeTween;
+		BGSFadeTween = null;
+		tween.EmitSignal(Tween.SignalName.Finished);
+		tween.Kill();
+	}
+
+	/// <summary>
+	/// Stops the BGS at once.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing while the preset locks the BGM.
+	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.StopBGS"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
+	/// </remarks>
+	public void StopBGS()
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print("Ignored StopBGS(), the preset locks the BGM.");
+			return;
+		}
+		ForceStopBGS();
+	}
+
+	internal void ForceStopBGS()
+	{
+		KillBGSFade();
+		CurrentBGS = "";
+		BGS.Stop();
+	}
+
+	/// <summary>
+	/// Tries to get the BGS with the given <paramref name="name"/>.
+	/// </summary>
+	/// <remarks>
+	/// The returned stream is the one the game plays, not a copy, so changing it changes how that BGS plays.
+	/// </remarks>
+	/// <param name="name">The name of the BGS, as used by <c>PlayBGS</c>.</param>
+	/// <param name="stream">The BGS's audio stream, if it exists.</param>
+	/// <returns>Whether a BGS with that name exists. False, with a null stream, if <paramref name="name"/> is null.</returns>
+	public bool TryGetBGS(string name, out AudioStreamOggVorbis stream)
+	{
+		if (name == null)
+		{
+			stream = null;
+			return false;
+		}
+		return BGSDictionary.TryGetValue(name, out stream);
+	}
+
+	/// <summary>
+	/// The names of every BGS.
+	/// </summary>
+	public IEnumerable<string> GetAllBGS()
+	{
+		return BGSDictionary.Keys;
+	}
+
+	/// <summary>
 	/// Pauses the currently playing BGM.
 	/// </summary>
 	public void PauseBGM(bool paused)
@@ -362,10 +562,15 @@ public partial class AudioManager : Node
 
 	private void RegisterBGMLoopOffset(string name, AudioStreamOggVorbis stream)
 	{
+		RegisterLoopOffset(BGMLoopOffsets, name, stream);
+	}
+
+	private static void RegisterLoopOffset(Dictionary<string, double> offsets, string name, AudioStreamOggVorbis stream)
+	{
 		double loopStart = ReadLoopStart(stream);
 		if (loopStart > 0 && loopStart < stream.GetLength())
 			stream.LoopOffset = loopStart;
-		BGMLoopOffsets[name] = stream.LoopOffset;
+		offsets[name] = stream.LoopOffset;
 	}
 
 	private static double ReadLoopStart(AudioStreamOggVorbis stream)
@@ -519,6 +724,9 @@ public partial class AudioManager : Node
 		BGM.Stop();
 		BGM.PitchScale = 1f;
 		BGM.VolumeDb = Mathf.LinearToDb(1f);
+		ForceStopBGS();
+		BGS.PitchScale = 1f;
+		BGS.VolumeDb = Mathf.LinearToDb(1f);
 		foreach (AudioStreamPlayer player in AudioPlayers)
 		{
 			player.Stop();

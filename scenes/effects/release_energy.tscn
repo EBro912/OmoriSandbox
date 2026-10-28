@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://bfxrelenergy1"]
+
+[ext_resource type="SpriteFrames" uid="uid://clatbr34577po" path="res://animations/release_energy.tres" id="1_frames"]
+
+[node name="ReleaseEnergy" type="AnimatedSprite2D"]
+z_index = 20
+position = Vector2(320, 243.5)
+scale = Vector2(1, 1.01458)
+sprite_frames = ExtResource("1_frames")

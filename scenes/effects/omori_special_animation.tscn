@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://bfxomorispc01"]
+
+[node name="OmoriSpecialAnimation" type="Node2D"]
+
+[node name="Effect" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0)
+z_index = 20
+position = Vector2(320, 150)
+scale = Vector2(2, 2)
+
+[node name="Overlay" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0)
+z_index = 20
+centered = false

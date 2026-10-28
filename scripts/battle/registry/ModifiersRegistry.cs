@@ -96,6 +96,20 @@ internal static class ModifiersRegistry
 		Modifiers.Add("CherishDialogue", () => new TierStatModifier().WithMaxTier(5).WithBypassRecoverAllRemoval().WithBypassDeathRemoval());
 		Modifiers.Add("Cherished", () => new StatModifier(new StatBonus(StatType.ATK, 1.3f), new StatBonus(StatType.DEF, 1.15f), new StatBonus(StatType.SPD, 2f)).WithResists("AttackUp", "DefenseUp", "SpeedUp"));
 		Modifiers.Add("CherishSeal", () => new StatModifier(-1));
+		Modifiers.Add("PersistentPlotArmor", () => new PersistentPlotArmorStatModifier());
+		Modifiers.Add("CalmDownText", () => new StatModifier(2));
+		Modifiers.Add("FocusText", () => new StatModifier(2));
+		Modifiers.Add("PersistText", () => new StatModifier(2));
+		Modifiers.Add("OvercomeText", () => new StatModifier(2));
+		Modifiers.Add("PersistCheck", () => new StatModifier(2));
+		Modifiers.Add("HangingEndFight", () => new StatModifier().WithSealedSkills("SRWAttack", "SRWAltAttack", "SRWFearAttack", "SRWBasilAttack", "SRWBlackSpaceAttack"));
+		Modifiers.Add("Drowning1", () => new StatModifier());
+		Modifiers.Add("DrowningFinish", () => new StatModifier());
+		Modifiers.Add("Drowning2", () => new StatModifier().WithCategories("EMOTION", "HAPPY"));
+		Modifiers.Add("Drowning3", () => new StatModifier().WithCategories("EMOTION", "SAD"));
+		Modifiers.Add("SpecialImmortal", () => new ImmortalStatModifier());
+		Modifiers.Add("BasilSomething", () => new BasilSomethingStatModifier());
+		Modifiers.Add("Immobile", () => new ImmobileModifier(2));
 		#endregion
 	}
 
