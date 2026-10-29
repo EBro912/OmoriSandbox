@@ -26,6 +26,9 @@ internal static class FarawayRegistry
 		Enemies.Add("Jackson", () => new Jackson());
 		Enemies.Add("Wasp", () => new Wasp());
 		Enemies.Add("Housefly", () => new Housefly());
+		Enemies.Add("SomethingInTheDark", () => new SomethingInTheDark());
+		Enemies.Add("SomethingInTheWalls", () => new SomethingInTheWalls());
+		Enemies.Add("SomethingInTheWater", () => new SomethingInTheWater());
 
 		// AUBREY (Enemy) //
 
@@ -611,6 +614,178 @@ internal static class FarawayRegistry
 			setup: async (_, _) =>
 			{
 				AudioManager.Instance.PlaySFX("ba_bug_buzz");
+				await Task.CompletedTask;
+			}
+		);
+
+		// SOMETHING IN THE DARK //
+		Skills["DRKSilent"] = new Skill(
+			name: "DRKSilent",
+			description: "DRKSilent",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: (Actor _, Actor _) => Task.CompletedTask
+		);
+
+		Skills["DRKDoNothing1"] = new Skill(
+			name: "DRKDoNothing1",
+			description: "DRKDoNothing1",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				AudioManager.Instance.PlaySFX("SE_evil5", 0.5f, 0.5f);
+				await Wait.Frames(28);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] taunts [target]");
+				BattleLogManager.Instance.QueueMessage("as they fall.");
+			}
+		);
+
+		Skills["DRKDoNothing2"] = new Skill(
+			name: "DRKDoNothing2",
+			description: "DRKDoNothing2",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				AudioManager.Instance.PlaySFX("SE_evil5", 0.5f, 0.5f);
+				await Wait.Frames(28);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] taunts [target]");
+				BattleLogManager.Instance.QueueMessage("as they fall.");
+			}
+		);
+
+		Skills["DRKDarkAttack"] = new Skill(
+			name: "DRKDarkAttack",
+			description: "DRKDarkAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(140, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoves [target].");
+				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.15f, new DamageOptions { NeverMiss = true, Variance = 0.2f, Crit = CritMode.Never });
+			}
+		);
+
+		Skills["DRKFinalAttack"] = new Skill(
+			name: "DRKFinalAttack",
+			description: "DRKFinalAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(140, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] shoves [target].");
+				BattleManager.Instance.Damage(self, target, () => 143, new DamageOptions { NeverMiss = true, Variance = 0f, Crit = CritMode.Never });
+			}
+		);
+
+		// SOMETHING IN THE WALLS //
+		Skills["WALAttack"] = new Skill(
+			name: "WALAttack",
+			description: "WALAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(287, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] bites [target]!");
+				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, new DamageOptions { NeverMiss = false, Variance = 0.2f, Crit = CritMode.Never });
+			}
+		);
+
+		Skills["WALDoNothing"] = new Skill(
+			name: "WALDoNothing",
+			description: "WALDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] is trying to talk to you...");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["WALSpiderWebs"] = new Skill(
+			name: "WALSpiderWebs",
+			description: "WALSpiderWebs",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				AnimationManager.Instance.PlayAnimation(177, target);
+				await Wait.Frames(90);
+				await AnimationManager.Instance.WaitForAnimation(215, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] entangles [target]");
+				BattleLogManager.Instance.QueueMessage("in sticky webs.");
+				// DIALOGUE QUIRK: prints the SPEED line even when SPEED is already at its limit
+				BattleLogManager.Instance.QueueMessage(self, target, "[target]'s SPEED fell!");
+				await Wait.Frames(40);
+			},
+			setup: async (_, target) =>
+			{
+				target.AddTierStatModifier("SpeedDown", silent: true);
+				await Task.CompletedTask;
+			}
+		);
+
+		// SOMETHING IN THE WATER //
+		Skills["WTRAttack"] = new Skill(
+			name: "WTRAttack",
+			description: "WTRAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(140, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "Water pulls [target] in different");
+				BattleLogManager.Instance.QueueMessage("directions.");
+				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.1f, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
+			}
+		);
+
+		Skills["WTRDoNothing"] = new Skill(
+			name: "WTRDoNothing",
+			description: "WTRDoNothing",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] listens to [target] struggle.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["WTRDragDown"] = new Skill(
+			name: "WTRDragDown",
+			description: "WTRDragDown",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(197, target);
+				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.5f, new DamageOptions { NeverMiss = true, Variance = 0f, Crit = CritMode.Never });
+				if (self is SomethingInTheWater water)
+					await water.DragDownEvent();
+			},
+			setup: async (_, target) =>
+			{
+				if (target.HasStatModifier("Drowning2"))
+				{
+					target.AddStatModifier("Drowning3", silent: true);
+					target.RemoveStatModifier("Drowning2");
+				}
+				else if (target.HasStatModifier("Drowning1"))
+				{
+					target.AddStatModifier("Drowning2", silent: true);
+					target.RemoveStatModifier("Drowning1");
+				}
+				else
+				{
+					target.AddStatModifier("Drowning1", silent: true);
+					target.RemoveStatModifier("DrowningFinish");
+				}
 				await Task.CompletedTask;
 			}
 		);

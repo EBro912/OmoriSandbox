@@ -1354,7 +1354,9 @@ public abstract class Actor
     /// <remarks>
     /// An emotion this actor lost since its action result was last cleared can fail the same way, unless "Allow State Reapply on Removal" is enabled:
     /// going back to neutral records the emotion it had, and so does becoming AFRAID from a HAPPY, SAD or ANGRY emotion, while gaining a HAPPY, SAD or ANGRY emotion forgets the recorded HAPPY, SAD, ANGRY and AFRAID emotions.
-    /// See <see cref="ClearResult"/>.
+    /// See <see cref="ClearResult"/>.<br/>
+    /// Changing to a HAPPY, SAD or ANGRY emotion, or to AFRAID, removes this actor's stat modifiers in the other three of the <c>"HAPPY"</c>, <c>"SAD"</c>, <c>"ANGRY"</c> and <c>"AFRAID"</c> categories
+    /// (see <see cref="StatModifier.WithCategories"/>) except those marked with <see cref="StatModifier.WithBypassRecoverAllRemoval"/>, even when it already feels that emotion; going from HAPPY to ECSTATIC keeps a <c>"HAPPY"</c> modifier. Neutral, STRESSED OUT and a refused change remove nothing.
     /// </remarks>
     /// <param name="id">The id of the emotion to set this actor to.</param>
     /// <param name="silent">If true, success/failure messages will not be logged.</param>
@@ -1382,6 +1384,8 @@ public abstract class Actor
 			Emotion previous = CurrentEmotion;
 			CurrentEmotion = emotion;
 			RecordEmotionChange(previous, emotion, record);
+			if (record || previous != emotion)
+				RemoveOtherEmotionCategories(emotion);
 			// vanilla refreshes the battler after an emotion state is added, which clamps HP/JUICE to the new maximums
 			ClampHealthJuiceToMax();
 			if (!silent)
@@ -1413,6 +1417,7 @@ public abstract class Actor
 	/// </summary>
 	/// <remarks>
 	/// It is never refused by the re-apply rule, and it doesn't record the emotion it replaces, see <see cref="ClearResult"/>.
+	/// It removes stat modifiers of the other emotion categories like <see cref="SetEmotion"/>.
 	/// </remarks>
 	/// <param name="id">The id of the emotion to force this actor to feel.</param>
 	public void SetEmotionForced(string id)
@@ -1426,6 +1431,7 @@ public abstract class Actor
 		Emotion previous = CurrentEmotion;
 		CurrentEmotion = emotion;
 		RecordEmotionChange(previous, emotion, false);
+		RemoveOtherEmotionCategories(emotion);
 		ClampHealthJuiceToMax();
 		BattleManager.Instance.RunAsReaction(() => OnEmotionChanged?.Invoke(this, EventArgs.Empty));
 		if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
@@ -1486,6 +1492,20 @@ public abstract class Actor
 			RemovedSinceResultClear.Add(EmotionResultKey(previous.Id));
 	}
 
+	private static readonly string[] EmotionCategories = ["HAPPY", "SAD", "ANGRY", "AFRAID"];
+
+	internal void RemoveOtherEmotionCategories(Emotion next)
+	{
+		if (!IsEmotionalGroup(next) && next.Id != "afraid")
+			return;
+		string own = next.Id == "afraid" ? "AFRAID" : next.GroupId.ToUpperInvariant();
+		foreach (string category in EmotionCategories)
+		{
+			if (category != own)
+				RemoveStatModifiersInCategory(category);
+		}
+	}
+
 	private void NotifyEmotionTransform(Emotion previous, Emotion current)
 	{
 		if (this is Enemy enemy)
@@ -1510,6 +1530,7 @@ public abstract class Actor
 	/// </summary>
 	/// <remarks>
 	/// After every actor's hook and the <see cref="BattleManager.BattleEnded"/> event have run, the battle clears any screen tint or overlay, stops the BGS and turns <see cref="OmoriSandbox.Animation.AnimationManager.ToneBelowUI"/> off, so an effect started here doesn't stay on the end screen.
+	/// A fully opaque overlay stays when another Boss Rush stage follows, until that stage fades in.
 	/// </remarks>
 	/// <param name="outcome">How the battle ended.</param>
 	public virtual async Task OnEndOfBattle(BattleOutcome outcome) { await Task.CompletedTask; }

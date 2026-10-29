@@ -121,6 +121,7 @@ public partial class BattleManager : Node
 	/// This is NOT fired when the battle is exited early, see <see cref="BattleExited"/>.
 	/// Check <see cref="BattleEndedEventArgs.Outcome"/> to tell a victory, a defeat and an aborted battle apart.
 	/// Once every handler has run, the battle clears any screen tint or overlay, stops the BGS and turns <see cref="AnimationManager.ToneBelowUI"/> off.
+	/// A fully opaque overlay stays when another Boss Rush stage follows, until that stage fades in.
 	/// </remarks>
 	public event EventHandler<BattleEndedEventArgs> BattleEnded;
 
@@ -218,7 +219,7 @@ public partial class BattleManager : Node
 	/// The battle's turn count. Starts from 0 at battle start and resets in every new battle and Boss Rush stage.
 	/// </summary>
 	/// <remarks>
-	/// Like base game, it increments when the command menu closes, so turn N reads N from <see cref="Enemy.ProcessStartOfCommands"/> through <see cref="TurnEnded"/>, while <see cref="TurnStarted"/> and the command menu before turn N read N - 1.
+	/// Like base game, it increments when the turn's commands start, so turn N reads N from <see cref="Enemy.ProcessStartOfCommands"/> through <see cref="TurnEnded"/>, while <see cref="TurnStarted"/> and the command menu before turn N read N - 1.
 	/// </remarks>
 	public int TurnCount { get; private set; }
 
@@ -1703,6 +1704,13 @@ public partial class BattleManager : Node
 			return;
 
 		GameManager.Instance.DiscordManager.SetBattling(Enemies.Count);
+		if (!CurrentParty.Any(x => NeedsInput(x.Actor)))
+		{
+			BattleLogManager.Instance.ClearBattleLog();
+			MenuManager.Instance.ShowMenu(MenuState.None);
+			SetPhase(BattlePhase.PreCommand);
+			return;
+		}
 		switch (CurrentParty.Count)
 		{
 			case 1:
@@ -2810,8 +2818,10 @@ public partial class BattleManager : Node
 
 	private async Task AdvanceBossRushStage(string playingTrack, float? resumePosition)
 	{
-		RunGuarded(ClearBossBattleState, "ClearBossBattleState");
-		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
+		bool black = AnimationManager.Instance.OverlayOpaque;
+		RunGuarded(() => ClearBossBattleState(black), "ClearBossBattleState");
+		if (!black)
+			await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;
 		AnimationManager.Instance.Camera.ResetInstant();
@@ -3007,7 +3017,7 @@ public partial class BattleManager : Node
 		"OmoriAfraid", "Hanging1", "Hanging2", "Hanging3", "Hanging10", "Hanging11", "Hanging12", "Hanging13", "Immortal"
 	];
 
-	internal void ClearBossBattleState()
+	internal void ClearBossBattleState(bool keepOpaqueOverlay = false)
 	{
 		foreach (PartyMemberComponent component in CurrentParty)
 		{
@@ -3026,7 +3036,10 @@ public partial class BattleManager : Node
 			SetMenuOptionEnabled(BattleMenuOption.Attack, true);
 			BossDisabledAttack = false;
 		}
-		AnimationManager.Instance.ClearScreenTints();
+		if (keepOpaqueOverlay && AnimationManager.Instance.OverlayOpaque)
+			AnimationManager.Instance.ClearScreenTone();
+		else
+			AnimationManager.Instance.ClearScreenTints();
 		foreach (PartyMemberComponent component in CurrentParty)
 			component.UpdateStateIcons();
 	}
@@ -3062,8 +3075,9 @@ public partial class BattleManager : Node
 				return;
 		}
 		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(outcome), "BattleEnded");
+		bool stageFollows = GameType is GameModeType.BossRush && outcome != BattleOutcome.Defeat && CurrentStage + 1 < Stages.Count;
 		if (!RestartQueued)
-			RunGuarded(ClearBossBattleState, "ClearBossBattleState");
+			RunGuarded(() => ClearBossBattleState(stageFollows), "ClearBossBattleState");
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
@@ -4283,8 +4297,10 @@ public partial class BattleManager : Node
 	/// Makes the given <see cref="Actor"/> feel an emotion of the given group and tier, if possible.
 	/// </summary>
 	/// <remarks>
-	/// A higher tier of the same group is kept. A party member that already feels this exact tier still gets the usual "feels" line,
-	/// while every other case where nothing changes shows the no-effect line, see <see cref="ShowEmotionNoEffect"/>.
+	/// A higher tier of the same group is kept. A party member that already feels this exact tier still gets the usual "feels" line
+	/// and loses its stat modifiers of the other emotion categories as in <c>Actor.SetEmotion</c>,
+	/// while an enemy that already feels it and can feel it shows the no-effect line but loses those modifiers too,
+	/// and every other case where nothing changes shows the no-effect line, see <see cref="ShowEmotionNoEffect"/>.
 	/// An emotion the actor lost since its action result was last cleared can be refused, like in <c>Actor.SetEmotion</c>.
 	/// </remarks>
 	/// <param name="who">The <see cref="Actor"/> to change.</param>
@@ -4305,10 +4321,13 @@ public partial class BattleManager : Node
 		int held = who.CurrentEmotion.Group == group ? who.CurrentEmotion.Tier : 0;
 		if (held == tier && who is not Enemy && !who.IsImmuneToEmotion(next))
 		{
+			who.RemoveOtherEmotionCategories(next);
 			if (!silent)
 				BattleLogManager.Instance.QueueMessage(next.FeelsMessage(who.Name));
 			return true;
 		}
+		if (held == tier && !who.IsImmuneToEmotion(next))
+			who.RemoveOtherEmotionCategories(next);
 		if (held < tier && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			return who.SetEmotion(next.Id, silent);
 		if (!silent)

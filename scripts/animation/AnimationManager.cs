@@ -1288,17 +1288,24 @@ public partial class AnimationManager : Node
 		ClearScreenTints();
 	}
 
+	internal bool OverlayOpaque => ScreenTint.Color.A >= 1f;
+
 	internal void ClearScreenTints()
+	{
+		ClearScreenTone();
+		ScreenTintTween?.Kill();
+		ScreenTintTween = null;
+		ScreenTint.ZIndex = -4;
+		ScreenTint.Color = ColorsExtension.TransparentBlack;
+	}
+
+	internal void ClearScreenTone()
 	{
 		StopScreenToneTween();
 		BelowUI = false;
 		UIToneDimmed = false;
 		SetScreenTone(Vector4.Zero);
 		RefreshUITone();
-		ScreenTintTween?.Kill();
-		ScreenTintTween = null;
-		ScreenTint.ZIndex = -4;
-		ScreenTint.Color = ColorsExtension.TransparentBlack;
 	}
 
 	internal async Task FadeOutScreenTints(float seconds)

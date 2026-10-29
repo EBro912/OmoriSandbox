@@ -186,6 +186,9 @@ public class StatModifier
     /// <summary>
     /// Adds this modifier to the given categories, like Yanfly state categories. Category names ignore case.
     /// </summary>
+    /// <remarks>
+    /// A modifier in the <c>"HAPPY"</c>, <c>"SAD"</c>, <c>"ANGRY"</c> or <c>"AFRAID"</c> category is removed when its holder is made to feel an emotion of another of those four, see <see cref="Actors.Actor.SetEmotion"/>.
+    /// </remarks>
     /// <param name="categories">The category names to add.</param>
     public StatModifier WithCategories(params string[] categories)
     {

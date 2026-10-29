@@ -26,6 +26,7 @@ internal static class BossRushRegistry
 		Enemies.Add("HumphreySwarm (Boss Rush)", () => new HumphreySwarmAlt());
 		Enemies.Add("HumphreyGrande (Boss Rush)", () => new HumphreyGrandeAlt());
 		Enemies.Add("HumphreyFace (Boss Rush)", () => new HumphreyFaceAlt());
+		Enemies.Add("LifeJamGuy (Boss Rush)", () => new LifeJamGuyAlt());
 
 		// Ye Old Sprout (Boss Rush) //
 		Skills["YOSBRRollOver"] = new Skill(

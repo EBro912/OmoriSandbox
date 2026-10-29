@@ -17,6 +17,7 @@ internal static class JunkyardRegistry
 		Enemies.Add("Doombox", () => new Doombox());
 		Enemies.Add("Mixtape", () => new Mixtape());
 		Enemies.Add("SharkPlane", () => new SharkPlane());
+		Enemies.Add("LifeJamGuy", () => new LifeJamGuy());
 
 		// DOWNLOAD WINDOW //
 		Skills["DWDoNothing1"] = new Skill(
@@ -283,6 +284,34 @@ internal static class JunkyardRegistry
 					"furious" => self.CurrentStats.ATK * 4,
 					_ => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF
 				}, false, neverCrit: true);
+			}
+		);
+
+		// LIFE JAM GUY //
+		Skills["LJGDoNothing"] = new Skill(
+			name: "LJGDoNothing",
+			description: "LJGDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor] explains the benefits of");
+				BattleLogManager.Instance.QueueMessage("LIFE JAM!");
+				await Wait.Frames(45);
+			}
+		);
+
+		Skills["LJGDeathJam"] = new Skill(
+			name: "LJGDeathJam",
+			description: "LJGDeathJam",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] turns you into TOAST.");
+				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(209, member)));
+				foreach (Actor target in targets)
+					BattleManager.Instance.Damage(self, target, () => 9999, new DamageOptions { NeverMiss = true, Variance = 0f, Crit = CritMode.Never });
 			}
 		);
 	}
