@@ -110,6 +110,7 @@ internal static class ModifiersRegistry
 		Modifiers.Add("SpecialImmortal", () => new ImmortalStatModifier());
 		Modifiers.Add("BasilSomething", () => new BasilSomethingStatModifier());
 		Modifiers.Add("Immobile", () => new ImmobileModifier(2));
+		Modifiers.Add("Hanging", () => new HangingModifier());
 		#endregion
 	}
 

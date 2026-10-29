@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
+using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Battle.Registry;
@@ -15,6 +16,12 @@ internal static class BlackspaceRegistry
 	{
 		Enemies.Add("OmoriEnemy", () => new OmoriEnemy());
 		Enemies.Add("Merci", () => new Merci());
+		Enemies.Add("OmoriSomething", () => new OmoriSomething());
+		Enemies.Add("OmoriSomething (Heights)", () => new OmoriSomethingHeights());
+		Enemies.Add("OmoriSomething (Spiders)", () => new OmoriSomethingSpiders());
+		Enemies.Add("OmoriSomething (Drowning)", () => new OmoriSomethingDrowning());
+		Enemies.Add("OmoriSomething (Blur)", () => new OmoriSomethingBlur());
+		Enemies.Add("OmoriSomething (Hanging Body)", () => new OmoriSomethingHangingBody());
 
 		// FINAL OMORI //
 		
@@ -209,5 +216,218 @@ internal static class BlackspaceRegistry
 			hidden: true,
 			priority: 2000
 		).WithCustomRequirement(_ => true);
+
+		// OMORI'S SOMETHING //
+		Skills["OSMEngulfTrue"] = new Skill(
+			name: "OSMEngulfTrue",
+			description: "OSMEngulfTrue",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: async (self, targets) =>
+			{
+				foreach (Actor target in targets)
+				{
+					BattleLogManager.Instance.QueueMessage(self, target, "[actor] drags [target] into");
+					BattleLogManager.Instance.QueueMessage("the shadows.");
+					await Wait.Frames(45);
+					await EngulfAnimation();
+					await Wait.Frames(45);
+					BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.3f + 5, new DamageOptions { NeverMiss = true, Variance = 0.2f, Crit = CritMode.Never });
+				}
+			}
+		);
+
+		// SOMETHING (DROWNING) //
+		Skills["OSDRReserved"] = new Skill(
+			name: "OSDRReserved",
+			description: "OSDRReserved",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: (Actor _, Actor _) => Task.CompletedTask
+		);
+
+		Skills["OSDROmorisSomething"] = new Skill(
+			name: "OSDROmorisSomething",
+			description: "OSDROmorisSomething",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: (Actor _, Actor _) => Task.CompletedTask
+		);
+
+		Skills["OSDRAttack"] = new Skill(
+			name: "OSDRAttack",
+			description: "OSDRAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			element: "afraid",
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(140, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] reaches through [target].");
+				BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.1f, new DamageOptions { NeverMiss = true, Variance = 0.2f, Crit = CritMode.Never });
+				SomethingAfraid();
+			}
+		);
+
+		Skills["OSDRDoNothing"] = new Skill(
+			name: "OSDRDoNothing",
+			description: "OSDRDoNothing",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(18, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] sees through [target].");
+				BattleManager.Instance.AddEnergy(2);
+				await Wait.Frames(90);
+				SomethingAfraid();
+			}
+		);
+
+		// SOMETHING (BLUR) //
+		Skills["OSBBlurryNothing"] = new Skill(
+			name: "OSBBlurryNothing",
+			description: "OSBBlurryNothing",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: (Actor _, Actor _) =>
+			{
+				BattleLogManager.Instance.QueueMessage("SOMETHING sways in the wind.");
+				return Task.CompletedTask;
+			}
+		);
+
+		// HANGING BODY //
+		Skills["OSHBNothing1"] = new Skill(
+			name: "OSHBNothing1",
+			description: "OSHBNothing1",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleManager.Instance.Damage(self, target, () => 143, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
+				await Wait.Frames(15);
+				await FearPages.Narrate("Your lungs tighten up.");
+			},
+			setup: (Actor _, Actor target) =>
+			{
+				HangingModifier.SetStage(target, 2);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["OSHBNothing2"] = new Skill(
+			name: "OSHBNothing2",
+			description: "OSHBNothing2",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.8f, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
+				await Wait.Frames(15);
+				await FearPages.Narrate("Your heart beats out of your chest.");
+			},
+			setup: (Actor _, Actor target) =>
+			{
+				HangingModifier.SetStage(target, 3);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["OSHBNothing3"] = new Skill(
+			name: "OSHBNothing3",
+			description: "OSHBNothing3",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.8f, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
+				await Wait.Frames(15);
+				await FearPages.Narrate("Your fingers won't stop trembling.");
+			},
+			setup: (Actor _, Actor target) =>
+			{
+				// VANILLA BUG: NOTHING 3 adds HANGING 10 instead of HANGING 4, skipping NOTHING 4 to 9
+				HangingModifier.SetStage(target, 10);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["OSHBNothing10"] = new Skill(
+			name: "OSHBNothing10",
+			description: "OSHBNothing10",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (Actor _, Actor _) =>
+			{
+				await Wait.Frames(15);
+				await FearPages.Narrate("You hear your breathing begin to steady.");
+			},
+			setup: (self, target) =>
+			{
+				if (self is Enemy enemy && OmoriSomethingTroop.Of(enemy) is { } troop)
+					troop.BsSafe = true;
+				HangingModifier.SetStage(target, 11);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["OSHBNothing11"] = new Skill(
+			name: "OSHBNothing11",
+			description: "OSHBNothing11",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (Actor _, Actor _) =>
+			{
+				await Wait.Frames(15);
+				await FearPages.Narrate("You hear your heart begin to steady.");
+			},
+			setup: (Actor _, Actor target) =>
+			{
+				HangingModifier.SetStage(target, 12);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["OSHBNothing12"] = new Skill(
+			name: "OSHBNothing12",
+			description: "OSHBNothing12",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (Actor _, Actor _) =>
+			{
+				await Wait.Frames(15);
+				await FearPages.Narrate(@"You gather all your courage...\![br]and learn to OVERCOME.");
+			},
+			setup: (Actor _, Actor target) =>
+			{
+				HangingModifier.SetStage(target, 13);
+				return Task.CompletedTask;
+			}
+		);
+	}
+
+	private static async Task EngulfAnimation()
+	{
+		AnimationManager animation = AnimationManager.Instance;
+		AudioManager.Instance.PlaySFX("se_evil9", 1.1f, 0.9f);
+		animation.ShowPicture(86, "something_engulf_1", Vector2.Zero, false, Vector2.One, 0);
+		await animation.WaitForMovePicture(86, Vector2.Zero, Vector2.One, 255, 30);
+		await Wait.Frames(10);
+		animation.ShowPicture(85, "something_engulf_2", Vector2.Zero, false, Vector2.One, 255);
+		await Wait.Frames(10);
+		await animation.WaitForMovePicture(86, Vector2.Zero, Vector2.One, 0, 30);
+		await Wait.Frames(50);
+		animation.MovePicture(85, Vector2.Zero, Vector2.One, 0, 30);
+	}
+
+	private static void SomethingAfraid()
+	{
+		if (BattleManager.Instance.Energy < 6)
+			return;
+		PartyMember standIn = BattleManager.Instance.GetSunnyStandIn();
+		if (!standIn.IsToast)
+			standIn.SetEmotion("afraid", silent: true);
+		standIn.ClearResult();
 	}
 }

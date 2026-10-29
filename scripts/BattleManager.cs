@@ -3014,7 +3014,7 @@ public partial class BattleManager : Node
 	[
 		"PersistentPlotArmor", "CalmDownText", "FocusText", "PersistText", "OvercomeText", "HangingEndFight", "PersistCheck",
 		"Drowning1", "Drowning2", "Drowning3", "DrowningFinish", "SpecialImmortal", "BasilSomething", "Immobile", "BasilImmobile",
-		"OmoriAfraid", "Hanging1", "Hanging2", "Hanging3", "Hanging10", "Hanging11", "Hanging12", "Hanging13", "Immortal"
+		"OmoriAfraid", "Hanging", "Immortal"
 	];
 
 	internal void ClearBossBattleState(bool keepOpaqueOverlay = false)
