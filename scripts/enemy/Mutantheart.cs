@@ -17,7 +17,7 @@ internal sealed class Mutantheart : Enemy
     protected override string[] EquippedSkills => ["MHWink", "MHCry", "MHInsult", "MHInstakill"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        return emotion.Id == "neutral" || emotion.Id == "sad" || emotion.Id == "happy" || emotion.Id == "angry" || emotion.Id == "afraid";
+        return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 
     private static readonly string[] DesireableStates = ["happy", "sad", "angry"];
@@ -102,7 +102,7 @@ internal sealed class Mutantheart : Enemy
         }
         if (failed)
         {
-            DialogueManager.Instance.QueueMessage(this, @"[font_size=22][shake rate=20]Bleh...\| Wrong!");
+            DialogueManager.Instance.QueueMessage(this, @"[font_size=22][shake rate=60.0 level=20 connected=0]Bleh...\| Wrong!");
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

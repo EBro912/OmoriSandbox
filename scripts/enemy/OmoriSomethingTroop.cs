@@ -10,6 +10,7 @@ using OmoriSandbox.Menu;
 
 namespace OmoriSandbox.Actors;
 
+// handles the enemy swapping and troop event pages of the OmoriSomething fight
 internal sealed class OmoriSomethingTroop
 {
     private static readonly ConditionalWeakTable<Enemy, OmoriSomethingTroop> Troops = new();
@@ -66,12 +67,7 @@ internal sealed class OmoriSomethingTroop
     internal static async Task Begin(OmoriSomething host)
     {
         OmoriSomethingTroop troop = new(host);
-        AnimationManager animation = AnimationManager.Instance;
-        animation.TintScreen(-255, -255, -255, 255);
-        animation.TintOverlay(Colors.Black, 0f, 22);
-        Task sceneFade = animation.WaitForTintOverlay(ColorsExtension.TransparentBlack, 24 / 60f, 22);
-        animation.TintScreen(0, 0, 0, 0, 8 / 60f);
-        await sceneFade;
+        await FearPages.BlackStart(255);
         PartyMember standIn = StandIn;
         standIn.SeedLearnedSkills("CalmDown", "Focus", "Persist");
         for (int slot = 1; slot <= 4; slot++)
@@ -197,13 +193,10 @@ internal sealed class OmoriSomethingTroop
         StorySwitches.DrowningDone = true;
         standIn.LearnSkill("CalmDown");
         standIn.EquipSkill(0, "CalmDown");
-        await Wait.Frames(1);
         standIn.ForgetSkill("Focus");
         standIn.UnequipSkill(1);
-        await Wait.Frames(1);
         standIn.ForgetSkill("Persist");
         standIn.UnequipSkill(2);
-        await Wait.Frames(1);
         standIn.SetAttackSkill("SRWBlackSpaceAttack");
         await AnimationManager.Instance.WaitForTintScreen(0, 0, 0, 0, 180 / 60f);
         Phase1 = true;
@@ -354,15 +347,11 @@ internal sealed class OmoriSomethingTroop
         await Wait.Frames(60);
         standIn.ForgetSkill("CalmDown");
         standIn.UnequipSkill(0);
-        await Wait.Frames(1);
         standIn.ForgetSkill("Focus");
         standIn.UnequipSkill(1);
-        await Wait.Frames(1);
         standIn.UnequipSkill(2);
-        await Wait.Frames(1);
         standIn.LearnSkill("Persist");
         standIn.EquipSkill(0, "Persist");
-        await Wait.Frames(1);
     }
 
     private async Task Page9()
@@ -386,18 +375,12 @@ internal sealed class OmoriSomethingTroop
             await Wait.Frames(240);
             standIn.LearnSkill("CalmDown");
             standIn.EquipSkill(0, "CalmDown");
-            await Wait.Frames(1);
             standIn.LearnSkill("Focus");
-            await Wait.Frames(1);
             standIn.EquipSkill(1, "Focus");
-            await Wait.Frames(1);
             standIn.LearnSkill("Persist");
-            await Wait.Frames(1);
             standIn.EquipSkill(2, "Persist");
-            await Wait.Frames(1);
             standIn.ForgetSkill("Overcome");
             standIn.UnequipSkill(3);
-            await Wait.Frames(1);
             BsSafe = false;
             await FearPages.End(AbortOwner());
             return true;

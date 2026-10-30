@@ -22,6 +22,7 @@ internal static class BlackspaceRegistry
 		Enemies.Add("OmoriSomething (Drowning)", () => new OmoriSomethingDrowning());
 		Enemies.Add("OmoriSomething (Blur)", () => new OmoriSomethingBlur());
 		Enemies.Add("OmoriSomething (Hanging Body)", () => new OmoriSomethingHangingBody());
+		Enemies.Add("Stranger", () => new Stranger());
 
 		// FINAL OMORI //
 		
@@ -403,6 +404,33 @@ internal static class BlackspaceRegistry
 			{
 				HangingModifier.SetStage(target, 13);
 				return Task.CompletedTask;
+			}
+		);
+
+		// STRANGER //
+		Skills["STRShadowBasilAttack"] = new Skill(
+			name: "STRShadowBasilAttack",
+			description: "STRShadowBasilAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(199, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] strangles [target].");
+				bool hit = false;
+				BattleManager.Instance.Damage(self, target, () => target.CurrentHP - 1,
+					new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never, ShowJuiceLoss = false, OnHit = () => hit = true });
+				if (hit)
+				{
+					target.CurrentJuice = 0;
+					if (target.CurrentStats.MaxJuice > 0)
+					{
+						// DIALOGUE QUIRK: the base prints the target's max JUICE (result.mpDamage), not the JUICE actually lost
+						BattleLogManager.Instance.QueueMessage(self, target, "[target] lost " + target.CurrentStats.MaxJuice + " JUICE...");
+						BattleManager.Instance.SpawnDamageNumber(target.CurrentStats.MaxJuice, target, DamageType.JuiceLoss);
+					}
+				}
+				// VANILLA BUG: CE 934 is reserved by this skill but never plays, because page 6 aborts before the troop interpreter picks it up
 			}
 		);
 	}

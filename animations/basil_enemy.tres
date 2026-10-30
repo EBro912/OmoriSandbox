@@ -1,0 +1,84 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://b0f8goxnisrc6"]
+
+[ext_resource type="Texture2D" uid="uid://cb73p014nfx6y" path="res://assets/sv_actors/!battle_basil_something.png" id="1_5vljf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a2zg3"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(0, 480, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_doaui"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(722, 480, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y6gzr"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(1444, 480, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rgfiz"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(2166, 480, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eu8yb"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(0, 0, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_euiqf"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(722, 0, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qill9"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(1444, 0, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_akhk3"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(2166, 0, 722, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2cr9p"]
+atlas = ExtResource("1_5vljf")
+region = Rect2(0, 960, 722, 480)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a2zg3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_doaui")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y6gzr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rgfiz")
+}],
+"loop": true,
+"name": &"hurt",
+"speed": 1.5
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eu8yb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_euiqf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qill9")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_akhk3")
+}],
+"loop": true,
+"name": &"neutral",
+"speed": 1.5
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2cr9p")
+}],
+"loop": false,
+"name": &"toast",
+"speed": 1.5
+}]

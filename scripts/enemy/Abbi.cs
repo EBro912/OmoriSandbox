@@ -59,7 +59,7 @@ internal sealed class Abbi : Enemy
     {
         if (IsBelowHP(0.5f) && !HasSpoken)
         {
-            DialogueManager.Instance.QueueMessage(this, "[shake rate=20]Ngh...", font: DialogueManager.FontType.Jagged);
+            DialogueManager.Instance.QueueMessage(this, "[shake rate=60.0 level=20 connected=0]Ngh...", font: DialogueManager.FontType.Jagged);
             await DialogueManager.Instance.WaitForDialogue();
             HasSpoken = true;
         }
@@ -76,7 +76,7 @@ internal sealed class Abbi : Enemy
     {
         if (outcome == BattleOutcome.Defeat)
         {
-            DialogueManager.Instance.QueueMessage(this, "[shake rate=20]Goodbye...", font: DialogueManager.FontType.Jagged);
+            DialogueManager.Instance.QueueMessage(this, "[shake rate=60.0 level=20 connected=0]Goodbye...", font: DialogueManager.FontType.Jagged);
             await DialogueManager.Instance.WaitForDialogue();
         }
     }

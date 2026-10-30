@@ -83,7 +83,7 @@ internal sealed class Boss : Enemy
         {
             DialogueManager.Instance.QueueMessage(this, @"Grr...\![br]Now you've made me ANGRY...");
             DialogueManager.Instance.QueueMessage(this, "It's time for my special move!");
-            DialogueManager.Instance.QueueMessage(CenterPoint, "[center][font_size=58][wave freq=10][shake rate=20]BODY SLAM!!");
+            DialogueManager.Instance.QueueMessage(CenterPoint, "[center][font_size=58][wave freq=10][shake rate=60.0 level=20 connected=0]BODY SLAM!!");
             await DialogueManager.Instance.WaitForDialogue();
             SetEmotion("angry", true);
             ClearResult();

@@ -12,6 +12,8 @@ internal static class FearPages
 {
     private static readonly ConditionalWeakTable<Enemy, object> PlayerDownRan = new();
 
+    private static readonly string[] BrokenSkills = ["BrokenCalmDownBS", "BrokenFocusBS", "BrokenPersistBS"];
+
     internal static PartyMember Sunny => BattleManager.Instance.GetSunnyStandIn();
 
     internal static string SunnyName => Sunny.Name.ToUpper();
@@ -48,6 +50,16 @@ internal static class FearPages
     internal static Task FadeInScreen()
     {
         return AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 24 / 60f, 22);
+    }
+
+    internal static async Task BlackStart(int gray)
+    {
+        AnimationManager animation = AnimationManager.Instance;
+        animation.TintScreen(-255, -255, -255, gray);
+        animation.TintOverlay(Colors.Black, 0f, 22);
+        Task sceneFade = FadeInScreen();
+        animation.TintScreen(0, 0, 0, 0, 8 / 60f);
+        await sceneFade;
     }
 
     internal static void BlackFlash(int frames)
@@ -113,6 +125,23 @@ internal static class FearPages
             member.CurrentHP = 0;
             member.SetToast();
             member.ClearStatModifiersOnDeath();
+        }
+    }
+
+    internal static void AddState(Actor actor, string key)
+    {
+        if (actor.IsToast)
+            return;
+        actor.AddStatModifier(key, silent: true);
+        actor.ClearResult();
+    }
+
+    internal static void LearnBrokenSkills(PartyMember standIn)
+    {
+        for (int slot = 0; slot < BrokenSkills.Length; slot++)
+        {
+            standIn.LearnSkill(BrokenSkills[slot]);
+            standIn.EquipSkill(slot, BrokenSkills[slot]);
         }
     }
 }

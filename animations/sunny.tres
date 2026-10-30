@@ -98,6 +98,18 @@ region = Rect2(106, 1060, 106, 106)
 atlas = ExtResource("1_keuhm")
 region = Rect2(212, 1060, 106, 106)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_sb1x0"]
+atlas = ExtResource("1_keuhm")
+region = Rect2(0, 212, 106, 106)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sb2x1"]
+atlas = ExtResource("1_keuhm")
+region = Rect2(106, 212, 106, 106)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sb3x2"]
+atlas = ExtResource("1_keuhm")
+region = Rect2(212, 212, 106, 106)
+
 [resource]
 animations = [{
 "frames": [{
@@ -210,5 +222,19 @@ animations = [{
 }],
 "loop": true,
 "name": &"victory",
+"speed": 4.615385
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sb1x0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sb2x1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sb3x2")
+}],
+"loop": true,
+"name": &"stabbed",
 "speed": 4.615385
 }]

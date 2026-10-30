@@ -76,8 +76,8 @@ internal sealed class TheHooligans : Enemy
         if (command?.Action is Item item && item.Name == "PEPPER SPRAY")
         {
             DialogueManager.Instance.QueueMessage("CHARLIE", CenterPoint, "!!!");
-            DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"[shake rate=20]AUGH!! MY EYES!\! MASTER! I CAN'T SEE!!");
-            DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"[shake rate=20]Huff...\! Wheeze...\! What trickery is this!?");
+            DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"[shake rate=60.0 level=20 connected=0]AUGH!! MY EYES!\! MASTER! I CAN'T SEE!!");
+            DialogueManager.Instance.QueueMessage("THE MAVERICK", CenterPoint, @"[shake rate=60.0 level=20 connected=0]Huff...\! Wheeze...\! What trickery is this!?");
             DialogueManager.Instance.QueueMessage("VANCE", CenterPoint, "Ouch... That hurts.");
             DialogueManager.Instance.QueueMessage("KIM", CenterPoint, @"WHAT THE HECK IS THIS!?\! [color=#ff9233]PEPPER SPRAY[/color]?\! REALLY!?");
             DialogueManager.Instance.QueueMessage("AUBREY", CenterPoint, @"Gah...\! You two are the worst...");

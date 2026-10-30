@@ -87,9 +87,9 @@ internal sealed class TheMaverick : Enemy
         
         if (Stage == 6 && IsBelowHP(0.1f))
         {
-            DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...");
+            DialogueManager.Instance.QueueMessage(this, @"[shake rate=60.0 level=20 connected=0]Huff...\! Huff...");
             DialogueManager.Instance.QueueMessage(this, @"No...\![br]This is impossible!\! Improbable!");
-            DialogueManager.Instance.QueueMessage(this, "[shake rate=20][br]Absolutely inconceivable!");
+            DialogueManager.Instance.QueueMessage(this, "[shake rate=60.0 level=20 connected=0][br]Absolutely inconceivable!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 7;
         }
@@ -100,8 +100,8 @@ internal sealed class TheMaverick : Enemy
 
     public override async Task OnDefeat()
     {
-        DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...\! Huff...\! Wheeze...");
-        DialogueManager.Instance.QueueMessage(this, @"[shake rate=20]Huff...\! Huff...\! Wheeze...");
+        DialogueManager.Instance.QueueMessage(this, @"[shake rate=60.0 level=20 connected=0]Huff...\! Huff...\! Huff...\! Wheeze...");
+        DialogueManager.Instance.QueueMessage(this, @"[shake rate=60.0 level=20 connected=0]Huff...\! Huff...\! Wheeze...");
         DialogueManager.Instance.QueueMessage(this, @"Gah...\! No...\![br]I won't let it end like this!");
         await DialogueManager.Instance.WaitForDialogue();
     }

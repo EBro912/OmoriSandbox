@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Actors;
@@ -29,6 +31,7 @@ internal static class FarawayRegistry
 		Enemies.Add("SomethingInTheDark", () => new SomethingInTheDark());
 		Enemies.Add("SomethingInTheWalls", () => new SomethingInTheWalls());
 		Enemies.Add("SomethingInTheWater", () => new SomethingInTheWater());
+		Enemies.Add("BasilEnemy", () => new BasilEnemy());
 
 		// AUBREY (Enemy) //
 
@@ -789,5 +792,92 @@ internal static class FarawayRegistry
 				await Task.CompletedTask;
 			}
 		);
+
+		// BASIL (Enemy) //
+		Skills["BASAttack"] = new Skill(
+			name: "BASAttack",
+			description: "BASAttack",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			setup: (self, _) =>
+			{
+				self.AddStatModifier("AccuracyUp", silent: true);
+				return Task.CompletedTask;
+			},
+			effect: async (self, target) =>
+			{
+				Task animation = AnimationManager.Instance.WaitForAnimation(199, target);
+				if (target.CurrentEmotion.Id is "stressed")
+				{
+					AnimationManager.Instance.TintScreen(-17, -255, -255, 0, 10 / 60f);
+					AudioManager.Instance.PlaySFX("BA_stab", 1f, 0.9f);
+					await Wait.Frames(40);
+					AnimationManager.Instance.TintScreen(0, 0, 0, 255, 10 / 60f);
+				}
+				await animation;
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] reaches inside [target].");
+				// the attack formula includes an energy decrement to cancel out the automatic energy gain until the end of the turn
+				// however, as a result the a.atk * 5 - b.def in the original damage function gets discarded
+				BattleManager.Instance.Damage(self, target, () =>
+				{
+					int old = BattleManager.Instance.Energy;
+					BattleManager.Instance.Energy = Math.Max(old - 1, 0);
+					return old - 1;
+				}, new DamageOptions { NeverMiss = false, Crit = CritMode.Never });
+			}
+		);
+
+		Skills["BASDoNothing"] = new Skill(
+			name: "BASDoNothing",
+			description: "BASDoNothing",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (_, target) =>
+			{
+				BattleLogManager.Instance.QueueMessage(target, "[actor]'s eyes are red from crying.");
+				await Task.CompletedTask;
+			}
+		);
+
+		Skills["BASSomethingSetUpPlayer"] = new Skill(
+			name: "BASSomethingSetUpPlayer",
+			description: "BASSomethingSetUpPlayer",
+			target: SkillTarget.AllEnemies,
+			cost: 0,
+			effect: (Actor self, IReadOnlyList<Actor> _) =>
+			{
+				BattleManager.Instance.ForceCommand(self, BattleManager.Instance.SmoothPartyTarget(self.LastTargetIndex), Skills["BASBasilAttackPlayer"]);
+				return Task.CompletedTask;
+			}
+		);
+
+		Skills["BASBasilAttackPlayer"] = new Skill(
+			name: "BASBasilAttackPlayer",
+			description: "BASBasilAttackPlayer",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (self, target) =>
+			{
+				await AnimationManager.Instance.WaitForAnimation(199, target);
+				BattleLogManager.Instance.QueueMessage(self, target, "[actor] strangles [target].");
+				BattleManager.Instance.Damage(self, target, () =>
+				{
+					BattleManager.Instance.Energy = Math.Max(BattleManager.Instance.Energy - 1, 0);
+					return 10;
+				}, new DamageOptions { NeverMiss = false, Variance = 0.5f, Crit = CritMode.Never });
+				await BasilSomethingAttackBasil();
+			}
+		);
+	}
+
+	private static async Task BasilSomethingAttackBasil()
+	{
+		AnimationManager animation = AnimationManager.Instance;
+		AudioManager.Instance.PlaySFX("SE_bs_deep_swell", 1f, 0.9f);
+		animation.InitShake(new Shake(5, 9, 60));
+		await Wait.Frames(60);
+		animation.ShowPicture(6, "something_attack[5x2]", Vector2.Zero, false, Vector2.One, 255);
+		await animation.PlayPictureAnimation(6, "attack");
+		animation.ErasePicture(6);
 	}
 }

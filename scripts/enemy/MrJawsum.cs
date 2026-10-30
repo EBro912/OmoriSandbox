@@ -60,7 +60,7 @@ internal sealed class MrJawsum : Enemy
         
         if (IsBelowHP(0.75f) && Stage <= 1)
         {
-            DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\![br][shake rate=20]on me!");
+            DialogueManager.Instance.QueueMessage(this, @"The GATOR GUY who runs them out gets free pizza...\![br][shake rate=60.0 level=20 connected=0]on me!");
             await DialogueManager.Instance.WaitForDialogue();
             Stage = 2;
         }
