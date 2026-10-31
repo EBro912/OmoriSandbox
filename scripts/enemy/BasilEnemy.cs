@@ -44,6 +44,7 @@ internal sealed class BasilEnemy : Enemy
         standIn.ForgetSkill("Overcome");
         StorySwitches.BlackSpaceWorld = true;
         StorySwitches.BasilBattle = true;
+        StorySwitches.BasilTroop = true;
         standIn.SetAttackSkill("SRWBasilAttack");
         FearPages.AddState(this, "BasilMarker");
         FearPages.LearnBrokenSkills(standIn);
@@ -116,9 +117,12 @@ internal sealed class BasilEnemy : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        if (TrueTurnCount == 1)
-            return new BattleCommand(this, this, Skills["BASDoNothing"]);
-        return new BattleCommand(this, SelectTarget(), Skills["BASAttack"]);
+        return TrueTurnCount switch
+        {
+            0 => null,
+            1 => new BattleCommand(this, this, Skills["BASDoNothing"]),
+            _ => new BattleCommand(this, SelectTarget(), Skills["BASAttack"])
+        };
     }
 
     private async Task TurnPage(string first, string second)

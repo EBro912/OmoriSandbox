@@ -7,6 +7,7 @@ internal static class StorySwitches
 	internal static bool SpidersDone { get; set; } = true;
 	internal static bool DrowningDone { get; set; } = true;
 	internal static bool BasilBattle { get; set; }
+	internal static bool BasilTroop { get; set; }
 	internal static bool BlackSpaceWorld { get; set; }
 	internal static int FearPhase { get; set; }
 	internal static int BrokenSkillUses { get; set; }
@@ -17,6 +18,7 @@ internal static class StorySwitches
 		SpidersDone = true;
 		DrowningDone = true;
 		BasilBattle = false;
+		BasilTroop = false;
 		BlackSpaceWorld = false;
 		FearPhase = 0;
 		BrokenSkillUses = 0;

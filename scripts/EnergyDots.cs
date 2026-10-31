@@ -1,4 +1,6 @@
 using Godot;
+using OmoriSandbox.Battle;
+using OmoriSandbox.Menu;
 
 namespace OmoriSandbox;
 
@@ -17,6 +19,9 @@ internal partial class EnergyDots : Sprite2D
     private ImageTexture TrailTexture;
     private double Elapsed;
     private Vector2 OriginValue = DreamworldOrigin;
+    private readonly RandomNumberGenerator StressRandom = new();
+    private int StressFrame;
+    private bool ShowingBasilStress;
 
     internal int Lx { get; private set; }
 
@@ -30,7 +35,17 @@ internal partial class EnergyDots : Sprite2D
         }
     }
 
-    internal Rect2 CurrentRow => new(Origin.X, Origin.Y + BattleManager.Instance.Energy * LineHeight, SourceWidth, LineHeight);
+    internal static bool BasilStressed => StorySwitches.BasilTroop && BattleManager.Instance.GetSunnyStandIn().CurrentEmotion.Id is "stressed";
+
+    internal Rect2 CurrentRow
+    {
+        get
+        {
+            int energy = BasilStressed ? 10 : BattleManager.Instance.Energy;
+            int row = energy == 10 && StorySwitches.BasilTroop ? 11 : energy;
+            return new(Origin.X, Origin.Y + row * LineHeight, SourceWidth, LineHeight);
+        }
+    }
 
     public override void _Ready()
     {
@@ -71,6 +86,16 @@ internal partial class EnergyDots : Sprite2D
 
     private void Step()
     {
+        StressFrame = (StressFrame + 1) % 60;
+        bool stressed = BasilStressed;
+        if (stressed != ShowingBasilStress)
+        {
+            ShowingBasilStress = stressed;
+            MenuManager.Instance.RefreshEnergyDisplay();
+        }
+        if (stressed && StressFrame != 0 && StressFrame % 3 == 0 && StorySwitches.BlackSpaceWorld)
+            MenuManager.Instance.ShowEnergyNumber(StressRandom.RandiRange(0, 10));
+
         Lx = (Lx + 1) % (LineWidth + TrailLength);
         if (Lx < SourceWidth)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 
@@ -18,6 +19,8 @@ internal static class ConsolePortRegistry
 		Enemies.Add("HeroBoss", () => new HeroBoss());
 		Enemies.Add("BossmanHero", () => new BossmanHero());
 		Enemies.Add("GatorGuyHero", () => new GatorGuyHero());
+		Enemies.Add("Mari", () => new Mari());
+		Enemies.Add("HangingBody (Mari)", () => new HangingBodyMari());
 
 		// Aubrey Boss //
 		Skills["ABossLookAtKel"] = new Skill(
@@ -889,5 +892,64 @@ internal static class ConsolePortRegistry
 			},
 			hidden: true
 		);
+
+		// MARI //
+		Skills["MARMariNothing"] = new Skill(
+			name: "MARMariNothing",
+			description: "MARMariNothing",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: (Actor self, Actor _) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] smiles at you.");
+				return Task.CompletedTask;
+			},
+			priority: 2000
+		);
+
+		Skills["MARPicnicBasket"] = new Skill(
+			name: "MARPicnicBasket",
+			description: "MARPicnicBasket",
+			target: SkillTarget.Enemy,
+			cost: 0,
+			effect: async (Actor self, Actor _) =>
+			{
+				BattleLogManager.Instance.QueueMessage(self, "[actor] pulls out fresh fruit from");
+				BattleLogManager.Instance.QueueMessage("her picnic basket.");
+				await BattleLogManager.Instance.WaitForBattleLog();
+				await MariPicnic();
+			},
+			priority: 2000
+		);
+	}
+
+	private static async Task MariPicnic()
+	{
+		foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
+		{
+			member.RecoverAll();
+			if (member.HasPlotArmor)
+				member.HasUsedPlotArmor = true;
+		}
+		AnimationManager animation = AnimationManager.Instance;
+		animation.ShowPicture(100, "white_screen", Vector2.Zero, false, Vector2.One, 0);
+		animation.TintScreen(143, 143, 143, 0, 30 / 60f);
+		await animation.WaitForMovePicture(100, Vector2.Zero, Vector2.One, 200, 30);
+		AudioManager.Instance.PlaySFX("SE_munch", 1f, 1f);
+		await Wait.Frames(20);
+		AudioManager.Instance.PlaySFX("SE_munch", 1f, 1f);
+		await Wait.Frames(20);
+		AudioManager.Instance.PlaySFX("SE_munch", 1f, 1f);
+		await Wait.Frames(60);
+		AudioManager.Instance.PlaySFX("SE_Picnic", 1f, 1f);
+		await Wait.Frames(100);
+		AudioManager.Instance.PlaySFX("BA_Heart_Heal", 1f, 0.9f);
+		await Wait.Frames(20);
+		AudioManager.Instance.PlaySFX("BA_Heart_Heal", 1f, 0.9f);
+		animation.TintScreen(0, 0, 0, 0, 20 / 60f);
+		await animation.WaitForMovePicture(100, Vector2.Zero, Vector2.One, 0, 30);
+		animation.ErasePicture(100);
+		DialogueManager.Instance.QueueMessage("You and your friends feel like new!");
+		await DialogueManager.Instance.WaitForDialogue();
 	}
 }

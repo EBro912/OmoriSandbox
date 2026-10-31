@@ -1,0 +1,84 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://bsimmariscare"]
+
+[ext_resource type="Texture2D" uid="uid://sw0ujpt67v1f" path="res://assets/pictures/simulation_mari_scare.png" id="1_smscr"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms000"]
+atlas = ExtResource("1_smscr")
+region = Rect2(0, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms001"]
+atlas = ExtResource("1_smscr")
+region = Rect2(640, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms002"]
+atlas = ExtResource("1_smscr")
+region = Rect2(1280, 0, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms003"]
+atlas = ExtResource("1_smscr")
+region = Rect2(0, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms004"]
+atlas = ExtResource("1_smscr")
+region = Rect2(640, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms005"]
+atlas = ExtResource("1_smscr")
+region = Rect2(1280, 480, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms006"]
+atlas = ExtResource("1_smscr")
+region = Rect2(0, 960, 640, 480)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ms007"]
+atlas = ExtResource("1_smscr")
+region = Rect2(640, 960, 640, 480)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms000")
+}],
+"loop": false,
+"name": &"default",
+"speed": 60.0
+}, {
+"frames": [{
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms000")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms000")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms001")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms001")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms002")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms002")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms003")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms004")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms005")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms006")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_ms007")
+}],
+"loop": false,
+"name": &"scare",
+"speed": 60.0
+}]

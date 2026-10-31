@@ -23,13 +23,7 @@ internal partial class MenuManager : Node
 	// the energy bar node, tinted by the DialogueManager while dialogue is on screen
 	internal Sprite2D EnergyDisplay => EnergyBar;
 	internal IEnumerable<Menu> AllMenus => Menus.Values;
-
 	public static MenuManager Instance { get; private set; }
-
-	private const float FightRunOffsetRW = 457f;
-	private const float FightRunOffset = 375f;
-	private const float BattleOffsetRW = 212f;
-	private const float BattleOffset = 130f;
 
 	private MenuState CurrentState = MenuState.None;
 	private Menu CurrentMenu;
@@ -58,13 +52,19 @@ internal partial class MenuManager : Node
 
 	private void RefreshEnergy(object sender, EventArgs e)
 	{
-		int energy = BattleManager.Instance.Energy;
-		EnergyText.Text = $"{energy:00}";
+		bool stressed = EnergyDots.BasilStressed;
+		int energy = stressed ? 10 : BattleManager.Instance.Energy;
+		if (!stressed)
+			EnergyText.Text = $"{energy:00}";
 		if (ActiveSkin?.BlackspaceEnergyBar == true)
 			EnergyBar.RegionRect = new Rect2(292f, 340f + (energy > 6 ? 2 : energy > 3 ? 1 : 0) * 45f, 360f, 45f);
 		else
 			EnergyBar.RegionRect = new Rect2(1f, 1f + Math.Min(energy / 2, 4) * 45f, 360f, 45f);
 	}
+
+	internal void RefreshEnergyDisplay() => RefreshEnergy(this, EventArgs.Empty);
+
+	internal void ShowEnergyNumber(int value) => EnergyText.Text = $"{value:00}";
 
 	internal void SetPresetSkin(string menuSkin, bool itemless)
 	{

@@ -59,12 +59,16 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/basil_special_animation.tscn" id="65_bsspc"]
 [ext_resource type="PackedScene" path="res://scenes/effects/cherish.tscn" id="66_chrsh"]
 [ext_resource type="PackedScene" path="res://scenes/effects/succumb.tscn" id="67_sccmb"]
+[ext_resource type="Shader" path="res://assets/glitch_shader.gdshader" id="68_glitch"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_dgi5k"]
 viewport_path = NodePath("BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport")
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_5q0nq"]
 blend_mode = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glitch"]
+shader = ExtResource("68_glitch")
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
@@ -133,7 +137,7 @@ EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 EnergyDots = NodePath("../UI/Energy/EnergyDots")
 
-[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "Pictures", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint")]
+[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "Pictures", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint", "Glitch")]
 script = ExtResource("12_5q0nq")
 BattlebackRoot = NodePath("../UI/BattlebackRoot")
 EnemyAnimations = NodePath("../UI/BattlebackRoot/EnemyAnimations")
@@ -157,6 +161,7 @@ OmoriIntroScene = ExtResource("53_intro")
 PerfectheartOverlayParent = NodePath("../UI/BattlebackRoot/FullScreenEffects/SubViewport/PerfectheartOverlayParent")
 FullScreenEffectNode = NodePath("../UI/BattlebackRoot/FullScreenEffects")
 ScreenTint = NodePath("../UI/BattlebackRoot/FullScreenEffects/ScreenTint")
+Glitch = NodePath("../UI/BattlebackRoot/FullScreenEffects/Glitch")
 
 [node name="AudioManager" type="Node" parent="BattleCanvas" unique_id=943710295 node_paths=PackedStringArray("BGM", "BGS")]
 script = ExtResource("11_ya4ey")
@@ -279,6 +284,16 @@ offset_bottom = 480.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0)
+
+[node name="Glitch" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1412013907]
+visible = false
+z_index = -4
+material = SubResource("ShaderMaterial_glitch")
+offset_left = -1280.0
+offset_top = -64.0
+offset_right = 1920.0
+offset_bottom = 544.0
+mouse_filter = 2
 
 [node name="Pictures" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1938274650]
 z_index = 20

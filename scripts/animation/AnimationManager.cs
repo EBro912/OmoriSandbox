@@ -47,6 +47,7 @@ public partial class AnimationManager : Node
 	[Export] private Node2D PerfectheartOverlayParent;
 	[Export] private Node2D FullScreenEffectNode;
 	[Export] private ColorRect ScreenTint;
+	[Export] private ColorRect Glitch;
 	private AnimatedSprite2D ReleaseEnergy;
 	private AnimatedSprite2D ReleaseEnergyBasil;
 	private AnimatedSprite2D RedHands;
@@ -1290,6 +1291,11 @@ public partial class AnimationManager : Node
 
 	internal bool OverlayOpaque => ScreenTint.Color.A >= 1f;
 
+	internal void SetGlitch(bool on)
+	{
+		Glitch.Visible = on;
+	}
+
 	internal void ClearScreenTints()
 	{
 		ClearScreenTone();
@@ -1297,6 +1303,7 @@ public partial class AnimationManager : Node
 		ScreenTintTween = null;
 		ScreenTint.ZIndex = -4;
 		ScreenTint.Color = ColorsExtension.TransparentBlack;
+		SetGlitch(false);
 	}
 
 	internal void ClearScreenTone()
