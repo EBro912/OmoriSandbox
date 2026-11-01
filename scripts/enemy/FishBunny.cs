@@ -22,7 +22,7 @@ internal sealed class FishBunny : Enemy
 
     public override Task OnStartOfBattle()
     {
-        ReinforcementSlots.ClaimPresetSlots(this, ReinforcementSlots.FishBunny);
+        ReinforcementSlots.ClaimPresetSlots(ReinforcementSlots.FishBunny);
         return Task.CompletedTask;
     }
 

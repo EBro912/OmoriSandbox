@@ -128,7 +128,7 @@ internal sealed class OmoriEnemy : Enemy
         StunRanThisTurn = false;
         if (StunArmed)
         {
-            StunAllEnemies();
+            DelayAllEnemies();
             StunRanThisTurn = true;
         }
         return Task.CompletedTask;
@@ -160,7 +160,7 @@ internal sealed class OmoriEnemy : Enemy
 
         if (StunArmed && !StunRanThisTurn)
         {
-            StunAllEnemies();
+            DelayAllEnemies();
             StunRanThisTurn = true;
         }
 
@@ -276,7 +276,7 @@ internal sealed class OmoriEnemy : Enemy
         }
     }
 
-    private static void StunAllEnemies()
+    private static void DelayAllEnemies()
     {
         foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
         {

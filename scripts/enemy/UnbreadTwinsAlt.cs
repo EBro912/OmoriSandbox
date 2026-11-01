@@ -23,9 +23,6 @@ internal sealed class UnbreadTwinsAlt : Enemy
 
     public override bool IsEmotionValid(Emotion emotion)
     {
-        if (IsEmotionLocked)
-            return false;
-
         return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 

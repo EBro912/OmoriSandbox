@@ -688,7 +688,8 @@ public partial class DialogueManager : Node2D
 	{
 		if (DialogueDisabled)
 		{
-			CurrentChoices = choices;
+			if (choices is { Length: > 0 })
+				CurrentChoices = choices;
 			return;
 		}
 
@@ -732,6 +733,69 @@ public partial class DialogueManager : Node2D
 	public void QueueMessage(string speaker, string message, string[] choices = null, FontType font = FontType.Normal)
 	{
 		QueueMessage(speaker, default, message, choices, font);
+	}
+
+	/// <summary>
+	/// Shows a message in the dialogue box and waits for it to close.
+	/// </summary>
+	/// <remarks>
+	/// This is the same as a <c>QueueMessage</c> followed by <see cref="WaitForDialogue"/>.
+	/// </remarks>
+	/// <param name="message">The message to display. Supports the same pause markers as <see cref="QueueMessage(string, string[], FontType)"/>.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
+	public Task ShowMessage(string message, FontType font = FontType.Normal)
+	{
+		QueueMessage(message, null, font);
+		return WaitForDialogue();
+	}
+
+	/// <summary>
+	/// Shows a message with no speaker name, with the speaker arrow pointing at a position on screen, and waits for it to close.
+	/// </summary>
+	/// <param name="speakerPos">The position on screen to use as the speaker target. <see cref="Vector2.Zero"/> hides the arrow.</param>
+	/// <param name="message">The message to display. Supports the same pause markers as <see cref="QueueMessage(string, string[], FontType)"/>.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
+	public Task ShowMessage(Vector2 speakerPos, string message, FontType font = FontType.Normal)
+	{
+		QueueMessage(speakerPos, message, null, font);
+		return WaitForDialogue();
+	}
+
+	/// <summary>
+	/// Shows a message with an <see cref="Enemy"/> name as the speaker and waits for it to close.
+	/// </summary>
+	/// <param name="speaker">The <see cref="Enemy"/> to show as the speaker.</param>
+	/// <param name="message">The message to display. Supports the same pause markers as <see cref="QueueMessage(string, string[], FontType)"/>.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
+	public Task ShowMessage(Enemy speaker, string message, FontType font = FontType.Normal)
+	{
+		QueueMessage(speaker, message, null, font);
+		return WaitForDialogue();
+	}
+
+	/// <summary>
+	/// Shows a message with a custom speaker name and position and waits for it to close.
+	/// </summary>
+	/// <param name="speaker">The name of the speaker.</param>
+	/// <param name="speakerPos">The position on screen to use as the speaker target.</param>
+	/// <param name="message">The message to display. Supports the same pause markers as <see cref="QueueMessage(string, string[], FontType)"/>.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
+	public Task ShowMessage(string speaker, Vector2 speakerPos, string message, FontType font = FontType.Normal)
+	{
+		QueueMessage(speaker, speakerPos, message, null, font);
+		return WaitForDialogue();
+	}
+
+	/// <summary>
+	/// Shows a message with a custom speaker name and waits for it to close.
+	/// </summary>
+	/// <param name="speaker">The name of the speaker.</param>
+	/// <param name="message">The message to display. Supports the same pause markers as <see cref="QueueMessage(string, string[], FontType)"/>.</param>
+	/// <param name="font">The <see cref="FontType"/> to use: Normal, Jagged or NotoSans.</param>
+	public Task ShowMessage(string speaker, string message, FontType font = FontType.Normal)
+	{
+		QueueMessage(speaker, message, null, font);
+		return WaitForDialogue();
 	}
 
 

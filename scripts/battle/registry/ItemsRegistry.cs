@@ -178,7 +178,7 @@ internal static class ItemsRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses LIFE JAM!");
 				if (!target.IsToast)
 				{
-					target = BattleManager.Instance.GetRandomDeadPartyMember();
+					target = BattleManager.Instance.GetFirstDeadPartyMember();
 					if (target == null)
 					{
 						BattleLogManager.Instance.QueueMessage("It had no effect.");
@@ -206,7 +206,7 @@ internal static class ItemsRegistry
 			   BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses DINO JAM!");
 			   if (!target.IsToast)
 			   {
-				   target = BattleManager.Instance.GetRandomDeadPartyMember();
+				   target = BattleManager.Instance.GetFirstDeadPartyMember();
 				   if (target == null)
 				   {
 					   BattleLogManager.Instance.QueueMessage("It had no effect.");
@@ -697,7 +697,7 @@ internal static class ItemsRegistry
 					heal = BattleManager.RoundHealing(heal * 1.5);
 				// donald compiler please come save us donald compiler please save us
 				if (BattleManager.Instance.PartyHasLivingWeapon("Blender", "Ol' Reliable"))
-					total = (int)Math.Round(total * 1.5f, MidpointRounding.AwayFromZero);
+					total = BattleManager.RoundHealing(total * 1.5);
 				heal = target.Heal(heal);
 				total = target.HealJuice(total);
 				BattleManager.Instance.SpawnDamageNumber(heal, target, DamageType.Heal);

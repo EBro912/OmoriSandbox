@@ -625,10 +625,7 @@ internal static class OrangeOasisRegistry
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] looks sadly at [target].");
 				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardless of the tier the target reaches
-				if (target.IsEmotionValid("sad"))
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels SAD.");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "sad");
+				QueueTierOneEmotionLine(target, "sad", target.IsEmotionValid("sad"));
 				await Task.CompletedTask;
 			}
 		);
@@ -854,10 +851,7 @@ internal static class OrangeOasisRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] covers [target]");
 				BattleLogManager.Instance.QueueMessage("in sprinkles.");
 				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
-				if (sprinklesHappy)
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+				QueueTierOneEmotionLine(target, "happy", sprinklesHappy);
 				// DIALOGUE QUIRK: prints the "STATS rose!" line even when the UP states are already held at tier 1 or higher
 				BattleLogManager.Instance.QueueMessage(target, "[actor]'s STATS rose!");
 				await AnimationManager.Instance.WaitForAnimation(218, target);
@@ -974,10 +968,7 @@ internal static class OrangeOasisRegistry
 				await AnimationManager.Instance.WaitForAnimation(218, target);
 				BattleLogManager.Instance.QueueMessage(self, "[actor] slithers around gleefully!");
 				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
-				if (slitherHappy)
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+				QueueTierOneEmotionLine(target, "happy", slitherHappy);
 			}
 		);
 

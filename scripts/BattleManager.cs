@@ -91,7 +91,7 @@ public partial class BattleManager : Node
 		internal set
 		{
 			_Energy = value;
-			RunAsReaction(() => EnergyChanged?.Invoke(this, EventArgs.Empty));
+			RaiseGuarded(EnergyChanged, "EnergyChanged");
 		}
 	}
 
@@ -362,9 +362,8 @@ public partial class BattleManager : Node
 		Enemies.Clear();
 		foreach (BattlePresetEnemy enemy in enemies)
 		{
-			if (!enemy.Position.StartsWith("Vector2"))
-				enemy.Position = "Vector2" + enemy.Position;
-			SummonEnemy(enemy, GD.StrToVar(enemy.Position).AsVector2());
+			if (GameManager.TryParsePosition(enemy, out Vector2 position))
+				SummonEnemy(enemy, position);
 		}
 	}
 
@@ -850,13 +849,7 @@ public partial class BattleManager : Node
 		CurrentPartyMemberTarget = -1;
 		PlayerCommands.Clear();
 		ActedThisTurn.Clear();
-		ActingSubject = null;
-		ClearInstantCast();
-		ForcedCommands.Clear();
-		ForcedCountAtCommandStart = 0;
-		PendingFollowup = null;
-		ForceHideFollowup = false;
-		PriorityActors.Clear();
+		ClearCommandQueue();
 		DisabledMenuOptions.Clear();
 		BossDisabledAttack = false;
 		DeferredDeathEnemies.Clear();
@@ -864,7 +857,6 @@ public partial class BattleManager : Node
 		if (FallTween != null && FallTween.IsValid())
 			FallTween.Kill();
 		FallTween = null;
-		CurrentCommand = null;
 		CommandTargets = [];
 		InActionEffect = false;
 		ActionForcedCrit = false;
@@ -918,7 +910,7 @@ public partial class BattleManager : Node
 		RestartTimer = 1;
 		IsBattling = false;
 		if (wasBattling)
-			BattleExited?.Invoke(this, EventArgs.Empty);
+			RaiseGuarded(BattleExited, "BattleExited");
 	}
 
 	private void ReloadPreset()
@@ -1513,7 +1505,8 @@ public partial class BattleManager : Node
 				return blocked;
 			}
 			RaiseGuarded(AIDeciding, new AIDecidingEventArgs(enemy), "AIDeciding");
-			BattleCommand decided = enemy.ProcessAI();
+			BattleCommand decided = null;
+			RunGuarded(() => decided = enemy.ProcessAI(), $"{enemy.Name}.ProcessAI");
 			RaiseGuarded(AIDecided, new AIDecidedEventArgs(enemy, decided), "AIDecided");
 			StartOwnAction(enemy, decided);
 			return decided;
@@ -1610,16 +1603,9 @@ public partial class BattleManager : Node
 			CurrentPartyMemberTarget = -1;
 			PlayerCommands.Clear();
 			ActedThisTurn.Clear();
-			ActingSubject = null;
-			ClearInstantCast();
-			ForcedCommands.Clear();
-			ForcedCountAtCommandStart = 0;
 			// a followup discarded here never spent its energy, so there is nothing to refund
-			PendingFollowup = null;
-			ForceHideFollowup = false;
-			PriorityActors.Clear();
+			ClearCommandQueue();
 			DeferredDeathEnemies.Clear();
-			CurrentCommand = null;
 			ProcessedEndOfTurn = false;
 			ProcessedStartOfCommands = false;
 			BattleStartForcesOnly = false;
@@ -2727,30 +2713,11 @@ public partial class BattleManager : Node
 			return;
 		}
 
-		if (CurrentParty.All(x => x.Actor.CurrentHP == 0))
-		{
-			if (DeathBeatDue())
-			{
-				await RunDeathBeat();
-				return;
-			}
-			SetPhase(BattlePhase.BattleOver);
-			InEndOfBattle = true;
-			await EndOfBattle(false);
-			if (StopEndOfBattleForRestart())
-				return;
-			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
-			                                              "'s party was defeated...");
-			InEndOfBattle = false;
-			ShowEndOfBattleOptions();
-			return;
-		}
-
 		PartyMemberComponent omori =
 			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.IsToast);
 		// if any omori is toast, the battle is over
 		// this may change in the future
-		if (omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast)))
+		if (CurrentParty.All(x => x.Actor.CurrentHP == 0) || omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast)))
 		{
 			if (DeathBeatDue())
 			{
@@ -2880,9 +2847,9 @@ public partial class BattleManager : Node
 			AudioManager.Instance.ForcePlayBGM(Stages[CurrentStage].BGM, 0.05f,
 				(float)Stages[CurrentStage].BGMPitch);
 			if (playingTrack == Stages[CurrentStage].BGM)
-				AudioManager.Instance.SeekBGM(position);
+				AudioManager.Instance.ForceSeekBGM(position);
 			AudioManager.Instance.ForceSetBGMLoopOffset(Stages[CurrentStage].BGMLoopPoint);
-			AudioManager.Instance.FadeBGMTo(1f, 0.5f);
+			AudioManager.Instance.ForceFadeBGMTo(1f, 0.5f);
 		}
 		if (IntroOmoris.Count > 0)
 			PendingStageBGM = PlayStageBGM;
@@ -2910,6 +2877,11 @@ public partial class BattleManager : Node
 	{
 		foreach (Actor actor in PlayerCommands.Keys.ToList())
 			DropRemainingCommands(actor);
+		ClearCommandQueue();
+	}
+
+	private void ClearCommandQueue()
+	{
 		ForcedCommands.Clear();
 		ForcedCountAtCommandStart = 0;
 		PendingFollowup = null;
@@ -3105,10 +3077,15 @@ public partial class BattleManager : Node
 		}
 	}
 
+	internal void RunGuardedReaction(Action reaction, string context)
+	{
+		RunGuarded(() => RunAsReaction(reaction), context);
+	}
+
 	private void RunModifierHooks(Actor actor, string hook, Action<StatModifier> call)
 	{
 		foreach (StatModifier modifier in actor.StatModifiers.Values.ToList())
-			RunGuarded(() => RunAsReaction(() => call(modifier)), $"{modifier.GetType().Name}.{hook} ({actor.Name})");
+			RunGuardedReaction(() => call(modifier), $"{modifier.GetType().Name}.{hook} ({actor.Name})");
 	}
 
 	private void RunEndOfTurnModifierHooks(Actor actor)
@@ -3120,20 +3097,24 @@ public partial class BattleManager : Node
 
 	// mirrors RunGuarded for events. each subscriber is raised separately, so one throwing
 	// handler is logged without skipping the others or breaking the battle flow
-	private void RaiseGuarded(EventHandler handler, string context)
+	private void RaiseGuarded(EventHandler handler, string context) => RaiseGuarded(this, handler, context);
+
+	private void RaiseGuarded<T>(EventHandler<T> handler, T args, string context) => RaiseGuarded(this, handler, args, context);
+
+	internal void RaiseGuarded(object sender, EventHandler handler, string context)
 	{
 		if (handler == null)
 			return;
 		foreach (EventHandler subscriber in handler.GetInvocationList().Cast<EventHandler>())
-			RunGuarded(() => RunAsReaction(() => subscriber(this, EventArgs.Empty)), $"{context} event handler");
+			RunGuardedReaction(() => subscriber(sender, EventArgs.Empty), $"{context} event handler");
 	}
 
-	private void RaiseGuarded<T>(EventHandler<T> handler, T args, string context)
+	internal void RaiseGuarded<T>(object sender, EventHandler<T> handler, T args, string context)
 	{
 		if (handler == null)
 			return;
 		foreach (EventHandler<T> subscriber in handler.GetInvocationList().Cast<EventHandler<T>>())
-			RunGuarded(() => RunAsReaction(() => subscriber(this, args)), $"{context} event handler");
+			RunGuardedReaction(() => subscriber(sender, args), $"{context} event handler");
 	}
 
 	/// <summary>
@@ -3500,7 +3481,7 @@ public partial class BattleManager : Node
 	private static void RunOverrides(Actor actor, bool attacking, DamagePhase phase, ref float damage, DamageContext context)
 	{
 		context.IsAttacking = attacking;
-		foreach (StatModifier mod in actor.StatModifiers.Values)
+		foreach (StatModifier mod in actor.StatModifiers.Values.ToList())
 			mod.OverrideDamage(phase, ref damage, context);
 	}
 
@@ -3648,7 +3629,7 @@ public partial class BattleManager : Node
 	private static void RunHealOverrides(Actor actor, bool healing, DamagePhase phase, ref float amount, HealContext context)
 	{
 		context.IsHealer = healing;
-		foreach (StatModifier mod in actor.StatModifiers.Values)
+		foreach (StatModifier mod in actor.StatModifiers.Values.ToList())
 			mod.OverrideHeal(phase, ref amount, context);
 	}
 
@@ -3769,7 +3750,7 @@ public partial class BattleManager : Node
 			return false;
 
 		EmotionGroup group = pool[GameManager.Instance.Random.RandiRange(0, pool.Count - 1)];
-		if (TryGetNextEmotionInGroup(who, group, out Emotion next) && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
+		if (TryGetNextEmotionInGroup(who, group, out Emotion next) && !who.IsEmotionLocked && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			return who.SetEmotion(next.Id, silent);
 		if (!silent)
 			ShowEmotionNoEffect(who, group.Id);
@@ -3859,18 +3840,22 @@ public partial class BattleManager : Node
 		return SummonEnemy(en, position)?.Actor;
 	}
 	
-	internal EnemyComponent SummonEnemy(BattlePresetEnemy en, Vector2 position)
+	internal static Vector2 Unstacked(IEnumerable<EnemyComponent> others, Vector2 position)
 	{
-		bool transforming = TransformingEnemy;
-		TransformingEnemy = false;
-		while (Enemies.Any(x => x.Actor.CenterPoint == position))
+		while (others.Any(x => x.Actor.CenterPoint == position))
 		{
 			// if this enemy is going to spawn on top of another, nudge them a little
 			// this way the targeting system still works
 			position.X += 0.1f;
 		}
+		return position;
+	}
 
-		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, position);
+	internal EnemyComponent SummonEnemy(BattlePresetEnemy en, Vector2 position)
+	{
+		bool transforming = TransformingEnemy;
+		TransformingEnemy = false;
+		EnemyComponent enemy = GameManager.Instance.SpawnEnemy(en, Unstacked(Enemies, position));
 		if (enemy == null)
 		{
 			GD.PushWarning("Failed to spawn enemy: " + en.Name);
@@ -4286,7 +4271,7 @@ public partial class BattleManager : Node
 		if (TryGetEmotionLanding(who, groupId, out int landing))
 			return MakeEmotionTier(who, groupId, landing, silent);
 
-		if (TryGetNextEmotionInGroup(who, group, out Emotion next) && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
+		if (TryGetNextEmotionInGroup(who, group, out Emotion next) && !who.IsEmotionLocked && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			return who.SetEmotion(next.Id, silent);
 		if (!silent)
 			ShowEmotionNoEffect(who, group.Id);
@@ -4328,7 +4313,7 @@ public partial class BattleManager : Node
 		}
 		if (held == tier && !who.IsImmuneToEmotion(next))
 			who.RemoveOtherEmotionCategories(next);
-		if (held < tier && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
+		if (held < tier && !who.IsEmotionLocked && who.IsEmotionValid(next) && !who.IsImmuneToEmotion(next))
 			return who.SetEmotion(next.Id, silent);
 		if (!silent)
 			ShowEmotionNoEffect(who, group.Id);
@@ -4435,11 +4420,30 @@ public partial class BattleManager : Node
 		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
-	/// <returns>A random <see cref="PartyMember"/> that is toast, or null if none is found.</returns>
-	public PartyMember GetRandomDeadPartyMember()
+	/// <summary>
+	/// Gets the first party member at 0 HEART, in position order.
+	/// </summary>
+	/// <remarks>
+	/// Like the base game, a skill or item meant for a toast ally that lands on a living one goes to the first toast ally instead.
+	/// </remarks>
+	/// <returns>The first <see cref="PartyMember"/> at 0 HEART, or null if none is found.</returns>
+	public PartyMember GetFirstDeadPartyMember()
 	{
 		PartyMemberComponent result = CurrentParty.FirstOrDefault(x => x.Actor.CurrentHP <= 0);
 		return result?.Actor;
+	}
+
+	/// <summary>
+	/// Gets a random party member at 0 HEART.
+	/// </summary>
+	/// <remarks>
+	/// In base game, selecting a dead party member uses <see cref="GetFirstDeadPartyMember"/> as a fallback, not a random one/
+	/// </remarks>
+	/// <returns>A random <see cref="PartyMember"/> at 0 HEART, or null if none is found.</returns>
+	public PartyMember GetRandomDeadPartyMember()
+	{
+		List<PartyMemberComponent> dead = CurrentParty.Where(x => x.Actor.CurrentHP <= 0).ToList();
+		return dead.Count == 0 ? null : dead[GameManager.Instance.Random.RandiRange(0, dead.Count - 1)].Actor;
 	}
 
 	private List<Actor> PickRandomAliveEnemies(int count)
@@ -4562,10 +4566,11 @@ public partial class BattleManager : Node
 	/// Party members are counted in position order (0 to 3), skipping empty positions, so the index matches the position only when no earlier position is empty.<br/>
 	/// Use <see cref="GetPartyMemberAtPosition"/> for that purpose instead.
 	/// </remarks>
-	/// <param name="index"></param>
+	/// <param name="index">The index to retrieve.</param>
+	/// <returns>The party member at that index, or null if it's out of range.</returns>
 	public PartyMember GetPartyMember(int index)
 	{
-		return CurrentParty.ElementAtOrDefault(Math.Clamp(index, 0, 3))?.Actor;
+		return CurrentParty.ElementAtOrDefault(index)?.Actor;
 	}
 
 	/// <summary>

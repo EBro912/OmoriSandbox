@@ -20,9 +20,6 @@ internal sealed class SweetheartAlt : Enemy
 
 	public override bool IsEmotionValid(Emotion emotion)
 	{
-		if (IsEmotionLocked)
-			return false;
-
 		return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
 	}
 
@@ -116,7 +113,7 @@ internal sealed class SweetheartAlt : Enemy
 			CharmPending = true;
 			CharmingHero = hero;
 		}
-		if (!DonutDone && current.Action.Name is "Donut")
+		if (!DonutDone && current.Action is Item { Id: "Donut" })
 			DonutPending = true;
 
 		if (Stage > 3)

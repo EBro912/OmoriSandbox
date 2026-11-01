@@ -29,11 +29,8 @@ internal sealed class LifeJamGuyAlt : Enemy
     public override Task OnStartOfBattle()
     {
         PartyMember slotZero = BattleManager.Instance.GetPartyMemberAtPosition(0);
-        if (slotZero != null && !slotZero.IsToast)
-        {
-            slotZero.AddStatModifier("Immortal", silent: true);
-            slotZero.ClearResult();
-        }
+        if (slotZero != null)
+            FearPages.AddState(slotZero, "Immortal");
         return Task.CompletedTask;
     }
 
@@ -63,9 +60,8 @@ internal sealed class LifeJamGuyAlt : Enemy
         DialogueManager.Instance.QueueMessage(this, @"Enjoy your free samples!\! Goodbye now, haha!");
         await DialogueManager.Instance.WaitForDialogue();
         await Wait.Frames(20);
-        await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 24 / 60f, 22);
+        await FearPages.FadeOutScreen();
         await Wait.Frames(60);
-        if (!await AbortBattle())
-            await BattleManager.Instance.RestoreAfterScriptedEnding();
+        await FearPages.End(this);
     }
 }

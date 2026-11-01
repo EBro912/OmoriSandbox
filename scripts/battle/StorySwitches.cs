@@ -10,7 +10,6 @@ internal static class StorySwitches
 	internal static bool BasilTroop { get; set; }
 	internal static bool BlackSpaceWorld { get; set; }
 	internal static int FearPhase { get; set; }
-	internal static int BrokenSkillUses { get; set; }
 
 	internal static void Reset()
 	{
@@ -21,6 +20,5 @@ internal static class StorySwitches
 		BasilTroop = false;
 		BlackSpaceWorld = false;
 		FearPhase = 0;
-		BrokenSkillUses = 0;
 	}
 }

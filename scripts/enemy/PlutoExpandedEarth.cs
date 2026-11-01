@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,19 +33,14 @@ internal sealed class PlutoExpandedEarth : Enemy
             return new BattleCommand(this, party, Skills["PEMeteor"]);
         
         // headbutt has an HP cost of 1%
-        int headbuttCost = (int)Math.Floor(CurrentStats.MaxHP * 0.01f);
-        bool canHeadbutt = CurrentHP > headbuttCost;
+        bool canHeadbutt = CanUse("PEHeadbutt");
         if (canHeadbutt && HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["PEHeadbutt"]);
         
         // headbutt then orders target by sad tier, greatest to least
-        List<PartyMember> sad = party.Where(x => x.CurrentEmotion.Group?.Id == "sad").ToList();
-        if (canHeadbutt && sad.Count > 0)
-        {
-            int top = sad.Max(x => x.CurrentEmotion.Tier);
-            sad = sad.Where(x => x.CurrentEmotion.Tier == top).ToList();
-            return new BattleCommand(this, sad[GameManager.Instance.Random.RandiRange(0, sad.Count - 1)], Skills["PEHeadbutt"]);
-        }
+        int topSad = party.Where(x => x.CurrentEmotion.Group?.Id == "sad").Select(x => x.CurrentEmotion.Tier).DefaultIfEmpty(0).Max();
+        if (canHeadbutt && TrySelectTarget(x => x.CurrentEmotion.Group?.Id == "sad" && x.CurrentEmotion.Tier == topSad, out PartyMember sad))
+            return new BattleCommand(this, sad, Skills["PEHeadbutt"]);
         if (Roll() < 56)
             return new BattleCommand(this, SelectTarget(), Skills["PEAttack"]);
         if (Roll() < 36)

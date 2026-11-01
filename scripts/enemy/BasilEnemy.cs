@@ -77,7 +77,7 @@ internal sealed class BasilEnemy : Enemy
                 break;
             case 6:
                 await Wait.Frames(30);
-                await Line(@"[br]Please...\! stop it...");
+                await DialogueManager.Instance.ShowMessage(this, @"[br]Please...\! stop it...", DialogueManager.FontType.Jagged);
                 await Wait.Frames(10);
                 break;
             case 7:
@@ -95,7 +95,7 @@ internal sealed class BasilEnemy : Enemy
         if (battle.TurnCount >= 1 && FearPages.Sunny.CurrentEmotion.Id is not "stressed" && battle.Energy <= 9)
         {
             await Wait.Frames(40);
-            await FearPages.Narrate("You want to run.");
+            await DialogueManager.Instance.ShowMessage("You want to run.");
             await Wait.Frames(30);
             AudioManager.Instance.PlaySFX("SE_basil_beep", 1f, 0.3f);
             battle.Energy += 1;
@@ -128,16 +128,10 @@ internal sealed class BasilEnemy : Enemy
     private async Task TurnPage(string first, string second)
     {
         await Wait.Frames(30);
-        await Line(first);
+        await DialogueManager.Instance.ShowMessage(this, first, DialogueManager.FontType.Jagged);
         await Wait.Frames(60);
-        await Line(second);
+        await DialogueManager.Instance.ShowMessage(this, second, DialogueManager.FontType.Jagged);
         await Wait.Frames(40);
-    }
-
-    private async Task Line(string text)
-    {
-        DialogueManager.Instance.QueueMessage(this, text, font: DialogueManager.FontType.Jagged);
-        await DialogueManager.Instance.WaitForDialogue();
     }
 
     private async Task<bool> CheckEndings()
@@ -166,7 +160,7 @@ internal sealed class BasilEnemy : Enemy
         if (sunnyWornDown && !sunny.IsToast)
             sunny.CurrentHP = Math.Max(sunny.CurrentHP - 10, 1);
         await Wait.Frames(30);
-        await Line(@"[br][shake rate=60.0 level=20 connected=0]Why!?\! Why won't you stop!?[/shake]");
+        await DialogueManager.Instance.ShowMessage(this, @"[br][shake rate=60.0 level=20 connected=0]Why!?\! Why won't you stop!?[/shake]", DialogueManager.FontType.Jagged);
         await BasilSomethingEnding(sunny);
         FadeOutBGS(2f);
         FadeBGM(0.001f, 2f);
@@ -199,16 +193,10 @@ internal sealed class BasilEnemy : Enemy
             sunny.ClearResult();
         }
         await Wait.Frames(20);
-        await FlashScreen(Color.Color8(255, 0, 0, 170), 60);
+        await FearPages.Flash(Color.Color8(255, 0, 0, 170), 60);
         await Wait.Frames(60);
         await animation.WaitForMovePicture(10, Vector2.Zero, Vector2.One, 255, 1);
         await animation.WaitForMovePicture(7, Vector2.Zero, Vector2.One, 0, 300);
         await Wait.Frames(20);
-    }
-
-    private static Task FlashScreen(Color color, int frames)
-    {
-        AnimationManager.Instance.TintOverlay(color);
-        return AnimationManager.Instance.WaitForTintOverlay(new Color(color.R, color.G, color.B, 0f), frames / 60f);
     }
 }

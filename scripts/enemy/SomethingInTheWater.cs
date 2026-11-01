@@ -122,7 +122,7 @@ internal sealed class SomethingInTheWater : Enemy
                 if (sunny.HasStatModifier("PersistCheck"))
                 {
                     await Wait.Frames(50);
-                    await FearPages.Narrate("You push through the darkness and swim higher...");
+                    await DialogueManager.Instance.ShowMessage("You push through the darkness and swim higher...");
                 }
             }
             if (sunny.HasStatModifier("Drowning1"))
@@ -141,7 +141,7 @@ internal sealed class SomethingInTheWater : Enemy
                 if (sunny.HasStatModifier("PersistCheck"))
                 {
                     await Wait.Frames(50);
-                    await FearPages.Narrate("You push through the darkness and swim higher...");
+                    await DialogueManager.Instance.ShowMessage("You push through the darkness and swim higher...");
                 }
             }
             if (sunny.HasStatModifier("DrowningFinish"))
@@ -154,14 +154,14 @@ internal sealed class SomethingInTheWater : Enemy
             }
         }
         if (turn == 3)
-            await FearPages.Voice(@"Steady your heartbeat...\![br]Don't be afraid.\! It's not as scary as you think.");
+            await DialogueManager.Instance.ShowMessage("???", @"Steady your heartbeat...\![br]Don't be afraid.\! It's not as scary as you think.");
         if (turn >= 4 && sunny.CurrentEmotion.Id != "afraid" && !PersistGranted)
         {
             sunny.LearnSkill("Persist");
             sunny.EquipSkill(2, "Persist");
-            await FearPages.Voice(@"You have to keep going.\![br]Don't give up.\! No matter how impossible it seems...");
+            await DialogueManager.Instance.ShowMessage("???", @"You have to keep going.\![br]Don't give up.\! No matter how impossible it seems...");
             await Wait.Frames(45);
-            await FearPages.Narrate("You reach out to the voice... and remember how to PERSIST.");
+            await DialogueManager.Instance.ShowMessage("You reach out to the voice... and remember how to PERSIST.");
             PersistGranted = true;
             await Wait.Frames(25);
         }
@@ -232,21 +232,15 @@ internal sealed class SomethingInTheWater : Enemy
                 break;
         }
         await Wait.Frames(30);
-        await FearPages.Narrate("SOMETHING drags you down...");
+        await DialogueManager.Instance.ShowMessage("SOMETHING drags you down...");
     }
 
     private void Shift(Actor actor, string add, params string[] remove)
     {
         foreach (string modifier in remove)
-        {
-            actor.RemoveStatModifier(modifier);
-            actor.ClearResult();
-        }
+            FearPages.RemoveState(actor, modifier);
         if (add != null)
-        {
-            actor.AddStatModifier(add, silent: true);
-            actor.ClearResult();
-        }
+            FearPages.AddState(actor, add);
         if (actor == this)
             UpdateForm();
     }

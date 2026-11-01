@@ -157,9 +157,8 @@ internal static class LastResortRegistry
 				await AnimationManager.Instance.WaitForAnimation(124, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] slams his head\ninto [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 3 - target.CurrentStats.DEF, false);
-				self.CurrentHP = Math.Max(1, self.CurrentHP - (int)Math.Floor(self.CurrentStats.MaxHP * 0.01f));
 			}
-		);
+		).WithHPCost(0, 0.01f);
 		
 		Skills["PEDoNothing"] = new Skill(
 			name: "PEDoNothing",

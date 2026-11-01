@@ -1,4 +1,3 @@
-using System.Linq;
 using OmoriSandbox.Actors;
 
 namespace OmoriSandbox.Battle.Modifier;
@@ -17,5 +16,5 @@ internal sealed class CallForFriendDelayModifier : StatModifier
     public override void OnAdd(Actor actor) => actor.Stunned = true;
 
     /// <inheritdoc/>
-    public override void OnRemove(Actor actor) => actor.Stunned = actor.StatModifiers.Values.Any(m => m is ImmobileModifier);
+    public override void OnRemove(Actor actor) => actor.RefreshStunned();
 }

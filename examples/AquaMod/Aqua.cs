@@ -12,7 +12,9 @@ namespace AquaMod;
 public class Aqua : Enemy
 {
     public override string Name => "AQUA";
-    public override SpriteFrames Animation => new SpriteFramesBuilder("AquaMod/sprites/aqua.png", 152, 152)
+    private static SpriteFrames Frames;
+
+    public override SpriteFrames Animation => Frames ??= new SpriteFramesBuilder("AquaMod/sprites/aqua.png", 152, 152)
         .AddAnimation("neutral", 5, 0, 1, 2, 3, 4, 5, 6, 7)
         .AddAnimation("laugh", 5, 8, 9)
         .AddAnimation("hurt", 1, 10)

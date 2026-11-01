@@ -36,9 +36,8 @@ internal sealed class HeroBoss : Enemy
 
 		if (CanUse("SpicyFood"))
 		{
-			List<PartyMember> tickled = SelectAllTargets().Where(x => x.HasStatModifier("Tickle")).ToList();
-			if (tickled.Count > 0)
-				return new BattleCommand(this, tickled[GameManager.Instance.Random.RandiRange(0, tickled.Count - 1)], Skills["SpicyFood"]);
+			if (TrySelectTarget(x => x.HasStatModifier("Tickle"), out PartyMember tickled))
+				return new BattleCommand(this, tickled, Skills["SpicyFood"]);
 		}
 
 		foreach (string tier in (string[])["manic", "miserable", "furious"])

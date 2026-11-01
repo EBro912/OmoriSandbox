@@ -6,7 +6,7 @@ using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
-public class SnaleyThree : Enemy
+internal sealed class SnaleyThree : Enemy
 {
     public override string Name => "SNALEY";
     public override Vector2 InfoBoxOffset => new(0, -225);

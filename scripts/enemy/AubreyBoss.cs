@@ -40,9 +40,8 @@ internal sealed class AubreyBoss : Enemy
         IReadOnlyList<PartyMember> targets = SelectAllTargets();
         if (CanUse("ABossBeatdown"))
         {
-            List<PartyMember> tickled = targets.Where(x => x.HasStatModifier("Tickle")).ToList();
-            if (tickled.Count > 0)
-                return new BattleCommand(this, tickled[GameManager.Instance.Random.RandiRange(0, tickled.Count - 1)], Skills["ABossBeatdown"]);
+            if (TrySelectTarget(x => x.HasStatModifier("Tickle"), out PartyMember tickled))
+                return new BattleCommand(this, tickled, Skills["ABossBeatdown"]);
         }
 
         foreach (string tier in (string[])["happy", "ecstatic", "manic"])

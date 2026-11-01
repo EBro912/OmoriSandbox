@@ -4,7 +4,7 @@ using OmoriSandbox.Battle.Emotions;
 
 namespace OmoriSandbox.Actors;
 
-public class ShadyMole : Enemy
+internal sealed class ShadyMole : Enemy
 {
     public override string Name => "SHADY MOLE";
     public override Vector2 InfoBoxOffset => new(0, -150);

@@ -73,9 +73,7 @@ internal sealed class HangingBodyMari : Enemy
         AnimationManager.Instance.TintScreen(-255, -255, -255, 0, 1 / 60f);
         await Wait.Frames(60);
         BattleLogManager.Instance.ClearBattleLog();
-        bool aborted = await AbortBattle();
-        if (!aborted)
-            await BattleManager.Instance.RestoreAfterScriptedEnding();
+        await FearPages.End(this);
     }
 
     public override BattleCommand ProcessAI()

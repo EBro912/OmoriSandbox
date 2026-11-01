@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Godot;
@@ -53,6 +52,7 @@ public partial class AnimationManager : Node
 	private AnimatedSprite2D RedHands;
 	private AnimatedSprite2D FlowerCrown;
 	private ColorRect Photograph;
+	private Tween PhotographTween;
 	private TextureRect Snaley;
 	private TextureRect HumphreySwarm;
 	private TextureRect Encore;
@@ -778,17 +778,9 @@ public partial class AnimationManager : Node
 	/// <param name="path">The path to the .ogv file, relative to user://mods.</param>
 	/// <param name="layer">The layer to show the video on.</param>
 	/// <param name="volume">The volume to play the video's audio at, from 0 to 2.</param>
-	public async Task WaitForVideo(string path, int layer = 0, float volume = 1f)
+	public Task WaitForVideo(string path, int layer = 0, float volume = 1f)
 	{
-		VideoStreamPlayer player = SpawnVideo(path, layer, volume);
-		if (player == null)
-			return;
-		await ToSignal(player, VideoStreamPlayer.SignalName.Finished);
-		if (IsInstanceValid(player))
-		{
-			PlayingVideos.Remove(player);
-			player.QueueFree();
-		}
+		return WaitForVideoPlayer(SpawnVideo(path, layer, volume));
 	}
 
 	/// <summary>
@@ -809,7 +801,7 @@ public partial class AnimationManager : Node
 
 	private VideoStreamPlayer SpawnVideo(string path, int layer, float volume)
 	{
-		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || Path.IsPathRooted(path))
+		if (!SandboxExtensions.IsSafeModPath(path))
 		{
 			GD.PushError($"Invalid video path '{path}' (path traversal not allowed)");
 			return null;
@@ -819,12 +811,17 @@ public partial class AnimationManager : Node
 			GD.PrintErr("Unknown video: " + path);
 			return null;
 		}
-		if (!path.EndsWith(".ogv", StringComparison.OrdinalIgnoreCase))
-			GD.PushWarning("Videos should be .ogv files, " + path + " may not play correctly!");
+		return CreateVideoPlayer("user://mods/" + path, layer, volume);
+	}
+
+	private VideoStreamPlayer CreateVideoPlayer(string file, int layer, float volume)
+	{
+		if (!file.EndsWith(".ogv", StringComparison.OrdinalIgnoreCase))
+			GD.PushWarning("Videos should be .ogv files, " + file + " may not play correctly!");
 
 		VideoStreamPlayer player = new()
 		{
-			Stream = new VideoStreamTheora { File = "user://mods/" + path },
+			Stream = new VideoStreamTheora { File = file },
 			Size = new Vector2(640, 480),
 			Expand = true,
 			Volume = Math.Clamp(volume, 0f, 2f),
@@ -836,7 +833,7 @@ public partial class AnimationManager : Node
 		player.Play();
 		if (!player.IsPlaying())
 		{
-			GD.PrintErr("Failed to play video: " + path);
+			GD.PrintErr("Failed to play video: " + file);
 			PlayingVideos.Remove(player);
 			player.QueueFree();
 			return null;
@@ -844,31 +841,19 @@ public partial class AnimationManager : Node
 		return player;
 	}
 
-	internal async Task WaitForVideoInternal(string path, int layer = 0, float volume = 1f)
+	internal Task WaitForVideoInternal(string path, int layer = 0, float volume = 1f)
 	{
-		if (!path.EndsWith(".ogv", StringComparison.OrdinalIgnoreCase))
-			GD.PushWarning("Videos should be .ogv files, " + path + " may not play correctly!");
-		VideoStreamPlayer player = new()
-		{
-			Stream = new VideoStreamTheora { File = path },
-			Size = new Vector2(640, 480),
-			Expand = true,
-			Volume = Math.Clamp(volume, 0f, 2f),
-			Bus = "SFX",
-			ZIndex = layer
-		};
-		AddChild(player);
-		player.Play();
-		if (!player.IsPlaying())
-		{
-			GD.PrintErr("Failed to play video: " + path);
-			player.QueueFree();
+		return WaitForVideoPlayer(CreateVideoPlayer(path, layer, volume));
+	}
+
+	private async Task WaitForVideoPlayer(VideoStreamPlayer player)
+	{
+		if (player == null)
 			return;
-		}
-		
 		await ToSignal(player, VideoStreamPlayer.SignalName.Finished);
 		if (IsInstanceValid(player))
 		{
+			PlayingVideos.Remove(player);
 			player.QueueFree();
 		}
 	}
@@ -1013,9 +998,11 @@ public partial class AnimationManager : Node
 			Photograph = SpawnEffect<ColorRect>(PhotographScene);
 			DisplayLayout.Instance?.FillCoverage(Photograph);
 		}
-		Tween tween = GetTree().CreateTween();
-		tween.TweenProperty(Photograph, "modulate:a", 0f, 1f);
-		tween.TweenCallback(Callable.From(() => FreeEffect(ref Photograph)));
+		PhotographTween?.Kill();
+		Photograph.Modulate = Colors.White;
+		PhotographTween = GetTree().CreateTween();
+		PhotographTween.TweenProperty(Photograph, "modulate:a", 0f, 1f);
+		PhotographTween.TweenCallback(Callable.From(() => FreeEffect(ref Photograph)));
 	}
 
 	/// <summary>
@@ -1637,8 +1624,7 @@ public partial class AnimationManager : Node
 			Succumb = SpawnEffect<TextureRect>(SuccumbScene, overTint: true);
 			Succumb.Modulate = Colors.Transparent;
 		}
-		using (Texture2D texture = ResourceLoader.Load<Texture2D>(closed ? "res://assets/pictures/omori_succumb_closed.png" : "res://assets/pictures/omori_succumb.png"))
-			Succumb.Texture = texture;
+		Succumb.Texture = ResourceLoader.Load<Texture2D>(closed ? "res://assets/pictures/omori_succumb_closed.png" : "res://assets/pictures/omori_succumb.png");
 		Tween tween = GetTree().CreateTween();
 		tween.TweenProperty(Succumb, "modulate:a", alpha, seconds);
 		await ToSignal(tween, Tween.SignalName.Finished);
@@ -1774,13 +1760,14 @@ public partial class AnimationManager : Node
 
 	internal void StopAllAnimations()
 	{
-		foreach (PlayingAnimation animation in PlayingAnimations)
+		List<PlayingAnimation> stopping = [.. PlayingAnimations];
+		PlayingAnimations.Clear();
+		foreach (PlayingAnimation animation in stopping)
 		{
 			animation.RestoreTarget();
 			animation.EmitSignal(PlayingAnimation.SignalName.Finished);
 			animation.QueueFree();
 		}
-		PlayingAnimations.Clear();
 		ResetShake();
 		EmitSignal(SignalName.AnimationFinished);
 	}

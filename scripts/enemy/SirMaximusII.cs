@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Godot;
+using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
 
@@ -95,25 +96,7 @@ internal sealed class SirMaximusII : Enemy
         
         if (IsBelowHP(0.2f) && !UltimateAttack)
         {
-            Sprite2D ghost = new()
-            {
-                Texture = ResourceLoader.Load<Texture2D>("res://assets/pictures/Maximus.png"),
-                Scale = new Vector2(0.75f, 0.75f),
-                Modulate = Colors.Transparent,
-                GlobalPosition = new Vector2(190, 198),
-                Centered = true,
-                ZIndex = Layer
-            };
-            BattleManager.Instance.AddChild(ghost);
-            Tween tween = BattleManager.Instance.CreateTween();
-            tween.TweenProperty(ghost, "global_position:y", 188, 1.25f);
-            tween.Parallel().TweenProperty(ghost, "modulate:a", 1, 1.25f);
-            tween.TweenProperty(ghost, "global_position:y", 198, 1.25f);
-            tween.TweenProperty(ghost, "global_position:y", 188, 1.25f);
-            tween.Parallel().TweenProperty(ghost, "modulate:a", 0, 1.25f);
-            tween.TweenInterval(0.25f);
-            await BattleManager.Instance.ToSignal(tween, Tween.SignalName.Finished);
-            ghost.QueueFree();
+            await ShowGhost(2, 190);
             
             BattleManager.Instance.ForceCommand(this, SelectAllTargets(), Skills["SMIIUltimateAttack"]);
             UltimateAttack = true;
@@ -138,5 +121,17 @@ internal sealed class SirMaximusII : Enemy
             DialogueManager.Instance.QueueMessage(this, "This is a glorious day for my people!");
             await DialogueManager.Instance.WaitForDialogue();
         }
+    }
+
+    internal static async Task ShowGhost(int picture, float x)
+    {
+        AnimationManager animation = AnimationManager.Instance;
+        Vector2 scale = new(0.75f, 0.75f);
+        animation.ShowPicture(picture, "Maximus", new Vector2(x, 198), true, scale, 0);
+        await animation.WaitForMovePicture(picture, new Vector2(x, 188), scale, 255, 75);
+        await animation.WaitForMovePicture(picture, new Vector2(x, 198), scale, 255, 75);
+        await animation.WaitForMovePicture(picture, new Vector2(x, 188), scale, 0, 75);
+        await Wait.Frames(15);
+        animation.ErasePicture(picture);
     }
 }

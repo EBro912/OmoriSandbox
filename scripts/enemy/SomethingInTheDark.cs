@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Animation;
@@ -26,9 +25,8 @@ internal sealed class SomethingInTheDark : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        List<PartyMember> calm = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.HasStatModifier("CalmDownText"));
-        if (calm.Count > 0)
-            return new BattleCommand(this, calm[GameManager.Instance.Random.RandiRange(0, calm.Count - 1)], Skills["DRKSilent"]);
+        if (TrySelectTarget(x => x.HasStatModifier("CalmDownText"), out PartyMember calm))
+            return new BattleCommand(this, calm, Skills["DRKSilent"]);
         return TrueTurnCount switch
         {
             1 or 2 or 3 or 6 or 7 or 8 => new BattleCommand(this, SelectTarget(), Skills["DRKDarkAttack"]),
@@ -63,7 +61,7 @@ internal sealed class SomethingInTheDark : Enemy
             return;
         FearPages.DimIn();
         await Wait.Frames(25);
-        await FearPages.Voice($@"Remember, {FearPages.SunnyName}...\! All you need to do is CALM DOWN...");
+        await DialogueManager.Instance.ShowMessage("???", $@"Remember, {FearPages.SunnyName}...\! All you need to do is CALM DOWN...");
         await Wait.Frames(25);
         await FearPages.DimOut();
     }
@@ -79,7 +77,7 @@ internal sealed class SomethingInTheDark : Enemy
             AnimationManager.Instance.MovePicture(2, new Vector2(320, 240), new Vector2(1.25f, 1.25f), 200, 30);
             FearPages.DimIn();
             await Wait.Frames(25);
-            await FearPages.Voice($"{FearPages.SunnyName}...");
+            await DialogueManager.Instance.ShowMessage("???", $"{FearPages.SunnyName}...");
             await Wait.Frames(25);
             AnimationManager.Instance.MovePicture(2, new Vector2(320, 240), new Vector2(1.25f, 1.25f), 160, 30);
             await FearPages.DimOut();
@@ -90,9 +88,9 @@ internal sealed class SomethingInTheDark : Enemy
             sunny.LearnSkill("CalmDown");
             FearPages.DimIn();
             await Wait.Frames(25);
-            await FearPages.Voice(@"Take a deep breath...\![br]Don't be afraid.\! It's not as scary as you think.");
+            await DialogueManager.Instance.ShowMessage("???", @"Take a deep breath...\![br]Don't be afraid.\! It's not as scary as you think.");
             await Wait.Frames(45);
-            await FearPages.Narrate("You steady yourself... and remember how to CALM DOWN.");
+            await DialogueManager.Instance.ShowMessage("You steady yourself... and remember how to CALM DOWN.");
             sunny.EquipSkill(0, "CalmDown");
             await Wait.Frames(25);
             await FearPages.DimOut();

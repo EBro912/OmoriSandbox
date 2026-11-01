@@ -608,10 +608,7 @@ internal static class FarawayRegistry
 				bool canBeAngry = target.IsEmotionValid("angry");
 				BattleManager.Instance.MakeAngry(target, silent: true);
 				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
-				if (canBeAngry)
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+				QueueTierOneEmotionLine(target, "angry", canBeAngry);
 				await Task.CompletedTask;
 			},
 			setup: async (_, _) =>

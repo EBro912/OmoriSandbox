@@ -18,18 +18,6 @@ internal static class FearPages
 
     internal static string SunnyName => Sunny.Name.ToUpper();
 
-    internal static async Task Voice(string text)
-    {
-        DialogueManager.Instance.QueueMessage("???", text);
-        await DialogueManager.Instance.WaitForDialogue();
-    }
-
-    internal static async Task Narrate(string text)
-    {
-        DialogueManager.Instance.QueueMessage(text);
-        await DialogueManager.Instance.WaitForDialogue();
-    }
-
     internal static void DimIn()
     {
         AnimationManager.Instance.ShowPicture(3, "black_screen", Vector2.Zero, false, Vector2.One, 0);
@@ -64,8 +52,13 @@ internal static class FearPages
 
     internal static void BlackFlash(int frames)
     {
-        AnimationManager.Instance.TintOverlay(Colors.Black);
-        AnimationManager.Instance.TintOverlay(ColorsExtension.TransparentBlack, frames / 60f);
+        _ = Flash(Colors.Black, frames);
+    }
+
+    internal static Task Flash(Color color, int frames)
+    {
+        AnimationManager.Instance.TintOverlay(color);
+        return AnimationManager.Instance.WaitForTintOverlay(new Color(color.R, color.G, color.B, 0f), frames / 60f);
     }
 
     internal static Task FadeOutBGM(Enemy owner, float seconds)
@@ -133,6 +126,12 @@ internal static class FearPages
         if (actor.IsToast)
             return;
         actor.AddStatModifier(key, silent: true);
+        actor.ClearResult();
+    }
+
+    internal static void RemoveState(Actor actor, string key)
+    {
+        actor.RemoveStatModifier(key);
         actor.ClearResult();
     }
 

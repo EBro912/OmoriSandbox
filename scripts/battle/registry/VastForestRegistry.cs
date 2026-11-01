@@ -305,10 +305,7 @@ internal static class VastForestRegistry
 				bool canBeSad = target.IsEmotionValid("sad");
 				BattleManager.Instance.MakeSad(target, silent: true);
 				// DIALOGUE QUIRK: always prints the tier-1 SAD line regardless of the tier the target reaches
-				if (canBeSad)
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels SAD.");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "sad");
+				QueueTierOneEmotionLine(target, "sad", canBeSad);
 				await Task.CompletedTask;
 			},
 			setup: async (self, _) =>

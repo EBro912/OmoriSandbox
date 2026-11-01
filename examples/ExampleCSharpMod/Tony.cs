@@ -7,7 +7,9 @@ namespace OmoriSandboxSampleMod
     public class Tony : PartyMember
     {
         public override string Name => "Tony";
-        public override SpriteFrames Animation => new SpriteFramesBuilder("ExampleCSharpMod/sprites/tony.png", 106, 106)
+        private static SpriteFrames Frames;
+
+        public override SpriteFrames Animation => Frames ??= new SpriteFramesBuilder("ExampleCSharpMod/sprites/tony.png", 106, 106)
             .AddAnimation("angry", 12, 42, 43, 44, 45, 46, 47, 48, 49, 50)
             .AddAnimation("depressed", 12, 22, 23)
             .AddAnimation("ecstatic", 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2)

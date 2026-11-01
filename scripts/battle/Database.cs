@@ -33,8 +33,8 @@ public class Database
 	private static readonly Dictionary<(string Group, int Tier), Emotion> EmotionTiers = [];
 	private static readonly Dictionary<string, MenuSkin> MenuSkins = new(StringComparer.OrdinalIgnoreCase);
 	private static readonly List<string> MenuSkinOrder = [];
-	internal static readonly Dictionary<string, WindowSkin> WindowSkins = new(StringComparer.OrdinalIgnoreCase);
-	internal static readonly List<string> WindowSkinOrder = [];
+	private static readonly Dictionary<string, WindowSkin> WindowSkins = new(StringComparer.OrdinalIgnoreCase);
+	private static readonly List<string> WindowSkinOrder = [];
 	private static readonly Dictionary<string, string> EnemyAreas = new(StringComparer.Ordinal);
 	private static readonly Dictionary<string, string> EnemyAreaLabels = new(StringComparer.Ordinal);
 	private static readonly List<string> EnemyAreaOrder = [];
@@ -616,12 +616,29 @@ public class Database
 		MenuSkinOrder.Add(id);
 	}
 
+	internal static void AddBuiltInWindowSkin(string id, WindowSkin skin)
+	{
+		WindowSkins.Add(id, skin);
+		WindowSkinOrder.Add(id);
+	}
+
 	internal static void QueueEmotionLine(Actor who, string groupId, bool applied)
 	{
 		if (applied)
 			BattleLogManager.Instance.QueueMessage(who.CurrentEmotion.FeelsMessage(who.Name));
 		else
 			BattleManager.Instance.ShowEmotionNoEffect(who, groupId);
+	}
+
+	internal static void QueueRecoveryLines(Actor who, int hpBefore, int juiceBefore)
+	{
+		int heal = who.CurrentHP - hpBefore;
+		if (heal > 0)
+			BattleLogManager.Instance.QueueMessage(who, $"[actor] recovers {heal} HEART!");
+		int juice = who.CurrentJuice - juiceBefore;
+		// DIALOGUE QUIRK: the JUICE line is skipped when the target had no JUICE before the heal
+		if (juiceBefore > 0 && juice > 0)
+			BattleLogManager.Instance.QueueMessage(who, $"[actor] recovers {juice} JUICE...");
 	}
 
 	internal static void QueueTierOneEmotionLine(Actor who, string groupId, bool applied)

@@ -14,9 +14,6 @@ internal sealed class SpaceExBoyfriendAlt : Enemy
     protected override string[] EquippedSkills => ["SEBAttack", "SEBDoNothing", "AngstySong", "AngrySong", "SpaceLaser", "BRBulletHell"];
     public override bool IsEmotionValid(Emotion emotion)
     {
-        if (IsEmotionLocked)
-            return false;
-
         return emotion.Id is "neutral" or "sad" or "happy" or "angry" or "afraid";
     }
 

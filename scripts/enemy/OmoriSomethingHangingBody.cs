@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Battle;
@@ -42,12 +41,10 @@ internal sealed class OmoriSomethingHangingBody : Enemy
     {
         (int Stage, string Skill)[] lines =
             [(1, "OSHBNothing1"), (2, "OSHBNothing2"), (3, "OSHBNothing3"), (10, "OSHBNothing10"), (11, "OSHBNothing11"), (12, "OSHBNothing12")];
-        List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
         foreach ((int stage, string skill) in lines)
         {
-            List<PartyMember> holders = members.FindAll(member => HangingModifier.StageOf(member) == stage);
-            if (holders.Count > 0)
-                return new BattleCommand(this, holders[GameManager.Instance.Random.RandiRange(0, holders.Count - 1)], Skills[skill]);
+            if (TrySelectTarget(member => HangingModifier.StageOf(member) == stage, out PartyMember holder))
+                return new BattleCommand(this, holder, Skills[skill]);
         }
         return null;
     }

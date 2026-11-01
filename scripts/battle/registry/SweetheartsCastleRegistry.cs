@@ -314,7 +314,7 @@ internal static class SweetheartsCastleRegistry
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
 				await Wait.Milliseconds(1000);
-				AnimationManager.Instance.PlayScreenAnimation(186, false);
+				Task animation = AnimationManager.Instance.WaitForScreenAnimation(186, false);
 				int damage = BattleManager.Instance.GetAllAliveEnemies().Count switch
 				{
 					2 => 75,
@@ -326,8 +326,7 @@ internal static class SweetheartsCastleRegistry
 					BattleManager.Instance.Damage(self, member, () => damage, false, 0f, neverCrit: true);
 				}
 
-				await AnimationManager.Instance.ToSignal(AnimationManager.Instance,
-					AnimationManager.SignalName.AnimationFinished);
+				await animation;
 			}
 		);
 
@@ -625,10 +624,7 @@ internal static class SweetheartsCastleRegistry
 				await AnimationManager.Instance.WaitForAnimation(148, self);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] winks at [target].");
 				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
-				if (target.IsEmotionValid("happy"))
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+				QueueTierOneEmotionLine(target, "happy", target.IsEmotionValid("happy"));
 			}
 		);
 
@@ -738,10 +734,7 @@ internal static class SweetheartsCastleRegistry
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] licks [target]'s hair");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false);
 				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
-				if (target.IsEmotionValid("angry"))
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+				QueueTierOneEmotionLine(target, "angry", target.IsEmotionValid("angry"));
 			}
 		);
 
@@ -933,10 +926,7 @@ internal static class SweetheartsCastleRegistry
 			{
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] calls [target] a poopy head!");
 				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
-				if (target.IsEmotionValid("angry"))
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+				QueueTierOneEmotionLine(target, "angry", target.IsEmotionValid("angry"));
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK, false);
 				AnimationManager.Instance.PlayAnimation(122, target);
 				await Wait.Frames(90);

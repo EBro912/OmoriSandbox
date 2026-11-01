@@ -14,14 +14,8 @@ namespace OmoriSandbox.Actors;
 /// </summary>
 public abstract class Enemy : Actor
 {
-	internal void Init(AnimatedSprite2D sprite, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
+	internal void Init(AnimatedSprite2D sprite, SpriteFrames animation, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
 	{
-		SpriteFrames animation = Animation;
-		if (animation == null)
-		{
-			GD.PrintErr("Failed to load Sprite animations for Enemy: " + Name);
-			return;
-		}
 		// presets may start an enemy toast
 		bool startToast = initialState == "toast";
 		if (startToast)
@@ -229,14 +223,27 @@ public abstract class Enemy : Actor
 	}
 	
 	/// <summary>
-	/// Selects the a random living party member matching or above the given HP fraction/percentage.
+	/// Selects a random living party member matching or above the given HP fraction/percentage.
 	/// </summary>
 	/// <param name="fraction">The HP fraction (percent) to select, from 0 to 1.</param>
 	/// <returns>A random <see cref="PartyMember"/> at or above the given HP fraction.</returns>
 	protected PartyMember SelectTargetAtOrAboveHP(float fraction)
 	{
-		List<PartyMember> valid = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.CurrentHP / (float)x.CurrentStats.MaxHP >= fraction);
-		return valid.Count == 0 ? null : valid[GameManager.Instance.Random.RandiRange(0, valid.Count - 1)];
+		TrySelectTarget(x => x.CurrentHP / (float)x.CurrentStats.MaxHP >= fraction, out PartyMember target);
+		return target;
+	}
+
+	/// <summary>
+	/// Attempts to pick a random living party member that matches <paramref name="filter"/>.
+	/// </summary>
+	/// <param name="filter">Which party members can be picked.</param>
+	/// <param name="target">The picked party member, or null if none matches.</param>
+	/// <returns>True if a living party member matches.</returns>
+	protected bool TrySelectTarget(Predicate<PartyMember> filter, out PartyMember target)
+	{
+		List<PartyMember> matching = BattleManager.Instance.GetAlivePartyMembers().FindAll(filter);
+		target = matching.Count == 0 ? null : matching[GameManager.Instance.Random.RandiRange(0, matching.Count - 1)];
+		return target != null;
 	}
 
 	/// <summary>
@@ -425,7 +432,7 @@ public abstract class Enemy : Actor
 	/// Does nothing while <see cref="CanChangeBattleback"/> is false.
 	/// </remarks>
 	/// <param name="layer">The layer number.</param>
-	/// <returns>True if the layer was added, false if this enemy can't change the battleback.</returns>
+	/// <returns>True unless this enemy can't change the battleback.</returns>
 	public bool RemoveBattlebackLayer(int layer)
 	{
 		if (!CanChangeBattleback)
@@ -803,26 +810,18 @@ public abstract class Enemy : Actor
 	/// <returns>True if a living party member is marked.</returns>
 	protected bool HasObserveTarget(out PartyMember target)
 	{
-		List<PartyMember> marked = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.HasStatModifier("ObserveSingle"));
-		if (marked.Count == 0)
-		{
-			target = null;
-			return false;
-		}
-		target = marked[GameManager.Instance.Random.RandiRange(0, marked.Count - 1)];
-		return true;
+		return TrySelectTarget(x => x.HasStatModifier("ObserveSingle"), out target);
 	}
 
-	private protected bool HasTargetWithEmotion(string emotionId, out PartyMember target)
+	/// <summary>
+	/// Whether a living party member feels the given emotion.
+	/// </summary>
+	/// <param name="emotionId">The emotion's id, such as "sad" or "furious".</param>
+	/// <param name="target">A random party member feeling it, or null if none does.</param>
+	/// <returns>True if a living party member feels the emotion.</returns>
+	protected bool HasTargetWithEmotion(string emotionId, out PartyMember target)
 	{
-		List<PartyMember> matching = BattleManager.Instance.GetAlivePartyMembers().FindAll(x => x.CurrentEmotion.Id == emotionId);
-		if (matching.Count == 0)
-		{
-			target = null;
-			return false;
-		}
-		target = matching[GameManager.Instance.Random.RandiRange(0, matching.Count - 1)];
-		return true;
+		return TrySelectTarget(x => x.CurrentEmotion.Id == emotionId, out target);
 	}
 
 	/// <summary>

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Godot;
 using Path = System.IO.Path;
 
@@ -40,7 +42,7 @@ public class SpriteFramesBuilder
         SpriteFrames = new();
         Width = width;
         Height = height;
-        Columns = Texture.GetWidth() / Width;
+        Columns = width > 0 && height > 0 ? Texture.GetWidth() / Width : 0;
         if (Columns == 0)
         {
             GD.PushError("Loaded atlas with zero columns! Double check the width and height!\n" +
@@ -125,22 +127,33 @@ public class SpriteFramesBuilder
             return this;
         }
         
-        SpriteFrames.AddAnimation(animationId);
-        SpriteFrames.SetAnimationSpeed(animationId, fps);
-        SpriteFrames.SetAnimationLoopMode(animationId, SpriteFrames.LoopMode.Linear);
+        AddAtlasAnimation(SpriteFrames, Texture, Width, Height, animationId, fps, indices, (index, cells) =>
+            GD.PushWarning($"Frame index {index} in animation '{animationId}' is outside the atlas (0-{cells - 1}), skipping frame!"));
+        return this;
+    }
+
+    internal static void AddAtlasAnimation(SpriteFrames frames, Texture2D atlas, int width, int height, string animationId, double fps,
+        IEnumerable<int> indices, Action<int, int> onOutsideAtlas)
+    {
+        frames.AddAnimation(animationId);
+        frames.SetAnimationSpeed(animationId, fps);
+        frames.SetAnimationLoopMode(animationId, SpriteFrames.LoopMode.Linear);
+        int columns = atlas.GetWidth() / width;
+        int cells = columns * (atlas.GetHeight() / height);
         foreach (int index in indices)
         {
-            int column = index % Columns;
-            int row = index / Columns;
+            if (index < 0 || index >= cells)
+            {
+                onOutsideAtlas(index, cells);
+                continue;
+            }
             AtlasTexture tex = new()
             {
-                Atlas = Texture,
-                Region = new Rect2(column * Width, row * Height, Width, Height)
+                Atlas = atlas,
+                Region = new Rect2(index % columns * width, index / columns * height, width, height)
             };
-            SpriteFrames.AddFrame(animationId, tex);
+            frames.AddFrame(animationId, tex);
         }
-
-        return this;
     }
 
     /// <summary>

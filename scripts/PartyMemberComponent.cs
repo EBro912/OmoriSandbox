@@ -182,6 +182,20 @@ public partial class PartyMemberComponent : ActorComponent
 			UpdateStateIcons();
 	}
 
+	/// <inheritdoc/>
+	public override void _ExitTree()
+	{
+		if (PartyMember != null)
+		{
+			PartyMember.OnEmotionChanged -= EmotionChanged;
+			PartyMember.OnAnimationChanged -= AnimationChanged;
+			PartyMember.OnDamaged -= Damaged;
+			PartyMember.OnStatModifierAdded -= StatModifiersChanged;
+			PartyMember.OnStatModifierRemoved -= StatModifiersChanged;
+		}
+		base._ExitTree();
+	}
+
 	public override void _Process(double delta)
 	{
 		// OMORI uses a queue system for damage numbers spawned on party members

@@ -33,12 +33,12 @@ public partial class EnemyComponent : ActorComponent
 	public override Enemy Actor => Enemy;
 	private Enemy Enemy;
 
-	internal void SetEnemy(Enemy enemy, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
+	internal void SetEnemy(Enemy enemy, SpriteFrames frames, string initialState, bool fallsOffScreen, bool grayscaleOnDefeat, int layer, Stats adjustedStats = default)
 	{
 		enemy.Bind(this);
 		Enemy = enemy;
 		AnimatedSprite2D sprite = GetNode<AnimatedSprite2D>("../Sprite");
-		Actor.Init(sprite, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
+		Actor.Init(sprite, frames, initialState, fallsOffScreen, grayscaleOnDefeat, layer, adjustedStats);
 		sprite.FlipH = Actor.Mirrored;
 		if (SettingsMenuManager.Instance.ShowMoreInfo)
 			InfoBox = ResourceLoader.Load<PackedScene>("res://scenes/enemy_infobox_moreinfo.tscn")

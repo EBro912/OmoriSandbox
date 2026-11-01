@@ -252,10 +252,7 @@ internal static class UnderwaterHighwayRegistry
 			  bool canBeHappy = target.IsEmotionValid("happy");
 			  BattleManager.Instance.MakeHappy(target, silent: true);
 			  // DIALOGUE QUIRK: always prints the tier-1 HAPPY line, whatever tier the target reaches
-			  if (canBeHappy)
-				  BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
-			  else
-				  BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+			  QueueTierOneEmotionLine(target, "happy", canBeHappy);
 		  }
 		);
 
@@ -287,10 +284,7 @@ internal static class UnderwaterHighwayRegistry
 			  bool canBeAngry = target.IsEmotionValid("angry");
 			  BattleManager.Instance.MakeAngry(target, silent: true);
 			  // DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
-			  if (canBeAngry)
-				  BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
-			  else
-				  BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+			  QueueTierOneEmotionLine(target, "angry", canBeAngry);
 			  await Task.CompletedTask;
 		  }
 		);
@@ -427,10 +421,7 @@ internal static class UnderwaterHighwayRegistry
 				 await Wait.Milliseconds(166);
 				 AnimationManager.Instance.PlayAnimation(155, self);
 				 BattleLogManager.Instance.QueueMessage(self, "[actor] sings a soulful song...");
-				 if (BattleManager.Instance.MakeSad(self, silent: true))
-					 BattleLogManager.Instance.QueueMessage(self, "[actor] feels SAD.");
-				 else
-					 BattleManager.Instance.ShowEmotionNoEffect(self, "sad");
+				 QueueTierOneEmotionLine(self, "sad", BattleManager.Instance.MakeSad(self, silent: true));
 			 },
 			 effect: async (self, targets) =>
 			 {
@@ -698,15 +689,6 @@ internal static class UnderwaterHighwayRegistry
 					BattleManager.Instance.Damage(self, target, () => 25, false, 0.25f, neverCrit: true);
 			}
 		);
-		
-		Skills["Idle"] = new Skill(
-			name: "Idle",
-			description: "Idle",
-			target: SkillTarget.Self,
-			cost: 0,
-			effect: async (Actor _, Actor _) => { await Task.CompletedTask; },
-			hidden: true
-		);
 
 		// MUSSEL //
 		Skills["MUSAttack"] = new Skill(
@@ -860,10 +842,7 @@ internal static class UnderwaterHighwayRegistry
 				// DIALOGUE QUIRK: prints the SPEED line even when the stat is already at its limit
 				BattleLogManager.Instance.QueueMessage(self, "[actor]'s SPEED increased!");
 				// DIALOGUE QUIRK: always prints the tier-1 ANGRY line regardless of the tier the target reaches
-				if (applied)
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels ANGRY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "angry");
+				QueueTierOneEmotionLine(target, "angry", applied);
 			},
 			effect: (_, _) => Task.CompletedTask
 		);

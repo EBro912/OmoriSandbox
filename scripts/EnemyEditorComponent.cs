@@ -124,7 +124,6 @@ internal partial class EnemyEditorComponent : Control
 
 		StatAdjustmentEditor.SetStats(adjustedStats);
 		Populate(name);
-		ShowArea(name);
 		EnemyDropdown.Selected = EnemyDropdown.GetItemIndex(name);
 		int emotionIndex = EmotionDropdown.GetItemIndex(emotion);
 		if (emotionIndex == -1)
@@ -217,23 +216,6 @@ internal partial class EnemyEditorComponent : Control
 			Populate(EnemyDropdown.GetItemText(0));
 	}
 
-	private void ShowArea(string enemyId)
-	{
-		if (EnemyDropdown.GetItemIndex(enemyId) > -1)
-			return;
-		string area = Database.GetEnemyArea(enemyId);
-		if (area == null)
-			return;
-		for (int i = 0; i < AreaDropdown.ItemCount; i++)
-		{
-			if (AreaDropdown.GetItemMetadata(i).AsString() != area)
-				continue;
-			AreaDropdown.Selected = i;
-			FillEnemies(area, false);
-			return;
-		}
-	}
-
 	private void RefreshStatDisplay()
 	{
 		if (CurrentEnemy == null)
@@ -242,6 +224,22 @@ internal partial class EnemyEditorComponent : Control
 		// finalize like Actor.CurrentStats so the preview matches in-battle values
 		display.ApplyStatLimits();
 		StatAdjustmentEditor.UpdateStats(display);
+	}
+
+	internal BattlePresetEnemy ToPreset()
+	{
+		return new BattlePresetEnemy
+		{
+			Name = EnemyDropdown.GetItemText(EnemyDropdown.Selected),
+			Position = GD.VarToStr(new Vector2((float)XPosBox.Value, (float)YPosBox.Value)),
+			Emotion = EmotionDropdown.GetItemText(EmotionDropdown.Selected),
+			Layer = (int)LayerBox.Value,
+			FallsOffScreen = FallsOffScreenCheckbox.ButtonPressed,
+			GrayscaleOnDefeat = GrayscaleOnDefeatCheckbox.ButtonPressed,
+			PreventBattlebackChanges = PreventBattlebackChanges,
+			PreventBGMChanges = PreventBGMChanges,
+			AdjustedStats = GetAdjustedStats()
+		};
 	}
 
 	public Stats GetAdjustedStats()

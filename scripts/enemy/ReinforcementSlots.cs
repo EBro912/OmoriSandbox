@@ -145,7 +145,7 @@ internal static class ReinforcementSlots
     private static List<Enemy> OwnTroop(Family family, Enemy owner) =>
         BattleManager.Instance.GetAllEnemies().Where(enemy => (owner != null && enemy == owner) || ClaimOf(enemy, family, owner) != null).ToList();
 
-    internal static void ClaimPresetSlots(Enemy summoner, Family family)
+    internal static void ClaimPresetSlots(Family family)
     {
         List<Enemy> enemies = BattleManager.Instance.GetAllEnemies();
         if (enemies.Any(enemy => ClaimOf(enemy, family) != null))

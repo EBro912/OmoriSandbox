@@ -319,7 +319,7 @@ internal static class HeroRegistry
 				BattleLogManager.Instance.QueueMessage(self, "[actor] makes HOMEMADE JAM!");
 				if (!target.IsToast)
 				{
-					target = BattleManager.Instance.GetRandomDeadPartyMember();
+					target = BattleManager.Instance.GetFirstDeadPartyMember();
 					if (target == null)
 					{
 						BattleLogManager.Instance.QueueMessage("It had no effect.");
@@ -574,12 +574,6 @@ internal static class HeroRegistry
 		if (juicePercent > 0)
 			member.HealJuice(BattleManager.PercentOf(member.CurrentStats.MaxJuice, juicePercent));
 		BattleLogManager.Instance.QueueMessage(self, member, line);
-		int heal = member.CurrentHP - hpBefore;
-		if (heal > 0)
-			BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovers {heal} HEART!");
-		int juice = member.CurrentJuice - juiceBefore;
-		// VANILLA BUG: the JUICE line is skipped when the target had no JUICE before the heal
-		if (juicePercent > 0 && juiceBefore > 0 && juice > 0)
-			BattleLogManager.Instance.QueueMessage(self, member, $"[target] recovers {juice} JUICE...");
+		QueueRecoveryLines(member, hpBefore, juiceBefore);
 	}
 }

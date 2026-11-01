@@ -38,7 +38,7 @@ internal sealed class TheHooligans : Enemy
     public override async Task ProcessBattleConditions()
     {
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();
-        bool pepperSprayed = command?.Action is Item item && item.Name == "PEPPER SPRAY";
+        bool pepperSprayed = command?.Action is Item { Id: "Pepper Spray" };
 
         if (Stage == 0 && !pepperSprayed && IsBelowHP(0.75f))
         {
@@ -73,7 +73,7 @@ internal sealed class TheHooligans : Enemy
     public override async Task OnDefeat()
     {
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();
-        if (command?.Action is Item item && item.Name == "PEPPER SPRAY")
+        if (command?.Action is Item { Id: "Pepper Spray" })
         {
             DialogueManager.Instance.QueueMessage("CHARLIE", CenterPoint, "!!!");
             DialogueManager.Instance.QueueMessage("ANGEL", CenterPoint, @"[shake rate=60.0 level=20 connected=0]AUGH!! MY EYES!\! MASTER! I CAN'T SEE!!");

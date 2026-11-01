@@ -1,5 +1,5 @@
 using Godot;
-using Path = System.IO.Path;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Battle.Emotions;
 
@@ -107,7 +107,7 @@ public sealed class EmotionAsset
 	{
 		if (path == null)
 			return null;
-		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || Path.IsPathRooted(path))
+		if (!SandboxExtensions.IsSafeModPath(path))
 		{
 			GD.PushError($"Invalid emotion asset path '{path}' (path traversal not allowed)");
 			return null;

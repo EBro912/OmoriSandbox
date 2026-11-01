@@ -72,7 +72,7 @@ shader = ExtResource("68_glitch")
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
-[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "TitleParallax")]
+[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar")]
 script = ExtResource("46_layout")
 Layers = [NodePath("../BattleCanvas"), NodePath("../MainMenu/Main"), NodePath("../MainMenu/Editor")]
 Party = NodePath("../BattleCanvas/UI/Party")
@@ -86,7 +86,6 @@ PerfectheartOverlayParent = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScre
 PerfectheartOverlay = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/PerfectheartOverlay")
 PerfectheartOverlayDarken = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/PerfectheartOverlayDarken")
 StatusBar = NodePath("../BattleCanvas/UI/HBoxContainer")
-TitleParallax = NodePath("../MainMenu/Main/Parallax2D")
 
 [node name="MainMenu" parent="." unique_id=696068823 instance=ExtResource("1_yq6so")]
 

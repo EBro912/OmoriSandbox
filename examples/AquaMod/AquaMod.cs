@@ -156,7 +156,7 @@ public partial class AquaMod : Mod
                 AnimationManager.Instance.PlayAnimation(212, self);
                 if (target is Aqua enemy)
                 {
-                    enemy.AddMercy("laugh");
+                    enemy.AddMercy("care");
                     target.PlayAnimation("laugh");
                     await Wait.Milliseconds(1000);
                     BattleLogManager.Instance.QueueMessage("... the enemy laughed!");

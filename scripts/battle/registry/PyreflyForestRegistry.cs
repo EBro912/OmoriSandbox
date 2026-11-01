@@ -300,10 +300,7 @@ internal static class PyreflyForestRegistry
 				BattleLogManager.Instance.QueueMessage(self, "[actor] happily scuttles around.");
 				BattleLogManager.Instance.QueueMessage("It was really cute!");
 				// DIALOGUE QUIRK: always prints the tier-1 HAPPY line regardless of the tier the target reaches
-				if (applied)
-					BattleLogManager.Instance.QueueMessage(target, "[actor] feels HAPPY!");
-				else
-					BattleManager.Instance.ShowEmotionNoEffect(target, "happy");
+				QueueTierOneEmotionLine(target, "happy", applied);
 			}
 		);
 

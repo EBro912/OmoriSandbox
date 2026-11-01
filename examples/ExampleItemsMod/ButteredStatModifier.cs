@@ -15,7 +15,7 @@ public class ButteredStatModifier : StatModifier
     public override void OnStartOfTurn(Actor actor)
     {
         int heal = (int)Math.Round(actor.CurrentStats.MaxHP * 0.05f, MidpointRounding.AwayFromZero);
-        actor.Heal(heal);
+        heal = actor.Heal(heal);
         BattleManager.Instance.SpawnDamageNumber(heal, actor, DamageType.Heal);
     }
 

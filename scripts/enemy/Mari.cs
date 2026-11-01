@@ -28,10 +28,7 @@ internal sealed class Mari : Enemy
         AddImmortal();
         PartyMember omori = BattleManager.Instance.GetPartyMemberAtPosition(0);
         if (omori != null)
-        {
-            omori.AddStatModifier("Immortal", silent: true);
-            omori.ClearResult();
-        }
+            FearPages.AddState(omori, "Immortal");
         return Task.CompletedTask;
     }
 
@@ -59,15 +56,11 @@ internal sealed class Mari : Enemy
             StopBGM();
             ChangeBGS("boss_something_heartbeat", 0.35f);
             if (omori != null)
-            {
-                omori.AddStatModifier("OmoriAfraid", silent: true);
-                omori.ClearResult();
-            }
+                FearPages.AddState(omori, "OmoriAfraid");
             if (basil != null)
             {
                 basil.SetEmotion("afraid", silent: true);
-                basil.AddStatModifier("BasilImmobile", silent: true);
-                basil.ClearResult();
+                FearPages.AddState(basil, "BasilImmobile");
             }
             if (omori != null)
             {

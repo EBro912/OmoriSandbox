@@ -26,8 +26,8 @@ public partial class ExampleItemsMod : Mod
             {
                 BattleLogManager.Instance.QueueMessage(self, target, "[actor] uses BURNT TOAST!");
                 AnimationManager.Instance.PlayAnimation(212, target);
-                target.Heal(1);
-                BattleManager.Instance.SpawnDamageNumber(1, target, DamageType.Heal);
+                int healed = target.Heal(1);
+                BattleManager.Instance.SpawnDamageNumber(healed, target, DamageType.Heal);
                 BattleLogManager.Instance.QueueMessage(self, target, "It's... very burnt.\n[target] recovered 1 HEART!");
                 await Task.CompletedTask;
             },

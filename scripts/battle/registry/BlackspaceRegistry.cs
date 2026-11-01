@@ -308,7 +308,7 @@ internal static class BlackspaceRegistry
 			{
 				BattleManager.Instance.Damage(self, target, () => 143, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
 				await Wait.Frames(15);
-				await FearPages.Narrate("Your lungs tighten up.");
+				await DialogueManager.Instance.ShowMessage("Your lungs tighten up.");
 			},
 			setup: (Actor _, Actor target) =>
 			{
@@ -326,7 +326,7 @@ internal static class BlackspaceRegistry
 			{
 				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.8f, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
 				await Wait.Frames(15);
-				await FearPages.Narrate("Your heart beats out of your chest.");
+				await DialogueManager.Instance.ShowMessage("Your heart beats out of your chest.");
 			},
 			setup: (Actor _, Actor target) =>
 			{
@@ -344,7 +344,7 @@ internal static class BlackspaceRegistry
 			{
 				BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.8f, new DamageOptions { NeverMiss = false, Variance = 0f, Crit = CritMode.Never });
 				await Wait.Frames(15);
-				await FearPages.Narrate("Your fingers won't stop trembling.");
+				await DialogueManager.Instance.ShowMessage("Your fingers won't stop trembling.");
 			},
 			setup: (Actor _, Actor target) =>
 			{
@@ -362,7 +362,7 @@ internal static class BlackspaceRegistry
 			effect: async (Actor _, Actor _) =>
 			{
 				await Wait.Frames(15);
-				await FearPages.Narrate("You hear your breathing begin to steady.");
+				await DialogueManager.Instance.ShowMessage("You hear your breathing begin to steady.");
 			},
 			setup: (self, target) =>
 			{
@@ -381,7 +381,7 @@ internal static class BlackspaceRegistry
 			effect: async (Actor _, Actor _) =>
 			{
 				await Wait.Frames(15);
-				await FearPages.Narrate("You hear your heart begin to steady.");
+				await DialogueManager.Instance.ShowMessage("You hear your heart begin to steady.");
 			},
 			setup: (Actor _, Actor target) =>
 			{
@@ -398,7 +398,7 @@ internal static class BlackspaceRegistry
 			effect: async (Actor _, Actor _) =>
 			{
 				await Wait.Frames(15);
-				await FearPages.Narrate(@"You gather all your courage...\![br]and learn to OVERCOME.");
+				await DialogueManager.Instance.ShowMessage(@"You gather all your courage...\![br]and learn to OVERCOME.");
 			},
 			setup: (Actor _, Actor target) =>
 			{

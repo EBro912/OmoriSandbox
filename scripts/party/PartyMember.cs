@@ -181,7 +181,7 @@ public abstract class PartyMember : Actor
 	/// </summary>
 	/// <remarks>
 	/// The learned skills and the slots are the battle's own skills, kept after the preset's skills, which battle changes never remove.<br/>
-	/// Every change rebuilds <see cref="Actor.Skills"/> as the attack.
+	/// Every change rebuilds <see cref="Actor.Skills"/>.
 	/// </remarks>
 	/// <param name="slot">The slot, from 0. A slot past the end adds empty slots up to it.</param>
 	/// <param name="skill">The skill's key. Can include an unlearned skill.</param>

@@ -156,7 +156,7 @@ public abstract class Actor
 		set
 		{
 			_CurrentHP = value;
-			BattleManager.Instance.RunAsReaction(() => OnHPChanged?.Invoke(this, EventArgs.Empty));
+			BattleManager.Instance.RaiseGuarded(this, OnHPChanged, "OnHPChanged");
 		}
 	} 
 
@@ -171,7 +171,7 @@ public abstract class Actor
 		set
 		{
 			_CurrentJuice = value;
-			BattleManager.Instance.RunAsReaction(() => OnJuiceChanged?.Invoke(this, EventArgs.Empty));
+			BattleManager.Instance.RaiseGuarded(this, OnJuiceChanged, "OnJuiceChanged");
 		}
 	}
 
@@ -337,11 +337,8 @@ public abstract class Actor
 			mod.SetTurnsLeft(turns);
 		}
 
-		mod.AddSequence = ++LastModifierSequence;
-		StatModifiers.Add(modifier, mod);
-		EraseResisted(mod);
 		GrantFreeActionTick(mod);
-		BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
+		InsertStatModifier(modifier, mod);
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		NotifyModifierAdded(modifier, mod);
 	}
@@ -381,22 +378,7 @@ public abstract class Actor
 			}
 
 			GD.PushWarning("Tried to add a non-tiered stat modifier with tier and turns: " + modifier);
-			if (IsReapplyBlocked(modifier))
-				return;
-			if (StatModifiers.TryGetValue(modifier, out StatModifier held))
-			{
-				held.RefreshTurns();
-				GD.Print("Refreshed modifier " + modifier + " on " + Name);
-				return;
-			}
-			if (turns > -1)
-				mod.SetTurnsLeft(turns);
-			mod.AddSequence = ++LastModifierSequence;
-			StatModifiers.Add(modifier, mod);
-			EraseResisted(mod);
-			BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
-			GD.Print("Added modifier " + modifier + " to " + Name);
-			NotifyModifierAdded(modifier, mod);
+			AddStatModifier(modifier, turns, silent);
 			return;
 		}
 
@@ -451,10 +433,7 @@ public abstract class Actor
 		t.WithTier(tier);
 		if (turns > -1)
 			t.SetTurnsLeft(turns);
-		t.AddSequence = ++LastModifierSequence;
-		StatModifiers.Add(modifier, t);
-		EraseResisted(t);
-		BattleManager.Instance.RunAsReaction(() => t.OnAdd(this));
+		InsertStatModifier(modifier, t);
 		GD.Print("Added modifier " + modifier + " to " + Name);
 		if (!silent && t.SuccessMessage != null)
 			ShowStatMessage(t.SuccessMessage);
@@ -489,6 +468,7 @@ public abstract class Actor
 		if (StatModifiers.TryGetValue("Stunned", out StatModifier stun))
 		{
 			stun.SetTurnsLeft(Math.Max(stun.TurnsLeft, turns));
+			Stunned = true;
 			return;
 		}
 		AddStatModifier("Stunned", turns, silent: true);
@@ -753,10 +733,10 @@ public abstract class Actor
 		StatModifiers.Remove(modifier);
 		if (record && !mod.ReapplyAllowed)
 			RemovedSinceResultClear.Add(ResultKey(modifier, (mod as TierStatModifier)?.CurrentTier ?? 0));
-		BattleManager.Instance.RunAsReaction(() => mod.OnRemove(this));
+		BattleManager.Instance.RunGuardedReaction(() => mod.OnRemove(this), $"{mod.GetType().Name}.OnRemove ({Name})");
 		GD.Print("Removed modifier " + modifier + " from " + Name + " (" + reason + ")");
 		ClampHealthJuiceToMax();
-		BattleManager.Instance.RunAsReaction(() => OnStatModifierRemoved?.Invoke(this, new StatModifierRemovedEventArgs(modifier, mod, reason)));
+		BattleManager.Instance.RaiseGuarded(this, OnStatModifierRemoved, new StatModifierRemovedEventArgs(modifier, mod, reason), "OnStatModifierRemoved");
 	}
 
 	// RPGMaker keeps track of removed states whenever they expire
@@ -827,12 +807,26 @@ public abstract class Actor
 			mod.SkipNextActionTick = true;
 	}
 
+	internal void RefreshStunned()
+	{
+		Stunned = StatModifiers.Values.Any(m => m is ImmobileModifier or StunnedModifier or CallForFriendDelayModifier);
+	}
+
+	private void InsertStatModifier(string modifier, StatModifier mod, bool eraseResisted = true)
+	{
+		mod.AddSequence = ++LastModifierSequence;
+		StatModifiers.Add(modifier, mod);
+		if (eraseResisted)
+			EraseResisted(mod);
+		BattleManager.Instance.RunGuardedReaction(() => mod.OnAdd(this), $"{mod.GetType().Name}.OnAdd ({Name})");
+	}
+
 	private void NotifyModifierAdded(string modifier, StatModifier mod)
 	{
 		if (CurrentEmotion.Id != "neutral" && mod.BlocksEmotion(CurrentEmotion))
 			SetEmotionForced("neutral");
 		ClampHealthJuiceToMax();
-		BattleManager.Instance.RunAsReaction(() => OnStatModifierAdded?.Invoke(this, new StatModifierEventArgs(modifier, mod)));
+		BattleManager.Instance.RaiseGuarded(this, OnStatModifierAdded, new StatModifierEventArgs(modifier, mod), "OnStatModifierAdded");
 	}
 
 	private static bool CombineEnabled => BattleManager.Instance != null && BattleManager.Instance.CombinedBuffsDebuffs;
@@ -874,9 +868,7 @@ public abstract class Actor
 				}
 				if (mod is TierStatModifier tier)
 					tier.WithTier(1);
-				mod.AddSequence = ++LastModifierSequence;
-				StatModifiers.Add(id, mod);
-				BattleManager.Instance.RunAsReaction(() => mod.OnAdd(this));
+				InsertStatModifier(id, mod, eraseResisted: false);
 				GD.Print("Added passive modifier " + id + " to " + Name);
 				NotifyModifierAdded(id, mod);
 			}
@@ -1057,7 +1049,7 @@ public abstract class Actor
 	/// </remarks>
 	/// <param name="damage">The amount of damage to deal to this actor.</param>
 	/// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
-	/// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+	/// <returns>The damage dealt, after any Debug Damage scaling. It can be more than the HEART actually lost.</returns>
 	public int Damage(int damage, bool applyDebugScale = true)
 	{
 		damage = DebugScaled(damage, applyDebugScale);
@@ -1078,7 +1070,7 @@ public abstract class Actor
 			return damage;
 		}
 
-		BattleManager.Instance.RunAsReaction(() => OnDamaged?.Invoke(this, EventArgs.Empty));
+		BattleManager.Instance.RaiseGuarded(this, OnDamaged, "OnDamaged");
 		return damage;
 	}
 
@@ -1091,7 +1083,7 @@ public abstract class Actor
 	/// </remarks>
     /// <param name="damage">The amount of juice damage to deal to this actor.</param>
     /// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
-    /// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+    /// <returns>The JUICE damage dealt, after any Debug Damage scaling. It can be more than the JUICE actually lost.</returns>
     public int DamageJuice(int damage, bool applyDebugScale = true)
 	{
 		damage = DebugScaled(damage, applyDebugScale);
@@ -1109,7 +1101,7 @@ public abstract class Actor
     /// </summary>
     /// <param name="health">The amount of health to heal.</param>
     /// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
-    /// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+    /// <returns>The amount healed, after any Debug Damage scaling. It can be more than the HEART actually restored.</returns>
     public int Heal(int health, bool applyDebugScale = true)
 	{
 		health = DebugScaled(health, applyDebugScale);
@@ -1124,7 +1116,7 @@ public abstract class Actor
 	/// </summary>
 	/// <param name="juice">The amount of juice to heal.</param>
 	/// <param name="applyDebugScale">Whether Debug Damage should multiply the amount. Pass false for amounts that already went through the damage pipeline or were derived from its output.</param>
-	/// <returns>The amount actually applied, including any potential Debug Damage scaling.</returns>
+	/// <returns>The amount healed, after any Debug Damage scaling. It can be more than the JUICE actually restored.</returns>
 	public int HealJuice(int juice, bool applyDebugScale = true)
 	{
 		juice = DebugScaled(juice, applyDebugScale);
@@ -1193,7 +1185,7 @@ public abstract class Actor
 
 		CurrentAnimation = animationName;
 		Sprite.Animation = animationName;
-		BattleManager.Instance.RunAsReaction(() => OnAnimationChanged?.Invoke(this, EventArgs.Empty));
+		BattleManager.Instance.RaiseGuarded(this, OnAnimationChanged, "OnAnimationChanged");
 	}
 
 	/// <summary>
@@ -1208,7 +1200,7 @@ public abstract class Actor
 		CurrentAnimation = null;
 		if (GodotObject.IsInstanceValid(Sprite))
 			Sprite.Animation = IsToast ? "toast" : EmotionAnimation(CurrentEmotion);
-		BattleManager.Instance.RunAsReaction(() => OnAnimationChanged?.Invoke(this, EventArgs.Empty));
+		BattleManager.Instance.RaiseGuarded(this, OnAnimationChanged, "OnAnimationChanged");
 	}
 
 	/// <summary>
@@ -1274,7 +1266,7 @@ public abstract class Actor
 		IsToast = false;
 		ClearAnimation();
 		CurrentHP = hp;
-		BattleManager.Instance.RunAsReaction(() => OnRevived?.Invoke(this, EventArgs.Empty));
+		BattleManager.Instance.RaiseGuarded(this, OnRevived, "OnRevived");
 	}
 
 	/// <summary>
@@ -1340,10 +1332,10 @@ public abstract class Actor
 	/// Checks if this actor can feel the emotion with the given id. See <see cref="IsEmotionValid(Emotion)"/>.
 	/// </summary>
 	/// <param name="id">The id of the emotion to check.</param>
-	/// <returns>True if the emotion exists and this actor can feel it, false for unknown ids.</returns>
+	/// <returns>True if the emotion exists and this actor can feel it, false for unknown ids and while <see cref="IsEmotionLocked"/> is true.</returns>
 	public bool IsEmotionValid(string id)
 	{
-		return Database.TryGetEmotion(id, out Emotion emotion) && IsEmotionValid(emotion) && !IsImmuneToEmotion(emotion);
+		return !IsEmotionLocked && Database.TryGetEmotion(id, out Emotion emotion) && IsEmotionValid(emotion) && !IsImmuneToEmotion(emotion);
 	}
 
     /// <summary>
@@ -1393,7 +1385,7 @@ public abstract class Actor
 				BattleLogManager.Instance.QueueMessage(emotion.FeelsMessage(Name));
 			}
 
-			BattleManager.Instance.RunAsReaction(() => OnEmotionChanged?.Invoke(this, EventArgs.Empty));
+			BattleManager.Instance.RaiseGuarded(this, OnEmotionChanged, "OnEmotionChanged");
 			// only update the sprite if no animation override is active
 			if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite)) {
 				Sprite.Animation = EmotionAnimation(emotion);
@@ -1433,7 +1425,7 @@ public abstract class Actor
 		RecordEmotionChange(previous, emotion, false);
 		RemoveOtherEmotionCategories(emotion);
 		ClampHealthJuiceToMax();
-		BattleManager.Instance.RunAsReaction(() => OnEmotionChanged?.Invoke(this, EventArgs.Empty));
+		BattleManager.Instance.RaiseGuarded(this, OnEmotionChanged, "OnEmotionChanged");
 		if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
 		{
 			Sprite.Animation = EmotionAnimation(emotion);

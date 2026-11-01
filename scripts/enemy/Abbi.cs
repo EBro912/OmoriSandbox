@@ -25,7 +25,7 @@ internal sealed class Abbi : Enemy
     {
         for (int i = 0; i < 4; i++)
             ReviveTentacle();
-        foreach (Enemy enemy in BattleManager.Instance.GetAllEnemies())
+        foreach (Enemy enemy in Tentacles.Where(x => x != null).Prepend(this))
         {
             enemy.RemoveStatModifier("CallForFriendDelay");
             enemy.ClearResult();

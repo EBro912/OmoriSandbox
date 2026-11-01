@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -12,6 +11,7 @@ using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
 using OmoriSandbox.Menu;
+using OmoriSandbox.Extensions;
 using FileAccess = Godot.FileAccess;
 
 namespace OmoriSandbox.Modding;
@@ -23,6 +23,7 @@ internal partial class ModManager : Node
 
 	private readonly List<ModMetadata> LoadedMods = [];
 	private readonly List<Mod> ModNodes = [];
+	private readonly HashSet<Mod> ProcessDisabled = [];
 
 	/// <summary>
 	/// The name of the mod currently being loaded, or null outside mod loading.
@@ -73,6 +74,8 @@ internal partial class ModManager : Node
 	{
 		for (int i = ModNodes.Count - 1; i >= 0; i--)
 		{
+			if (ProcessDisabled.Contains(ModNodes[i]))
+				continue;
 			try
 			{
 				ModNodes[i].OnProcess(delta);
@@ -81,7 +84,7 @@ internal partial class ModManager : Node
 			{
 				GD.PushError($"Unhandled exception in {ModNodes[i].GetType().FullName}.OnProcess, " +
 				             $"disabling OnProcess for this mod: {ex}");
-				ModNodes.RemoveAt(i);
+				ProcessDisabled.Add(ModNodes[i]);
 			}
 		}
 	}
@@ -263,7 +266,7 @@ internal partial class ModManager : Node
 		Texture2D icon = null;
 		if (!string.IsNullOrEmpty(metadata.Icon) && metadata.Icon.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
 		{
-			if (metadata.Icon.Contains("..") || metadata.Icon.Contains("://") || Path.IsPathRooted(metadata.Icon))
+			if (!SandboxExtensions.IsSafeModPath(metadata.Icon))
 			{
 				report.Warn("metadata", "icon", $"Invalid icon path '{metadata.Icon}' (path traversal not allowed)");
 			}
@@ -335,7 +338,24 @@ internal partial class ModManager : Node
 				instance.Id = metadata.Id;
 				AddChild(instance);
 				ModNodes.Add(instance);
-				instance.OnLoad();
+				try
+				{
+					instance.OnLoad();
+				}
+				catch
+				{
+					ModNodes.Remove(instance);
+					try
+					{
+						instance.UnpatchAll();
+					}
+					catch (Exception unpatch)
+					{
+						GD.PushError($"Failed to remove Harmony patches for mod {instance.Id}: {unpatch}");
+					}
+					instance.QueueFree();
+					throw;
+				}
 				foundMod = true;
 			}
 			catch (Exception ex)
@@ -432,29 +452,11 @@ internal partial class ModManager : Node
 			return null;
 		}
 		SpriteFrames spriteFrames = new();
-		int totalCells = columns * (texture.GetHeight() / ACTOR_SIZE);
 		foreach (JsonModAnimationData data in jsonActor.Animation)
 		{
-			spriteFrames.AddAnimation(data.Emotion);
-			spriteFrames.SetAnimationSpeed(data.Emotion, data.Fps);
-			spriteFrames.SetAnimationLoopMode(data.Emotion, SpriteFrames.LoopMode.Linear);
-			foreach (int idx in data.Frames)
-			{
-				if (idx < 0 || idx >= totalCells)
-				{
-					report.Warn("actors", jsonActor.Name,
-						$"Frame index {idx} in animation '{data.Emotion}' is outside the atlas (0-{totalCells - 1}), skipping frame!");
-					continue;
-				}
-				int column = idx % columns;
-				int row = idx / columns;
-				AtlasTexture tex = new()
-				{
-					Atlas = texture,
-					Region = new Rect2(column * ACTOR_SIZE, row * ACTOR_SIZE, ACTOR_SIZE, ACTOR_SIZE)
-				};
-				spriteFrames.AddFrame(data.Emotion, tex);
-			}
+			SpriteFramesBuilder.AddAtlasAnimation(spriteFrames, texture, ACTOR_SIZE, ACTOR_SIZE, data.Emotion, data.Fps, data.Frames, (idx, cells) =>
+				report.Warn("actors", jsonActor.Name,
+					$"Frame index {idx} in animation '{data.Emotion}' is outside the atlas (0-{cells - 1}), skipping frame!"));
 		}
 		return spriteFrames;
 	}
@@ -525,31 +527,12 @@ internal partial class ModManager : Node
 			report.Error("enemies", jsonEnemy.Name, $"Atlas dimensions ({texture.GetWidth()}x{texture.GetHeight()}) smaller than frame size ({width}x{height})");
 			return null;
 		}
-		int columns = texture.GetWidth() / width;
 		SpriteFrames spriteFrames = new();
-		int totalCells = columns * (texture.GetHeight() / height);
 		foreach (JsonModAnimationData data in jsonEnemy.Animation)
 		{
-			spriteFrames.AddAnimation(data.Emotion);
-			spriteFrames.SetAnimationSpeed(data.Emotion, data.Fps);
-			spriteFrames.SetAnimationLoopMode(data.Emotion, SpriteFrames.LoopMode.Linear);
-			foreach (int idx in data.Frames)
-			{
-				if (idx < 0 || idx >= totalCells)
-				{
-					report.Warn("enemies", jsonEnemy.Name,
-						$"Frame index {idx} in animation '{data.Emotion}' is outside the atlas (0-{totalCells - 1}), skipping frame");
-					continue;
-				}
-				int column = idx % columns;
-				int row = idx / columns;
-				AtlasTexture tex = new()
-				{
-					Atlas = texture,
-					Region = new Rect2(column * width, row * height, width, height)
-				};
-				spriteFrames.AddFrame(data.Emotion, tex);
-			}
+			SpriteFramesBuilder.AddAtlasAnimation(spriteFrames, texture, width, height, data.Emotion, data.Fps, data.Frames, (idx, cells) =>
+				report.Warn("enemies", jsonEnemy.Name,
+					$"Frame index {idx} in animation '{data.Emotion}' is outside the atlas (0-{cells - 1}), skipping frame"));
 		}
 		return spriteFrames;
 	}
@@ -628,36 +611,29 @@ internal partial class ModManager : Node
 
 	private void LoadMenuSkins(string root, string dir, ModLoadReport report)
 	{
-		string path = $"user://mods/{root}/{dir}";
-		foreach (string file in DirAccess.GetFilesAt(path))
+		LoadImages(root, dir, "menuskins", report, (name, texture) =>
 		{
-			if (!file.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-				continue;
-			Image image = Image.LoadFromFile(path + "/" + file);
-			if (image == null)
-			{
-				report.Warn("menuskins", file, "Failed to load image");
-				report.CountSkipped();
-				continue;
-			}
-			MenuSkin skin = MenuSkin.FromSheet(ImageTexture.CreateFromImage(image));
+			MenuSkin skin = MenuSkin.FromSheet(texture);
 			if (skin == null)
-			{
-				report.Error("menuskins", file, "A menu skin sheet must be 360x160 or 360x240");
-				report.CountSkipped();
-			}
-			else if (Database.RegisterMenuSkin(file.GetBaseName(), skin))
-				report.CountLoaded();
-			else
-			{
-				report.Error("menuskins", file, "A menu skin with this name already exists");
-				report.CountSkipped();
-			}
-		}
+				return "A menu skin sheet must be 360x160 or 360x240";
+			return Database.RegisterMenuSkin(name, skin) ? null : "A menu skin with this name already exists";
+		});
 	}
 
 	private void LoadWindowSkins(string root, string dir, ModLoadReport report)
 	{
+		LoadImages(root, dir, "windowskins", report, (name, texture) =>
+			Database.RegisterWindowSkin(name, texture) ? null : "Invalid or duplicate window skin (it must be 192x192 with a unique name)");
+	}
+
+	private void LoadStateIcons(string root, string dir, ModLoadReport report)
+	{
+		LoadImages(root, dir, "stateicons", report, (name, texture) =>
+			Database.AddStateIcon(name, texture) ? null : "A state icon with this name already exists");
+	}
+
+	private static void LoadImages(string root, string dir, string category, ModLoadReport report, Func<string, Texture2D, string> register)
+	{
 		string path = $"user://mods/{root}/{dir}";
 		foreach (string file in DirAccess.GetFilesAt(path))
 		{
@@ -666,42 +642,17 @@ internal partial class ModManager : Node
 			Image image = Image.LoadFromFile(path + "/" + file);
 			if (image == null)
 			{
-				report.Warn("windowskins", file, "Failed to load image");
+				report.Warn(category, file, "Failed to load image");
 				report.CountSkipped();
 				continue;
 			}
-			if (Database.RegisterWindowSkin(file.GetBaseName(), ImageTexture.CreateFromImage(image)))
+			string error = register(file.GetBaseName(), ImageTexture.CreateFromImage(image));
+			if (error == null)
 				report.CountLoaded();
 			else
 			{
-				report.Error("windowskins", file, "Invalid or duplicate window skin (it must be 192x192 with a unique name)");
+				report.Error(category, file, error);
 				report.CountSkipped();
-			}
-		}
-	}
-
-	private void LoadStateIcons(string root, string dir, ModLoadReport report)
-	{
-		string path = $"user://mods/{root}/{dir}";
-		foreach (string file in DirAccess.GetFilesAt(path))
-		{
-			if (file.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
-			{
-				Image image = Image.LoadFromFile(path + "/" + file);
-				if (image == null)
-				{
-					report.Warn("stateicons", file, "Failed to load image");
-					report.CountSkipped();
-					continue;
-				}
-				Texture2D texture = ImageTexture.CreateFromImage(image);
-				if (Database.AddStateIcon(file.GetBaseName(), texture))
-					report.CountLoaded();
-				else
-				{
-					report.Error("stateicons", file, "A state icon with this name already exists");
-					report.CountSkipped();
-				}
 			}
 		}
 	}

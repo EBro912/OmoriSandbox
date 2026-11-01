@@ -1,4 +1,5 @@
 using Godot;
+using OmoriSandbox.Extensions;
 using Path = System.IO.Path;
 
 namespace OmoriSandbox;
@@ -43,8 +44,7 @@ public sealed class ScrollingBattleback : IBattleback
     {
         ScrollSpeed = scrollSpeed;
         TileVertically = tileVertically;
-        if (string.IsNullOrWhiteSpace(texturePath) || texturePath.Contains("..") || texturePath.Contains("://") ||
-            Path.IsPathRooted(texturePath))
+        if (!SandboxExtensions.IsSafeModPath(texturePath))
         {
             GD.PushError($"Invalid battleback path '{texturePath}' (path traversal not allowed)");
             LoadFailed = true;

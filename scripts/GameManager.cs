@@ -7,6 +7,7 @@ using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Editor;
+using OmoriSandbox.Extensions;
 using OmoriSandbox.Modding;
 
 namespace OmoriSandbox;
@@ -377,26 +378,9 @@ public partial class GameManager : Node
 
 		foreach (BattlePresetEnemy entry in preset.Enemies)
 		{
-			if (string.IsNullOrWhiteSpace(entry.Position))
-			{
-				GD.PrintErr($"Missing position for enemy {entry.Name}, skipping!");
+			if (!TryParsePosition(entry, out Vector2 position))
 				continue;
-			}
-			if (!entry.Position.StartsWith("Vector2"))
-				entry.Position = "Vector2" + entry.Position;
-			Variant parsedPosition = GD.StrToVar(entry.Position);
-			if (parsedPosition.VariantType != Variant.Type.Vector2)
-			{
-				GD.PrintErr($"Invalid position \"{entry.Position}\" for enemy {entry.Name}, skipping!");
-				continue;
-			}
-			Vector2 position = parsedPosition.AsVector2();
-			while (enemy.Any(x => x.Actor.CenterPoint == position))
-			{
-				// prevent stacking
-				position += new Vector2(0.01f, 0f);
-			}
-			EnemyComponent en = SpawnEnemy(entry, position);
+			EnemyComponent en = SpawnEnemy(entry, BattleManager.Unstacked(enemy, position));
 			if (en == null)
 			{
 				GD.PrintErr("Failed to spawn enemy: " + entry.Name);
@@ -420,19 +404,29 @@ public partial class GameManager : Node
 		return true;
 	}
 
+	internal static bool TryParsePosition(BattlePresetEnemy entry, out Vector2 position)
+	{
+		position = Vector2.Zero;
+		if (string.IsNullOrWhiteSpace(entry.Position))
+		{
+			GD.PrintErr($"Missing position for enemy {entry.Name}, skipping!");
+			return false;
+		}
+		if (!entry.Position.StartsWith("Vector2"))
+			entry.Position = "Vector2" + entry.Position;
+		Variant parsedPosition = GD.StrToVar(entry.Position);
+		if (parsedPosition.VariantType != Variant.Type.Vector2)
+		{
+			GD.PrintErr($"Invalid position \"{entry.Position}\" for enemy {entry.Name}, skipping!");
+			return false;
+		}
+		position = parsedPosition.AsVector2();
+		return true;
+	}
+
 	private void ShowCannotStartDialog(string text)
 	{
-		AcceptDialog dialog = new()
-		{
-			Title = "Cannot Start Battle",
-			DialogText = text,
-			Unresizable = true
-		};
-		AddChild(dialog);
-		dialog.Confirmed += dialog.QueueFree;
-		dialog.Canceled += dialog.QueueFree;
-		dialog.PopupCentered();
-		dialog.Show();
+		this.ShowNoteDialog("Cannot Start Battle", text);
 	}
 
 	internal void DespawnAll()
@@ -463,7 +457,8 @@ public partial class GameManager : Node
 		Enemy instance = Database.CreateEnemy(enemy.Name);
 		if (instance == null)
 			return null;
-		if (instance.Animation == null)
+		SpriteFrames frames = instance.Animation;
+		if (frames == null)
 		{
 			GD.PrintErr("Failed to load Sprite animations for Enemy: " + instance.Name);
 			return null;
@@ -477,7 +472,7 @@ public partial class GameManager : Node
 		EnemyComponent component = new();
 		node.AddChild(component);
 		node.ZIndex -= (int)enemy.Layer;
-		component.SetEnemy(instance, enemy.Emotion, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, (int)enemy.Layer, enemy.AdjustedStats);
+		component.SetEnemy(instance, frames, enemy.Emotion, enemy.FallsOffScreen, enemy.GrayscaleOnDefeat, (int)enemy.Layer, enemy.AdjustedStats);
 		instance.PreventBattlebackChanges = enemy.PreventBattlebackChanges;
 		instance.PreventBGMChanges = enemy.PreventBGMChanges;
 		return component;

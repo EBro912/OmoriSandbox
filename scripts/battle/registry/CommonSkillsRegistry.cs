@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
 
 namespace OmoriSandbox.Battle.Registry;
@@ -22,5 +24,14 @@ internal static class CommonSkillsRegistry
 			priority: 2000
 			// guard can always be used regardless of emotion
 		).WithCustomRequirement(_ => true);
+
+		Skills["Idle"] = new Skill(
+			name: "Idle",
+			description: "Idle",
+			target: SkillTarget.Self,
+			cost: 0,
+			effect: async (Actor _, Actor _) => { await Task.CompletedTask; },
+			hidden: true
+		);
 	}
 }

@@ -14,16 +14,9 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 	protected override Vector2 OpenPosition => new(320, 480);
 	protected override Vector2 ClosedPosition => new(320, 572);
 	
-	private Vector2I GridSize = new(2, 2);
-
 	private bool OneColumn;
 
 	internal bool Itemless { get; set; }
-
-	public void SetSkinMode(MenuSkinMode mode)
-	{
-		ApplySkin(Database.GetMenuSkin(mode.ToString()));
-	}
 
 	public void ApplySkin(MenuSkin skin)
 	{
@@ -89,6 +82,8 @@ internal partial class BattleMenu : Menu, ISkinnableMenu
 		else if (memory.SavedState == MenuState.Toy)
 			CursorIndex = 3;
 		else
+			CursorIndex = 0;
+		if (CursorIndex >= CursorPositions.Count)
 			CursorIndex = 0;
 		CursorSprite.StartBounce();
 		UpdateCursor();

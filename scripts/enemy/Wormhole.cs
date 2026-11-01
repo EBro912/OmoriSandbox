@@ -22,7 +22,7 @@ internal sealed class Wormhole : Enemy
 
     public override Task OnStartOfBattle()
     {
-        ReinforcementSlots.ClaimPresetSlots(this, ReinforcementSlots.Wormhole);
+        ReinforcementSlots.ClaimPresetSlots(ReinforcementSlots.Wormhole);
         return Task.CompletedTask;
     }
 

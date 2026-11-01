@@ -37,8 +37,7 @@ internal static class UiRegistry
 		#endregion
 
 		#region WINDOW SKINS
-		WindowSkins.Add(DefaultWindowSkin, new WindowSkin(ResourceLoader.Load<Texture2D>("res://assets/system/Window.png"), false));
-		WindowSkinOrder.Add(DefaultWindowSkin);
+		AddBuiltInWindowSkin(DefaultWindowSkin, new WindowSkin(ResourceLoader.Load<Texture2D>("res://assets/system/Window.png"), false));
 		#endregion
 	}
 }

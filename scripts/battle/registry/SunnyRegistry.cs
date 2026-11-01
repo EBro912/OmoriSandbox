@@ -236,11 +236,7 @@ internal static class SunnyRegistry
 			effect: async (Actor self, IReadOnlyList<Actor> targets) =>
 			{
 				FearFadeOut();
-				if (FightMusicAllowed())
-				{
-					AudioManager.Instance.FadeBGMTo(0.001f, 3f);
-					AudioManager.Instance.ForceFadeOutBGS(3f);
-				}
+				FadeFightMusic(3f);
 				StunAllEnemies();
 				AnimationManager.Instance.ErasePicture(2);
 				Task overcome = AnimationManager.Instance.WaitForScreenAnimation(107, true);
@@ -402,11 +398,7 @@ internal static class SunnyRegistry
 			BattleManager.Instance.AddEnergy(-10);
 		if (!StorySwitches.HeightsDone)
 		{
-			if (FightMusicAllowed())
-			{
-				AudioManager.Instance.FadeBGMTo(0.001f, 5f);
-				AudioManager.Instance.ForceFadeOutBGS(5f);
-			}
+			FadeFightMusic(5f);
 			StunAllEnemies();
 		}
 		if (StorySwitches.FearPhase == 1)
@@ -419,19 +411,13 @@ internal static class SunnyRegistry
 		await Wait.Frames(2);
 		DialogueManager.Instance.QueueMessage(@"You tried to CALM DOWN...\|[br]but your lungs fought to breathe.");
 		await DialogueManager.Instance.WaitForDialogue();
-		if (!StorySwitches.BasilBattle)
-			StorySwitches.BrokenSkillUses += 1;
 	}
 
 	internal static async Task FocusEvent(PartyMember user)
 	{
 		if (!StorySwitches.SpidersDone)
 		{
-			if (FightMusicAllowed())
-			{
-				AudioManager.Instance.FadeBGMTo(0.001f, 5f);
-				AudioManager.Instance.ForceFadeOutBGS(5f);
-			}
+			FadeFightMusic(5f);
 			StunAllEnemies();
 		}
 		if (StorySwitches.FearPhase == 2)
@@ -445,8 +431,6 @@ internal static class SunnyRegistry
 		await Wait.Frames(2);
 		DialogueManager.Instance.QueueMessage(@"You tried to FOCUS...\|[br]but nausea overwhelmed you.");
 		await DialogueManager.Instance.WaitForDialogue();
-		if (!StorySwitches.BasilBattle)
-			StorySwitches.BrokenSkillUses += 1;
 	}
 
 	internal static async Task PersistEvent(PartyMember user)
@@ -463,8 +447,6 @@ internal static class SunnyRegistry
 		await Wait.Frames(2);
 		DialogueManager.Instance.QueueMessage(@"You tried to PERSIST...\|[br]but you couldn't hold steady.");
 		await DialogueManager.Instance.WaitForDialogue();
-		if (!StorySwitches.BasilBattle)
-			StorySwitches.BrokenSkillUses += 1;
 	}
 
 	internal static async Task ReleaseStress(PartyMember sunny)
@@ -478,11 +460,7 @@ internal static class SunnyRegistry
 		float savedPitch = AudioManager.Instance.CurrentBGMPitch;
 		double savedLoopOffset = (bgm.Stream as AudioStreamOggVorbis)?.LoopOffset ?? 0;
 		await Wait.Frames(60);
-		if (FightMusicAllowed())
-		{
-			AudioManager.Instance.FadeBGMTo(0.001f, 5f);
-			AudioManager.Instance.ForceFadeOutBGS(5f);
-		}
+		FadeFightMusic(5f);
 		AnimationManager.Instance.ShowPicture(5, "black_screen", Vector2.Zero, false, Vector2.One, 0);
 		await AnimationManager.Instance.WaitForMovePicture(5, Vector2.Zero, Vector2.One, 255, 300);
 		await Wait.Frames(90);
@@ -560,12 +538,20 @@ internal static class SunnyRegistry
 	{
 		if (StorySwitches.HeightsDone)
 			return;
-		await AnimationManager.Instance.WaitForTintOverlay(Colors.Black, 24 / 60f, layer: 22);
+		await FearPages.FadeOutScreen();
 		AnimationManager.Instance.TintScreen(0, 0, 0, 0, 1f);
 	}
 
 	private static bool FightMusicAllowed() =>
 		!AudioManager.Instance.BGMLocked && BattleManager.Instance.GetAllAliveEnemies().All(enemy => enemy.CanChangeBGM);
+
+	private static void FadeFightMusic(float seconds)
+	{
+		if (!FightMusicAllowed())
+			return;
+		AudioManager.Instance.FadeBGMTo(0.001f, seconds);
+		AudioManager.Instance.ForceFadeOutBGS(seconds);
+	}
 
 	private static void StunAllEnemies()
 	{

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using OmoriSandbox.Actors;
-using Path = System.IO.Path;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Battle;
 
@@ -124,7 +124,7 @@ public readonly struct FollowupEntry
 
 	private static Texture2D LoadModTexture(string path)
 	{
-		if (string.IsNullOrWhiteSpace(path) || path.Contains("..") || path.Contains("://") || Path.IsPathRooted(path))
+		if (!SandboxExtensions.IsSafeModPath(path))
 		{
 			GD.PushError($"Invalid followup bubble path '{path}' (path traversal not allowed)");
 			return null;

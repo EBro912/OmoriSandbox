@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Extensions;
 
 namespace OmoriSandbox.Editor;
 
@@ -43,21 +44,7 @@ internal partial class EditorManager : Node
 		
 		ReturnButton.Pressed += () =>
 		{
-			ConfirmationDialog dialog = new()
-			{
-				Title = "Confirmation",
-				DialogText = "Are you sure you want to return?\nAll unsaved progress will be lost.",
-				Unresizable = true
-			};
-			dialog.Confirmed += () =>
-			{
-				ReturnToTitle();
-				dialog.QueueFree();
-			};
-			dialog.Canceled += dialog.QueueFree;
-			AddChild(dialog);
-			dialog.PopupCentered();
-			dialog.Show();
+			ShowConfirm("Are you sure you want to return?\nAll unsaved progress will be lost.", ReturnToTitle);
 		};
 
 		foreach (Control control in AddActorControls)
@@ -128,14 +115,8 @@ internal partial class EditorManager : Node
 			if (PresetManager.Instance.TryGetPreset(ImportPresetDropdown.GetItemText(ImportPresetDropdown.Selected),
 					out BattlePreset preset))
 			{
-				BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
-				editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
-				StageTabs.AddChild(editor);
-				editor.CopyFrom(preset);
-				ApplyChangesLock();
-				int total = StageTabs.GetTabCount();
-				StageTabs.SetTabTitle(total - 1, total.ToString());
-				if (total == 1)
+				BossRushStageEditorComponent editor = AddStageEditor(stage => stage.CopyFrom(preset));
+				if (StageTabs.GetTabCount() == 1)
 				{
 					editor.ShowEnemies();
 					BattlebackPreview.SetBattleback(editor.BattlebackBGMEditor.SelectedBattleback);
@@ -143,29 +124,13 @@ internal partial class EditorManager : Node
 			}
 		};
 		
-		AddStageButton.Pressed += () =>
-		{
-			BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
-			editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
-			StageTabs.AddChild(editor);
-			ApplyChangesLock();
-			int total = StageTabs.GetTabCount();
-			StageTabs.SetTabTitle(total - 1, total.ToString());
-		};
+		AddStageButton.Pressed += () => AddStageEditor();
 
 		DuplicateStageButton.Pressed += () =>
 		{
 			Control tab = StageTabs.GetTabControl(StageTabs.CurrentTab);
 			if (tab is BossRushStageEditorComponent editor)
-			{
-				BossRushStageEditorComponent newEditor = StageEditor.Instantiate<BossRushStageEditorComponent>();
-				StageTabs.AddChild(newEditor);
-				newEditor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
-				newEditor.CopyFrom(editor);
-				ApplyChangesLock();
-				int total = StageTabs.GetTabCount();
-				StageTabs.SetTabTitle(total - 1, total.ToString());
-			}
+				AddStageEditor(stage => stage.CopyFrom(editor));
 		};
 
 		RemoveStageButton.Pressed += () =>
@@ -302,21 +267,7 @@ internal partial class EditorManager : Node
 
 		if (PresetManager.Instance.PresetExists(PresetInput.Text))
 		{
-			ConfirmationDialog dialog = new()
-			{
-				Title = "Confirmation",
-				DialogText = "A preset with this name already exists.\nDo you want to overwrite it?",
-				Unresizable = true
-			};
-			dialog.Confirmed += () =>
-			{
-				Save();
-				dialog.QueueFree();
-			};
-			dialog.Canceled += dialog.QueueFree;
-			AddChild(dialog);
-			dialog.PopupCentered();
-			dialog.Show();
+			ShowConfirm("A preset with this name already exists.\nDo you want to overwrite it?", Save);
 		}
 		else
 		{
@@ -396,23 +347,7 @@ internal partial class EditorManager : Node
 			foreach (Node child in EnemyTabs.GetChildren())
 			{
 				if (child is EnemyEditorComponent editor)
-				{
-					BattlePresetEnemy enemy = new()
-					{
-						Name = editor.EnemyDropdown.GetItemText(editor.EnemyDropdown.Selected),
-						Position = GD.VarToStr(new Vector2((float)editor.XPosBox.Value, (float)editor.YPosBox.Value)),
-						Emotion = editor.EmotionDropdown.GetItemText(editor.EmotionDropdown.Selected),
-						Layer = (int)editor.LayerBox.Value,
-						FallsOffScreen = editor.FallsOffScreenCheckbox.ButtonPressed,
-						GrayscaleOnDefeat = editor.GrayscaleOnDefeatCheckbox.ButtonPressed,
-						PreventBattlebackChanges = editor.PreventBattlebackChanges,
-						PreventBGMChanges = editor.PreventBGMChanges,
-						AdjustedStats = editor.GetAdjustedStats()
-					};
-					if (enemy.Emotion is "hurt" or "toast")
-						enemy.Emotion = "neutral";
-					enemies.Add(enemy);
-				}
+					enemies.Add(ToSavedEnemy(editor));
 			}
 		}
 		else
@@ -436,23 +371,7 @@ internal partial class EditorManager : Node
 					foreach (Node subChild in editor.Enemies.GetChildren())
 					{
 						if (subChild is EnemyEditorComponent enemyEditor)
-						{
-							BattlePresetEnemy enemy = new()
-							{
-								Name = enemyEditor.EnemyDropdown.GetItemText(enemyEditor.EnemyDropdown.Selected),
-								Position = GD.VarToStr(new Vector2((float)enemyEditor.XPosBox.Value, (float)enemyEditor.YPosBox.Value)),
-								Emotion = enemyEditor.EmotionDropdown.GetItemText(enemyEditor.EmotionDropdown.Selected),
-								Layer = (int)enemyEditor.LayerBox.Value,
-								FallsOffScreen = enemyEditor.FallsOffScreenCheckbox.ButtonPressed,
-								GrayscaleOnDefeat = enemyEditor.GrayscaleOnDefeatCheckbox.ButtonPressed,
-								PreventBattlebackChanges = enemyEditor.PreventBattlebackChanges,
-								PreventBGMChanges = enemyEditor.PreventBGMChanges,
-								AdjustedStats = enemyEditor.GetAdjustedStats()
-							};
-							if (enemy.Emotion is "hurt" or "toast")
-								enemy.Emotion = "neutral";
-							stage.Enemies.Add(enemy);
-						}
+							stage.Enemies.Add(ToSavedEnemy(enemyEditor));
 					}
 					stages.Add(stage);
 				}
@@ -592,9 +511,7 @@ internal partial class EditorManager : Node
 		{
 			foreach (BattlePresetBossRushStage entry in preset.Stages)
 			{
-				BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
-				editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
-				StageTabs.AddChild(editor);
+				BossRushStageEditorComponent editor = AddStageEditor();
 				StageTabs.SetTabTitle(StageTabs.GetTabCount() - 1, entry.StageNumber.ToString());
 				editor.BattlebackBGMEditor.SelectedBattleback = entry.Battleback;
 				editor.BattlebackBGMEditor.SelectedBGM = entry.BGM;
@@ -723,21 +640,7 @@ internal partial class EditorManager : Node
 			ShowWindow("Error", $"The {preset} preset comes from the mod \"{mod}\" and can't be deleted");
 			return;
 		}
-		ConfirmationDialog dialog = new()
-		{
-			Title = "Confirmation",
-			DialogText = "Are you sure you want to delete the " + preset + " preset?",
-			Unresizable = true
-		};
-		dialog.Confirmed += () =>
-		{
-			Delete();
-			dialog.QueueFree();
-		};
-		dialog.Canceled += dialog.QueueFree;
-		AddChild(dialog);
-		dialog.PopupCentered();
-		dialog.Show();
+		ShowConfirm("Are you sure you want to delete the " + preset + " preset?", Delete);
 	}
 
 	private void Delete()
@@ -760,21 +663,7 @@ internal partial class EditorManager : Node
 
 	private void PreResetToDefault()
 	{
-		ConfirmationDialog dialog = new()
-		{
-			Title = "Confirmation",
-			DialogText = "Are you sure you want to reset everything to default?\nIf you have not created a preset, this action cannot be undone.",
-			Unresizable = true
-		};
-		dialog.Confirmed += () =>
-		{
-			ResetToDefault();
-			dialog.QueueFree();
-		};
-		dialog.Canceled += dialog.QueueFree;
-		AddChild(dialog);
-		dialog.PopupCentered();
-		dialog.Show();
+		ShowConfirm("Are you sure you want to reset everything to default?\nIf you have not created a preset, this action cannot be undone.", ResetToDefault);
 	}
 
 	private void ResetToDefault()
@@ -832,6 +721,7 @@ internal partial class EditorManager : Node
 		}
 		
 		FollowupTierSlider.Value = 1;
+		StartingEnergySlider.Value = 3;
 		EnergyBarVisibilityDropdown.Selected = 0;
 		DisableDialogue.ButtonPressed = false;
 		DisableDamageNumbers.ButtonPressed = false;
@@ -853,19 +743,48 @@ internal partial class EditorManager : Node
 		MainTabs.CurrentTab = 0;
 	}
 
-	private void ShowWindow(string title, string message)
+	private static BattlePresetEnemy ToSavedEnemy(EnemyEditorComponent editor)
 	{
-		AcceptDialog dialog = new()
+		BattlePresetEnemy enemy = editor.ToPreset();
+		if (enemy.Emotion is "hurt" or "toast")
+			enemy.Emotion = "neutral";
+		return enemy;
+	}
+
+	private BossRushStageEditorComponent AddStageEditor(Action<BossRushStageEditorComponent> setup = null)
+	{
+		BossRushStageEditorComponent editor = StageEditor.Instantiate<BossRushStageEditorComponent>();
+		editor.BattlebackBGMEditor.Init(BGMPreview, BattlebackPreview);
+		StageTabs.AddChild(editor);
+		setup?.Invoke(editor);
+		ApplyChangesLock();
+		int total = StageTabs.GetTabCount();
+		StageTabs.SetTabTitle(total - 1, total.ToString());
+		return editor;
+	}
+
+	private void ShowConfirm(string message, Action confirmed)
+	{
+		ConfirmationDialog dialog = new()
 		{
-			Title = title,
+			Title = "Confirmation",
 			DialogText = message,
 			Unresizable = true
 		};
-		AddChild(dialog);
-		dialog.Confirmed += dialog.QueueFree;
+		dialog.Confirmed += () =>
+		{
+			confirmed();
+			dialog.QueueFree();
+		};
 		dialog.Canceled += dialog.QueueFree;
+		AddChild(dialog);
 		dialog.PopupCentered();
 		dialog.Show();
+	}
+
+	private void ShowWindow(string title, string message)
+	{
+		this.ShowNoteDialog(title, message);
 	}
 
 	public static EditorManager Instance { get; private set; }

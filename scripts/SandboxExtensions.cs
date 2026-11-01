@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Godot;
+using Path = System.IO.Path;
 
 namespace OmoriSandbox.Extensions;
 
@@ -26,12 +27,32 @@ public static class SandboxExtensions
     /// Creates a timer that waits for the given number of seconds.
     /// </summary>
     /// <remarks>
-    /// If you are working outside of a Node, you can use <see cref="GameManager.Wait(float)"/> instead.
+    /// If you are working outside a Node, you can use <see cref="GameManager.Wait(float)"/> instead.
     /// </remarks>
     /// <param name="node">The node to attach the timer to.</param>
     /// <param name="seconds">The amount of seconds to wait for.</param>
     public static async Task Wait(this Node node, float seconds)
     {
         await node.ToSignal(node.GetTree().CreateTimer(seconds), SceneTreeTimer.SignalName.Timeout);
+    }
+
+    internal static bool IsSafeModPath(string path)
+    {
+        return !string.IsNullOrWhiteSpace(path) && !path.Contains("..") && !path.Contains("://") && !Path.IsPathRooted(path);
+    }
+
+    internal static void ShowNoteDialog(this Node parent, string title, string message)
+    {
+        AcceptDialog dialog = new()
+        {
+            Title = title,
+            DialogText = message,
+            Unresizable = true
+        };
+        parent.AddChild(dialog);
+        dialog.Confirmed += dialog.QueueFree;
+        dialog.Canceled += dialog.QueueFree;
+        dialog.PopupCentered();
+        dialog.Show();
     }
 }

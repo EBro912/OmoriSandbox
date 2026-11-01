@@ -38,11 +38,6 @@ internal partial class PartyMenu : Menu, ISkinnableMenu
 		CursorIndex = 0;
 	}
 
-	public void SetSkinMode(MenuSkinMode mode)
-	{
-		ApplySkin(Database.GetMenuSkin(mode.ToString()));
-	}
-
 	public void ApplySkin(MenuSkin skin)
 	{
 		FightSprite.Texture = skin.PartyCommandsTexture;

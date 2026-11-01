@@ -13,11 +13,9 @@ public partial class SettingsMenuManager : Control
 	public override void _Ready()
 	{
 		ConfigFile config = new();
-		if (config.Load("user://settings.cfg") != Error.Ok)
-		{
+		bool generate = config.Load("user://settings.cfg") != Error.Ok;
+		if (generate)
 			GD.PushWarning("Generating new settings file...");
-			GenerateDefaultConfig(ref config);
-		}
 
 		FullscreenCheckbox.Toggled += value =>
 		{
@@ -150,32 +148,19 @@ public partial class SettingsMenuManager : Control
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
 		BGMSlider.Value = (float)config.GetValue("Settings", "BGMVolume", 0.5f);
 		BGSSlider.Value = (float)config.GetValue("Settings", "BGSVolume", 0.5f);
-		ShowFPSCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowFPS", true);
-		LogDebugCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "LogDebugMessages", false);
-		PreventRunCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PreventAccidentalRun", false);
-		DisableDamageLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableDamageLimit", false);
-		DisableStatLimitCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "DisableStatLimit", false);
-		ShowMoreInfoCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowMoreInfo", false);
-		ShowStateIconsCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ShowStateIcons", false);
-		EnemySelectionWrappingCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnemySelectionWrapping", false);
+		SetBusVolume("Master", (float)MasterSlider.Value);
+		SetBusVolume("BGM", (float)BGMSlider.Value);
+		SetBusVolume("BGS", (float)BGSSlider.Value);
+		SetBusVolume("SFX", (float)SFXSlider.Value);
+		foreach ((string key, CheckBox box, bool fallback) in CheckboxSettings)
+			box.ButtonPressed = (bool)config.GetValue("Settings", key, fallback);
+		foreach ((string key, CheckBox box) in RuleSettings)
+			box.ButtonPressed = key == "AllowStateReapplyOnRemoval" ? ReadAllowStateReapplyOnRemoval(config) : (bool)config.GetValue("Settings", key, false);
 		SelectionHoldTimeSlider.Value = (double)config.GetValue("Settings", "SelectionHoldTime", 0.4d);
 		SelectionChangeSpeedSlider.Value = (double)config.GetValue("Settings", "SelectionChangeSpeed", 0.1d);
-		UseConsoleSpdCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "UseConsoleSpd", false);
-		UseConsoleDefCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "UseConsoleDef", false);
-		InfiniteBuffsDebuffsCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "InfiniteBuffsDebuffs", false);
-		VertigoUsesAtkCheckbox.ButtonPressed =  (bool)config.GetValue("Settings", "VertigoUsesAtk", false);
-		ToysUseEmotionDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ToysUseEmotionDamage", false);
-		SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
-		ReleaseEnergyAnyPartyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "ReleaseEnergyAnyParty", false);
-		PerTargetBuffTiersCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PerTargetBuffTiers", false);
-		AllowEnemyAbortCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "AllowEnemyAbort", false);
-		EnableDebugDamageCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "EnableDebugDamage", false);
-		CombinedAccuracyCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "CombinedAccuracy", false);
-		AllowStateReapplyOnRemovalCheckbox.ButtonPressed = ReadAllowStateReapplyOnRemoval(config);
 		BattlelogSpeedSlider.Value = (int)config.GetValue("Settings", "BattlelogSpeed", 3);
 		ActionDelaySlider.Value = (int)config.GetValue("Settings", "ActionDelay", 3);
 		DialogueSpeedSlider.Value = (double)config.GetValue("Settings", "DialogueSpeed", 1d);
-		TextSkipCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "TextSkip", true);
 
 		LastSelectedPreset = (string)config.GetValue("Settings", "LastSelectedPreset", "");
 		TitleBGM = (string)config.GetValue("Settings", "TitleBGM", DefaultTitleBGM);
@@ -211,6 +196,8 @@ public partial class SettingsMenuManager : Control
 		};
 
 		Instance = this;
+		if (generate)
+			SaveSettings();
 	}
 
 	/// <summary>Closes settings and returns to the title controls.</summary>
@@ -294,30 +281,12 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "BattlelogSpeed", (int)BattlelogSpeedSlider.Value);
 		config.SetValue("Settings", "ActionDelay", (int)ActionDelaySlider.Value);
 		config.SetValue("Settings", "DialogueSpeed", DialogueSpeedSlider.Value);
-		config.SetValue("Settings", "TextSkip", TextSkipCheckbox.ButtonPressed);
-		config.SetValue("Settings", "ShowFPS", ShowFPSCheckbox.ButtonPressed);
-		config.SetValue("Settings", "LogDebugMessages", LogDebugCheckbox.ButtonPressed);
-		config.SetValue("Settings", "PreventAccidentalRun", PreventRunCheckbox.ButtonPressed);
-		config.SetValue("Settings", "DisableDamageLimit", DisableDamageLimitCheckbox.ButtonPressed);
-		config.SetValue("Settings", "DisableStatLimit", DisableStatLimitCheckbox.ButtonPressed);
-		config.SetValue("Settings", "ShowMoreInfo", ShowMoreInfoCheckbox.ButtonPressed);
-		config.SetValue("Settings", "ShowStateIcons", ShowStateIconsCheckbox.ButtonPressed);
-		config.SetValue("Settings", "EnemySelectionWrapping", EnemySelectionWrappingCheckbox.ButtonPressed);
-		config.SetValue("Settings", "PlayFinalDuet", PlayFinalDuetCheckbox.ButtonPressed);
 		config.SetValue("Settings", "SelectionHoldTime", SelectionHoldTimeSlider.Value);
 		config.SetValue("Settings", "SelectionChangeSpeed", SelectionChangeSpeedSlider.Value);
-		config.SetValue("Settings", "UseConsoleSpd", UseConsoleSpdCheckbox.ButtonPressed);
-		config.SetValue("Settings", "UseConsoleDef", UseConsoleDefCheckbox.ButtonPressed);
-		config.SetValue("Settings", "InfiniteBuffsDebuffs", InfiniteBuffsDebuffsCheckbox.ButtonPressed);
-		config.SetValue("Settings", "VertigoUsesAtk", VertigoUsesAtkCheckbox.ButtonPressed);
-		config.SetValue("Settings", "ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox.ButtonPressed);
-		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox.ButtonPressed);
-		config.SetValue("Settings", "ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox.ButtonPressed);
-		config.SetValue("Settings", "PerTargetBuffTiers", PerTargetBuffTiersCheckbox.ButtonPressed);
-		config.SetValue("Settings", "AllowEnemyAbort", AllowEnemyAbortCheckbox.ButtonPressed);
-		config.SetValue("Settings", "EnableDebugDamage", EnableDebugDamageCheckbox.ButtonPressed);
-		config.SetValue("Settings", "CombinedAccuracy", CombinedAccuracyCheckbox.ButtonPressed);
-		config.SetValue("Settings", "AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox.ButtonPressed);
+		foreach ((string key, CheckBox box, bool _) in CheckboxSettings)
+			config.SetValue("Settings", key, box.ButtonPressed);
+		foreach ((string key, CheckBox box) in RuleSettings)
+			config.SetValue("Settings", key, box.ButtonPressed);
 		config.SetValue("Settings", "LastSelectedPreset", LastSelectedPreset ?? "");
 		config.SetValue("Settings", "TitleBGM", TitleBGM);
 		config.SetValue("Settings", "TitleBGMLoopPoint", TitleBGMLoopPoint);
@@ -362,60 +331,6 @@ public partial class SettingsMenuManager : Control
 		return "Unbound";
 	}
 
-	private void GenerateDefaultConfig(ref ConfigFile config)
-	{
-		config.SetValue("Settings", "Fullscreen", false);
-		config.SetValue("Settings", "WindowWidth", 640);
-		config.SetValue("Settings", "WindowHeight", 480);
-		config.SetValue("Settings", "CanvasWidth", 0);
-		config.SetValue("Settings", "EdgePortraits", false);
-		config.SetValue("Settings", "MasterVolume", 0.75f);
-		config.SetValue("Settings", "BGMVolume", 0.5f);
-		config.SetValue("Settings", "BGSVolume", 0.5f);
-		config.SetValue("Settings", "SFXVolume", 1f);
-		config.SetValue("Settings", "BattlelogSpeed", 3);
-		config.SetValue("Settings", "ActionDelay", 3);
-		config.SetValue("Settings", "DialogueSpeed", 1d);
-		config.SetValue("Settings", "TextSkip", true);
-		config.SetValue("Settings", "ShowFPS", true);
-		config.SetValue("Settings", "LogDebugMessages", false);
-		config.SetValue("Settings", "PreventAccidentalRun", false);
-		config.SetValue("Settings", "DisableDamageLimit", false);
-		config.SetValue("Settings", "DisableStatLimit", false);
-		config.SetValue("Settings", "ShowMoreInfo", false);
-		config.SetValue("Settings", "ShowStateIcons", false);
-		config.SetValue("Settings", "EnemySelectionWrapping", false);
-		config.SetValue("Settings", "PlayFinalDuet", false);
-		config.SetValue("Settings", "SelectionHoldTime", 0.4d);
-		config.SetValue("Settings", "SelectionChangeSpeed", 0.1d);
-		config.SetValue("Settings","UseConsoleSpd", false);
-		config.SetValue("Settings","UseConsoleDef", false);
-		config.SetValue("Settings", "InfiniteBuffsDebuffs", false);
-		config.SetValue("Settings", "VertigoUsesAtk", false);
-		config.SetValue("Settings", "ToysUseEmotionDamage", false);
-		config.SetValue("Settings", "SpaceExHusbandReleaseEnergy", false);
-		config.SetValue("Settings", "ReleaseEnergyAnyParty", false);
-		config.SetValue("Settings", "PerTargetBuffTiers", false);
-		config.SetValue("Settings", "AllowEnemyAbort", false);
-		config.SetValue("Settings", "EnableDebugDamage", false);
-		config.SetValue("Settings", "CombinedAccuracy", false);
-		config.SetValue("Settings", "AllowStateReapplyOnRemoval", false);
-		config.SetValue("Settings", "LastSelectedPreset", "");
-		config.SetValue("Settings", "TitleBGM", DefaultTitleBGM);
-		config.SetValue("Settings", "TitleBGMLoopPoint", 0d);
-		config.SetValue("Keybinds", "RestartHoldTime", 1d);
-		config.SetValue("Keybinds", "SpeedUpMultiplier", 1.5d);
-		foreach (Node node in KeybindGrid.GetChildren())
-		{
-			if (node is KeybindButton keybind)
-			{
-				config.SetValue("Keybinds", keybind.AssociatedAction, OS.GetKeycodeString(keybind.DefaultKey));
-				config.SetValue("ControllerBinds", keybind.AssociatedAction, ControllerBinding.Serialize(keybind.DefaultControllerBinding));
-			}
-		}
-		config.Save("user://settings.cfg");
-	}
-	
 	private static readonly int[] AspectWidths = [0, 640, 768, 852, 1120];
 	private Vector2I WindowedSize = new(640, 480);
 
@@ -440,17 +355,7 @@ public partial class SettingsMenuManager : Control
 
 	private void ShowNote(string title, string message)
 	{
-		AcceptDialog dialog = new()
-		{
-			Title = title,
-			DialogText = message,
-			Unresizable = true
-		};
-		AddChild(dialog);
-		dialog.Confirmed += dialog.QueueFree;
-		dialog.Canceled += dialog.QueueFree;
-		dialog.PopupCentered();
-		dialog.Show();
+		this.ShowNoteDialog(title, message);
 	}
 
 	private void SetBusVolume(string bus, float volume)
@@ -465,6 +370,19 @@ public partial class SettingsMenuManager : Control
 	}
 
 	public static SettingsMenuManager Instance { get; private set; }
+
+	private IReadOnlyList<(string Key, CheckBox Box, bool Default)> CheckboxSettings =>
+	[
+		("TextSkip", TextSkipCheckbox, true),
+		("ShowFPS", ShowFPSCheckbox, true),
+		("LogDebugMessages", LogDebugCheckbox, false),
+		("PreventAccidentalRun", PreventRunCheckbox, false),
+		("ShowMoreInfo", ShowMoreInfoCheckbox, false),
+		("ShowStateIcons", ShowStateIconsCheckbox, false),
+		("EnemySelectionWrapping", EnemySelectionWrappingCheckbox, false),
+		("PlayFinalDuet", PlayFinalDuetCheckbox, false),
+		("EnableDebugDamage", EnableDebugDamageCheckbox, false)
+	];
 
 	internal IReadOnlyList<(string Key, CheckBox Box)> RuleSettings =>
 	[

@@ -77,7 +77,7 @@ internal sealed class SomethingInTheWalls : Enemy
             AnimationManager.Instance.MovePicture(2, Vector2.Zero, Vector2.One, 200, 30);
             FearPages.DimIn();
             await Wait.Frames(25);
-            await FearPages.Voice($"This is getting nowhere fast... huh, {FearPages.SunnyName}?");
+            await DialogueManager.Instance.ShowMessage("???", $"This is getting nowhere fast... huh, {FearPages.SunnyName}?");
             await Wait.Frames(25);
             AnimationManager.Instance.MovePicture(2, Vector2.Zero, Vector2.One, 160, 30);
             await FearPages.DimOut();
@@ -87,10 +87,10 @@ internal sealed class SomethingInTheWalls : Enemy
             sunny.LearnSkill("Focus");
             FearPages.DimIn();
             await Wait.Frames(25);
-            await FearPages.Voice("It seems like there's a lot going on...");
-            await FearPages.Voice(@"You need to block out the little things...\! and figure out what's important!");
+            await DialogueManager.Instance.ShowMessage("???", "It seems like there's a lot going on...");
+            await DialogueManager.Instance.ShowMessage("???", @"You need to block out the little things...\! and figure out what's important!");
             await Wait.Frames(45);
-            await FearPages.Narrate("You clear your mind... and remember how to FOCUS.");
+            await DialogueManager.Instance.ShowMessage("You clear your mind... and remember how to FOCUS.");
             sunny.EquipSkill(1, "Focus");
             await Wait.Frames(25);
             await FearPages.DimOut();
@@ -100,7 +100,7 @@ internal sealed class SomethingInTheWalls : Enemy
         {
             FearPages.DimIn();
             await Wait.Frames(25);
-            await FearPages.Voice(@"It's hard to FOCUS when you're all riled up.\! Remember to take a deep breath...");
+            await DialogueManager.Instance.ShowMessage("???", @"It's hard to FOCUS when you're all riled up.\! Remember to take a deep breath...");
             await Wait.Frames(25);
             await FearPages.DimOut();
         }

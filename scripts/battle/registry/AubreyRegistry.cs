@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Animation;
+using OmoriSandbox.Menu;
 
 namespace OmoriSandbox.Battle.Registry;
 
@@ -473,13 +474,12 @@ internal static class AubreyRegistry
 				await Wait.Milliseconds(1000);
 				await AnimationManager.Instance.WaitForAnimation(212, self);
 				int hpBefore = self.CurrentHP;
+				int juiceBefore = self.CurrentJuice;
 				BattleLogManager.Instance.QueueMessage(self, other, "[target] cheers [actor]!");
 				self.Heal(BattleManager.PercentOf(self.CurrentStats.MaxHP, 25));
 				self.AddTierStatModifier("DefenseUp", 2);
 				BattleManager.Instance.MakeHappy(self);
-				int heal = self.CurrentHP - hpBefore;
-				if (heal > 0)
-					BattleLogManager.Instance.QueueMessage(self, $"[actor] recovers {heal} HEART!");
+				QueueRecoveryLines(self, hpBefore, juiceBefore);
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
@@ -514,13 +514,7 @@ internal static class AubreyRegistry
 				// DIALOGUE QUIRK: prints the success line even when the stat is already at its limit
 				self.AddTierStatModifier("DefenseUp", 3);
 				QueueEmotionLine(self, "happy", lookHero3Ecstatic);
-				int heal = self.CurrentHP - hpBefore;
-				if (heal > 0)
-					BattleLogManager.Instance.QueueMessage(self, $"[actor] recovers {heal} HEART!");
-				int juice = self.CurrentJuice - juiceBefore;
-				// DIALOGUE QUIRK: the JUICE line is skipped when the target had no JUICE before the heal
-				if (juiceBefore > 0 && juice > 0)
-					BattleLogManager.Instance.QueueMessage(self, $"[actor] recovers {juice} JUICE...");
+				QueueRecoveryLines(self, hpBefore, juiceBefore);
 				return Task.CompletedTask;
 			},
 			hidden: true
@@ -577,7 +571,7 @@ internal static class AubreyRegistry
 		}).WithRequirementFailureMessage("[actor] does not have enough HP!");
 	}
 
-	private static void QueueLookAtKelLines(Actor self, Actor other)
+	private static void QueueLookAtKelLines(Actor self, PartyMember other)
 	{
 		int selfTier = self.CurrentEmotion.Group?.Id == "angry" ? self.CurrentEmotion.Tier : 0;
 		int otherTier = other.CurrentEmotion.Group?.Id == "angry" ? other.CurrentEmotion.Tier : 0;

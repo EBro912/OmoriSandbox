@@ -23,28 +23,21 @@ public partial class EnemyMoreInfoBox : EnemyInfoBox
 	internal override void SetEnemy(Enemy enemy)
 	{
 		base.SetEnemy(enemy);
-		Stats stats = Enemy.CurrentStats;
-		JuiceBar.MaxValue = Mathf.Max(1, stats.MaxJuice);
-		JuiceBar.Value = Enemy.CurrentJuice;
-		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
-		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{stats.MaxJuice}";
-		ATKLabel.Text = $"ATK: {stats.ATK}";
-		SPDLabel.Text = $"SPD: {stats.SPD}";
-		DEFLabel.Text = $"DEF: {stats.DEF}";
-		LCKLabel.Text = $"LCK: {stats.LCK}";
-		HITLabel.Text = $"HIT: {stats.HIT}";
-		EVALabel.Text = $"EVA: {stats.EVA}";
-		Animator.SetStateAtlas(Enemy.CurrentEmotion.Id);
-		ResizeBox();
+		RefreshStats();
 	}
 
 	internal override void Show(bool show)
 	{
 		base.Show(show);
+		RefreshStats();
+	}
+
+	private void RefreshStats()
+	{
 		Stats stats = Enemy.CurrentStats;
-		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
 		JuiceBar.MaxValue = Mathf.Max(1, stats.MaxJuice);
 		JuiceBar.Value = Enemy.CurrentJuice;
+		HPLabel.Text = $"{Enemy.CurrentHP}/{stats.MaxHP}";
 		JuiceLabel.Text = $"{Enemy.CurrentJuice}/{stats.MaxJuice}";
 		ATKLabel.Text = $"ATK: {stats.ATK}";
 		SPDLabel.Text = $"SPD: {stats.SPD}";

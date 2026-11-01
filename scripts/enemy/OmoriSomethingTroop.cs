@@ -5,7 +5,6 @@ using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
-using OmoriSandbox.Extensions;
 using OmoriSandbox.Menu;
 
 namespace OmoriSandbox.Actors;
@@ -207,7 +206,7 @@ internal sealed class OmoriSomethingTroop
         PartyMember standIn = StandIn;
         AnimationManager animation = AnimationManager.Instance;
         await FearPages.FadeOutScreen();
-        RemoveMarker(standIn, "CalmDownText");
+        FearPages.RemoveState(standIn, "CalmDownText");
         Kill(7);
         Appear(6);
         ChangeFear(standIn);
@@ -229,7 +228,7 @@ internal sealed class OmoriSomethingTroop
         AnimationManager.Instance.ErasePicture(2);
         Kill(6);
         Appear(5);
-        RemoveMarker(standIn, "CalmDownText");
+        FearPages.RemoveState(standIn, "CalmDownText");
         Host.RemoveBattlebackLayer(3);
         await Wait.Frames(90);
         await FearPages.FadeInScreen();
@@ -271,7 +270,7 @@ internal sealed class OmoriSomethingTroop
         AnimationManager.Instance.ErasePicture(2);
         Kill(4);
         Appear(3);
-        RemoveMarker(standIn, "FocusText");
+        FearPages.RemoveState(standIn, "FocusText");
         Host.RemoveBattlebackLayer(4);
         await Wait.Frames(90);
         await FearPages.FadeInScreen();
@@ -313,7 +312,7 @@ internal sealed class OmoriSomethingTroop
         Kill(2);
         Appear(1);
         Host.RemoveBattlebackLayer(5);
-        RemoveMarker(standIn, "PersistText");
+        FearPages.RemoveState(standIn, "PersistText");
         foreach (PartyMember member in BattleManager.Instance.GetAlivePartyMembers())
         {
             member.SetEmotion("afraid", true);
@@ -342,7 +341,7 @@ internal sealed class OmoriSomethingTroop
         BattleManager.Instance.SetMenuOptionEnabled(BattleMenuOption.Attack, false);
         AttackDisabled = true;
         BattleManager.Instance.BossDisabledAttack = true;
-        RemoveMarker(standIn, "FocusText");
+        FearPages.RemoveState(standIn, "FocusText");
         BattleManager.Instance.Energy = 0;
         await Wait.Frames(60);
         standIn.ForgetSkill("CalmDown");
@@ -360,7 +359,7 @@ internal sealed class OmoriSomethingTroop
         animation.ShowPicture(2, "dark_overlay 2", Vector2.Zero, false, Vector2.One, 0);
         animation.MovePicture(2, Vector2.Zero, Vector2.One, 190, 90);
         await Wait.Frames(15);
-        await FearPages.Narrate("You feel like your life is in danger.");
+        await DialogueManager.Instance.ShowMessage("You feel like your life is in danger.");
         BsSafe = true;
     }
 
@@ -424,12 +423,6 @@ internal sealed class OmoriSomethingTroop
     {
         if (!standIn.IsToast && standIn.SetEmotion("afraid", true))
             BattleLogManager.Instance.QueueMessage(standIn, "[actor] feels AFRAID...");
-    }
-
-    private static void RemoveMarker(PartyMember standIn, string marker)
-    {
-        standIn.RemoveStatModifier(marker);
-        standIn.ClearResult();
     }
 
     private static void RaiseEnergy()

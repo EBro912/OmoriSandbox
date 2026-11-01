@@ -48,18 +48,18 @@ internal class ModdedEnemy : Enemy
     {
         if (JsonEnemy.AI == null)
         {
-            GD.PrintErr($"Modded enemy {Name} has no AI!");
-            return new BattleCommand(this, this, new EmptyAction());
+            ReportAIError($"Modded enemy {Name} has no AI!");
+            return null;
         }
         
         JsonEnemyAIData data = JsonEnemy.AI.FirstOrDefault(x => x.Emotion == CurrentEmotion.Id);
         if (data.Equals(default(JsonEnemyAIData)))
         {
-            GD.PrintErr($"Modded enemy {Name} is missing AI data for emotion {CurrentEmotion.Id}");
-            return new BattleCommand(this, this, new EmptyAction());
+            ReportAIError($"Modded enemy {Name} is missing AI data for emotion {CurrentEmotion.Id}");
+            return null;
         }
         
-        foreach (JsonEnemyAIEntry entry in data.Entries)
+        foreach (JsonEnemyAIEntry entry in data.Entries ?? [])
         {
             if (entry.Skill == JsonEnemy.ObserveMultiSkill && HasMultiTargetObserve())
                 if (TryUseSkill(entry, out BattleCommand command))
@@ -73,25 +73,31 @@ internal class ModdedEnemy : Enemy
                 if (TryUseSkill(entry, out BattleCommand command))
                     return command;
         }
-        GD.PrintErr($"Modded enemy {Name} ProcessAI failed due to an error.");
-        return new BattleCommand(this, this, new EmptyAction());
+        ReportAIError($"Modded enemy {Name} ProcessAI failed due to an error.");
+        return null;
+    }
+
+    private void ReportAIError(string message)
+    {
+        if (!PreRolling)
+            GD.PrintErr(message);
     }
 
     private bool TryUseSkill(JsonEnemyAIEntry entry, out BattleCommand command, PartyMember observeTarget = null)
     {
         if (!Database.TryGetSkill(entry.Skill, out Skill skill))
         {
-            GD.PrintErr($"Unknown skill {entry.Skill} for modded enemy {Name}!");
+            ReportAIError($"Unknown skill {entry.Skill} for modded enemy {Name}!");
             command = null;
             return false;
         }
         if (!Skills.TryGetValue(entry.Skill, out skill))
         {
-            GD.PrintErr($"Modded enemy {Name} does not have the {entry.Skill} skill equipped!");
+            ReportAIError($"Modded enemy {Name} does not have the {entry.Skill} skill equipped!");
             command = null;
             return false;
         }
-        if (GetSkillCooldown(skill) > 0 || skill.UseDisallowed)
+        if (!CanUse(skill))
         {
             command = null;
             return false;
@@ -111,7 +117,7 @@ internal class ModdedEnemy : Enemy
 
         if (command == null)
         {
-            GD.PrintErr($"{skill.Name} on Modded Enemy is either missing data or not supported.");
+            ReportAIError($"{skill.Name} on Modded Enemy is either missing data or not supported.");
             return false;
         }
 

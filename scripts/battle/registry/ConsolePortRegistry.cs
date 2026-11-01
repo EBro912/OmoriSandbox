@@ -307,6 +307,7 @@ internal static class ConsolePortRegistry
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false,
 					silent: true);
 				string partner = aubrey?.Name.ToUpper() ?? "AUBREY";
+				// DIALOGUE QUIRK: prints the HAPPY and DEFENSE lines, but the skill only heals AUBREY
 				BattleLogManager.Instance.QueueMessage(self, $"[actor] tells {partner} to focus.");
 				BattleLogManager.Instance.QueueMessage($"{partner} feels HAPPY!");
 				BattleLogManager.Instance.QueueMessage($"{partner}'s DEFENSE rose!!");
@@ -829,6 +830,7 @@ internal static class ConsolePortRegistry
 				await Wait.Milliseconds(1500);
 				foreach (Actor member in targets)
 				{
+					// DIALOGUE QUIRK: the deal promises 50% of max HEART, but this takes 50% of current HEART
 					BattleManager.Instance.Damage(self, member, () => member.CurrentHP * 0.5f, neverCrit: true);
 					member.DamageJuice((int)Math.Round(member.CurrentStats.MaxJuice * 0.5f));
 				}

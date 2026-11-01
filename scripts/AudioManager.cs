@@ -191,7 +191,6 @@ public partial class AudioManager : Node
 		{
 			if (SettingsMenuManager.Instance.LogDebug)
 				GD.Print($"Ignored PlayBGM(\"{name}\"), the preset locks the BGM.");
-			BGM.VolumeDb = Mathf.LinearToDb(Math.Clamp(volume, 0.001f, 3f));
 			return;
 		}
 		ForcePlayBGM(name, volume, pitch);
@@ -465,8 +464,22 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Seeks the BGM to the given time in seconds.
 	/// </summary>
+	/// <remarks>
+	/// Does nothing while the preset locks the BGM.
+	/// </remarks>
 	/// <param name="seconds">The time to seek to, in seconds.</param>
 	public void SeekBGM(float seconds)
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored SeekBGM({seconds}), the preset locks the BGM.");
+			return;
+		}
+		ForceSeekBGM(seconds);
+	}
+
+	internal void ForceSeekBGM(float seconds)
 	{
 		BGM.Seek(seconds);
 	}
@@ -607,11 +620,23 @@ public partial class AudioManager : Node
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/>.
 	/// </summary>
 	/// <remarks>
+	/// Does nothing while the preset locks the BGM.
 	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.FadeBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
 	/// </remarks>
 	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 3.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public void FadeBGMTo(float volume, float seconds = 1f)
+	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored FadeBGMTo({volume}, {seconds}), the preset locks the BGM.");
+			return;
+		}
+		ForceFadeBGMTo(volume, seconds);
+	}
+
+	internal void ForceFadeBGMTo(float volume, float seconds = 1f)
 	{
 		volume = Math.Clamp(volume, 0.001f, 3f);
 		float target = Mathf.LinearToDb(volume);
@@ -634,13 +659,19 @@ public partial class AudioManager : Node
 	/// Fades the BGM to the given <paramref name="volume"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
 	/// </summary>
 	/// <remarks>
+	/// Completes at once while the preset locks the BGM.
 	/// At the enemy level, use the <see cref="OmoriSandbox.Actors.Enemy.FadeBGM"/> method to respect the <see cref="OmoriSandbox.Actors.Enemy.CanChangeBGM"/> setting.
 	/// </remarks>
 	/// <param name="volume">The volume to fade the BGM to, from 0.001 to 3.0.</param>
 	/// <param name="seconds">How long it should take for the BGM to fade, in seconds.</param>
 	public async Task WaitForFadeBGMTo(float volume, float seconds = 1f)
 	{
-		FadeBGMTo(volume, seconds);
+		if (BGMLocked)
+		{
+			FadeBGMTo(volume, seconds);
+			return;
+		}
+		ForceFadeBGMTo(volume, seconds);
 		Tween tween = VolumeTween;
 		if (tween != null)
 			await ToSignal(tween, Tween.SignalName.Finished);
@@ -649,6 +680,9 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Sets the pitch of the currently playing BGM, from 0.1 to 2.0.
 	/// </summary>
+	/// <remarks>
+	/// Does nothing while the preset locks the BGM.
+	/// </remarks>
 	/// <param name="pitch">The pitch to set the BGM to, from 0.1 to 2.0.</param>
 	public void SetBGMPitch(float pitch)
 	{
@@ -658,10 +692,19 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM pitch to the given <paramref name="pitch"/> over the given number of <paramref name="seconds"/>.
 	/// </summary>
+	/// <remarks>
+	/// Does nothing while the preset locks the BGM.
+	/// </remarks>
 	/// <param name="pitch">The pitch to fade the BGM to, from 0.1 to 2.0.</param>
 	/// <param name="seconds">How long it should take for the pitch to change, in seconds.</param>
 	public void FadeBGMPitchTo(float pitch, float seconds = 1f)
 	{
+		if (BGMLocked)
+		{
+			if (SettingsMenuManager.Instance.LogDebug)
+				GD.Print($"Ignored FadeBGMPitchTo({pitch}, {seconds}), the preset locks the BGM.");
+			return;
+		}
 		pitch = Math.Clamp(pitch, 0.1f, 2f);
 		if (PitchTween != null)
 		{
@@ -682,11 +725,16 @@ public partial class AudioManager : Node
 	/// <summary>
 	/// Fades the BGM pitch to the given <paramref name="pitch"/> over the given number of <paramref name="seconds"/> and waits for it to finish.
 	/// </summary>
+	/// <remarks>
+	/// Completes at once while the preset locks the BGM.
+	/// </remarks>
 	/// <param name="pitch">The pitch to fade the BGM to, from 0.1 to 2.0.</param>
 	/// <param name="seconds">How long it should take for the pitch to change, in seconds.</param>
 	public async Task WaitForFadeBGMPitchTo(float pitch, float seconds = 1f)
 	{
 		FadeBGMPitchTo(pitch, seconds);
+		if (BGMLocked)
+			return;
 		Tween tween = PitchTween;
 		if (tween != null)
 			await ToSignal(tween, Tween.SignalName.Finished);

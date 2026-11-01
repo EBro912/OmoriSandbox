@@ -35,7 +35,6 @@ internal partial class DisplayLayout : Node
     [Export] private Sprite2D PerfectheartOverlay;
     [Export] private Sprite2D PerfectheartOverlayDarken;
     [Export] private Control StatusBar;
-    [Export] private Parallax2D TitleParallax;
 
     private readonly List<CanvasLayer> ExtraLayers = [];
     private float StatusBarLeft;

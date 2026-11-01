@@ -22,7 +22,7 @@ internal sealed class Copypasta : Enemy
 
     public override Task OnStartOfBattle()
     {
-        ReinforcementSlots.ClaimPresetSlots(this, ReinforcementSlots.Copypasta);
+        ReinforcementSlots.ClaimPresetSlots(ReinforcementSlots.Copypasta);
         return Task.CompletedTask;
     }
 
