@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -378,6 +378,7 @@ BGSSlider = NodePath("Tabs/Audio/VBoxContainer/BGSSlider/HSlider")
 SFXSlider = NodePath("Tabs/Audio/VBoxContainer/SFXSlider/HSlider")
 TestSFXButton = NodePath("Tabs/Audio/VBoxContainer/TestSFX")
 FullscreenCheckbox = NodePath("Tabs/Graphics/VBoxContainer/Fullscreen")
+WindowSizeDropdown = NodePath("Tabs/Graphics/VBoxContainer/WindowSize/OptionButton")
 AspectDropdown = NodePath("Tabs/Graphics/VBoxContainer/Aspect/OptionButton")
 PortraitsDropdown = NodePath("Tabs/Graphics/VBoxContainer/Portraits/OptionButton")
 PixelSnappingCheckbox = NodePath("Tabs/Graphics/VBoxContainer/PixelSnapping")
@@ -487,6 +488,31 @@ theme_override_font_sizes/font_size = 25
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Fullscreen"
 
+[node name="WindowSize" type="HBoxContainer" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1735419006]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Label" type="Label" parent="Main/Settings/Tabs/Graphics/VBoxContainer/WindowSize" unique_id=1735419007]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+text = "Window Size"
+
+[node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Graphics/VBoxContainer/WindowSize" unique_id=1735419008]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("10_1ajci")
+theme_override_styles/pressed = ExtResource("11_7b55j")
+theme_override_styles/hover = ExtResource("12_1ajci")
+clip_text = true
+item_count = 2
+popup/item_0/text = "1x"
+popup/item_0/id = 0
+popup/item_1/text = "2x"
+popup/item_1/id = 1
+
 [node name="Aspect" type="HBoxContainer" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1485167171]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -507,7 +533,7 @@ theme_override_styles/pressed = ExtResource("11_7b55j")
 theme_override_styles/hover = ExtResource("12_1ajci")
 clip_text = true
 item_count = 5
-popup/item_0/text = "Fit window"
+popup/item_0/text = "Fit Screen"
 popup/item_0/id = 0
 popup/item_1/text = "4:3 (640 x 480)"
 popup/item_1/id = 1

@@ -72,7 +72,7 @@ shader = ExtResource("68_glitch")
 
 [node name="Main" type="Node2D" unique_id=635364000]
 
-[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar")]
+[node name="DisplayLayout" type="Node" parent="." unique_id=1593883324 node_paths=PackedStringArray("Layers", "Party", "AddActorControls", "Battlebacks", "BattlebackLayers", "Backdrop", "ScreenTint", "PerfectheartViewport", "PerfectheartOverlayParent", "PerfectheartOverlay", "PerfectheartOverlayDarken", "StatusBar", "Letterbox")]
 script = ExtResource("46_layout")
 Layers = [NodePath("../BattleCanvas"), NodePath("../MainMenu/Main"), NodePath("../MainMenu/Editor")]
 Party = NodePath("../BattleCanvas/UI/Party")
@@ -86,6 +86,7 @@ PerfectheartOverlayParent = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScre
 PerfectheartOverlay = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/PerfectheartOverlay")
 PerfectheartOverlayDarken = NodePath("../BattleCanvas/UI/BattlebackRoot/FullScreenEffects/PerfectheartOverlayDarken")
 StatusBar = NodePath("../BattleCanvas/UI/HBoxContainer")
+Letterbox = [NodePath("../Letterbox/Top"), NodePath("../Letterbox/Bottom"), NodePath("../Letterbox/Left"), NodePath("../Letterbox/Right")]
 
 [node name="MainMenu" parent="." unique_id=696068823 instance=ExtResource("1_yq6so")]
 
@@ -1089,3 +1090,22 @@ theme_override_styles/normal = ExtResource("37_c6pm6")
 theme_override_styles/pressed = ExtResource("38_5he1u")
 theme_override_styles/hover = ExtResource("39_5poiv")
 text = "Return to Menu"
+
+[node name="Letterbox" type="CanvasLayer" parent="." unique_id=1735419001]
+layer = 128
+
+[node name="Top" type="ColorRect" parent="Letterbox" unique_id=1735419002]
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Bottom" type="ColorRect" parent="Letterbox" unique_id=1735419003]
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Left" type="ColorRect" parent="Letterbox" unique_id=1735419004]
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Right" type="ColorRect" parent="Letterbox" unique_id=1735419005]
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

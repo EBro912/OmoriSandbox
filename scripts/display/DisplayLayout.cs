@@ -11,14 +11,16 @@ internal partial class DisplayLayout : Node
     internal const int LogicalHeight = 480;
     internal const int MinWidth = 640;
     internal const int MaxWidth = 1120;
+    private static readonly float[] FractionalScales = [1.5f, 2.25f];
 
     internal static DisplayLayout Instance { get; private set; }
-    internal event Action WindowResized;
     internal int Width { get; private set; } = MinWidth;
-    internal int Scale { get; private set; } = 1;
+    internal float Scale { get; private set; } = 1f;
+    internal Vector2 Margin { get; private set; }
     internal bool EdgePortraits { get; private set; }
     internal int CanvasWidth { get; private set; }
     internal float OffsetX => (Width - 640) / 2f;
+    internal Vector2 LayerOffset => Margin + new Vector2(OffsetX, 0);
     internal Rect2 VisibleBattleRect => new(-OffsetX, 0, Width, LogicalHeight);
     
     internal int ExtraLayerCount => ExtraLayers.Count;
@@ -35,6 +37,7 @@ internal partial class DisplayLayout : Node
     [Export] private Sprite2D PerfectheartOverlay;
     [Export] private Sprite2D PerfectheartOverlayDarken;
     [Export] private Control StatusBar;
+    [Export] private ColorRect[] Letterbox;
 
     private readonly List<CanvasLayer> ExtraLayers = [];
     private float StatusBarLeft;
@@ -61,10 +64,9 @@ internal partial class DisplayLayout : Node
         if (GetWindow().Size == WindowSize)
             return;
         Refresh();
-        WindowResized?.Invoke();
     }
 
-    // picks the canvas width and the largest whole-number scale at which it fits the window
+    // picks the canvas width and the largest scale step at which it fits the window
     internal bool Refresh()
     {
         Window window = GetWindow();
@@ -73,29 +75,52 @@ internal partial class DisplayLayout : Node
         if (size.X <= 0 || size.Y <= 0)
             return false;
         int width;
+        float scale;
         if (CanvasWidth > 0)
         {
             // a chosen canvas keeps its width whatever the window shows (never wider than the window)
             width = Math.Min(CanvasWidth, size.X);
             width -= width % 2;
-            Scale = Math.Max(1, Math.Min(size.X / width, size.Y / LogicalHeight));
+            scale = FitScale(width, size);
         }
         else
         {
             // the largest scale at which 640x480 fits, then as much width as the window shows at it
-            Scale = Math.Max(1, Math.Min(size.X / MinWidth, size.Y / LogicalHeight));
-            width = Math.Clamp(size.X / Scale, MinWidth, MaxWidth);
+            scale = FitScale(MinWidth, size);
+            width = Math.Clamp((int)(size.X / scale), MinWidth, MaxWidth);
             // even widths keep the centring offset whole
             width -= width % 2;
         }
-        Vector2I canvas = new(width, LogicalHeight);
-        if (window.ContentScaleSize != canvas)
-            window.ContentScaleSize = canvas;
-        if (width == Width)
+        while (width * scale % 1f != 0f)
+            width -= 2;
+        Vector2 shown = new(width * scale, LogicalHeight * scale);
+        Vector2 margin = ((new Vector2(size.X, size.Y) - shown) / 2f).Floor().Max(Vector2.Zero) / scale;
+        if (window.ContentScaleFactor != scale)
+            window.ContentScaleFactor = scale;
+        bool resized = width != Width;
+        if (!resized && scale == Scale && margin == Margin)
             return false;
         Width = width;
+        Scale = scale;
+        Margin = margin;
+        if (!resized)
+        {
+            PlaceLayers();
+            return false;
+        }
         Apply();
         return true;
+    }
+
+    private static float FitScale(int width, Vector2I size)
+    {
+        float scale = Math.Max(1, Math.Min(size.X / width, size.Y / LogicalHeight));
+        foreach (float step in FractionalScales)
+        {
+            if (step > scale && width * step <= size.X && LogicalHeight * step <= size.Y)
+                scale = step;
+        }
+        return scale;
     }
 
     public void SetCanvasWidth(int width)
@@ -131,7 +156,28 @@ internal partial class DisplayLayout : Node
             return;
         ExtraLayers.Add(layer);
         layer.TreeExiting += () => ExtraLayers.Remove(layer);
-        layer.Offset = new Vector2(OffsetX, 0);
+        layer.Offset = LayerOffset;
+    }
+
+    private void PlaceLayers()
+    {
+        if (!IsNodeReady())
+            return;
+
+        foreach (CanvasLayer layer in Layers)
+            layer.Offset = LayerOffset;
+
+        ExtraLayers.RemoveAll(layer => !IsInstanceValid(layer));
+        foreach (CanvasLayer layer in ExtraLayers)
+            layer.Offset = LayerOffset;
+
+        Vector2 visible = new Vector2(WindowSize.X, WindowSize.Y) / Scale;
+        float right = Margin.X + Width;
+        float bottom = Margin.Y + LogicalHeight;
+        Fill(Letterbox[0], new Rect2(0, 0, visible.X, Margin.Y));
+        Fill(Letterbox[1], new Rect2(0, bottom, visible.X, visible.Y - bottom));
+        Fill(Letterbox[2], new Rect2(0, Margin.Y, Margin.X, LogicalHeight));
+        Fill(Letterbox[3], new Rect2(right, Margin.Y, visible.X - right, LogicalHeight));
     }
 
     private void Apply()
@@ -139,12 +185,7 @@ internal partial class DisplayLayout : Node
         if (!IsNodeReady())
             return;
 
-        foreach (CanvasLayer layer in Layers)
-            layer.Offset = new Vector2(OffsetX, 0);
-
-        ExtraLayers.RemoveAll(layer => !IsInstanceValid(layer));
-        foreach (CanvasLayer layer in ExtraLayers)
-            layer.Offset = new Vector2(OffsetX, 0);
+        PlaceLayers();
 
         foreach (Node child in Party.GetChildren())
         {

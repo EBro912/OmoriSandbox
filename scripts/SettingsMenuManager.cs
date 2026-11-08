@@ -27,13 +27,11 @@ public partial class SettingsMenuManager : Control
 			DisplayLayout layout = DisplayLayout.Instance;
 			if (layout == null)
 				return;
-			int width = AspectWidths[index];
-			int scale = layout.Scale;
-			layout.SetCanvasWidth(width);
-			// when windowed, the window snaps to the chosen canvas at its current scale, so nothing is letterboxed
-			if (width > 0 && IsWindowed())
-				ApplyWindowSize(CanvasWindowSize(width, scale));
+			layout.SetCanvasWidth(AspectWidths[index]);
+			ApplyWindowedSize();
 		};
+
+		WindowSizeDropdown.ItemSelected += _ => ApplyWindowedSize();
 
 		PortraitsDropdown.ItemSelected += index =>
 		{
@@ -67,8 +65,6 @@ public partial class SettingsMenuManager : Control
 			TitleLoopPointSpinBox.Value = AudioManager.Instance.GetBGMPosition();
 		};
 
-		DisplayLayout.Instance.WindowResized += OnWindowSizeChanged;
-		
 		MasterSlider.ValueChanged += value =>
 		{
 			SetBusVolume("Master", (float)value);
@@ -133,12 +129,12 @@ public partial class SettingsMenuManager : Control
 		BackButton.Pressed += Close;
 		
 		// calling these after subscribing to the above events
-		int canvasWidth = (int)config.GetValue("Settings", "CanvasWidth", 0);
+		int canvasWidth = (int)config.GetValue("Settings", "CanvasWidth", 640);
 		AspectDropdown.Selected = Math.Max(0, Array.IndexOf(AspectWidths, canvasWidth));
 		DisplayLayout.Instance?.SetCanvasWidth(AspectWidths[AspectDropdown.Selected]);
-		WindowedSize = new((int)config.GetValue("Settings", "WindowWidth", 640), (int)config.GetValue("Settings", "WindowHeight", 480));
-		if (WindowedSize != GetWindow().Size)
-			ApplyWindowSize(WindowedSize);
+		WindowSizeDropdown.Selected = Math.Max(0, Array.IndexOf(WindowScales, (int)config.GetValue("Settings", "WindowScale", 1)));
+		ApplyWindowedSize();
+		LastWindowMode = GetWindow().Mode;
 		PortraitsDropdown.Selected = (bool)config.GetValue("Settings", "EdgePortraits", false) ? 1 : 0;
 		DisplayLayout.Instance?.SetEdgePortraits(PortraitsDropdown.Selected == 1);
 		FullscreenCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "Fullscreen", false);
@@ -216,25 +212,30 @@ public partial class SettingsMenuManager : Control
 		{
 			FullscreenCheckbox.ButtonPressed = !FullscreenCheckbox.ButtonPressed;
 		}
+
+		Window.ModeEnum mode = GetWindow().Mode;
+		if (mode == LastWindowMode)
+			return;
+		bool wasFullscreen = IsFullscreen(LastWindowMode);
+		LastWindowMode = mode;
+		FullscreenCheckbox.SetPressedNoSignal(IsFullscreen(mode));
+		if (wasFullscreen && !IsFullscreen(mode))
+			ApplyWindowedSize();
 	}
 
 	public override void _ExitTree()
 	{
-		if (DisplayLayout.Instance != null)
-			DisplayLayout.Instance.WindowResized -= OnWindowSizeChanged;
 		SaveSettings();
-	}
-
-	// fullscreen and maximized sizes belong to the screen; only windowed sizes are remembered
-	private void OnWindowSizeChanged()
-	{
-		if (IsWindowed())
-			WindowedSize = GetWindow().Size;
 	}
 
 	private bool IsWindowed()
 	{
 		return GetWindow().Mode is not (Window.ModeEnum.Fullscreen or Window.ModeEnum.ExclusiveFullscreen or Window.ModeEnum.Maximized);
+	}
+
+	private static bool IsFullscreen(Window.ModeEnum mode)
+	{
+		return mode is Window.ModeEnum.Fullscreen or Window.ModeEnum.ExclusiveFullscreen;
 	}
 
 	private DisplayServer.WindowMode FullscreenMode(string osName)
@@ -269,8 +270,7 @@ public partial class SettingsMenuManager : Control
 	{
 		ConfigFile config = new();
 		config.SetValue("Settings", "Fullscreen", FullscreenCheckbox.ButtonPressed);
-		config.SetValue("Settings", "WindowWidth", WindowedSize.X);
-		config.SetValue("Settings", "WindowHeight", WindowedSize.Y);
+		config.SetValue("Settings", "WindowScale", WindowScales[WindowSizeDropdown.Selected]);
 		config.SetValue("Settings", "CanvasWidth", AspectWidths[AspectDropdown.Selected]);
 		config.SetValue("Settings", "EdgePortraits", PortraitsDropdown.Selected == 1);
 		config.SetValue("Settings", "PixelSnapping", PixelSnappingCheckbox.ButtonPressed);
@@ -332,24 +332,32 @@ public partial class SettingsMenuManager : Control
 	}
 
 	private static readonly int[] AspectWidths = [0, 640, 768, 852, 1120];
-	private Vector2I WindowedSize = new(640, 480);
+	private static readonly int[] WindowScales = [1, 2];
+	private Window.ModeEnum LastWindowMode;
 
 	// the chosen canvas at the given whole-number scale, reduced until it fits on the screen
 	private static Vector2I CanvasWindowSize(int width, int scale)
 	{
-		Vector2I screen = DisplayServer.ScreenGetSize();
-		while (scale > 1 && screen.X > 0 && screen.Y > 0 && (width * scale > screen.X || DisplayLayout.LogicalHeight * scale > screen.Y))
+		Vector2I screen = DisplayServer.ScreenGetUsableRect().Size;
+		bool known = screen.X > 0 && screen.Y > 0;
+		int WidthAt(int s)
+		{
+			if (width > 0)
+				return width;
+			int fit = known ? Math.Clamp(screen.X / s, DisplayLayout.MinWidth, DisplayLayout.MaxWidth) : DisplayLayout.MinWidth;
+			return fit - fit % 2;
+		}
+		while (scale > 1 && known && (WidthAt(scale) * scale > screen.X || DisplayLayout.LogicalHeight * scale > screen.Y))
 			scale--;
-		return new Vector2I(width * scale, DisplayLayout.LogicalHeight * scale);
+		return new Vector2I(WidthAt(scale) * scale, DisplayLayout.LogicalHeight * scale);
 	}
 
-	private void ApplyWindowSize(Vector2I size)
+	private void ApplyWindowedSize()
 	{
+		if (!IsWindowed())
+			return;
 		Window window = GetWindow();
-		Vector2I screen = DisplayServer.ScreenGetSize();
-		if (screen.X > 0 && screen.Y > 0)
-			size = new Vector2I(Mathf.Min(size.X, screen.X), Mathf.Min(size.Y, screen.Y));
-		window.Size = size;
+		window.Size = CanvasWindowSize(AspectWidths[AspectDropdown.Selected], WindowScales[WindowSizeDropdown.Selected]);
 		window.MoveToCenter();
 	}
 
@@ -496,6 +504,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private HSlider SFXSlider;
 	[Export] private Button TestSFXButton;
 	[Export] private CheckBox FullscreenCheckbox;
+	[Export] private OptionButton WindowSizeDropdown;
 	[Export] private OptionButton AspectDropdown;
 	[Export] private OptionButton PortraitsDropdown;
 	[Export] private CheckBox PixelSnappingCheckbox;
