@@ -120,7 +120,7 @@ internal sealed class OmoriEnemy : Enemy
 
     internal static bool SealsCherish()
     {
-        return BattleManager.Instance.GetAllAliveEnemies().Any(x => x is OmoriEnemy { Phase: <= 4 });
+        return BattleManager.Instance.GetAliveEnemies().Any(x => x is OmoriEnemy { Phase: <= 4 });
     }
 
     public override Task ProcessStartOfTurn()
@@ -278,7 +278,7 @@ internal sealed class OmoriEnemy : Enemy
 
     private static void DelayAllEnemies()
     {
-        foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+        foreach (Enemy enemy in BattleManager.Instance.GetAliveEnemies())
         {
             enemy.AddStatModifier("CallForFriendDelay", silent: true);
             enemy.ClearResult();

@@ -40,6 +40,9 @@
 [ext_resource type="Material" path="res://assets/screen_blend_shader.tres" id="45_scrbl"]
 [ext_resource type="Script" uid="uid://dotagv8cmfu7r" path="res://scripts/display/DisplayLayout.cs" id="46_layout"]
 [ext_resource type="FontFile" uid="uid://c1ffiobkf516l" path="res://fonts/OMORI_GAME2_Numbers.ttf" id="47_nmbrs"]
+[ext_resource type="FontVariation" uid="uid://rbjpnhyq21qpt" path="res://fonts/OMORI_GAME2_Bold.tres" id="48_bold"]
+[ext_resource type="FontVariation" uid="uid://f47gatfvhyysp" path="res://fonts/OMORI_GAME2_Italic.tres" id="49_ital"]
+[ext_resource type="FontVariation" uid="uid://wdj2ndx4f8brq" path="res://fonts/OMORI_GAME2_BoldItalic.tres" id="50_boldital"]
 [ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="48_hpicn"]
 [ext_resource type="Texture2D" uid="uid://bbstna42lmri8" path="res://assets/system/energy_icon.png" id="49_enicn"]
 [ext_resource type="Script" uid="uid://dqh5trpiq2nkt" path="res://scripts/BattlebackLayers.cs" id="51_bblyr"]
@@ -355,7 +358,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/line_separation = 1
 theme_override_fonts/normal_font = ExtResource("10_choun")
+theme_override_fonts/bold_font = ExtResource("48_bold")
+theme_override_fonts/italics_font = ExtResource("49_ital")
+theme_override_fonts/bold_italics_font = ExtResource("50_boldital")
 theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
 bbcode_enabled = true
 scroll_active = false
 shortcut_keys_enabled = false
@@ -1034,7 +1043,7 @@ color = Color(0, 0, 0, 1)
 
 [node name="EndOfBattleOptions" type="VBoxContainer" parent="BattleCanvas/UI" unique_id=1433657391]
 visible = false
-z_index = 10
+z_index = 30
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5

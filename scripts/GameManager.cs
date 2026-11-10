@@ -369,7 +369,7 @@ public partial class GameManager : Node
 			party.Add(actor);
 		}
 
-		if (party.Count == 0)
+		if (party.Count == 0 && !(preset.Type is GameModeType.Normal && SettingsMenuManager.Instance.AllowNoParty))
 		{
 			GD.PrintErr($"Preset {preset.Name} has no party members that could be spawned, not starting the battle.");
 			ShowCannotStartDialog("This preset has no party members that could be spawned.\nAdd a party member in the editor, or check the console for errors.");
@@ -390,7 +390,7 @@ public partial class GameManager : Node
 			enemy.Add(en);
 		}
 
-		if (preset.Type is GameModeType.Normal && enemy.Count == 0)
+		if (preset.Type is GameModeType.Normal && enemy.Count == 0 && !SettingsMenuManager.Instance.AllowNoEnemies)
 		{
 			GD.PrintErr($"Preset {preset.Name} has no enemies that could be spawned, not starting the battle.");
 			DespawnAll();

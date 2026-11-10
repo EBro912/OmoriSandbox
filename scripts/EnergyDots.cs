@@ -35,7 +35,7 @@ internal partial class EnergyDots : Sprite2D
         }
     }
 
-    internal static bool BasilStressed => StorySwitches.BasilTroop && BattleManager.Instance.GetSunnyStandIn().CurrentEmotion.Id is "stressed";
+    internal static bool BasilStressed => StorySwitches.BasilTroop && BattleManager.Instance.GetSunnyStandIn()?.CurrentEmotion.Id is "stressed";
 
     internal Rect2 CurrentRow
     {

@@ -36,19 +36,19 @@ internal sealed class Copypasta : Enemy
             case "sad":
                 if (Roll() < 41)
                     goto attack;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 5)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 5)
                     goto attack;
                 goto duplicate;
             case "angry":
                 if (Roll() < 61)
                     goto attack;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 5)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 5)
                     goto attack;
                 goto duplicate;
             default:
                 if (Roll() < 51)
                     goto attack;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 5)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 5)
                     goto attack;
                 goto duplicate;
         }

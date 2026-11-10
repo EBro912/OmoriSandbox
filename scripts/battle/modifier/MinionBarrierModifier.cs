@@ -25,7 +25,7 @@ public sealed class MinionBarrierModifier : StatModifier
         if (defender is MrJawsumAlt { BarrierHasFriends: false })
             return;
 
-        List<Enemy> allEnemies = BattleManager.Instance.GetAllAliveEnemies();
+        List<Enemy> allEnemies = BattleManager.Instance.GetAliveEnemies();
         // if there's only one enemy alive, there's no one to share the damage with
         if (allEnemies.Count == 1)
             return;

@@ -95,6 +95,11 @@ internal partial class MainMenuManager : Node
 		PlayButton.GrabFocus(hideFocus: !UsingController);
 		Settings.VisibilityChanged += () =>
 		{
+			if (!Settings.Visible && !CreditsPanel.Visible)
+			{
+				SetTitleExtrasVisible(true);
+				CreditsButton.GetParent<Control>().Visible = true;
+			}
 			if (!Settings.Visible && MainMenu.Visible && MainControls.Visible)
 				SettingsButton.GrabFocus(hideFocus: !UsingController);
 		};
@@ -152,6 +157,8 @@ internal partial class MainMenuManager : Node
 			MainControls.Visible = false;
 			Logo.Visible = false;
 			OmoriFace.Visible = false;
+			SetTitleExtrasVisible(false);
+			CreditsButton.GetParent<Control>().Visible = false;
 			Settings.Visible = true;
 		};
 
@@ -160,6 +167,7 @@ internal partial class MainMenuManager : Node
 			MainControls.Visible = false;
 			Logo.Visible = false;
 			OmoriFace.Visible = false;
+			SetTitleExtrasVisible(false);
 			CreditsPanel.Visible = true;
 			CreditsButton.GetParent<Control>().Visible = false;
 		};
@@ -170,6 +178,7 @@ internal partial class MainMenuManager : Node
 			Logo.Visible = true;
 			OmoriFace.Visible = true;
 			CreditsPanel.Visible = false;
+			SetTitleExtrasVisible(true);
 			CreditsButton.GetParent<Control>().Visible = true;
 			CreditsButton.GrabFocus(hideFocus: !UsingController);
 		};
@@ -249,6 +258,13 @@ internal partial class MainMenuManager : Node
 		UpdateStageSelectorVisiblity(index);
 	}
 
+	private void SetTitleExtrasVisible(bool visible)
+	{
+		ModsLoaded.Visible = visible;
+		ShowModsButton.Visible = visible;
+		ModListParent.Visible = visible && ShowModsButton.Text == "Hide Mods";
+	}
+
 	private void EnterEditor()
 	{
 		AudioManager.Instance.StopBGM();
@@ -304,7 +320,7 @@ internal partial class MainMenuManager : Node
 		Editor.Visible = false;
 		PlayButton.GrabFocus(hideFocus: !UsingController);
 		GameManager.Instance.DiscordManager.SetMainMenu();
-		Engine.TimeScale = 1f;
+		BattleManager.SetSpeed(1d);
 	}
 
 	private void UpdateStageSelectorVisiblity(int index)

@@ -32,7 +32,8 @@ public sealed class AubreyCounterModifier : StatModifier
         BattleCommand command = BattleManager.Instance.GetCurrentCommand();
         if (command?.Action is not Skill skill || command.Actor != attacker)
             return;
-        if (skill.Target != SkillTarget.Enemy && !(skill.Target == SkillTarget.XRandomEnemies && command.Targets.Count == 1))
+        if (skill.Target != SkillTarget.Enemy && !(skill.Target == SkillTarget.XRandomEnemies && command.Targets.Count == 1)
+            && !(skill.Target == SkillTarget.Everybody && skill.CountsAsSingleTarget))
             return;
 
         if (defender.CurrentHP > 0 && !defender.IsToast)

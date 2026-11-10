@@ -101,7 +101,7 @@ internal sealed class Watermimic : Enemy
     jacks:
         return new BattleCommand(this, SelectAllTargets(), Skills["WMMJacks"]);
     dynamite:
-        return new BattleCommand(this, SelectAllTargets(), Skills["WMMDynamite"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["WMMDynamite"]);
     tomato:
         return new BattleCommand(this, SelectTarget(), Skills["WMMTomato"]);
     grapes:
@@ -109,10 +109,10 @@ internal sealed class Watermimic : Enemy
     frenchFries:
         return new BattleCommand(this, SelectAllTargets(), Skills["WMMFrenchFries"]);
     confetti:
-        return new BattleCommand(this, SelectAllTargets(), Skills["WMMConfetti"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["WMMConfetti"]);
     rainCloud:
-        return new BattleCommand(this, SelectAllTargets(), Skills["WMMRainCloud"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["WMMRainCloud"]);
     airHorn:
-        return new BattleCommand(this, SelectAllTargets(), Skills["WMMAirHorn"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["WMMAirHorn"]);
     }
 }

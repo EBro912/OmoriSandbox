@@ -201,12 +201,12 @@ internal static class BlackspaceRegistry
 				if (SettingsMenuManager.Instance.PlayFinalDuet)
 					await AnimationManager.Instance.WaitForVideoInternal("res://assets/movies/final_duet.ogv", layer: 100);
 				BattleManager.Instance.PlayMode = false;
-				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+				foreach (Enemy enemy in BattleManager.Instance.GetAliveEnemies())
 				{
 					if (enemy is OmoriEnemy { Phase: >= 5 } omori)
 						await omori.AbortBattle();
 				}
-				bool enemiesRemain = BattleManager.Instance.GetAllAliveEnemies().Any(x => x.CurrentHP > 0 || x.IsImmortal);
+				bool enemiesRemain = BattleManager.Instance.GetAliveEnemies().Any(x => x.CurrentHP > 0 || x.IsImmortal);
 				if (owner != null && enemiesRemain && !BattleManager.Instance.AbortRequested)
 				{
 					BattleManager.Instance.PlayPresetBGM(0.05f);

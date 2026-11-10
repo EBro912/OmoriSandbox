@@ -29,7 +29,7 @@ internal sealed class MrJawsumAlt : Enemy
     // VANILLA BUG: the Boss Rush summon doesn't refresh MR. JAWSUM, so after a lone mid-turn SUMMON MINION a hit on him that lands before he's refreshed isn't shared with the new gators
     internal bool BarrierHasFriends { get; private set; }
 
-    private void RefreshBarrier() => BarrierHasFriends = BattleManager.Instance.GetAllAliveEnemies().Count > 1;
+    private void RefreshBarrier() => BarrierHasFriends = BattleManager.Instance.GetAliveEnemies().Count > 1;
 
     private void RefreshBarrierOnChange(ref int seen, int value)
     {

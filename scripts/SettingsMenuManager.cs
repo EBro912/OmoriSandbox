@@ -389,7 +389,9 @@ public partial class SettingsMenuManager : Control
 		("ShowStateIcons", ShowStateIconsCheckbox, false),
 		("EnemySelectionWrapping", EnemySelectionWrappingCheckbox, false),
 		("PlayFinalDuet", PlayFinalDuetCheckbox, false),
-		("EnableDebugDamage", EnableDebugDamageCheckbox, false)
+		("EnableDebugDamage", EnableDebugDamageCheckbox, false),
+		("AllowNoParty", AllowNoPartyCheckbox, false),
+		("AllowNoEnemies", AllowNoEnemiesCheckbox, false)
 	];
 
 	internal IReadOnlyList<(string Key, CheckBox Box)> RuleSettings =>
@@ -482,6 +484,8 @@ public partial class SettingsMenuManager : Control
 	public bool PerTargetBuffTiers => Rule("PerTargetBuffTiers", PerTargetBuffTiersCheckbox);
 	public bool AllowEnemyAbort => Rule("AllowEnemyAbort", AllowEnemyAbortCheckbox);
 	public bool EnableDebugDamage => EnableDebugDamageCheckbox.ButtonPressed;
+	public bool AllowNoParty => AllowNoPartyCheckbox.ButtonPressed;
+	public bool AllowNoEnemies => AllowNoEnemiesCheckbox.ButtonPressed;
 	public bool CombinedAccuracy => Rule("CombinedAccuracy", CombinedAccuracyCheckbox);
 	public bool AllowStateReapplyOnRemoval => Rule("AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox);
 	public int BattlelogSpeed => (int)BattlelogSpeedSlider.Value;
@@ -536,6 +540,8 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox PerTargetBuffTiersCheckbox;
 	[Export] private CheckBox AllowEnemyAbortCheckbox;
 	[Export] private CheckBox EnableDebugDamageCheckbox;
+	[Export] private CheckBox AllowNoPartyCheckbox;
+	[Export] private CheckBox AllowNoEnemiesCheckbox;
 	[Export] private CheckBox CombinedAccuracyCheckbox;
 	[Export] private CheckBox AllowStateReapplyOnRemovalCheckbox;
 	[Export] private HSlider RestartHoldTimeSlider;

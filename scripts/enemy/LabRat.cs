@@ -57,6 +57,6 @@ internal sealed class LabRat : Enemy
     doNothing:
         return new BattleCommand(this, this, Skills["LRDoNothing"]);
     happyGas:
-        return new BattleCommand(this, SelectAllTargets(), Skills["LRHappyGas"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["LRHappyGas"]);
     }
 }

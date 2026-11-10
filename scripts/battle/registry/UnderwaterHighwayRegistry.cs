@@ -490,28 +490,23 @@ internal static class UnderwaterHighwayRegistry
 		Skills["RHExplode"] = new Skill(
 		  name: "RHExplode",
 		  description: "RHExplode",
-		  target: SkillTarget.AllEnemies,
+		  target: SkillTarget.Everybody,
 		  cost: 0,
 		  effect: async (self, targets) =>
 		  {
 			  BattleLogManager.Instance.QueueMessage(self, "[actor] sheds a single tear...\nand bids everyone farewell!");
 			  AnimationManager.Instance.PlayScreenAnimation(172, true);
 			  bool landed = false;
-			  foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+			  foreach (Actor target in targets)
 			  {
-				  if (enemy != self && BattleManager.Instance.Damage(self, enemy, () => enemy.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true) > -1)
-					  landed = true;
-			  }
-			  foreach (Actor member in targets)
-			  {
-				  if (BattleManager.Instance.Damage(self, member, () => member.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true) > -1)
+				  if (target != self && BattleManager.Instance.Damage(self, target, () => target.CurrentStats.MaxHP * 0.1f, false, 0f, neverCrit: true) > -1)
 					  landed = true;
 			  }
 			  if (landed)
 				  self.Damage(self.CurrentStats.MaxHP);
 			  await Task.CompletedTask;
 		  }
-		);
+		).WithCountsAsSingleTarget();
 
 		// Snaley //
 		Skills["SNAttack"] = new Skill(
@@ -676,19 +671,16 @@ internal static class UnderwaterHighwayRegistry
 		Skills["SMDynamite"] = new Skill(
 			name: "SMDynamite",
 			description: "SMDynamite",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] lobs DYNAMITE!");
 				await AnimationManager.Instance.WaitForScreenAnimation(270, self is Enemy);
-				// shady mole's dynamite hits the enemies too
-				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
-					BattleManager.Instance.Damage(self, ally, () => 25, false, 0.25f, neverCrit: true);
 				foreach (Actor target in targets)
 					BattleManager.Instance.Damage(self, target, () => 25, false, 0.25f, neverCrit: true);
 			}
-		);
+		).WithCountsAsSingleTarget();
 
 		// MUSSEL //
 		Skills["MUSAttack"] = new Skill(
@@ -947,13 +939,13 @@ internal static class UnderwaterHighwayRegistry
 		Skills["LRHappyGas"] = new Skill(
 			name: "LRHappyGas",
 			description: "LRHappyGas",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			setup: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] releases HAPPY gas!");
-				await AnimationManager.Instance.WaitForScreenAnimation(181, targets[0] is Enemy);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
+				await AnimationManager.Instance.WaitForScreenAnimation(181, self is Enemy);
+				foreach (Actor member in targets)
 					BattleManager.Instance.MakeHappy(member, silent: true);
 			},
 			effect: (_, _) => Task.CompletedTask
@@ -1051,15 +1043,13 @@ internal static class UnderwaterHighwayRegistry
 		Skills["WMMDynamite"] = new Skill(
 			name: "WMMDynamite",
 			description: "WMMDynamite",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] lobs a stick of DYNAMITE!");
 				BattleLogManager.Instance.QueueMessage("OH NO!");
-				await AnimationManager.Instance.WaitForScreenAnimation(172, targets[0] is Enemy);
-				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
-					BattleManager.Instance.Damage(self, ally, () => 100, false, 0f, neverCrit: true);
+				await AnimationManager.Instance.WaitForScreenAnimation(172, self is Enemy);
 				foreach (Actor target in targets)
 					BattleManager.Instance.Damage(self, target, () => 100, false, 0f, neverCrit: true);
 			}
@@ -1109,7 +1099,7 @@ internal static class UnderwaterHighwayRegistry
 		Skills["WMMConfetti"] = new Skill(
 			name: "WMMConfetti",
 			description: "WMMConfetti",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			effect: (self, targets) =>
 			{
@@ -1117,7 +1107,7 @@ internal static class UnderwaterHighwayRegistry
 				// DIALOGUE QUIRK: prints "Everyone feels HAPPY!" even when a target's emotion can't move
 				BattleLogManager.Instance.QueueMessage("Everyone feels HAPPY!");
 				AudioManager.Instance.PlaySFX("GEN_ta_da", 1f, 0.9f);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
+				foreach (Actor member in targets)
 					BattleManager.Instance.MakeHappy(member, silent: true);
 				return Task.CompletedTask;
 			}
@@ -1126,7 +1116,7 @@ internal static class UnderwaterHighwayRegistry
 		Skills["WMMRainCloud"] = new Skill(
 			name: "WMMRainCloud",
 			description: "WMMRainCloud",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			effect: (self, targets) =>
 			{
@@ -1135,7 +1125,7 @@ internal static class UnderwaterHighwayRegistry
 				BattleLogManager.Instance.QueueMessage("Everyone feels SAD.");
 				for (int i = 0; i < 3; i++)
 					AudioManager.Instance.PlaySFX("BA_sad_level_2", 1f, 0.9f);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
+				foreach (Actor member in targets)
 					BattleManager.Instance.MakeSad(member, silent: true);
 				return Task.CompletedTask;
 			}
@@ -1144,7 +1134,7 @@ internal static class UnderwaterHighwayRegistry
 		Skills["WMMAirHorn"] = new Skill(
 			name: "WMMAirHorn",
 			description: "WMMAirHorn",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			effect: (self, targets) =>
 			{
@@ -1152,7 +1142,7 @@ internal static class UnderwaterHighwayRegistry
 				// DIALOGUE QUIRK: prints "Everyone feels ANGRY!" even when a target's emotion can't move
 				BattleLogManager.Instance.QueueMessage("Everyone feels ANGRY!");
 				AudioManager.Instance.PlaySFX("SE_airhorn", 1f, 0.9f);
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
+				foreach (Actor member in targets)
 					BattleManager.Instance.MakeAngry(member, silent: true);
 				return Task.CompletedTask;
 			}
@@ -1296,7 +1286,7 @@ internal static class UnderwaterHighwayRegistry
 		Skills["SMQQExplode"] = new Skill(
 			name: "SMQQExplode",
 			description: "SMQQExplode",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			setup: (self, _) =>
 			{
@@ -1307,8 +1297,6 @@ internal static class UnderwaterHighwayRegistry
 			effect: (self, targets) =>
 			{
 				AnimationManager.Instance.PlayScreenAnimation(172, self is Enemy);
-				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
-					Explode(self, ally, 50f);
 				foreach (Actor target in targets)
 					Explode(self, target, 50f);
 				return Task.CompletedTask;

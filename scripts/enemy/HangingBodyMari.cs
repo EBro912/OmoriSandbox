@@ -3,6 +3,7 @@ using Godot;
 using OmoriSandbox.Animation;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Emotions;
+using OmoriSandbox.Menu;
 
 namespace OmoriSandbox.Actors;
 
@@ -74,6 +75,13 @@ internal sealed class HangingBodyMari : Enemy
         await Wait.Frames(60);
         BattleLogManager.Instance.ClearBattleLog();
         await FearPages.End(this);
+        if (BattleManager.Instance.AbortRequested
+            || BattleManager.Instance.GetAliveEnemies().Exists(enemy => enemy is Mari or HangingBodyMari && enemy != this && enemy.CurrentHP > 0))
+            return;
+        BattleManager.Instance.GetPartyMemberAtPosition(0)?.RemoveStatModifier("Immortal", force: true);
+        BattleManager.Instance.GetPartyMemberAtPosition(2)?.RemoveStatModifier("BasilImmobile", force: true);
+        MenuManager.Instance.RestorePresetSkin();
+        MenuManager.Instance.ShowButtons();
     }
 
     public override BattleCommand ProcessAI()

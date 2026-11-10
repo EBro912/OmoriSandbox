@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Godot;
 using OmoriSandbox.Actors;
@@ -56,7 +58,8 @@ public partial class BattleLogManager : Control
 	}
 
 	/// <summary>
-	/// Queues a message to be displayed in the battle log that shows the names of actors.
+	/// Queues a message to be displayed in the battle log that shows the names of actors.<br/>
+	/// Accepts Godot BBCode for formatting.
 	/// </summary>
 	/// <remarks>
 	/// You can use [actor] and [target] in the message string to replace them with <paramref name="self"/> and <paramref name="target"/> respectively.
@@ -70,7 +73,8 @@ public partial class BattleLogManager : Control
 	}
 
 	/// <summary>
-	/// Queues a message to be displayed in the battle log that shows the names of the actor.
+	/// Queues a message to be displayed in the battle log that shows the names of the actor.<br/>
+	/// Accepts Godot BBCode for formatting.
 	/// </summary>
 	/// <remarks>
 	/// You can use [actor] in the message string to replace it with <paramref name="actor"/>.
@@ -83,7 +87,8 @@ public partial class BattleLogManager : Control
 	}
 
 	/// <summary>
-	/// Queues a message to be displayed in the battle log.
+	/// Queues a message to be displayed in the battle log.<br/>
+	/// Accepts Godot BBCode for formatting.
 	/// </summary>
 	/// <param name="message">The message to display. Occurrences of the \n character will split the message up into different logs.</param>
 	public void QueueMessage(string message)
@@ -251,11 +256,8 @@ public partial class BattleLogManager : Control
 		{
 			string next = MessageQueue.Dequeue();
 
-			// treat \n as a deliberate line break
-			// only autowrap lines that are actually longer than the box
-			foreach (string line in next.Split('\n'))
-				foreach (string wrap in WordWrap(line))
-					LineQueue.Enqueue(wrap);
+			foreach (string wrap in WrapLines(next))
+				LineQueue.Enqueue(wrap);
 
 			await ProcessLines(gen);
 			// avoid firing the finished event if the message is no longer valid
@@ -281,7 +283,7 @@ public partial class BattleLogManager : Control
 			}
 
 			Control newLine = LogLine.Instantiate<Control>();
-			newLine.GetNode<Label>("Label").Text = LineQueue.Dequeue();
+			newLine.GetNode<RichTextLabel>("Label").Text = LineQueue.Dequeue();
 			newLine.Position = new Vector2(11, (ActiveLines.Count + (scrolling ? 1 : 0)) * HEIGHT);
 			newLine.Modulate = new Color(1f, 1f, 1f, 0f);
 			LineContainer.AddChild(newLine);
@@ -304,6 +306,116 @@ public partial class BattleLogManager : Control
 			if (gen != Generation)
 				return;
 		}
+	}
+
+	internal List<string> WrapLines(string message)
+	{
+		List<string> result = [];
+		if (!message.Contains('['))
+		{
+			// treat \n as a deliberate line break
+			// only autowrap lines that are actually longer than the box
+			foreach (string line in message.Split('\n'))
+				result.AddRange(WordWrap(line));
+			return result;
+		}
+
+		MatchCollection tags = TagPattern.Matches(message);
+		HashSet<int> carried = [];
+		foreach (Match tag in tags)
+		{
+			if (tag.Groups[1].Value.Length == 0
+			    && message.IndexOf($"[/{tag.Groups[2].Value}]", tag.Index + tag.Length, StringComparison.Ordinal) >= 0)
+				carried.Add(tag.Index);
+		}
+		RichTextLabel parser = new() { BbcodeEnabled = true };
+		try
+		{
+			List<(string Name, string Text)> open = [];
+			int start = 0;
+			foreach (string piece in message.Split('\n'))
+			{
+				WrapTaggedPiece(piece, start, tags, carried, open, parser, result);
+				start += piece.Length + 1;
+			}
+		}
+		finally
+		{
+			parser.Free();
+		}
+		return result;
+	}
+
+	private static readonly Regex TagPattern = TagRegex();
+
+	private void WrapTaggedPiece(string piece, int start, MatchCollection tags, HashSet<int> carried,
+		List<(string Name, string Text)> open, RichTextLabel parser, List<string> result)
+	{
+		List<Match> pieceTags = tags.Where(tag => tag.Index >= start && tag.Index < start + piece.Length).ToList();
+		string prefix = string.Concat(open.Select(tag => tag.Text));
+		if (string.IsNullOrWhiteSpace(piece) || FitsParsed(prefix + piece, parser))
+		{
+			EmitTagged(piece, start, pieceTags, carried, open, result);
+			return;
+		}
+
+		List<(int Start, int End)> words = [];
+		int wordStart = -1;
+		for (int i = 0; i <= piece.Length; i++)
+		{
+			Match inside = i < piece.Length ? pieceTags.FirstOrDefault(tag => tag.Index - start <= i && i < tag.Index - start + tag.Length) : null;
+			bool space = i == piece.Length || (piece[i] == ' ' && inside == null);
+			if (space)
+			{
+				if (wordStart >= 0)
+					words.Add((wordStart, i));
+				wordStart = -1;
+			}
+			else if (wordStart < 0)
+				wordStart = i;
+		}
+
+		int lineStart = words[0].Start;
+		int lineEnd = words[0].End;
+		for (int i = 1; i < words.Count; i++)
+		{
+			string candidate = string.Concat(open.Select(tag => tag.Text)) + piece[lineStart..words[i].End];
+			if (FitsParsed(candidate, parser))
+			{
+				lineEnd = words[i].End;
+				continue;
+			}
+			EmitTagged(piece[lineStart..lineEnd], start + lineStart, pieceTags, carried, open, result);
+			lineStart = words[i].Start;
+			lineEnd = words[i].End;
+		}
+		EmitTagged(piece[lineStart..lineEnd], start + lineStart, pieceTags, carried, open, result);
+	}
+
+	private static void EmitTagged(string content, int start, List<Match> pieceTags, HashSet<int> carried,
+		List<(string Name, string Text)> open, List<string> result)
+	{
+		string prefix = string.Concat(open.Select(tag => tag.Text));
+		foreach (Match tag in pieceTags.Where(tag => tag.Index >= start && tag.Index < start + content.Length))
+		{
+			string name = tag.Groups[2].Value;
+			if (tag.Groups[1].Value.Length > 0)
+			{
+				int last = open.FindLastIndex(entry => entry.Name == name);
+				if (last >= 0)
+					open.RemoveAt(last);
+			}
+			else if (carried.Contains(tag.Index))
+				open.Add((name, tag.Value));
+		}
+		string closers = string.Concat(Enumerable.Reverse(open).Select(tag => $"[/{tag.Name}]"));
+		result.Add(prefix + content + closers);
+	}
+
+	private bool FitsParsed(string text, RichTextLabel parser)
+	{
+		parser.Text = text;
+		return Fits(parser.GetParsedText());
 	}
 
 	private List<string> WordWrap(string text)
@@ -353,4 +465,7 @@ public partial class BattleLogManager : Control
 	}
 
 	private float MessageDelay => 1f - SettingsMenuManager.Instance.BattlelogSpeed * 0.15f;
+
+    [GeneratedRegex(@"\[(/?)([^\[\]\s=]+)[^\[\]\n]*\]")]
+    private static partial Regex TagRegex();
 }

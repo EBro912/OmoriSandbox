@@ -1,15 +1,19 @@
 using System;
+using System.Linq;
 
 namespace OmoriSandbox.Battle.Modifier;
 
 /// <summary>
-/// A generic stat modifier that can provide a different <see cref="StatBonus"/> at each tier.
+/// A generic stat modifier that can provide different stat changes at each tier.
 /// </summary>
+/// <remarks>
+/// A tier is either one <see cref="StatBonus"/>, or a <see cref="StatTier"/> that changes several stats at once.
+/// </remarks>
 public class TierStatModifier : StatModifier
 {
 	private int Tier;
 	/// <summary>
-	/// The max tier of this modifier. By default, the max tier is the length of the stat bonuses. See <see cref="WithMaxTier"/>.
+	/// The max tier of this modifier. By default, the max tier is the number of tiers given to the constructor. See <see cref="WithMaxTier"/>.
 	/// </summary>
 	public int MaxTier { get; private set; }
     /// <summary>
@@ -52,12 +56,58 @@ public class TierStatModifier : StatModifier
 	/// Use <see cref="ApplyTier(int)"/> to modify the modifier's tier.
 	/// </summary>
 	/// <param name="turns">The number of turns to give this stat bonus for.</param>
-	/// <param name="bonuses">A list of stat bonuses. Each index of is list is mapped to the stat to provide at that tier.</param>
+	/// <param name="bonuses">A list of stat bonuses. Each index of this list is mapped to the stat to provide at that tier.</param>
 	public TierStatModifier(int turns, params StatBonus[] bonuses) : base(turns, bonuses)
 	{
 		Tier = 1;
 		MaxTier = bonuses.Length;
 	}
+
+	/// <summary>
+	/// A tiered modifier with no turn counter that changes no stats. Defaults to starting at tier 1.
+	/// Use <see cref="WithMaxTier"/> to set how many tiers it has.
+	/// </summary>
+	public TierStatModifier() : this(Array.Empty<StatBonus>())
+	{
+	}
+
+	/// <summary>
+	/// A tiered modifier with a turn counter that changes no stats. Defaults to starting at tier 1.
+	/// Use <see cref="WithMaxTier"/> to set how many tiers it has.
+	/// </summary>
+	/// <param name="turns">The number of turns to give this modifier for.</param>
+	public TierStatModifier(int turns) : this(turns, Array.Empty<StatBonus>())
+	{
+	}
+
+	/// <summary>
+	/// A tiered modifier with no turn counter whose tiers can each change several stats. Defaults to starting at tier 1.
+	/// </summary>
+	/// <param name="tiers">The stat changes at each tier, starting from tier 1.</param>
+	public TierStatModifier(params StatTier[] tiers) : base(Flatten(tiers))
+	{
+		Tiers = ToTiers(tiers);
+		Tier = 1;
+		MaxTier = Tiers.Length;
+	}
+
+	/// <summary>
+	/// A tiered modifier with a turn counter whose tiers can each change several stats. Defaults to starting at tier 1.
+	/// </summary>
+	/// <param name="turns">The number of turns to give this modifier for.</param>
+	/// <param name="tiers">The stat changes at each tier, starting from tier 1.</param>
+	public TierStatModifier(int turns, params StatTier[] tiers) : base(turns, Flatten(tiers))
+	{
+		Tiers = ToTiers(tiers);
+		Tier = 1;
+		MaxTier = Tiers.Length;
+	}
+
+	private readonly StatBonus[][] Tiers;
+
+	private static StatBonus[][] ToTiers(StatTier[] tiers) => [.. tiers.Select(tier => tier.Bonuses.ToArray())];
+
+	private static StatBonus[] Flatten(StatTier[] tiers) => [.. tiers.SelectMany(tier => tier.Bonuses)];
 
 	internal override StateIcon[] GetStateIcons()
 	{
@@ -85,7 +135,7 @@ public class TierStatModifier : StatModifier
 	}
 
 	/// <summary>
-	/// Overrides the max tier for this stat modifier. By default, the max tier will be the length of the stat bonuses.
+	/// Overrides the max tier for this stat modifier. By default, the max tier will be the number of tiers given to the constructor.
 	/// </summary>
 	/// <param name="tier">The max tier to use.</param>
 	public TierStatModifier WithMaxTier(int tier)
@@ -150,11 +200,23 @@ public class TierStatModifier : StatModifier
 	internal void WithTier(int tier)
 	{
 		Tier = Math.Min(tier, MaxTier);
+		if (Tier < 1)
+			Tier = 1;
 	}
 
 	/// <inheritdoc/>
 	public override float GetParamRate(StatType stat)
 	{
+		if (Tiers != null)
+		{
+			float rate = 1f;
+			foreach (StatBonus tierBonus in CurrentTierBonuses())
+			{
+				if (tierBonus.Type == stat)
+					rate *= tierBonus.Multiplier;
+			}
+			return rate;
+		}
 		if (Bonuses.Length == 0)
 			return 1f;
 		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
@@ -164,9 +226,21 @@ public class TierStatModifier : StatModifier
 	/// <inheritdoc/>
 	public override int GetParamPlus(StatType stat)
 	{
+		if (Tiers != null)
+		{
+			int plus = 0;
+			foreach (StatBonus tierBonus in CurrentTierBonuses())
+			{
+				if (tierBonus.Type == stat)
+					plus += tierBonus.FlatBonus;
+			}
+			return plus;
+		}
 		if (Bonuses.Length == 0)
 			return 0;
 		StatBonus bonus = Bonuses[Math.Min(Tier - 1, Bonuses.Length - 1)];
 		return bonus.Type == stat ? bonus.FlatBonus : 0;
 	}
+
+	private StatBonus[] CurrentTierBonuses() => Tiers.Length == 0 ? [] : Tiers[Math.Min(Tier - 1, Tiers.Length - 1)];
 }

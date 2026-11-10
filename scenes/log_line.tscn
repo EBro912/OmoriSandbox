@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://coa7jio0ejncb"]
 
 [ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_lkc2j"]
+[ext_resource type="FontVariation" uid="uid://rbjpnhyq21qpt" path="res://fonts/OMORI_GAME2_Bold.tres" id="2_bold"]
+[ext_resource type="FontVariation" uid="uid://f47gatfvhyysp" path="res://fonts/OMORI_GAME2_Italic.tres" id="3_ital"]
+[ext_resource type="FontVariation" uid="uid://wdj2ndx4f8brq" path="res://fonts/OMORI_GAME2_BoldItalic.tres" id="4_boldital"]
 
 [node name="LogLine" type="Control" unique_id=1879067597]
 use_parent_material = true
@@ -10,10 +13,23 @@ anchors_preset = 0
 offset_right = 335.0
 offset_bottom = 27.0
 
-[node name="Label" type="Label" parent="." unique_id=492591546]
+[node name="Label" type="RichTextLabel" parent="." unique_id=492591546]
 use_parent_material = true
+clip_contents = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
-theme_override_fonts/font = ExtResource("1_lkc2j")
-theme_override_font_sizes/font_size = 24
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("1_lkc2j")
+theme_override_fonts/bold_font = ExtResource("2_bold")
+theme_override_fonts/italics_font = ExtResource("3_ital")
+theme_override_fonts/bold_italics_font = ExtResource("4_boldital")
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+shortcut_keys_enabled = false

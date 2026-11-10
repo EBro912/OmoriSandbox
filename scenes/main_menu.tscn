@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -410,6 +410,8 @@ ReleaseEnergyAnyPartyCheckbox = NodePath("Tabs/Rules/VBoxContainer/ReleaseEnergy
 PerTargetBuffTiersCheckbox = NodePath("Tabs/Rules/VBoxContainer/PerTargetBuffTiers")
 AllowEnemyAbortCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowEnemyAbort")
 EnableDebugDamageCheckbox = NodePath("Tabs/Debug/VBoxContainer/EnableDebugDamage")
+AllowNoPartyCheckbox = NodePath("Tabs/Debug/VBoxContainer/AllowNoParty")
+AllowNoEnemiesCheckbox = NodePath("Tabs/Debug/VBoxContainer/AllowNoEnemies")
 CombinedAccuracyCheckbox = NodePath("Tabs/Rules/VBoxContainer/CombinedAccuracy")
 AllowStateReapplyOnRemovalCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowStateReapplyOnRemoval")
 RestartHoldTimeSlider = NodePath("Tabs/Controls/VBoxContainer/RestartDelaySlider/HSlider")
@@ -773,6 +775,14 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Battle"
 
+[node name="Hint" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=237690526]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 18
+text = "Hover over a setting for more information"
+
 [node name="BattlelogSpeed" type="Label" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=1809066632]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -874,8 +884,8 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-tooltip_text = "How fast dialogue text types out;
-the maximum value displays text instantly"
+tooltip_text = "How fast dialogue text types out.
+The maximum value displays text instantly"
 min_value = 0.25
 max_value = 5.0
 step = 0.25
@@ -929,7 +939,8 @@ text = "Show State Icons"
 [node name="EnemySelectionWrapping" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=875057239]
 layout_mode = 2
 size_flags_horizontal = 4
-tooltip_text = "Allows the selector for enemy targeting to wrap around when it reaches the edges"
+tooltip_text = "Allows the selector for enemy targeting to wrap around
+when it reaches the edges"
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
@@ -998,7 +1009,8 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-tooltip_text = "How often a held direction repeats in battle menus and target selection"
+tooltip_text = "How often a held direction repeats in
+battle menus and target selection"
 min_value = 0.05
 max_value = 1.0
 step = 0.05
@@ -1033,6 +1045,14 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Rules"
 
+[node name="Hint" type="Label" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1006559193]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 18
+text = "Hover over a setting for more information"
+
 [node name="DisableDamageLimit" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1436946514]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1051,6 +1071,55 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Disable Stat Limit"
 
+[node name="AllowEnemyAbort" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512649]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Allows enemies to abort/end the battle early."
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Allow Enemies to Abort Battle"
+
+[node name="PerTargetBuffTiers" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512648]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Party-wide buffs, debuffs and emotions raise each target from its own tier,
+instead of every target getting the first target's next tier
+TLDR: Disables the \"Gator Aid bug\""
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Per-Target Buff Tiers"
+
+[node name="InfiniteBuffsDebuffs" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=2009039002]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Makes ATK/DEF/SPD buffs/debuffs never expire"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Infinite Buffs/Debuffs"
+
+[node name="AllowStateReapplyOnRemoval" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1493027761]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Lets a state be re-applied right after it is removed for any reason,
+instead of being blocked until the next action or the end of the turn"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Allow State Reapply on Removal"
+
+[node name="ReleaseEnergyAnyParty" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512647]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Lets RELEASE ENERGY be used by any party with nobody toast,
+instead of needing a full party of four"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Release Energy with Any Living Party"
+
 [node name="UseConsoleDef" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1799805994]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1068,15 +1137,6 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Use Console Speed Up 3 Stat"
-
-[node name="InfiniteBuffsDebuffs" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=2009039002]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Makes ATK/DEF/SPD buffs/debuffs never expire"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Infinite Buffs/Debuffs"
 
 [node name="VertigoUsesAtk" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1067448616]
 layout_mode = 2
@@ -1097,16 +1157,6 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Combined Accuracy Formula"
 
-[node name="AllowStateReapplyOnRemoval" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1493027761]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Lets a state be re-applied right after it is removed for any reason,
-instead of being blocked until the next action or the end of the turn"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Allow State Reapply on Removal"
-
 [node name="ToysUseEmotionDamage" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1655251340]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1124,35 +1174,6 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Space Ex-Husband Vulnerable to Release Energy"
-
-[node name="ReleaseEnergyAnyParty" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512647]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Lets RELEASE ENERGY be used by any party with nobody toast,
-instead of needing a full party of four"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Release Energy with Any Living Party"
-
-[node name="PerTargetBuffTiers" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512648]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Party-wide buffs, debuffs and emotions raise each target from its own tier,
-instead of every target getting the first target's next tier"
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Per-Target Buff Tiers"
-
-[node name="AllowEnemyAbort" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512649]
-layout_mode = 2
-size_flags_horizontal = 4
-tooltip_text = "Allows enemies to abort/end the battle early."
-theme_override_fonts/font = ExtResource("2_ekxnf")
-theme_override_font_sizes/font_size = 20
-theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
-text = "Allow Enemies to Abort Battle"
 
 [node name="Debug" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=67187411]
 visible = false
@@ -1175,6 +1196,14 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 text = "Debug"
 
+[node name="Hint" type="Label" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=606871318]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 18
+text = "Hover over a setting for more information"
+
 [node name="LogDebug" type="CheckBox" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=2138556494]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1193,6 +1222,24 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Enable Debug Damage"
+
+[node name="AllowNoParty" type="CheckBox" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=585170316]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Allows Normal presets to start and save with no party members"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Allow Presets With No Party Members"
+
+[node name="AllowNoEnemies" type="CheckBox" parent="Main/Settings/Tabs/Debug/VBoxContainer" unique_id=909693444]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Allows Normal presets to start and save with no enemies"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Allow Presets With No Enemies"
 
 [node name="Controls" type="ScrollContainer" parent="Main/Settings/Tabs" unique_id=954544944]
 visible = false

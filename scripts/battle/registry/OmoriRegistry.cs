@@ -138,7 +138,7 @@ internal static class OmoriRegistry
 						if (speaker == null || !speaker.ObserveHasMulti)
 							continue;
 						// VANILLA BUG: the multi branch ends with no observe state when its first holder can't act
-						if (!battle.GetAllAliveEnemies().Contains(speaker))
+						if (!battle.GetAliveEnemies().Contains(speaker))
 							return;
 						BattleLogManager.Instance.QueueMessage(speaker, "[actor] has their eyes on everyone!");
 						foreach (PartyMember m in members)

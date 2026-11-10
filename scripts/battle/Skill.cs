@@ -330,6 +330,23 @@ public class Skill : BattleAction
 	}
 
 	/// <summary>
+	/// Whether the skill counts as a single target skill. Mainly used with the COUNTER skill. See <see cref="WithCountsAsSingleTarget"/>.
+	/// </summary>
+	public bool CountsAsSingleTarget { get; private set; }
+
+	/// <summary>
+	/// Makes COUNTER treat this skill as if it targeted one actor.
+	/// </summary>
+	/// <remarks>
+	/// Only SkillTarget.Everybody skills use this.
+	/// </remarks>
+	public Skill WithCountsAsSingleTarget()
+	{
+		CountsAsSingleTarget = true;
+		return this;
+	}
+
+	/// <summary>
 	/// Whether this skill is instant. See <see cref="WithInstantCast"/>.
 	/// </summary>
 	public bool InstantCast { get; private set; }

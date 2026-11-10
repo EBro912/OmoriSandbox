@@ -386,7 +386,7 @@ internal static class SunnyRegistry
 						member.AddStatModifier("CherishSeal", silent: true);
 				}
 				await AnimationManager.Instance.HideCherish();
-				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+				foreach (Enemy enemy in BattleManager.Instance.GetAliveEnemies())
 					enemy.AddStatModifier("CallForFriendDelay", silent: true);
 			}
 		).WithCustomRequirement(actor => !actor.CurrentEmotion.BlocksActions && !actor.HasStatModifier("CherishSeal"));
@@ -543,7 +543,7 @@ internal static class SunnyRegistry
 	}
 
 	private static bool FightMusicAllowed() =>
-		!AudioManager.Instance.BGMLocked && BattleManager.Instance.GetAllAliveEnemies().All(enemy => enemy.CanChangeBGM);
+		!AudioManager.Instance.BGMLocked && BattleManager.Instance.GetAliveEnemies().All(enemy => enemy.CanChangeBGM);
 
 	private static void FadeFightMusic(float seconds)
 	{
@@ -555,7 +555,7 @@ internal static class SunnyRegistry
 
 	private static void StunAllEnemies()
 	{
-		foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+		foreach (Enemy enemy in BattleManager.Instance.GetAliveEnemies())
 			enemy.Stun(1);
 	}
 }

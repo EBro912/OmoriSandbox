@@ -59,7 +59,7 @@ internal sealed class SproutMoleDoubleQuestion : Enemy
                 goto strangeLaser;
         }
     explode:
-        return new BattleCommand(this, SelectAllTargets(), Skills["SMQQExplode"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["SMQQExplode"]);
     attack:
         return new BattleCommand(this, SelectTarget(), Skills["SMQQAttack"]);
     doNothing:

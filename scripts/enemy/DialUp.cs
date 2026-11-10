@@ -60,6 +60,6 @@ internal sealed class DialUp : Enemy
     doNothing:
         return new BattleCommand(this, this, Skills["DUDoNothing"]);
     slowDownAll:
-        return new BattleCommand(this, SelectAllTargets(), Skills["DUSlowDownAll"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["DUSlowDownAll"]);
     }
 }

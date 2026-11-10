@@ -1,0 +1,8 @@
+[gd_resource type="FontVariation" format=3 uid="uid://wdj2ndx4f8brq"]
+
+[ext_resource type="FontFile" uid="uid://bdh481cgsv8wf" path="res://fonts/OMORI_GAME2.ttf" id="1_base"]
+
+[resource]
+base_font = ExtResource("1_base")
+variation_embolden = 0.5
+variation_transform = Transform2D(1, 0.2, 0, 1, 0, 0)

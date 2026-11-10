@@ -23,7 +23,7 @@ internal sealed class Roboheart : Enemy
             return new BattleCommand(this, observe, Skills["RHAttack"]);
         
         if (IsBelowHP(0.1f))
-            return new BattleCommand(this, SelectAllTargets(), Skills["RHExplode"]);
+            return new BattleCommand(this, SelectEverybody(), Skills["RHExplode"]);
 
         switch (CurrentEmotion.Id)
         {

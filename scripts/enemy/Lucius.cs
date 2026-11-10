@@ -70,6 +70,6 @@ internal sealed class Lucius : Enemy
     fireMagic:
         return new BattleCommand(this, SelectAllTargets(), Skills["LUCFireMagic"]);
     misfireMagic:
-        return new BattleCommand(this, SelectAllTargets(), Skills["LUCMisfireMagic"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["LUCMisfireMagic"]);
     }
 }

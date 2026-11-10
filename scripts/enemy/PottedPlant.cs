@@ -60,7 +60,7 @@ internal sealed class PottedPlant : Enemy
                 goto trip;
         }
     explode:
-        return new BattleCommand(this, SelectAllTargets(), Skills["PPExplode"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["PPExplode"]);
     attack:
         return new BattleCommand(this, SelectTarget(), Skills["PPAttack"]);
     doNothing:

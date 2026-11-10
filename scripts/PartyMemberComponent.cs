@@ -198,20 +198,6 @@ public partial class PartyMemberComponent : ActorComponent
 
 	public override void _Process(double delta)
 	{
-		// OMORI uses a queue system for damage numbers spawned on party members
-		// the position of where the number spawns is based off of the current numbers queued
-		// as well as how many numbers currently exist on the party member
-		// enemies do not use this system
-		if (PendingDamageNumbers.Count > 0)
-		{
-			int queued = PendingDamageNumbers.Count;
-			PendingDamageNumber number = PendingDamageNumbers.Dequeue();
-			BattleManager.Instance.SpawnDamageNumber(number.Damage, DamageNumberPosition(queued, PopupCount), number.Type, number.Critical, party: true);
-			PopupCount++;
-		}
-		else
-			PopupCount = 0;
-
 		// keep the cached maxes in sync with stat modifiers that change MaxHP/MaxJuice
 		Stats stats = PartyMember.CurrentStats;
 		if (MaxHP != stats.MaxHP || MaxJuice != stats.MaxJuice)
@@ -230,6 +216,20 @@ public partial class PartyMemberComponent : ActorComponent
 	/// </summary>
 	public override void _PhysicsProcess(double delta)
 	{
+		// OMORI uses a queue system for damage numbers spawned on party members
+		// the position of where the number spawns is based off of the current numbers queued
+		// as well as how many numbers currently exist on the party member
+		// enemies do not use this system
+		if (PendingDamageNumbers.Count > 0)
+		{
+			int queued = PendingDamageNumbers.Count;
+			PendingDamageNumber number = PendingDamageNumbers.Dequeue();
+			BattleManager.Instance.SpawnDamageNumber(number.Damage, DamageNumberPosition(queued, PopupCount), number.Type, number.Critical, party: true);
+			PopupCount++;
+		}
+		else
+			PopupCount = 0;
+
 		if (PartyMember == null)
 			return;
 		if (Roll(ref DisplayedHP, ref HPRollTarget, ref HPRollFrames, PartyMember.CurrentHP))

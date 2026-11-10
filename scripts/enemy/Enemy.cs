@@ -154,6 +154,8 @@ public abstract class Enemy : Actor
 		if (HasStatModifier("Charm"))
 			return (StatModifiers["Charm"] as CharmStatModifier).CharmedBy;
 		List<PartyMember> members = BattleManager.Instance.GetAlivePartyMembers();
+		if (members.Count == 0)
+			return null;
 		List<PartyMember> taunting = HasStatModifier("ObserveIgnoreTaunt") ? [] : members.FindAll(x => x.HasStatModifier("Taunt"));
 		if (taunting.Count == 0)
 		{
@@ -173,6 +175,8 @@ public abstract class Enemy : Actor
 	{
 		List<PartyMember> targets = BattleManager.Instance.GetAlivePartyMembers();
 		List<PartyMember> result = [];
+		if (targets.Count == 0)
+			return result;
 		for (int i = 0; i < amount; i++)
 			result.Add(targets[GameManager.Instance.Random.RandiRange(0, targets.Count - 1)]);
 		return result;
@@ -315,7 +319,19 @@ public abstract class Enemy : Actor
 	/// <returns></returns>
 	protected virtual IReadOnlyList<Enemy> SelectAllEnemies()
 	{
-		return BattleManager.Instance.GetAllAliveEnemies();
+		return BattleManager.Instance.GetAliveEnemies();
+	}
+
+	/// <summary>
+	/// Selects all alive targets as one list, both party members and enemies. Mainly used in <see cref="ProcessAI"/> for multi-target skills that target both sides. Can be overriden for custom targeting behavior.
+	/// </summary>
+	/// <remarks>
+	/// Enemies will select the party first, then the enemies.
+	/// </remarks>
+	/// <returns></returns>
+	protected virtual IReadOnlyList<Actor> SelectEverybody()
+	{
+		return [.. BattleManager.Instance.GetAlivePartyMembers(), .. BattleManager.Instance.GetAliveEnemies()];
 	}
 
 	/// <summary>
@@ -632,7 +648,7 @@ public abstract class Enemy : Actor
 		get
 		{
 			return Skills.Values.Any(x => x.Target is SkillTarget.AllAllies or SkillTarget.AllDeadAllies
-				or SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
+				or SkillTarget.AllEnemies or SkillTarget.XRandomEnemies or SkillTarget.Everybody);
 		}
 	}
 	/// <summary>
@@ -640,7 +656,7 @@ public abstract class Enemy : Actor
 	/// Used by OBSERVE to pick a valid multi-target prediction.
 	/// </summary>
 	internal bool HasMultiTargetPartySkill =>
-		Skills.Values.Any(x => x.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies);
+		Skills.Values.Any(x => x.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies or SkillTarget.Everybody);
 	/// <summary>
 	/// Whether this enemy can be the one OBSERVE reports as having its eyes on everyone.
 	/// </summary>

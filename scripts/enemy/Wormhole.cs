@@ -38,7 +38,7 @@ internal sealed class Wormhole : Enemy
                     goto attack;
                 if (Roll() < 46)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto doNothing;
                 goto openWormhole;
             case "angry":
@@ -46,7 +46,7 @@ internal sealed class Wormhole : Enemy
                     goto attack;
                 if (Roll() < 26)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto doNothing;
                 goto openWormhole;
             default:
@@ -54,7 +54,7 @@ internal sealed class Wormhole : Enemy
                     goto attack;
                 if (Roll() < 21)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto doNothing;
                 goto openWormhole;
         }

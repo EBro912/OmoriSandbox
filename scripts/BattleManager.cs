@@ -578,6 +578,7 @@ public partial class BattleManager : Node
 		if (!IsBattling)
 			return;
 
+		double realDelta = delta / Engine.TimeScale;
 		EnergyDots.Tick(delta);
 		DirectionRepeat.Update(delta);
 
@@ -594,7 +595,7 @@ public partial class BattleManager : Node
 
 		DebugDamageHeld = Input.IsActionPressed("DebugDamage");
 
-		Engine.TimeScale = Input.IsActionPressed("SpeedUp") ? SettingsMenuManager.Instance.SpeedUpMultiplier : 1d;
+		SetSpeed(Input.IsActionPressed("SpeedUp") ? SettingsMenuManager.Instance.SpeedUpMultiplier : 1d);
 		
 		if (Input.IsActionJustPressed("Accept"))
 		{
@@ -659,7 +660,7 @@ public partial class BattleManager : Node
 
 		if (Input.IsActionJustPressed("SwitchSides"))
 		{
-			if (Phase == BattlePhase.TargetSelection && SelectedAction.Target == SkillTarget.AllyOrEnemy)
+			if (Phase == BattlePhase.TargetSelection && SelectedAction.Target == SkillTarget.AllyOrEnemy && Enemies.Count > 0)
 			{
 				if (CurrentPartyMemberTarget > -1)
 				{
@@ -701,7 +702,7 @@ public partial class BattleManager : Node
 		{
 			if (!RestartQueued && !InDeathBeat)
 			{
-				RestartTimer -= (float)delta;
+				RestartTimer -= (float)realDelta;
 				if (RestartTimer <= 0)
 				{
 					// if the restart is requested during a turn or during the start-of-battle
@@ -817,6 +818,13 @@ public partial class BattleManager : Node
 
 	internal void OnFightSelected()
 	{
+		if (CurrentParty.Count == 0)
+		{
+			BattleLogManager.Instance.ClearBattleLog();
+			MenuManager.Instance.ShowMenu(MenuState.None);
+			SetPhase(BattlePhase.PreCommand);
+			return;
+		}
 		CurrentPartyMember = 0;
 		MenuManager.Instance.ShowMenu(MenuState.Battle, true);
 		SetPhase(BattlePhase.PlayerCommand);
@@ -940,7 +948,7 @@ public partial class BattleManager : Node
 			return;
 		}
 		PartyMember attacker = CurrentParty[CurrentPartyMember].Actor;
-		if (SelectedAction is Skill attack && GetInputUseFailure(attacker, attack) != null)
+		if (SelectedAction is Skill attack && GetInputUseFailure(attacker, attack) != null || NoEnemyToTarget(SelectedAction))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
@@ -1003,7 +1011,7 @@ public partial class BattleManager : Node
 		}
 
 		if (SelectedAction.Target is SkillTarget.DeadAlly or SkillTarget.AllDeadAllies &&
-		    CurrentParty.All(x => !x.Actor.IsToast))
+		    CurrentParty.All(x => !x.Actor.IsToast) || NoEnemyToTarget(SelectedAction))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
@@ -1022,7 +1030,7 @@ public partial class BattleManager : Node
 		// multi-target revives, such as jam packets, can still be selected and consumed
 		// regardless of toast status
 		if (SelectedAction.Target is SkillTarget.DeadAlly &&
-		    CurrentParty.All(x => !x.Actor.IsToast))
+		    CurrentParty.All(x => !x.Actor.IsToast) || NoEnemyToTarget(SelectedAction))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
@@ -1690,6 +1698,14 @@ public partial class BattleManager : Node
 			return;
 
 		GameManager.Instance.DiscordManager.SetBattling(Enemies.Count);
+		if (CurrentParty.Count == 0)
+		{
+			BattleLogManager.Instance.ClearBattleLog();
+			MenuManager.Instance.SetPartyPlayMode(PlayMode);
+			MenuManager.Instance.ShowButtons();
+			MenuManager.Instance.ShowMenu(MenuState.Party);
+			return;
+		}
 		if (!CurrentParty.Any(x => NeedsInput(x.Actor)))
 		{
 			BattleLogManager.Instance.ClearBattleLog();
@@ -1782,7 +1798,7 @@ public partial class BattleManager : Node
 
 	private void SelectTarget()
 	{
-		if (Enemies.All(x => IsOut(x.Actor)))
+		if (Enemies.Count > 0 && Enemies.All(x => IsOut(x.Actor)))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
@@ -1848,7 +1864,10 @@ public partial class BattleManager : Node
 					GetAllPartyMembers(), SelectedAction);
 				break;
 			case SkillTarget.AllEnemies:
-				command = new BattleCommand(actor, GetAllAliveEnemies(), SelectedAction);
+				command = new BattleCommand(actor, GetAliveEnemies(), SelectedAction);
+				break;
+			case SkillTarget.Everybody:
+				command = new BattleCommand(actor, [.. GetAlivePartyMembers(), .. GetAliveEnemies()], SelectedAction);
 				break;
 			case SkillTarget.XRandomEnemies:
 				command = new BattleCommand(actor,
@@ -2045,13 +2064,25 @@ public partial class BattleManager : Node
 		{
 			case SkillTarget.AllAllies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
-					? GetAllAliveEnemies()
+					? GetAliveEnemies()
 					: GetAlivePartyMembers());
 				break;
 			case SkillTarget.AllEnemies:
 				resolvedTargets.AddRange(currentAction.Actor is Enemy
 					? GetAlivePartyMembers()
-					: GetAllAliveEnemies());
+					: GetAliveEnemies());
+				break;
+			case SkillTarget.Everybody:
+				if (currentAction.Actor is Enemy)
+				{
+					resolvedTargets.AddRange(GetAliveEnemies());
+					resolvedTargets.AddRange(GetAlivePartyMembers());
+				}
+				else
+				{
+					resolvedTargets.AddRange(GetAlivePartyMembers());
+					resolvedTargets.AddRange(GetAliveEnemies());
+				}
 				break;
 			case SkillTarget.XRandomEnemies:
 				foreach (Actor target in currentAction.Targets)
@@ -2081,7 +2112,7 @@ public partial class BattleManager : Node
 				if (IsInvalidTarget(currentAction.Targets[0]))
 				{
 					Actor replacement = currentAction.Targets[0] is Enemy
-						? GetAllAliveEnemies().FirstOrDefault()
+						? GetAliveEnemies().FirstOrDefault()
 						: GetAlivePartyMembers().FirstOrDefault();
 					if (replacement == null)
 						noTarget = true;
@@ -2120,6 +2151,10 @@ public partial class BattleManager : Node
 				resolvedTargets.AddRange(currentAction.Targets);
 				break;
 		}
+
+		if (currentAction.Actor is Enemy && CurrentParty.Count == 0
+		    && currentAction.Action.Target is SkillTarget.AllEnemies or SkillTarget.XRandomEnemies)
+			noTarget = true;
 
 		if (!noTarget && (currentAction.Action.Target == SkillTarget.Enemy
 		        || (currentAction.Action.Target == SkillTarget.AllyOrEnemy && currentAction.Actor is Enemy))
@@ -2314,7 +2349,7 @@ public partial class BattleManager : Node
 		    || user.HasStatModifier("Charm") || user.HasStatModifier("ObserveIgnoreTaunt"))
 			return target;
 		List<Actor> taunting = target is Enemy
-			? GetAllAliveEnemies().Where(x => x.HasStatModifier("Taunt")).Cast<Actor>().ToList()
+			? GetAliveEnemies().Where(x => x.HasStatModifier("Taunt")).Cast<Actor>().ToList()
 			: GetAlivePartyMembers().Where(x => x.HasStatModifier("Taunt")).Cast<Actor>().ToList();
 		if (taunting.Count == 0 || taunting.Contains(target))
 			return target;
@@ -2353,8 +2388,8 @@ public partial class BattleManager : Node
 		// in base game, followups go after any other forced actions
 		BattleCommand command = skill.Target switch
 		{
-			SkillTarget.AllEnemies => new BattleCommand(current.Actor, GetAllAliveEnemies(), skill),
-			SkillTarget.XRandomEnemies when GetAllAliveEnemies().Count > 0
+			SkillTarget.AllEnemies => new BattleCommand(current.Actor, GetAliveEnemies(), skill),
+			SkillTarget.XRandomEnemies when GetAliveEnemies().Count > 0
 				=> new BattleCommand(current.Actor, PickRandomAliveEnemies(skill.RandomTargetCount), skill),
 			SkillTarget.Enemy when SmoothEnemyTarget(current.Actor.LastTargetIndex) is Enemy enemy
 				=> new BattleCommand(current.Actor, enemy, skill),
@@ -2598,8 +2633,9 @@ public partial class BattleManager : Node
 					continue;
 				await RunGuarded(() => enemy.Actor.ProcessEndOfTurn(), $"{enemy.Actor.Name}.ProcessEndOfTurn");
 			}
-			if (!AbortRequested && Energy == 10 && StorySwitches.BlackSpaceWorld && GetSunnyStandIn().IsEmotionValid("stressed"))
-				await RunGuarded(() => SunnyRegistry.ReleaseStress(GetSunnyStandIn()), "Release Stress");
+			if (!AbortRequested && Energy == 10 && StorySwitches.BlackSpaceWorld
+			    && GetSunnyStandIn() is { IsToast: false } standIn && standIn.IsEmotionValid("stressed"))
+				await RunGuarded(() => SunnyRegistry.ReleaseStress(standIn), "Release Stress");
 			await ResolveEnemyDeaths();
 			await ConvertDeadPartyMembers();
 			InEndOfTurnHooks = false;
@@ -2717,7 +2753,7 @@ public partial class BattleManager : Node
 			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.IsToast);
 		// if any omori is toast, the battle is over
 		// this may change in the future
-		if (CurrentParty.All(x => x.Actor.CurrentHP == 0) || omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast)))
+		if (!AllowsEmptyParty && (CurrentParty.All(x => x.Actor.CurrentHP == 0) || omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast))))
 		{
 			if (DeathBeatDue())
 			{
@@ -2729,14 +2765,13 @@ public partial class BattleManager : Node
 			await EndOfBattle(false);
 			if (StopEndOfBattleForRestart())
 				return;
-			BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
-			                                              "'s party was defeated...");
+			BattleLogManager.Instance.ClearAndShowMessage(GetPartyName() + " was defeated...");
 			InEndOfBattle = false;
 			ShowEndOfBattleOptions();
 			return;
 		}
 		
-		if (Enemies.All(x => IsOut(x.Actor)))
+		if (!AllowsEmptyEnemies && Enemies.All(x => IsOut(x.Actor)))
 		{
 			SetPhase(BattlePhase.BattleOver);
 			InEndOfBattle = true;
@@ -2755,7 +2790,7 @@ public partial class BattleManager : Node
 				string playingTrack = PlayingTrack();
 				float currentPosition = AudioManager.Instance.GetBGMPosition();
 				AudioManager.Instance.ForcePlayBGM("xx_victory", 1f, 1f);
-				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() + "'s party was victorious!");
+				BattleLogManager.Instance.ClearAndShowMessage(GetPartyName() + " was victorious!");
 				CurrentStage++;
 				if (CurrentStage < Stages.Count)
 				{
@@ -2769,14 +2804,34 @@ public partial class BattleManager : Node
 			else
 			{
 				AudioManager.Instance.ForcePlayBGM("xx_victory", 1f, 1f);
-				BattleLogManager.Instance.ClearAndShowMessage(CurrentParty[0].Actor.Name.ToUpper() +
-				                                              "'s party was victorious!");
+				BattleLogManager.Instance.ClearAndShowMessage(GetPartyName() + " was victorious!");
 			}
 
 			InEndOfBattle = false;
 			ShowEndOfBattleOptions();
 		}
 	}
+
+	internal static void SetSpeed(double multiplier)
+	{
+		Engine.TimeScale = multiplier;
+		Engine.PhysicsTicksPerSecond = (int)Math.Round(60 * multiplier);
+		Engine.MaxPhysicsStepsPerFrame = Math.Max(8, (int)Math.Ceiling(8 * multiplier));
+	}
+
+	private bool AllowsEmptyParty => GameType is GameModeType.Normal && SettingsMenuManager.Instance.AllowNoParty && CurrentParty.Count == 0;
+
+	private bool AllowsEmptyEnemies => GameType is GameModeType.Normal && SettingsMenuManager.Instance.AllowNoEnemies && Enemies.Count == 0;
+
+	private string GetPartyName()
+	{
+		if (CurrentParty.Count == 1)
+			return CurrentParty[0].Actor.Name.ToUpper();
+		return CurrentParty.Count > 0 ? CurrentParty[0].Actor.Name.ToUpper() + "'s party" : "The party";	
+	} 
+
+	private bool NoEnemyToTarget(BattleAction action) =>
+		Enemies.Count == 0 && action?.Target is SkillTarget.Enemy or SkillTarget.AllEnemies or SkillTarget.XRandomEnemies;
 
 	private static string PlayingTrack()
 	{
@@ -2989,7 +3044,7 @@ public partial class BattleManager : Node
 		"OmoriAfraid", "Hanging", "Immortal"
 	];
 
-	internal void ClearBossBattleState(bool keepOpaqueOverlay = false)
+	internal void ClearBossBattleState(bool keepOpaqueOverlay = false, bool clearScreen = true)
 	{
 		foreach (PartyMemberComponent component in CurrentParty)
 		{
@@ -3000,7 +3055,8 @@ public partial class BattleManager : Node
 				member.ResetSkillModel();
 		}
 		AudioManager.Instance.ForceStopBGS();
-		AnimationManager.Instance.ClearPictures();
+		if (clearScreen)
+			AnimationManager.Instance.ClearPictures();
 		StorySwitches.Reset();
 		MenuManager.Instance.RestorePresetSkin();
 		if (BossDisabledAttack)
@@ -3008,10 +3064,13 @@ public partial class BattleManager : Node
 			SetMenuOptionEnabled(BattleMenuOption.Attack, true);
 			BossDisabledAttack = false;
 		}
-		if (keepOpaqueOverlay && AnimationManager.Instance.OverlayOpaque)
-			AnimationManager.Instance.ClearScreenTone();
-		else
-			AnimationManager.Instance.ClearScreenTints();
+		if (clearScreen)
+		{
+			if (keepOpaqueOverlay && AnimationManager.Instance.OverlayOpaque)
+				AnimationManager.Instance.ClearScreenTone();
+			else
+				AnimationManager.Instance.ClearScreenTints();
+		}
 		foreach (PartyMemberComponent component in CurrentParty)
 			component.UpdateStateIcons();
 	}
@@ -3047,9 +3106,8 @@ public partial class BattleManager : Node
 				return;
 		}
 		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(outcome), "BattleEnded");
-		bool stageFollows = GameType is GameModeType.BossRush && outcome != BattleOutcome.Defeat && CurrentStage + 1 < Stages.Count;
 		if (!RestartQueued)
-			RunGuarded(() => ClearBossBattleState(stageFollows), "ClearBossBattleState");
+			RunGuarded(() => ClearBossBattleState(clearScreen: false), "ClearBossBattleState");
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
@@ -3824,9 +3882,12 @@ public partial class BattleManager : Node
 	/// <param name="grayscaleOnDefeat">Whether this enemy should trigger a grayscale effect when defeated.</param>
 	/// <param name="layer">The layer to spawn this enemy on.</param>
 	/// <param name="adjustedStats">Stat adjustments added on top of the enemy's declared stats.</param>
+	/// <param name="canChangeBattleback">Whether this enemy may change the battleback. See <see cref="Enemy.CanChangeBattleback"/>.</param>
+	/// <param name="canChangeBGM">Whether this enemy may change the BGM and BGS. See <see cref="Enemy.CanChangeBGM"/>.</param>
 	/// <returns>The spawned <see cref="Enemy"/>, or null if the spawn fails, such as for an unknown name.</returns>
 	public Enemy SummonEnemy(string who, Vector2 position, string startingEmotion = "neutral",
-		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0, Stats adjustedStats = default)
+		bool fallsOffScreen = true, bool grayscaleOnDefeat = false, int layer = 0, Stats adjustedStats = default,
+		bool canChangeBattleback = true, bool canChangeBGM = true)
 	{
 		BattlePresetEnemy en = new()
 		{
@@ -3835,7 +3896,9 @@ public partial class BattleManager : Node
 			FallsOffScreen = fallsOffScreen,
 			GrayscaleOnDefeat = grayscaleOnDefeat,
 			Layer = layer,
-			AdjustedStats = adjustedStats
+			AdjustedStats = adjustedStats,
+			PreventBattlebackChanges = !canChangeBattleback,
+			PreventBGMChanges = !canChangeBGM
 		};
 		return SummonEnemy(en, position)?.Actor;
 	}
@@ -4459,7 +4522,7 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/>, or null if none is found.</returns>
-	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>). See <see cref="GetAllAliveEnemies"/>.</remarks>
+	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>). See <see cref="GetAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveEnemy()
 	{
 		List<EnemyComponent> alive = Enemies.Where(x => !IsOut(x.Actor)).ToList();
@@ -4467,7 +4530,7 @@ public partial class BattleManager : Node
 	}
 
 	/// <returns>A random alive <see cref="Enemy"/> that's not the provided actor, or null if none is found.</returns>
-	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>). See <see cref="GetAllAliveEnemies"/>.</remarks>
+	/// <remarks>Any enemy that isn't toast yet is included, even at 0 HP. Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>). See <see cref="GetAliveEnemies"/>.</remarks>
 	public Enemy GetRandomAliveUniqueEnemy(Actor not)
 	{
 		List<EnemyComponent> alive = Enemies.Where(x => !IsOut(x.Actor) && x.Actor != not).ToList();
@@ -4480,12 +4543,12 @@ public partial class BattleManager : Node
 	/// commands queued during the action that knocked them out, or that hold IMMORTAL (see <see cref="Enemy.AddImmortal"/>).
 	/// Enemies that escaped are left out (see <see cref="Enemy.HasEscaped"/>).
 	/// </remarks>
-	public List<Enemy> GetAllAliveEnemies()
+	public List<Enemy> GetAliveEnemies()
 	{
 		return Enemies.Select(x => x.Actor).Where(x => !IsOut(x)).ToList();
 	}
 
-	/// <returns>All current <see cref="Enemy"/>s, including both alive and dead enemies. See <see cref="GetAllAliveEnemies"/> to only select alive enemies.</returns>
+	/// <returns>All current <see cref="Enemy"/>s, including both alive and dead enemies. See <see cref="GetAliveEnemies"/> to only select alive enemies.</returns>
 	public List<Enemy> GetAllEnemies()
 	{
 		return Enemies.Select(x => x.Actor).ToList();
@@ -4596,7 +4659,7 @@ public partial class BattleManager : Node
 	internal Enemy SmoothEnemyTarget(int index)
 	{
 		Enemy enemy = GetEnemy(index);
-		return enemy != null && !IsOut(enemy) ? enemy : GetAllAliveEnemies().FirstOrDefault();
+		return enemy != null && !IsOut(enemy) ? enemy : GetAliveEnemies().FirstOrDefault();
 	}
 
 	internal PartyMember SmoothPartyTarget(int index)
@@ -4607,7 +4670,7 @@ public partial class BattleManager : Node
 
 	internal PartyMember GetSunnyStandIn()
 	{
-		return CurrentParty.FirstOrDefault(x => x.Actor is Sunny or SunnyAlt)?.Actor ?? CurrentParty[0].Actor;
+		return CurrentParty.FirstOrDefault(x => x.Actor is Sunny or SunnyAlt)?.Actor ?? CurrentParty.FirstOrDefault()?.Actor;
 	}
 
 	/// <summary>

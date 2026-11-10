@@ -466,7 +466,7 @@ internal static class PyreflyForestRegistry
 		Skills["PPExplode"] = new Skill(
 			name: "PPExplode",
 			description: "PPExplode",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			setup: (self, _) =>
 			{
@@ -476,8 +476,6 @@ internal static class PyreflyForestRegistry
 			effect: (self, targets) =>
 			{
 				AnimationManager.Instance.PlayScreenAnimation(172, self is Enemy);
-				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
-					Explode(self, ally, 40f);
 				foreach (Actor target in targets)
 					Explode(self, target, 40f);
 				return Task.CompletedTask;

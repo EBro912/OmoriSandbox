@@ -112,6 +112,7 @@ internal class ModdedEnemy : Enemy
             SkillTarget.AllyOrEnemy when entry.TargetAllies => new BattleCommand(this, SelectEnemy(), skill),
             SkillTarget.Enemy or SkillTarget.AllyOrEnemy => new BattleCommand(this, observeTarget ?? SelectTarget(), skill),
             SkillTarget.XRandomEnemies => new BattleCommand(this, SelectTargets(entry.NumTargets ?? skill.RandomTargetCount), skill),
+            SkillTarget.Everybody => new BattleCommand(this, SelectEverybody(), skill),
             _ => null
         };
 

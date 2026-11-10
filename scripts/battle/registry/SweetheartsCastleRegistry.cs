@@ -315,7 +315,7 @@ internal static class SweetheartsCastleRegistry
 				BattleLogManager.Instance.QueueMessage(self, "[actor] uses his\nultimate attack!");
 				await Wait.Milliseconds(1000);
 				Task animation = AnimationManager.Instance.WaitForScreenAnimation(186, false);
-				int damage = BattleManager.Instance.GetAllAliveEnemies().Count switch
+				int damage = BattleManager.Instance.GetAliveEnemies().Count switch
 				{
 					2 => 75,
 					1 => 50,
@@ -803,15 +803,13 @@ internal static class SweetheartsCastleRegistry
 		Skills["LUCMisfireMagic"] = new Skill(
 			name: "LUCMisfireMagic",
 			description: "LUCMisfireMagic",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			effect: async (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] tries casting a spell...");
 				BattleLogManager.Instance.QueueMessage("LUCIUS sets everyone on fire!");
 				await AnimationManager.Instance.WaitForScreenAnimation(185, self is Enemy);
-				foreach (Enemy ally in BattleManager.Instance.GetAllAliveEnemies().ToList())
-					BattleManager.Instance.Damage(self, ally, () => ally.CurrentHP * 0.25f, false);
 				foreach (Actor target in targets)
 					BattleManager.Instance.Damage(self, target, () => target.CurrentHP * 0.25f, false);
 			}

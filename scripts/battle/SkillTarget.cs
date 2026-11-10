@@ -15,6 +15,7 @@ public enum SkillTarget
     AllEnemies,
     AllyOrEnemy,
     DeadAlly,
-    AllDeadAllies
+    AllDeadAllies,
+    Everybody
 #pragma warning restore CS1591
 }

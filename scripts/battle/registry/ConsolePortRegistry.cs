@@ -117,7 +117,7 @@ internal static class ConsolePortRegistry
 			effect: async (self, target) =>
 			{
 				await Skills["AAttack"].Effect(self, [target]);
-				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetAllAliveEnemies().FirstOrDefault(x => x is KelBoss) ?? self,
+				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetAliveEnemies().FirstOrDefault(x => x is KelBoss) ?? self,
 					Skills["ABossLookAtKel"]);
 				await Wait.Milliseconds(1000);
 			},
@@ -132,7 +132,7 @@ internal static class ConsolePortRegistry
 			effect: async (self, target) =>
 			{
 				await Skills["AAttack"].Effect(self, [target]);
-				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetAllAliveEnemies().FirstOrDefault(x => x is HeroBoss) ?? self,
+				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetAliveEnemies().FirstOrDefault(x => x is HeroBoss) ?? self,
 					Skills["ABossLookAtHero"]);
 				await Wait.Milliseconds(1000);
 			},
@@ -296,7 +296,7 @@ internal static class ConsolePortRegistry
 			{
 				AudioManager.Instance.PlaySFX("Skill2");
 				await Wait.Milliseconds(1000);
-				List<Enemy> enemies = BattleManager.Instance.GetAllAliveEnemies();
+				List<Enemy> enemies = BattleManager.Instance.GetAliveEnemies();
 				Enemy aubrey = enemies.FirstOrDefault(x => x is AubreyBoss) ?? enemies.FirstOrDefault(x => x != self);
 				if (aubrey != null)
 				{
@@ -339,7 +339,7 @@ internal static class ConsolePortRegistry
 			{
 				AudioManager.Instance.PlaySFX("Skill2");
 				await Wait.Milliseconds(1000);
-				List<Enemy> enemies = BattleManager.Instance.GetAllAliveEnemies();
+				List<Enemy> enemies = BattleManager.Instance.GetAliveEnemies();
 				Enemy kel = enemies.FirstOrDefault(x => x is KelBoss) ?? enemies.FirstOrDefault(x => x != self);
 				if (kel != null)
 				{
@@ -781,7 +781,7 @@ internal static class ConsolePortRegistry
 					AnimationManager.Instance.PlayAnimation(214, member);
 				}
 
-				foreach (Enemy enemy in BattleManager.Instance.GetAllAliveEnemies())
+				foreach (Enemy enemy in BattleManager.Instance.GetAliveEnemies())
 				{
 					enemy.AddStatModifier("Tickle", 2);
 				}

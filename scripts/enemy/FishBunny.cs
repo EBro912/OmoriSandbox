@@ -38,7 +38,7 @@ internal sealed class FishBunny : Enemy
                     goto attack;
                 if (Roll() < 26)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto attack;
                 goto schooling;
             case "sad":
@@ -46,7 +46,7 @@ internal sealed class FishBunny : Enemy
                     goto attack;
                 if (Roll() < 46)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto doNothing;
                 goto schooling;
             case "angry":
@@ -54,7 +54,7 @@ internal sealed class FishBunny : Enemy
                     goto attack;
                 if (Roll() < 16)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto doNothing;
                 goto schooling;
             default:
@@ -62,7 +62,7 @@ internal sealed class FishBunny : Enemy
                     goto attack;
                 if (Roll() < 26)
                     goto doNothing;
-                if (BattleManager.Instance.GetAllAliveEnemies().Count == 3)
+                if (BattleManager.Instance.GetAliveEnemies().Count == 3)
                     goto attack;
                 goto schooling;
         }

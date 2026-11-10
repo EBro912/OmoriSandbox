@@ -56,6 +56,6 @@ internal sealed class ShadyMole : Enemy
         bed:
         return new BattleCommand(this, SelectTarget(), Skills["SMB.E.D."]);
         dynamite:
-        return new BattleCommand(this, SelectAllTargets(), Skills["SMDynamite"]);
+        return new BattleCommand(this, SelectEverybody(), Skills["SMDynamite"]);
     }
 }

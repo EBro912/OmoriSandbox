@@ -173,7 +173,18 @@ internal sealed class BasilEnemy : Enemy
         animation.ErasePicture(10);
         if (!sunny.IsToast && sunny.CurrentAnimation == "stabbed")
             sunny.ClearAnimation();
+        FearPages.RestoreAttack();
         await FearPages.End(this);
+        if (BattleManager.Instance.AbortRequested
+            || BattleManager.Instance.GetAliveEnemies().Exists(enemy => enemy is BasilEnemy && enemy != this && enemy.CurrentHP > 0))
+            return;
+        sunny.RemoveStatModifier("Immortal", force: true);
+        foreach (PartyMember member in BattleManager.Instance.GetAllPartyMembers())
+        {
+            member.RemoveStatModifier("PersistentPlotArmor", force: true);
+            member.RemoveStatModifier("BasilSomething", force: true);
+        }
+        StorySwitches.BasilTroop = false;
     }
 
     private async Task BasilSomethingEnding(PartyMember sunny)

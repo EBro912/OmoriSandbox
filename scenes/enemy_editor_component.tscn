@@ -116,8 +116,11 @@ text = "X Pos"
 
 [node name="XPosInput" type="SpinBox" parent="Edit/VBoxContainer/XPos" unique_id=1270280068]
 layout_mode = 2
-max_value = 640.0
+min_value = -240.0
+max_value = 880.0
 value = 320.0
+allow_greater = true
+allow_lesser = true
 
 [node name="YPos" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=689938597]
 layout_mode = 2
@@ -133,6 +136,8 @@ text = "Y Pos"
 layout_mode = 2
 max_value = 480.0
 value = 240.0
+allow_greater = true
+allow_lesser = true
 
 [node name="Layer" type="HBoxContainer" parent="Edit/VBoxContainer" unique_id=1705452760]
 layout_mode = 2

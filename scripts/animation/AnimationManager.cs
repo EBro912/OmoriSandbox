@@ -501,10 +501,12 @@ public partial class AnimationManager : Node
 		for (int i = PlayingAnimations.Count - 1; i >= 0; i--)
 		{
 			PlayingAnimations[i].FrameTimer += (float)delta;
-			if (PlayingAnimations[i].FrameTimer < FrameDuration)
-				continue;
-			PlayingAnimations[i].FrameTimer -= FrameDuration;
-			NextFrame(i);
+			while (PlayingAnimations[i].FrameTimer >= FrameDuration)
+			{
+				PlayingAnimations[i].FrameTimer -= FrameDuration;
+				if (NextFrame(i))
+					break;
+			}
 		}
 	}
 
@@ -528,7 +530,7 @@ public partial class AnimationManager : Node
 		}
 	}
 
-	private void NextFrame(int i)
+	private bool NextFrame(int i)
 	{
 		// returns true if we're out of frames
 		if (PlayingAnimations[i].AdvanceFrame())
@@ -539,7 +541,7 @@ public partial class AnimationManager : Node
 			PlayingAnimations.RemoveAt(i);
 			if (PlayingAnimations.Count == 0)
 				EmitSignal(SignalName.AnimationFinished);
-			return;
+			return true;
 		}
 
 		if (PlayingAnimations[i].Animation.TryGetFrameSFX(PlayingAnimations[i].CurrentFrame, out List<SFX> sfx))
@@ -556,6 +558,7 @@ public partial class AnimationManager : Node
 		{
 			flashes.ForEach(PlayingAnimations[i].StartFlash);
 		}
+		return false;
 	}
 
 	private void UpdateShake()
@@ -1062,7 +1065,7 @@ public partial class AnimationManager : Node
 	/// <remarks>
 	/// While this is false, the default, a tint also changes the menus, the battle log, the energy bar, the portraits and the party's animations and damage numbers.
 	/// While it's true, they keep their colors and only the battleback, the enemies and their animations change, and a dialogue message doesn't dim the party's UI.
-	/// It turns off again when a battle starts, ends or resets, and when a Boss Rush stage changes.
+	/// It turns off again when a battle starts or resets, when you leave it, and when a Boss Rush stage changes.
 	/// </remarks>
 	public bool ToneBelowUI
 	{

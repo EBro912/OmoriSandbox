@@ -236,13 +236,13 @@ internal partial class EditorManager : Node
 			return;
 		}
 
-		if (ActorTabs.GetChildCount() == 0)
+		if (ActorTabs.GetChildCount() == 0 && !(EditorMode is GameModeType.Normal && SettingsMenuManager.Instance.AllowNoParty))
 		{
 			ShowWindow("Error", "Preset must have at least one actor");
 			return;
 		}
 
-		if (EditorMode is GameModeType.Normal && EnemyTabs.GetChildCount() == 0)
+		if (EditorMode is GameModeType.Normal && EnemyTabs.GetChildCount() == 0 && !SettingsMenuManager.Instance.AllowNoEnemies)
 		{
 			ShowWindow("Error", "Preset must have at least one enemy");
 			return;

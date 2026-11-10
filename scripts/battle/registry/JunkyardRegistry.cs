@@ -97,25 +97,22 @@ internal static class JunkyardRegistry
 		Skills["DUSlowDownAll"] = new Skill(
 			name: "DUSlowDownAll",
 			description: "DUSlowDownAll",
-			target: SkillTarget.AllEnemies,
+			target: SkillTarget.Everybody,
 			cost: 0,
 			setup: (self, targets) =>
 			{
 				BattleLogManager.Instance.QueueMessage(self, "[actor] slows down...");
 				// DIALOGUE QUIRK: prints the "SPEED fell." line even when SPEED is already at its limit
 				BattleLogManager.Instance.QueueMessage("Everyone's SPEED fell.");
-				List<Actor> everybody = [.. BattleManager.Instance.GetAllAliveEnemies(), .. targets];
-				BattleManager.Instance.BeginTiersFromFirstTarget(Skills["DUSlowDownAll"], everybody);
-				foreach (Actor member in everybody)
+				foreach (Actor member in targets)
 					member.AddTierStatModifier("SpeedDown", silent: true);
 				return Task.CompletedTask;
 			},
 			effect: async (_, targets) =>
 			{
-				foreach (Actor member in BattleManager.Instance.GetAllAliveEnemies().Concat(targets))
-					await AnimationManager.Instance.WaitForAnimation(220, member);
+				await Task.WhenAll(targets.Select(member => AnimationManager.Instance.WaitForAnimation(220, member)));
 			}
-		).WithTiersFromFirstTarget();
+		).WithTiersFromFirstTarget().WithCountsAsSingleTarget();
 
 		// DOOMBOX //
 		Skills["DMBSelfAngry"] = new Skill(
