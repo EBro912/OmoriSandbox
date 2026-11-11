@@ -40,9 +40,9 @@
 [ext_resource type="Material" path="res://assets/screen_blend_shader.tres" id="45_scrbl"]
 [ext_resource type="Script" uid="uid://dotagv8cmfu7r" path="res://scripts/display/DisplayLayout.cs" id="46_layout"]
 [ext_resource type="FontFile" uid="uid://c1ffiobkf516l" path="res://fonts/OMORI_GAME2_Numbers.ttf" id="47_nmbrs"]
-[ext_resource type="FontVariation" uid="uid://rbjpnhyq21qpt" path="res://fonts/OMORI_GAME2_Bold.tres" id="48_bold"]
-[ext_resource type="FontVariation" uid="uid://f47gatfvhyysp" path="res://fonts/OMORI_GAME2_Italic.tres" id="49_ital"]
-[ext_resource type="FontVariation" uid="uid://wdj2ndx4f8brq" path="res://fonts/OMORI_GAME2_BoldItalic.tres" id="50_boldital"]
+[ext_resource type="FontVariation" uid="uid://btv8babqs78or" path="res://fonts/OMORI_GAME2_Bold.tres" id="48_bold"]
+[ext_resource type="FontVariation" uid="uid://caskorimwr31x" path="res://fonts/OMORI_GAME2_Italic.tres" id="49_ital"]
+[ext_resource type="FontVariation" uid="uid://c1ipo3dul7wyw" path="res://fonts/OMORI_GAME2_BoldItalic.tres" id="50_boldital"]
 [ext_resource type="Texture2D" uid="uid://dqv6f8lbl4q2" path="res://assets/system/hp_icon.png" id="48_hpicn"]
 [ext_resource type="Texture2D" uid="uid://bbstna42lmri8" path="res://assets/system/energy_icon.png" id="49_enicn"]
 [ext_resource type="Script" uid="uid://dqh5trpiq2nkt" path="res://scripts/BattlebackLayers.cs" id="51_bblyr"]
@@ -95,6 +95,7 @@ Letterbox = [NodePath("../Letterbox/Top"), NodePath("../Letterbox/Bottom"), Node
 
 [node name="BattleCanvas" type="CanvasLayer" parent="." unique_id=845179420]
 layer = 0
+visible = false
 
 [node name="PresetManager" type="Node" parent="BattleCanvas" unique_id=42929789]
 script = ExtResource("2_j2jfr")
@@ -140,7 +141,7 @@ EnergyBar = NodePath("../UI/Energy")
 EnergyText = NodePath("../UI/Energy/EnergyAmount")
 EnergyDots = NodePath("../UI/Energy/EnergyDots")
 
-[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "Pictures", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint", "Glitch")]
+[node name="AnimationManager" type="Node" parent="BattleCanvas" unique_id=1346404106 node_paths=PackedStringArray("BattlebackRoot", "EnemyAnimations", "Pictures", "PerfectheartOverlayParent", "FullScreenEffectNode", "ScreenTint", "Glitch", "PerfectheartOverlayDarken", "PerfectheartOverlay")]
 script = ExtResource("12_5q0nq")
 BattlebackRoot = NodePath("../UI/BattlebackRoot")
 EnemyAnimations = NodePath("../UI/BattlebackRoot/EnemyAnimations")
@@ -165,6 +166,8 @@ PerfectheartOverlayParent = NodePath("../UI/BattlebackRoot/FullScreenEffects/Sub
 FullScreenEffectNode = NodePath("../UI/BattlebackRoot/FullScreenEffects")
 ScreenTint = NodePath("../UI/BattlebackRoot/FullScreenEffects/ScreenTint")
 Glitch = NodePath("../UI/BattlebackRoot/FullScreenEffects/Glitch")
+PerfectheartOverlayDarken = NodePath("../UI/BattlebackRoot/FullScreenEffects/PerfectheartOverlayDarken")
+PerfectheartOverlay = NodePath("../UI/BattlebackRoot/FullScreenEffects/PerfectheartOverlay")
 
 [node name="AudioManager" type="Node" parent="BattleCanvas" unique_id=943710295 node_paths=PackedStringArray("BGM", "BGS")]
 script = ExtResource("11_ya4ey")
@@ -278,6 +281,7 @@ color = Color(0, 0, 0, 1)
 z_as_relative = false
 
 [node name="ScreenTint" type="ColorRect" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=154174975]
+visible = false
 z_index = -4
 anchors_preset = 15
 anchor_right = 1.0
@@ -311,12 +315,14 @@ render_target_update_mode = 4
 [node name="PerfectheartOverlayParent" type="Node2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects/SubViewport" unique_id=2133650331]
 
 [node name="PerfectheartOverlayDarken" type="Sprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=306681131]
+visible = false
 z_index = -4
 material = ExtResource("45_scrbl")
 texture = SubResource("ViewportTexture_dgi5k")
 centered = false
 
 [node name="PerfectheartOverlay" type="Sprite2D" parent="BattleCanvas/UI/BattlebackRoot/FullScreenEffects" unique_id=1605337624]
+visible = false
 z_index = -4
 material = SubResource("CanvasItemMaterial_5q0nq")
 texture = SubResource("ViewportTexture_dgi5k")

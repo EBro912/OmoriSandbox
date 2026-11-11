@@ -33,6 +33,7 @@ buses/default_bus_layout="uid://lpmaav45bg5s"
 window/size/viewport_width=640
 window/size/viewport_height=480
 window/size/resizable=false
+window/size/maximize_disabled.windows=true
 
 [dotnet]
 

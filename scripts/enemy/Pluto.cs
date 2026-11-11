@@ -59,7 +59,7 @@ internal sealed class Pluto : Enemy
 
     private Enemy LeftArm;
     private Enemy RightArm;
-    public override Task OnStartOfBattle()
+    public override Task OnSpawned()
     {
         LeftArm = BattleManager.Instance.SummonEnemy("LeftArm", CenterPoint - new Vector2(-140, 50), layer: Layer + 1);
         RightArm = BattleManager.Instance.SummonEnemy("RightArm", CenterPoint - new Vector2(140, 50), layer: Layer + 1);

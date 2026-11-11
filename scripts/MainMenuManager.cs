@@ -310,6 +310,7 @@ internal partial class MainMenuManager : Node
 		}
 
 		AnimationManager.Instance.StopAllAnimations();
+		GameManager.Instance.HideBattleScene();
 		SettingsMenuManager.Instance.PlayTitleBGM();
 		PlayButton.Visible = true;
 		EditorSettingsContainer.Visible = true;

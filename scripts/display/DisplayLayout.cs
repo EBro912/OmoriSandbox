@@ -19,6 +19,7 @@ internal partial class DisplayLayout : Node
     internal Vector2 Margin { get; private set; }
     internal bool EdgePortraits { get; private set; }
     internal int CanvasWidth { get; private set; }
+    internal bool IntegerScaling { get; private set; }
     internal float OffsetX => (Width - 640) / 2f;
     internal Vector2 LayerOffset => Margin + new Vector2(OffsetX, 0);
     internal Rect2 VisibleBattleRect => new(-OffsetX, 0, Width, LogicalHeight);
@@ -44,6 +45,7 @@ internal partial class DisplayLayout : Node
     private float StatusBarRight;
     // window size the layout was last computed for
     private Vector2I WindowSize;
+    private Vector2 VisibleSize;
 
     public override void _EnterTree()
     {
@@ -94,15 +96,15 @@ internal partial class DisplayLayout : Node
         while (width * scale % 1f != 0f)
             width -= 2;
         Vector2 shown = new(width * scale, LogicalHeight * scale);
-        Vector2 margin = ((new Vector2(size.X, size.Y) - shown) / 2f).Floor().Max(Vector2.Zero) / scale;
-        if (window.ContentScaleFactor != scale)
-            window.ContentScaleFactor = scale;
+        Vector2 margin = ApplyStretch(window, size, width, scale, shown);
+        Vector2 visible = window.GetVisibleRect().Size;
         bool resized = width != Width;
-        if (!resized && scale == Scale && margin == Margin)
+        if (!resized && scale == Scale && margin == Margin && visible == VisibleSize)
             return false;
         Width = width;
         Scale = scale;
         Margin = margin;
+        VisibleSize = visible;
         if (!resized)
         {
             PlaceLayers();
@@ -112,9 +114,56 @@ internal partial class DisplayLayout : Node
         return true;
     }
 
-    private static float FitScale(int width, Vector2I size)
+    private static Vector2 ApplyStretch(Window window, Vector2I size, int width, float scale, Vector2 shown)
+    {
+        bool whole = scale % 1f == 0f;
+        if (whole && (shown.X < size.X || shown.Y < size.Y) && (size.Y - (int)shown.Y) % 2 == 0)
+        {
+            SetStretch(window, Window.ContentScaleModeEnum.CanvasItems, Window.ContentScaleAspectEnum.Ignore, Window.ContentScaleStretchEnum.Integer, new Vector2I(width, LogicalHeight), 1f);
+            if (IsExactScale(window, scale))
+                return Vector2.Zero;
+        }
+        else if (!whole && shown.X < size.X)
+        {
+            SetStretch(window, Window.ContentScaleModeEnum.CanvasItems, Window.ContentScaleAspectEnum.Keep, Window.ContentScaleStretchEnum.Fractional, new Vector2I((int)shown.X, size.Y), scale);
+            if (IsExactScale(window, scale))
+                return new Vector2(0, Mathf.Floor((size.Y - shown.Y) / 2f) / scale);
+        }
+        SetStretch(window, Window.ContentScaleModeEnum.Disabled, Window.ContentScaleAspectEnum.Keep, Window.ContentScaleStretchEnum.Fractional, new Vector2I(MinWidth, LogicalHeight), scale);
+        return ((new Vector2(size.X, size.Y) - shown) / 2f).Floor().Max(Vector2.Zero) / scale;
+    }
+
+    private static void SetStretch(Window window, Window.ContentScaleModeEnum mode, Window.ContentScaleAspectEnum aspect, Window.ContentScaleStretchEnum stretch, Vector2I contentSize, float factor)
+    {
+        if (window.ContentScaleFactor > factor)
+            window.ContentScaleFactor = factor;
+        bool settled = window.ContentScaleStretch == stretch && window.ContentScaleAspect == aspect && window.ContentScaleSize == contentSize;
+        // avoid unnecessary viewport updates by checking these individually
+        if (!settled && window.ContentScaleMode != Window.ContentScaleModeEnum.Disabled)
+            window.ContentScaleMode = Window.ContentScaleModeEnum.Disabled;
+        if (window.ContentScaleStretch != stretch)
+            window.ContentScaleStretch = stretch;
+        if (window.ContentScaleAspect != aspect)
+            window.ContentScaleAspect = aspect;
+        if (window.ContentScaleSize != contentSize)
+            window.ContentScaleSize = contentSize;
+        if (window.ContentScaleFactor != factor)
+            window.ContentScaleFactor = factor;
+        if (window.ContentScaleMode != mode)
+            window.ContentScaleMode = mode;
+    }
+
+    private static bool IsExactScale(Window window, float scale)
+    {
+        Vector2 actual = window.GetFinalTransform().Scale;
+        return Mathf.Abs(actual.X - scale) < 0.0001f && Mathf.Abs(actual.Y - scale) < 0.0001f;
+    }
+
+    private float FitScale(int width, Vector2I size)
     {
         float scale = Math.Max(1, Math.Min(size.X / width, size.Y / LogicalHeight));
+        if (IntegerScaling)
+            return scale;
         foreach (float step in FractionalScales)
         {
             if (step > scale && width * step <= size.X && LogicalHeight * step <= size.Y)
@@ -126,6 +175,13 @@ internal partial class DisplayLayout : Node
     public void SetCanvasWidth(int width)
     {
         CanvasWidth = Math.Clamp(width, 0, MaxWidth);
+        if (IsNodeReady())
+            Refresh();
+    }
+
+    public void SetIntegerScaling(bool enabled)
+    {
+        IntegerScaling = enabled;
         if (IsNodeReady())
             Refresh();
     }
@@ -171,7 +227,7 @@ internal partial class DisplayLayout : Node
         foreach (CanvasLayer layer in ExtraLayers)
             layer.Offset = LayerOffset;
 
-        Vector2 visible = new Vector2(WindowSize.X, WindowSize.Y) / Scale;
+        Vector2 visible = GetWindow().GetVisibleRect().Size;
         float right = Margin.X + Width;
         float bottom = Margin.Y + LogicalHeight;
         Fill(Letterbox[0], new Rect2(0, 0, visible.X, Margin.Y));

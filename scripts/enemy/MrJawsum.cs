@@ -89,11 +89,16 @@ internal sealed class MrJawsum : Enemy
         await DialogueManager.Instance.WaitForDialogue();
     }
 
-    public override async Task OnStartOfBattle()
+    public override Task OnSpawned()
     {
         AddStatModifier("MinionBarrier");
         SpawnGatorGuy();
         SpawnGatorGuy();
+        return Task.CompletedTask;
+    }
+
+    public override async Task OnStartOfBattle()
+    {
         DialogueManager.Instance.QueueMessage(this, @"Boys...\! would you be so kind as to show these kids the way out?");
         await DialogueManager.Instance.WaitForDialogue();
     }

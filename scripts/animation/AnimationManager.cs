@@ -47,6 +47,8 @@ public partial class AnimationManager : Node
 	[Export] private Node2D FullScreenEffectNode;
 	[Export] private ColorRect ScreenTint;
 	[Export] private ColorRect Glitch;
+	[Export] private Sprite2D PerfectheartOverlayDarken;
+	[Export] private Sprite2D PerfectheartOverlay;
 	private AnimatedSprite2D ReleaseEnergy;
 	private AnimatedSprite2D ReleaseEnergyBasil;
 	private AnimatedSprite2D RedHands;
@@ -105,6 +107,8 @@ public partial class AnimationManager : Node
 	{
 		CreateScreenTone();
 		CreateUITone();
+		PerfectheartOverlayParent.ChildEnteredTree += _ => SetPerfectheartOverlayVisible(true);
+		PerfectheartOverlayParent.ChildExitingTree += _ => SetPerfectheartOverlayVisible(PerfectheartOverlayParent.GetChildCount() > 1);
 		string data = FileAccess.GetFileAsString("res://animations/animations.json");
 		List<AnimationInfo> animationData = JsonConvert.DeserializeObject<List<AnimationInfo>>(data);
 		foreach (AnimationInfo info in animationData)
@@ -1025,7 +1029,7 @@ public partial class AnimationManager : Node
 		if (duration == 0f)
 		{
 			ScreenTintTween?.Kill();
-			ScreenTint.Color = color;
+			SetScreenTintColor(color);
 		}
 		else
 			StartScreenTint(color, duration);
@@ -1054,9 +1058,18 @@ public partial class AnimationManager : Node
 		ScreenTintTween?.Kill();
 		if (ScreenTint.Color.A == 0f)
 			ScreenTint.Color = new Color(color.R, color.G, color.B, 0f);
+		ScreenTint.Visible = true;
 		ScreenTintTween = GetTree().CreateTween();
 		ScreenTintTween.TweenProperty(ScreenTint, "color", color, duration);
+		if (color.A == 0f)
+			ScreenTintTween.Finished += () => ScreenTint.Visible = false;
 		return ScreenTintTween;
+	}
+
+	private void SetScreenTintColor(Color color)
+	{
+		ScreenTint.Color = color;
+		ScreenTint.Visible = color.A > 0f;
 	}
 
 	/// <summary>
@@ -1292,7 +1305,7 @@ public partial class AnimationManager : Node
 		ScreenTintTween?.Kill();
 		ScreenTintTween = null;
 		ScreenTint.ZIndex = -4;
-		ScreenTint.Color = ColorsExtension.TransparentBlack;
+		SetScreenTintColor(ColorsExtension.TransparentBlack);
 		SetGlitch(false);
 	}
 
@@ -1424,6 +1437,12 @@ public partial class AnimationManager : Node
 	{
 		state.AnimationDone?.TrySetResult();
 		state.AnimationDone = null;
+	}
+
+	private void SetPerfectheartOverlayVisible(bool visible)
+	{
+		PerfectheartOverlayDarken.Visible = visible;
+		PerfectheartOverlay.Visible = visible;
 	}
 
 	internal Sprite2D SpawnPerfectheartOverlay(Vector2 position)

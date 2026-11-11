@@ -52,9 +52,14 @@ internal sealed class PlutoExpandedEarth : Enemy
         return new BattleCommand(this, SelectTarget(), Skills["PEHeadbutt"]);
     }
 
-    public override async Task OnStartOfBattle()
+    public override Task OnSpawned()
     {
         Earth = BattleManager.Instance.SummonEnemy("TheEarth (Pluto)", CenterPoint + new Vector2(0, -100), layer: Layer + 1);
+        return Task.CompletedTask;
+    }
+
+    public override async Task OnStartOfBattle()
+    {
         DialogueManager.Instance.QueueMessage("PLUTO", CenterPoint, @"This will be our final fight.\! Show me everything you have.");
         await DialogueManager.Instance.WaitForDialogue();
     }

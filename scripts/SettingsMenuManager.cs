@@ -42,6 +42,8 @@ public partial class SettingsMenuManager : Control
 
 		PixelSnappingCheckbox.Toggled += ApplyPixelSnapping;
 
+		IntegerScalingCheckbox.Toggled += value => DisplayLayout.Instance?.SetIntegerScaling(value);
+
 		TitleMusicDropdown.ItemSelected += index =>
 		{
 			string picked = TitleMusicDropdown.GetItemText((int)index);
@@ -135,11 +137,14 @@ public partial class SettingsMenuManager : Control
 		WindowSizeDropdown.Selected = Math.Max(0, Array.IndexOf(WindowScales, (int)config.GetValue("Settings", "WindowScale", 1)));
 		ApplyWindowedSize();
 		LastWindowMode = GetWindow().Mode;
+		LockWindowSize(IsFullscreen(LastWindowMode));
 		PortraitsDropdown.Selected = (bool)config.GetValue("Settings", "EdgePortraits", false) ? 1 : 0;
 		DisplayLayout.Instance?.SetEdgePortraits(PortraitsDropdown.Selected == 1);
 		FullscreenCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "Fullscreen", false);
 		PixelSnappingCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "PixelSnapping", false);
 		ApplyPixelSnapping(PixelSnappingCheckbox.ButtonPressed);
+		IntegerScalingCheckbox.ButtonPressed = (bool)config.GetValue("Settings", "IntegerScaling", false);
+		DisplayLayout.Instance?.SetIntegerScaling(IntegerScalingCheckbox.ButtonPressed);
 		MasterSlider.Value = (float)config.GetValue("Settings", "MasterVolume", 0.75f);
 		SFXSlider.Value = (float)config.GetValue("Settings", "SFXVolume", 1f);
 		BGMSlider.Value = (float)config.GetValue("Settings", "BGMVolume", 0.5f);
@@ -219,6 +224,7 @@ public partial class SettingsMenuManager : Control
 		bool wasFullscreen = IsFullscreen(LastWindowMode);
 		LastWindowMode = mode;
 		FullscreenCheckbox.SetPressedNoSignal(IsFullscreen(mode));
+		LockWindowSize(IsFullscreen(mode));
 		if (wasFullscreen && !IsFullscreen(mode))
 			ApplyWindowedSize();
 	}
@@ -274,6 +280,7 @@ public partial class SettingsMenuManager : Control
 		config.SetValue("Settings", "CanvasWidth", AspectWidths[AspectDropdown.Selected]);
 		config.SetValue("Settings", "EdgePortraits", PortraitsDropdown.Selected == 1);
 		config.SetValue("Settings", "PixelSnapping", PixelSnappingCheckbox.ButtonPressed);
+		config.SetValue("Settings", "IntegerScaling", IntegerScalingCheckbox.ButtonPressed);
 		config.SetValue("Settings", "MasterVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("Master")));
 		config.SetValue("Settings", "BGMVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGM")));
 		config.SetValue("Settings", "BGSVolume", AudioServer.GetBusVolumeLinear(AudioServer.GetBusIndex("BGS")));
@@ -350,6 +357,12 @@ public partial class SettingsMenuManager : Control
 		while (scale > 1 && known && (WidthAt(scale) * scale > screen.X || DisplayLayout.LogicalHeight * scale > screen.Y))
 			scale--;
 		return new Vector2I(WidthAt(scale) * scale, DisplayLayout.LogicalHeight * scale);
+	}
+
+	private void LockWindowSize(bool locked)
+	{
+		WindowSizeDropdown.Disabled = locked;
+		WindowSizeDropdown.FocusMode = locked ? FocusModeEnum.None : FocusModeEnum.All;
 	}
 
 	private void ApplyWindowedSize()
@@ -512,6 +525,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private OptionButton AspectDropdown;
 	[Export] private OptionButton PortraitsDropdown;
 	[Export] private CheckBox PixelSnappingCheckbox;
+	[Export] private CheckBox IntegerScalingCheckbox;
 	[Export] private HSlider BattlelogSpeedSlider;
 	[Export] private HSlider ActionDelaySlider;
 	[Export] private HSlider DialogueSpeedSlider;

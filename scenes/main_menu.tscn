@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "IntegerScalingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -382,6 +382,7 @@ WindowSizeDropdown = NodePath("Tabs/Graphics/VBoxContainer/WindowSize/OptionButt
 AspectDropdown = NodePath("Tabs/Graphics/VBoxContainer/Aspect/OptionButton")
 PortraitsDropdown = NodePath("Tabs/Graphics/VBoxContainer/Portraits/OptionButton")
 PixelSnappingCheckbox = NodePath("Tabs/Graphics/VBoxContainer/PixelSnapping")
+IntegerScalingCheckbox = NodePath("Tabs/Graphics/VBoxContainer/IntegerScaling")
 BattlelogSpeedSlider = NodePath("Tabs/Battle/VBoxContainer/BattlelogSpeedSlider/BattlelogSpeedSlider")
 ActionDelaySlider = NodePath("Tabs/Battle/VBoxContainer/ActionDelaySlider/DelaySlider")
 DialogueSpeedSlider = NodePath("Tabs/Battle/VBoxContainer/DialogueSpeedSlider/HSlider")
@@ -503,6 +504,7 @@ text = "Window Size"
 [node name="OptionButton" type="OptionButton" parent="Main/Settings/Tabs/Graphics/VBoxContainer/WindowSize" unique_id=1735419008]
 layout_mode = 2
 size_flags_vertical = 4
+tooltip_text = "Sets the window size. Does nothing while in Fullscreen."
 theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = ExtResource("10_1ajci")
@@ -580,6 +582,16 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 25
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Pixel Snapping"
+
+[node name="IntegerScaling" type="CheckBox" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1735419020]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Only scales the game by whole numbers (1x, 2x, 3x...) in fullscreen so every pixel is the same size.
+May leave larger black bars around the window."
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 25
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Fullscreen Integer Scaling"
 
 [node name="ShowFPS" type="CheckBox" parent="Main/Settings/Tabs/Graphics/VBoxContainer" unique_id=1098298253]
 layout_mode = 2

@@ -67,6 +67,11 @@ internal sealed class Recyclepath : Enemy
     public override Task OnStartOfBattle()
     {
         AddImmortal();
+        return Task.CompletedTask;
+    }
+
+    public override Task OnSpawned()
+    {
         ReinforcementSlots.AddTroopMember(this, ReinforcementSlots.Recyclepath, BattleManager.Instance.SummonEnemy("RecycultistRight",
             CenterPoint + new Vector2(-247, 52), fallsOffScreen: false, layer: Math.Max(0, Layer - 1)));
         ReinforcementSlots.AddTroopMember(this, ReinforcementSlots.Recyclepath, BattleManager.Instance.SummonEnemy("RecycultistLeft",

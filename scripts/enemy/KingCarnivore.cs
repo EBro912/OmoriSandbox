@@ -24,7 +24,7 @@ internal sealed class KingCarnivore : Enemy
 
     private readonly List<Enemy> Roots = [];
     
-    public override Task OnStartOfBattle()
+    public override Task OnSpawned()
     {
         Roots.Add(BattleManager.Instance.SummonEnemy("Root", new Vector2(CenterPoint.X + 240, CenterPoint.Y + 70), layer: Layer));
         Roots.Add(BattleManager.Instance.SummonEnemy("Root", new Vector2(CenterPoint.X - 240, CenterPoint.Y + 70), layer: Layer));

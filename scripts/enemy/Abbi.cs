@@ -21,7 +21,7 @@ internal sealed class Abbi : Enemy
 
     private readonly Enemy[] Tentacles = new Enemy[4];
 
-    public override Task OnStartOfBattle()
+    public override Task OnSpawned()
     {
         for (int i = 0; i < 4; i++)
             ReviveTentacle();

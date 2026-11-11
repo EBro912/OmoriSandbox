@@ -1508,7 +1508,6 @@ public abstract class Actor
 	/// Called once when this actor enters a battle. For the actors a battle starts with, that is before any start-of-battle hook. Use it to set up extra sprites or nodes.
 	/// </summary>
 	/// <remarks>
-	/// The battle waits for it for the party members and enemies a battle, or a Boss Rush stage, starts with.
 	/// For an actor that joins later, such as a summon or an enemy made by <see cref="BattleManager.TransformEnemy"/> or
 	/// <see cref="BattleManager.ReplaceEnemy"/>, it runs right away and the battle doesn't wait for it.
 	/// </remarks>

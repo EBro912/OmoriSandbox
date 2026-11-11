@@ -75,7 +75,7 @@ internal sealed class BossmanHero : Enemy
 
     private readonly Enemy[] GatorGuys = new Enemy[2];
 
-    public override Task OnStartOfBattle()
+    public override Task OnSpawned()
     {
         GatorGuys[0] = BattleManager.Instance.SummonEnemy("GatorGuyHero", new Vector2(CenterPoint.X - 160, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));
         GatorGuys[1] = BattleManager.Instance.SummonEnemy("GatorGuyHero", new Vector2(CenterPoint.X + 180, CenterPoint.Y + 65), layer: Math.Max(0, Layer - 1));

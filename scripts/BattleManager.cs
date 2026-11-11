@@ -404,17 +404,11 @@ public partial class BattleManager : Node
 				return;
 			}
 		}
-		foreach (EnemyComponent component in Enemies.ToList())
+		if (!await RunEnemySpawnHooks())
 		{
-			if (!Enemies.Contains(component))
-				continue;
-			await RunSpawnHook(component.Actor);
-			if (RestartQueued)
-			{
-				Reset();
-				ReloadPreset();
-				return;
-			}
+			Reset();
+			ReloadPreset();
+			return;
 		}
 
 		// since a party member's start of battle hook could spawn another party member,
@@ -571,6 +565,19 @@ public partial class BattleManager : Node
 		if (!SpawnedActors.Add(actor))
 			return Task.CompletedTask;
 		return RunGuarded(actor.OnSpawned, $"{actor.Name}.OnSpawned");
+	}
+
+	private async Task<bool> RunEnemySpawnHooks()
+	{
+		foreach (EnemyComponent component in Enemies.ToList())
+		{
+			if (!Enemies.Contains(component))
+				continue;
+			await RunSpawnHook(component.Actor);
+			if (RestartQueued)
+				return false;
+		}
+		return true;
 	}
 
 	public override void _Process(double delta)
@@ -2910,6 +2917,12 @@ public partial class BattleManager : Node
 			PendingStageBGM = PlayStageBGM;
 		else
 			PlayStageBGM();
+		SpawnHooksArmed = true;
+		foreach (EnemyComponent component in Enemies.ToList())
+			RunGuarded(component.Actor.ApplyPassiveStatModifiers, $"{component.Actor.Name}.ApplyPassiveStatModifiers");
+		await RunEnemySpawnHooks();
+		if (StopEndOfBattleForRestart())
+			return;
 		await AnimationManager.Instance.WaitForTintOverlay(ColorsExtension.TransparentBlack, 0.5f);
 		if (StopEndOfBattleForRestart())
 			return;

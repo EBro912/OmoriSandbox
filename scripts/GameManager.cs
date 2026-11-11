@@ -123,6 +123,7 @@ public partial class GameManager : Node
 		BattlebackRoot.CallDeferred(Node.MethodName.AddChild, BattlebackLayer);
 		BattlebackRoot.CallDeferred(Node.MethodName.MoveChild, BattlebackLayer, 0);
 		
+		RenderingServer.SetDefaultClearColor(Colors.Black);
 		GD.Print("Version: " + Version);
 
 		DiscordManager = new();
@@ -312,10 +313,17 @@ public partial class GameManager : Node
 		foreach (string key in preset.RuleOverrides.Keys.Where(key => SettingsMenuManager.Instance.RuleSettings.All(rule => rule.Key != key)))
 			GD.PushWarning($"Preset {preset.Name} overrides an unknown rule \"{key}\", ignoring it");
 		SettingsMenuManager.Instance.ActiveRuleOverrides = preset.RuleOverrides;
+		GetParent<CanvasLayer>().Visible = true;
 		if (SpawnBattle(preset, startingStage))
 			return true;
+		HideBattleScene();
 		SettingsMenuManager.Instance.ActiveRuleOverrides = null;
 		return false;
+	}
+
+	internal void HideBattleScene()
+	{
+		GetParent<CanvasLayer>().Visible = false;
 	}
 
 	private bool SpawnBattle(BattlePreset preset, int startingStage)
