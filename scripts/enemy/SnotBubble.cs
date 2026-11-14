@@ -49,11 +49,7 @@ internal sealed class SnotBubble : Enemy
 
         if (IsBelowHP(0.1f))
             goto popOnDeath;
-        if (TrueTurnCount == 0)
-            goto inflate;
-        if (TrueTurnCount == 1)
-            goto inflate;
-        if (TrueTurnCount == 2)
+        if (TrueTurnCount is >= 0 and < 3)
             goto inflate;
         if (TrueTurnCount == 3)
             goto pop;

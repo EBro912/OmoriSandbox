@@ -35,6 +35,8 @@ internal class ModdedEnemy : Enemy
         ? Vector2.Zero
         : new Vector2(JsonEnemy.DamageNumberOffset[0], JsonEnemy.DamageNumberOffset[1]);
 
+    public override double HurtDuration => JsonEnemy.HurtDuration ?? base.HurtDuration;
+
     public override bool InfoBoxCursorAboveBox => JsonEnemy.InfoBoxCursorAboveBox;
 
     public override bool BlinksWhenSelected => JsonEnemy.BlinksWhenSelected ?? true;

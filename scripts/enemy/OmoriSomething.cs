@@ -44,8 +44,6 @@ internal sealed class OmoriSomething : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        goto engulfTrue;
-    engulfTrue:
         return new BattleCommand(this, SelectAllTargets(), Skills["OSMEngulfTrue"]);
     }
 }

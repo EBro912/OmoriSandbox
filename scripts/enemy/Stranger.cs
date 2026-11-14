@@ -18,6 +18,7 @@ internal sealed class Stranger : Enemy
     public override Vector2 DamageNumberOffset => new(0, -150);
     public override bool InfoBoxCursorAboveBox => true;
     public override bool BlinksWhenSelected => false;
+    public override double HurtDuration => 160 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/stranger.tres");
     protected override Stats Stats => new(9999, 9999, 10, 99, 99, 10, 200);
 

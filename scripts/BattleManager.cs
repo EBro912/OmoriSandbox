@@ -1197,7 +1197,6 @@ public partial class BattleManager : Node
 				{
 					if (IsOut(enemy.Actor) || !Enemies.Contains(enemy))
 						continue;
-					enemy.Actor.SetHurt(false);
 					await RunGuarded(() => enemy.Actor.ProcessBattleConditions(),
 						$"{enemy.Actor.Name}.ProcessBattleConditions");
 					await ResolveEnemyDeath(enemy);
@@ -1231,11 +1230,17 @@ public partial class BattleManager : Node
 		}
 	}
 
+	internal void EndEnemyHurtPoses()
+	{
+		foreach (EnemyComponent enemy in Enemies)
+			enemy.EndHurt();
+	}
+
 	private async Task ConvertDeadPartyMembers()
 	{
+		RefreshPartyStatus();
 		foreach (PartyMemberComponent member in CurrentParty)
 		{
-			member.Actor.SetHurt(false);
 			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast && member.Actor.HasStatModifier("PersistentPlotArmor"))
 				member.Actor.CurrentHP = 1;
 			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast)
@@ -1681,7 +1686,9 @@ public partial class BattleManager : Node
 				if (StopStartOfTurnForRestart())
 					return;
 			}
+			EndEnemyHurtPoses();
 			RaiseGuarded(TurnStarted, "TurnStarted");
+			RefreshPartyStatus();
 			ProcessedStartOfTurn = true;
 			InStartOfTurnHooks = false;
 		}
@@ -1743,6 +1750,7 @@ public partial class BattleManager : Node
 
 	private void HandlePlayerCommand()
 	{
+		RefreshPartyStatus();
 		// treat stunned and toast actors the same
 		// no point in letting a stunned party member choose a command if they can't do anything
 		while (!NeedsInput(CurrentParty[CurrentPartyMember].Actor))
@@ -2041,6 +2049,8 @@ public partial class BattleManager : Node
 	private async void HandleCommandExecute()
 	{
 		BattleCommand currentAction = CurrentCommand;
+		if (currentAction.Actor is Enemy acting)
+			acting.Component?.EndHurt();
 		ForcedCountAtCommandStart = ForcedCommands.Count;
 		CommandTargets = [];
 		foreach (PartyMemberComponent member in CurrentParty)
@@ -2901,6 +2911,7 @@ public partial class BattleManager : Node
 			x.Actor.ClearSkillCooldowns();
 			x.UpdateStateIcons();
 		});
+		RefreshPartyStatus();
 		if (!Stages[CurrentStage].KeepEnergy)
 			Energy = Math.Clamp(CurrentPreset.StartingEnergy, 0, 10);
 		float position = resumePosition ?? AudioManager.Instance.GetBGMPosition();
@@ -3001,6 +3012,7 @@ public partial class BattleManager : Node
 			RunGuarded(member.ApplyPassiveStatModifiers, $"{member.Name}.ApplyPassiveStatModifiers");
 			component.UpdateStateIcons();
 		}
+		RefreshPartyStatus();
 		Energy = BattleStartEnergy;
 		GetSunnyStandIn().AddStatModifier("ReleaseEnergyBasilBonus", silent: true);
 		foreach (EnemyComponent component in Enemies)
@@ -3099,6 +3111,7 @@ public partial class BattleManager : Node
 
 	private async Task RunEndOfBattleHooks(BattleOutcome outcome)
 	{
+		RefreshPartyStatus();
 		if (RestartQueued)
 			return;
 		// use index loops since the collections may be modified by summons in hooks
@@ -3120,7 +3133,10 @@ public partial class BattleManager : Node
 		}
 		RaiseGuarded(BattleEnded, new BattleEndedEventArgs(outcome), "BattleEnded");
 		if (!RestartQueued)
+		{
 			RunGuarded(() => ClearBossBattleState(clearScreen: false), "ClearBossBattleState");
+			RefreshPartyStatus();
+		}
 	}
 
 	// run all battle-related tasks guarded, so a broken skill or actor doesn't softlock the game
@@ -3804,6 +3820,18 @@ public partial class BattleManager : Node
 	}
 
 	/// <summary>
+	/// Redraws every party member's battlecard from their current emotion and animation.
+	/// </summary>
+	/// <remarks>
+	/// Battlecards redraw by themselves at the end of each action. Call this from an effect that needs a change shown sooner while the Delay Portrait Change setting is on.
+	/// </remarks>
+	public void RefreshPartyStatus()
+	{
+		foreach (PartyMemberComponent member in CurrentParty)
+			member.RefreshStatus();
+	}
+
+	/// <summary>
 	/// Gives the provided <see cref="Actor"/> a random emotion.<br/>If the actor already has that emotion, it will be upgraded.
 	/// </summary>
 	/// <remarks>
@@ -3816,6 +3844,14 @@ public partial class BattleManager : Node
 	public bool RandomEmotion(Actor who, bool silent = false)
 	{
 		who = ResolveTransformed(who);
+		bool applied = RollRandomEmotion(who, silent);
+		if (who is PartyMember)
+			RefreshPartyStatus();
+		return applied;
+	}
+
+	private bool RollRandomEmotion(Actor who, bool silent)
+	{
 		IReadOnlyList<EmotionGroup> pool = Database.GetRandomEmotionGroups();
 		if (pool.Count == 0)
 			return false;

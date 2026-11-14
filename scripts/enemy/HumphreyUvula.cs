@@ -13,6 +13,7 @@ internal sealed class HumphreyUvula : Enemy
 	public override Vector2 DamageNumberOffset => new(0, -150);
 	public override bool BlinksWhenSelected => false;
 	public override bool InfoBoxCursorAboveBox => true;
+	public override double HurtDuration => 12 / 60d;
 	public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/uvula.tres");
 	protected override Stats Stats => new(1, 1, 1, 1, 900, 1, 95);
 	protected override string[] EquippedSkills => ["HUUDoNothing"];

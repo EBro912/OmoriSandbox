@@ -39,8 +39,6 @@ internal sealed class OmoriSomethingHeights : Enemy
 
     public override BattleCommand ProcessAI()
     {
-        goto doNothing1;
-    doNothing1:
         return new BattleCommand(this, SelectTarget(), Skills["DRKDoNothing1"]);
     }
 }

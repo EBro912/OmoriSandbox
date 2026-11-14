@@ -39,19 +39,11 @@ internal sealed class Dorothi : Enemy
             return new BattleCommand(this, observe, Skills["DORAttack"]);
 
         if (Roll() < 66)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["DORAttack"]);
         if (Roll() < 41)
-            goto liar;
+            return new BattleCommand(this, SelectTarget(), Skills["CINLiar"]);
         if (Roll() < 36)
-            goto attackTwice;
-        goto selfHappy;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["DORAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["CINLiar"]);
-    attackTwice:
-        return new BattleCommand(this, SelectTargets(2), Skills["DORAttackTwice"]);
-    selfHappy:
+            return new BattleCommand(this, SelectTargets(2), Skills["DORAttackTwice"]);
         return new BattleCommand(this, this, Skills["DORSelfHappy"]);
     }
 }

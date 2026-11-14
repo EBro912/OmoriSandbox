@@ -38,15 +38,9 @@ internal sealed class Angi : Enemy
             return new BattleCommand(this, observe, Skills["ANGCrunch"]);
 
         if (Roll() < 66)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["ANGAttack"]);
         if (Roll() < 46)
-            goto doNothing;
-        goto crunch;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["ANGAttack"]);
-    doNothing:
-        return new BattleCommand(this, this, Skills["ANGDoNothing"]);
-    crunch:
+            return new BattleCommand(this, this, Skills["ANGDoNothing"]);
         return new BattleCommand(this, SelectTarget(), Skills["ANGCrunch"]);
     }
 }

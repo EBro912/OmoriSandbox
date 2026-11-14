@@ -60,15 +60,9 @@ internal sealed class DorothiTrain : Enemy
             return new BattleCommand(this, observe, Skills["DORAttack"]);
 
         if (Roll() < 66)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["DORAttack"]);
         if (Roll() < 36)
-            goto liar;
-        goto attackTwice;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["DORAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["DRTLiar"]);
-    attackTwice:
+            return new BattleCommand(this, SelectTarget(), Skills["DRTLiar"]);
         return new BattleCommand(this, SelectTargets(2), Skills["DORAttackTwice"]);
     }
 }

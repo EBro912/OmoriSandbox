@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
+using OmoriSandbox.Battle.Emotions;
 using OmoriSandbox.Battle.Modifier;
 using OmoriSandbox.Editor;
 
@@ -54,11 +55,9 @@ public partial class PartyMemberComponent : ActorComponent
 	/// </summary>
 	internal FollowupSet FollowupSet { get; private set; }
 
-	private Timer HurtTimer = new()
-	{
-		Autostart = false,
-		OneShot = true
-	};
+	private string ShownAnimation;
+	private EmotionAsset ShownAsset;
+	private string ShownEmotion;
 
 	internal bool SetPartyMember(PartyMember partyMember, PackedScene followup, FollowupSet set, BattlePresetActor actor)
 	{
@@ -114,11 +113,9 @@ public partial class PartyMemberComponent : ActorComponent
 		PartyMember.OnDamaged += Damaged;
 		PartyMember.OnStatModifierAdded += StatModifiersChanged;
 		PartyMember.OnStatModifierRemoved += StatModifiersChanged;
-		HurtTimer.Timeout += () => PartyMember.SetHurt(false);
-		AddChild(HurtTimer);
 
 		// Init already validated the emotion, delay this call to let everything initialize
-		Callable.From(RefreshStateVisuals).CallDeferred();
+		Callable.From(RefreshStatus).CallDeferred();
 
 		return true;
 	}
@@ -143,37 +140,62 @@ public partial class PartyMemberComponent : ActorComponent
 		return GetParent<Control>().GlobalPosition + new Vector2(56f, 82f - 20f * (float)Math.Floor(queued / 3f) + 40f * popupCount);
 	}
 
-	private void RefreshStateVisuals()
+	internal void RefreshStatus()
 	{
-		// members spawning with an active animation override show its asset instead of their emotion
-		if (PartyMember.CurrentAnimationAsset != null)
-			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
-		else
-			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
+		if (!IsInstanceValid(StateAnimator))
+			return;
+
+		string animation = PartyMember.CurrentAnimation;
+		EmotionAsset asset = animation != null ? PartyMember.CurrentAnimationAsset : null;
+		string emotion = PartyMember.CurrentEmotion.Id;
+		bool overrideChanged = animation != ShownAnimation || asset != ShownAsset;
+		bool emotionChanged = emotion != ShownEmotion;
+		ShownAnimation = animation;
+		ShownAsset = asset;
+		ShownEmotion = emotion;
+		if (overrideChanged)
+		{
+			// an override without an asset (base PlayAnimation) keeps the battlecard on the emotion
+			if (asset == null)
+				StateAnimator.SetState(emotion);
+			else
+			{
+				StateAnimator.ShowAsset(asset);
+				if (emotionChanged && asset.LabelTexture == null && !asset.LabelAtlasRow.HasValue)
+					StateAnimator.SetStateAtlas(emotion);
+			}
+		}
+		else if (emotionChanged)
+		{
+			// while an animation override is active (such as plot armor), only the above-head label follows emotion changes
+			if (animation != null)
+				StateAnimator.SetStateAtlas(emotion);
+			else
+				StateAnimator.SetState(emotion);
+		}
+
+		AnimatedSprite2D face = PartyMember.Sprite;
+		if (!IsInstanceValid(face))
+			return;
+		string shown = animation ?? (PartyMember.IsToast ? "toast" : PartyMember.EmotionAnimation(PartyMember.CurrentEmotion));
+		if (face.Animation != shown)
+			face.Animation = shown;
 	}
 
 	private void EmotionChanged(object sender, EventArgs e)
 	{
-		// while an animation override is active (such as plot armor), only the above-head label follows emotion changes
-		if (PartyMember.CurrentAnimation != null)
-			StateAnimator.SetStateAtlas(PartyMember.CurrentEmotion.Id);
-		else
-			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
+		if (!SettingsMenuManager.Instance.DelayPortraitChange)
+			RefreshStatus();
 	}
 
 	private void AnimationChanged(object sender, EventArgs e)
 	{
-		// an override without an asset (base PlayAnimation) keeps the battlecard on the emotion
-		if (PartyMember.CurrentAnimation != null && PartyMember.CurrentAnimationAsset != null)
-			StateAnimator.ShowAsset(PartyMember.CurrentAnimationAsset);
-		else
-			StateAnimator.SetState(PartyMember.CurrentEmotion.Id);
+		BattleManager.Instance.RefreshPartyStatus();
 	}
 
 	private void Damaged(object sender, EventArgs e)
 	{
 		PartyMember.SetHurt(true);
-		HurtTimer.Start(1d);
 	}
 
 	private void StatModifiersChanged(object sender, StatModifierEventArgs e)

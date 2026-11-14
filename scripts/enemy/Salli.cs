@@ -37,15 +37,9 @@ internal sealed class Salli : Enemy
             return new BattleCommand(this, observe, Skills["SALAttack"]);
 
         if (Roll() < 66)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["SALAttack"]);
         if (Roll() < 31)
-            goto liar;
-        goto speedUp;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["SALAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["SALLiar"]);
-    speedUp:
+            return new BattleCommand(this, SelectTarget(), Skills["SALLiar"]);
         return new BattleCommand(this, this, Skills["SALSpeedUp"]);
     }
 }

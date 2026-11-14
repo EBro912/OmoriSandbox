@@ -219,7 +219,7 @@ internal static class OmoriRegistry
 			effect: async (self, target) =>
 			{
 				await Wait.Milliseconds(1000);
-
+				BattleManager.Instance.RefreshPartyStatus();
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] whispers something to\n[target].");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF,
 					false);

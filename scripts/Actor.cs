@@ -1158,7 +1158,8 @@ public abstract class Actor
 	/// Makes this actor appear visually hurt.
 	/// </summary>
 	/// <remarks>
-	/// Does nothing while an animation override is active (such as Plot Armor).
+	/// Does nothing while an animation override is active (such as Plot Armor).<br/>
+	/// A party member stays hurt until their battlecard is next redrawn. Passing false redraws it.
 	/// </remarks>
 	/// <param name="hurt">Whether this actor should appear hurt.</param>
 	public virtual void SetHurt(bool hurt)
@@ -1387,7 +1388,7 @@ public abstract class Actor
 
 			BattleManager.Instance.RaiseGuarded(this, OnEmotionChanged, "OnEmotionChanged");
 			// only update the sprite if no animation override is active
-			if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite)) {
+			if (Component != null && CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite)) {
 				Sprite.Animation = EmotionAnimation(emotion);
 			}
 			NotifyEmotionTransform(previous, emotion);
@@ -1426,13 +1427,13 @@ public abstract class Actor
 		RemoveOtherEmotionCategories(emotion);
 		ClampHealthJuiceToMax();
 		BattleManager.Instance.RaiseGuarded(this, OnEmotionChanged, "OnEmotionChanged");
-		if (CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
+		if (Component != null && CurrentAnimation == null && GodotObject.IsInstanceValid(Sprite))
 		{
 			Sprite.Animation = EmotionAnimation(emotion);
 		}
 		NotifyEmotionTransform(previous, emotion);
 	}
-	
+
 	internal string EmotionAnimation(Emotion emotion)
 	{
 		if (this is not Enemy)

@@ -39,17 +39,11 @@ internal sealed class Cindi : Enemy
             return new BattleCommand(this, observe, Skills["CINSlam"]);
 
         if (Roll() < 66)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["CINAttack"]);
         if (Roll() < 41)
-            goto liar;
+            return new BattleCommand(this, SelectTarget(), Skills["CINLiar"]);
         if (CanUse("CINSlam"))
-            goto slam;
+            return new BattleCommand(this, SelectTarget(), Skills["CINSlam"]);
         return null;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["CINAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["CINLiar"]);
-    slam:
-        return new BattleCommand(this, SelectTarget(), Skills["CINSlam"]);
     }
 }

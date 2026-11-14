@@ -17,6 +17,7 @@ internal sealed class OmoriEnemy : Enemy
     public override bool InfoBoxCursorAboveBox => true;
     public override bool BlinksWhenSelected => false;
     public override Vector2 DamageNumberOffset => new(0, -50);
+    public override double HurtDuration => 36 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>($"res://animations/omori_enemy_{Form}.tres");
     protected override Stats Stats => new(255, 0, 54, 52, 256, 10, 1000);
     protected override string[] EquippedSkills => ["OMEAttack", "OMEHackAway", "OMEStab", "OMERedHands", "OMERedHandAttack", "OMEHairAttack", "OMEMariAttack", "OMEFinalAttack"];

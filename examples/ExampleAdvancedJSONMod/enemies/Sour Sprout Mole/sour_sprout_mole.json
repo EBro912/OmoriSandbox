@@ -44,6 +44,7 @@
 	"hit": 95,
 	"infoBoxOffset": [0, -180],
 	"damageNumberOffset": [0, 40],
+	"hurtDuration": 0.8,
 	"invalidStates": ["enraged", "furious", "depressed", "miserable", "ecstatic", "manic", "afraid", "stressed"],
 	"equippedSkills": ["LSMAttack", "LSMDoNothing", "LSMRunAround"],
 	"observeSingleSkill": "LSMAttack",

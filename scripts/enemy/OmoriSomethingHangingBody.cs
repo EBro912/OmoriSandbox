@@ -11,6 +11,7 @@ internal sealed class OmoriSomethingHangingBody : Enemy
     public override string Name => "HANGING BODY";
     public override Vector2 InfoBoxOffset => new(0, -300);
     public override bool BlinksWhenSelected => false;
+    public override double HurtDuration => 144 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/omori_something_hanging_body.tres");
     protected override Stats Stats => new(9999, 5000, 10, 999, 10, 10, 1000);
 

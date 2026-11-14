@@ -11,6 +11,7 @@ internal sealed class FearOfSpiders : Enemy
     public override Vector2 DamageNumberOffset => new(0, -200);
     public override bool BlinksWhenSelected => false;
     public override bool InfoBoxCursorAboveBox => true;
+    public override double HurtDuration => 160 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/fear_of_spiders.tres");
     protected override Stats Stats => new(7500, 3000, 115, 35, 110, 30, 95);
     protected override string[] EquippedSkills => ["FOSAttack", "FOSDoNothing", "FOSSpinWeb", "FOSAttackAll"];

@@ -12,6 +12,7 @@ internal sealed class SomethingInTheWalls : Enemy
     public override Vector2 InfoBoxOffset => new(0, -125);
     public override bool BlinksWhenSelected => false;
     public override bool InfoBoxCursorAboveBox => true;
+    public override double HurtDuration => 160 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/fear_of_spiders.tres");
     protected override Stats Stats => new(9000, 4500, 10, 10, 100, 10, 1000);
 

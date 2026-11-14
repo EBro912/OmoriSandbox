@@ -39,15 +39,9 @@ internal sealed class OmoriSomethingSpiders : Enemy
     public override BattleCommand ProcessAI()
     {
         if (Roll() < 36)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["WALAttack"]);
         if (Roll() < 31)
-            goto doNothing;
-        goto spiderWebs;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["WALAttack"]);
-    doNothing:
-        return new BattleCommand(this, this, Skills["WALDoNothing"]);
-    spiderWebs:
+            return new BattleCommand(this, this, Skills["WALDoNothing"]);
         return new BattleCommand(this, SelectTarget(), Skills["WALSpiderWebs"]);
     }
 }

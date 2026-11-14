@@ -400,6 +400,7 @@ public partial class SettingsMenuManager : Control
 		("PreventAccidentalRun", PreventRunCheckbox, false),
 		("ShowMoreInfo", ShowMoreInfoCheckbox, false),
 		("ShowStateIcons", ShowStateIconsCheckbox, false),
+		("DelayPortraitChange", DelayPortraitChangeCheckbox, false),
 		("EnemySelectionWrapping", EnemySelectionWrappingCheckbox, false),
 		("PlayFinalDuet", PlayFinalDuetCheckbox, false),
 		("EnableDebugDamage", EnableDebugDamageCheckbox, false),
@@ -487,6 +488,7 @@ public partial class SettingsMenuManager : Control
 	public bool DisableStatLimit => Rule("DisableStatLimit", DisableStatLimitCheckbox);
 	public bool ShowMoreInfo => ShowMoreInfoCheckbox.ButtonPressed;
 	public bool ShowStateIcons => ShowStateIconsCheckbox.ButtonPressed;
+	public bool DelayPortraitChange => DelayPortraitChangeCheckbox.ButtonPressed;
 	public bool UseConsoleSpeed => Rule("UseConsoleSpd", UseConsoleSpdCheckbox);
 	public bool UseConsoleDefense => Rule("UseConsoleDef", UseConsoleDefCheckbox);
 	public bool InfiniteBuffsDebuffs => Rule("InfiniteBuffsDebuffs", InfiniteBuffsDebuffsCheckbox);
@@ -538,6 +540,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox DisableStatLimitCheckbox;
 	[Export] private CheckBox ShowMoreInfoCheckbox;
 	[Export] private CheckBox ShowStateIconsCheckbox;
+	[Export] private CheckBox DelayPortraitChangeCheckbox;
 	[Export] private CheckBox EnemySelectionWrappingCheckbox;
 	[Export] private CheckBox PlayFinalDuetCheckbox;
 	[Export] private HSlider SelectionHoldTimeSlider;

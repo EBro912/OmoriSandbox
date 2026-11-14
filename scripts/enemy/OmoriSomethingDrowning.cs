@@ -39,28 +39,18 @@ internal sealed class OmoriSomethingDrowning : Enemy
     // VANILLA BUG: its AI only covers turns 1 to 7 and the troop can't show it before the end of turn 7, so it never acts
     public override BattleCommand ProcessAI()
     {
-        if (TrueTurnCount == 1)
-            goto reserved;
-        if (TrueTurnCount == 2)
-            goto reserved;
-        if (TrueTurnCount == 3)
-            goto omoriSSomething;
-        if (TrueTurnCount == 4)
-            goto attack;
-        if (TrueTurnCount == 5)
-            goto doNothing;
-        if (TrueTurnCount == 6)
-            goto omoriSSomething;
-        if (TrueTurnCount == 7)
-            goto doNothing;
+        switch (TrueTurnCount)
+        {
+            case 1 or 2:
+                return new BattleCommand(this, SelectTarget(), Skills["OSDRReserved"]);
+            case 3 or 6:
+                return new BattleCommand(this, SelectTarget(), Skills["OSDROmorisSomething"]);
+            case 4:
+                return new BattleCommand(this, SelectTarget(), Skills["OSDRAttack"]);
+            case 5 or 7:
+                return new BattleCommand(this, SelectTarget(), Skills["OSDRDoNothing"]);
+        }
+
         return null;
-    reserved:
-        return new BattleCommand(this, SelectTarget(), Skills["OSDRReserved"]);
-    omoriSSomething:
-        return new BattleCommand(this, SelectTarget(), Skills["OSDROmorisSomething"]);
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["OSDRAttack"]);
-    doNothing:
-        return new BattleCommand(this, SelectTarget(), Skills["OSDRDoNothing"]);
     }
 }

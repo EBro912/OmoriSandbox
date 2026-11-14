@@ -13,6 +13,7 @@ internal sealed class Mari : Enemy
     public override Vector2 InfoBoxOffset => new(0, -200);
     public override Vector2 DamageNumberOffset => new(0, -150);
     public override bool InfoBoxCursorAboveBox => true;
+    public override double HurtDuration => CurrentEmotion.Group == null ? 96 / 60d : base.HurtDuration;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/mari.tres");
     protected override Stats Stats => new(2300, 1500, 10, 143, 10, 10, 95);
 

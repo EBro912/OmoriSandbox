@@ -480,6 +480,7 @@ internal static class SunnyRegistry
 		await AnimationManager.Instance.WaitForMovePicture(3, Vector2.Zero, Vector2.One, 255, 1);
 		AnimationManager.Instance.ErasePicture(4);
 		AnimationManager.Instance.TintScreen(0, 0, 0, 255, 1 / 60f);
+		BattleManager.Instance.RefreshPartyStatus();
 		AnimationManager.Instance.ShowPicture(5, "black_screen", Vector2.Zero, false, Vector2.One, 255);
 		AnimationManager.Instance.ErasePicture(3);
 		await Wait.Frames(90);

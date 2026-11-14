@@ -37,15 +37,9 @@ internal sealed class Lili : Enemy
             return new BattleCommand(this, observe, Skills["LILAttack"]);
 
         if (Roll() < 41)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["LILAttack"]);
         if (Roll() < 31)
-            goto liar;
-        goto sadEyes;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["LILAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["LILLiar"]);
-    sadEyes:
+            return new BattleCommand(this, SelectTarget(), Skills["LILLiar"]);
         return new BattleCommand(this, SelectTarget(), Skills["LILSadEyes"]);
     }
 }

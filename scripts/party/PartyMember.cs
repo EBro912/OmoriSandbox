@@ -48,6 +48,15 @@ public abstract class PartyMember : Actor
 		base.ClearAnimation();
 	}
 
+	/// <inheritdoc/>
+	public override void SetHurt(bool hurt)
+	{
+		if (hurt || Component == null)
+			base.SetHurt(hurt);
+		else
+			Component.RefreshStatus();
+	}
+
 	internal bool Init(AnimatedSprite2D face, BattlePresetActor actor)
 	{
 		SpriteFrames animation = Animation;
@@ -92,6 +101,7 @@ public abstract class PartyMember : Actor
         Sprite = face;
 		Sprite.SpriteFrames = animation;
 		SetEmotion(emotion, true);
+		Sprite.Animation = EmotionAnimation(CurrentEmotion);
 		Sprite.Play();
 		
         // init stats

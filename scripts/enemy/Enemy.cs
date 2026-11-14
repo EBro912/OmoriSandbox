@@ -109,6 +109,15 @@ public abstract class Enemy : Actor
 	/// </summary>
 	public virtual Vector2 DamageNumberOffset => Vector2.Zero;
 
+	/// <summary>
+	/// How long this enemy's hurt animation shows after it takes damage, in seconds. Defaults to 0.8.
+	/// </summary>
+	/// <remarks>
+	/// A hit while the hurt animation is still showing does not restart it.
+	/// A value of 0 or less shows no hurt animation.
+	/// </remarks>
+	public virtual double HurtDuration => 0.8;
+
 	// the enemy's declared stats, used by the editor stat display
 	internal Stats DeclaredStats => Stats;
 

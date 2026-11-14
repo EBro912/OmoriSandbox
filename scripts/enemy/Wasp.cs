@@ -21,11 +21,7 @@ internal sealed class Wasp : Enemy
     public override BattleCommand ProcessAI()
     {
         if (Roll() < 51)
-            goto attack;
-        goto doNothing;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["WSPAttack"]);
-    doNothing:
+            return new BattleCommand(this, SelectTarget(), Skills["WSPAttack"]);;
         return new BattleCommand(this, this, Skills["WSPDoNothing"]);
     }
 }

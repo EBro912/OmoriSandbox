@@ -39,19 +39,11 @@ internal sealed class Merci : Enemy
             return new BattleCommand(this, observe, Skills["MERAttack"]);
 
         if (Roll() < 66)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["MERAttack"]);
         if (Roll() < 36)
-            goto liar;
+            return new BattleCommand(this, SelectTarget(), Skills["MERLiar"]);
         if (Roll() < 36)
-            goto melody;
-        goto scream;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["MERAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["MERLiar"]);
-    melody:
-        return new BattleCommand(this, SelectTarget(), Skills["MERMelody"]);
-    scream:
+            return new BattleCommand(this, SelectTarget(), Skills["MERMelody"]);
         return new BattleCommand(this, SelectTarget(), Skills["MERScream"]);
     }
 }

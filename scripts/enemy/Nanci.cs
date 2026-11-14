@@ -39,15 +39,9 @@ internal sealed class Nanci : Enemy
             return new BattleCommand(this, observe, Skills["NANAttack"]);
 
         if (Roll() < 76)
-            goto attack;
+            return new BattleCommand(this, SelectTarget(), Skills["NANAttack"]);
         if (Roll() < 46)
-            goto liar;
-        goto selfAngry;
-    attack:
-        return new BattleCommand(this, SelectTarget(), Skills["NANAttack"]);
-    liar:
-        return new BattleCommand(this, SelectTarget(), Skills["NANLiar"]);
-    selfAngry:
+            return new BattleCommand(this, SelectTarget(), Skills["NANLiar"]);
         return new BattleCommand(this, this, Skills["NANSelfAngry"]);
     }
 }

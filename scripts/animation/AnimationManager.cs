@@ -1294,7 +1294,11 @@ public partial class AnimationManager : Node
 
 	internal bool OverlayOpaque => ScreenTint.Color.A >= 1f;
 
-	internal void SetGlitch(bool on)
+	/// <summary>
+	/// Displays a glitch effect over the entire battle. Set <paramref name="on"/> to false to turn it off.
+	/// </summary>
+	/// <param name="on">Whether the glitch effect should appear.</param>
+	public void SetGlitch(bool on)
 	{
 		Glitch.Visible = on;
 	}

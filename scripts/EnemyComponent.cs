@@ -53,6 +53,8 @@ public partial class EnemyComponent : ActorComponent
 		RefreshInfoBox();
 		Actor.OnDamaged += Damaged;
 		Actor.OnRevived += Revived;
+		Actor.OnEmotionChanged += HurtCut;
+		Actor.OnAnimationChanged += HurtCut;
 		HurtTimer.Timeout += () => Actor.SetHurt(false);
 		AddChild(HurtTimer);
 	}
@@ -132,14 +134,33 @@ public partial class EnemyComponent : ActorComponent
 		{
 			Enemy.OnDamaged -= Damaged;
 			Enemy.OnRevived -= Revived;
+			Enemy.OnEmotionChanged -= HurtCut;
+			Enemy.OnAnimationChanged -= HurtCut;
 		}
 		base._ExitTree();
 	}
 
 	private void Damaged(object sender, EventArgs e)
 	{
+		double duration = Actor.HurtDuration;
+		if (!HurtTimer.IsStopped() || !(duration > 0d))
+			return;
 		Actor.SetHurt(true);
-		HurtTimer.Start(0.75d);
+		HurtTimer.Start(duration);
+	}
+
+	private void HurtCut(object sender, EventArgs e)
+	{
+		HurtTimer.Stop();
+	}
+
+	internal void EndHurt()
+	{
+		bool posed = IsInstanceValid(Actor.Sprite) && Actor.Sprite.Animation == "hurt";
+		if (HurtTimer.IsStopped() && !posed)
+			return;
+		HurtTimer.Stop();
+		Actor.SetHurt(false);
 	}
 
 	private void Revived(object sender, EventArgs e)

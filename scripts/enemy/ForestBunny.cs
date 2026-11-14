@@ -9,6 +9,7 @@ internal sealed class ForestBunny : Enemy
     public override string Name => "FOREST BUNNY";
     public override Vector2 InfoBoxOffset => new(0, -150);
     public override Vector2 DamageNumberOffset => new(0, 30);
+    public override double HurtDuration => CurrentEmotion.Id == "sad" ? 36 / 60d : base.HurtDuration;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/forest_bunny.tres");
     protected override Stats Stats => new(85, 42, 10, 2, 10, 10, 95);
 

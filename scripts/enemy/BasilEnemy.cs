@@ -16,6 +16,7 @@ internal sealed class BasilEnemy : Enemy
     public override Vector2 DamageNumberOffset => new(0, -150);
     public override bool InfoBoxCursorAboveBox => true;
     public override bool BlinksWhenSelected => false;
+    public override double HurtDuration => 160 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/basil_enemy.tres");
     protected override Stats Stats => new(150, 30, 4, 2, 6, 10, 200);
 

@@ -12,6 +12,7 @@ internal sealed class FearOfHeights : Enemy
     public override Vector2 DamageNumberOffset => new(0, -200);
     public override bool BlinksWhenSelected => false;
     public override bool InfoBoxCursorAboveBox => true;
+    public override double HurtDuration => 160 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/fear_of_heights.tres");
     protected override Stats Stats => new(6000, 4000, 120, 100, 80, 10, 95);
     protected override string[] EquippedSkills => ["FOHAttack", "FOHDoNothing", "FOHGrab", "FOHHands", "FOHShove"];

@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "IntegerScalingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "IntegerScalingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "DelayPortraitChangeCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -395,6 +395,7 @@ DisableDamageLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableDamageLim
 DisableStatLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableStatLimit")
 ShowMoreInfoCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowMoreInfo")
 ShowStateIconsCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowStateIcons")
+DelayPortraitChangeCheckbox = NodePath("Tabs/Battle/VBoxContainer/DelayPortraitChange")
 EnemySelectionWrappingCheckbox = NodePath("Tabs/Battle/VBoxContainer/EnemySelectionWrapping")
 PlayFinalDuetCheckbox = NodePath("Tabs/Battle/VBoxContainer/PlayFinalDuet")
 SelectionHoldTimeSlider = NodePath("Tabs/Battle/VBoxContainer/SelectionHoldDelaySlider/HSlider")
@@ -947,6 +948,15 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show State Icons"
+
+[node name="DelayPortraitChange" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=406312014]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Party portraits wait for the end of an action to change, like the base game"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Delay Portrait Change"
 
 [node name="EnemySelectionWrapping" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=875057239]
 layout_mode = 2

@@ -10,6 +10,7 @@ internal sealed class OmoriSomethingBlur : Enemy
     public override string Name => "SOMETHING";
     public override Vector2 InfoBoxOffset => new(0, -300);
     public override bool BlinksWhenSelected => false;
+    public override double HurtDuration => 4 / 60d;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/omori_something_blur.tres");
     protected override Stats Stats => new(9998, 4500, 10, 999, 10, 10, 1000);
 
