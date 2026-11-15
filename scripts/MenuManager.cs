@@ -8,7 +8,10 @@ using OmoriSandbox.Editor;
 
 namespace OmoriSandbox.Menu;
 
-internal partial class MenuManager : Node
+/// <summary>
+/// Manages the battle menus.
+/// </summary>
+public partial class MenuManager : Node
 {
 	[Export] private PartyMenu PartyMenu;
 	[Export] private BattleMenu BattleMenu;
@@ -25,7 +28,10 @@ internal partial class MenuManager : Node
 	internal IEnumerable<Menu> AllMenus => Menus.Values;
 	public static MenuManager Instance { get; private set; }
 
-	private MenuState CurrentState = MenuState.None;
+	/// <summary>
+	/// The current state of the battle menu, or which menu is currently open.
+	/// </summary>
+	public MenuState CurrentState { get; private set; } = MenuState.None;
 	private Menu CurrentMenu;
 	private Dictionary<MenuState, Menu> Menus;
 	private Dictionary<PartyMember, SelectionMemory> LastSelected = [];
@@ -62,9 +68,16 @@ internal partial class MenuManager : Node
 			EnergyBar.RegionRect = new Rect2(1f, 1f + Math.Min(energy / 2, 4) * 45f, 360f, 45f);
 	}
 
-	internal void RefreshEnergyDisplay() => RefreshEnergy(this, EventArgs.Empty);
+	/// <summary>
+	/// Refreshes the energy bar display.
+	/// </summary>
+	public void RefreshEnergyDisplay() => RefreshEnergy(this, EventArgs.Empty);
 
-	internal void ShowEnergyNumber(int value) => EnergyText.Text = $"{value:00}";
+	/// <summary>
+	/// Shows an energy number on the energy bar. Note that this does not actually set the party's energy to that number.
+	/// </summary>
+	/// <param name="value">The amount of energy to display visually.</param>
+	public void ShowEnergyNumber(int value) => EnergyText.Text = $"{value:00}";
 
 	internal void SetPresetSkin(string menuSkin, bool itemless)
 	{
@@ -73,13 +86,24 @@ internal partial class MenuManager : Node
 		UseSkin(PresetSkin, itemless);
 	}
 
-	internal void ApplyBattleSkin(string menuSkin, bool itemless)
+	/// <summary>
+	/// Applies a skin to the battle menu. Make sure to call <see cref="ShowButtons"/> afterward to show the change visually.
+	/// </summary>
+	/// <remarks>
+	/// Vanilla skin names include "Dreamworld", "Faraway", and "Blackspace".
+	/// </remarks>
+	/// <param name="menuSkin">The name of the menu skin to apply, case-sensitive.</param>
+	/// <param name="itemless">Whether to enable itemless mode.</param>
+	public void ApplyBattleSkin(string menuSkin, bool itemless)
 	{
 		UseSkin(Database.GetMenuSkin(Database.ResolveMenuSkinId(menuSkin)), itemless);
 		RefreshEnergy(this, EventArgs.Empty);
 	}
 
-	internal void RestorePresetSkin()
+	/// <summary>
+	/// Restores the battle menu skin to whatever the preset had it set to.
+	/// </summary>
+	public void RestorePresetSkin()
 	{
 		if (ActiveSkin != PresetSkin || BattleMenu.Itemless != PresetItemless)
 			UseSkin(PresetSkin, PresetItemless);
@@ -95,13 +119,16 @@ internal partial class MenuManager : Node
 
 	internal void SetPartyPlayMode(bool on) => PartyMenu.SetPlayMode(on);
 
+	/// <summary>
+	/// Shows the current active skin.
+	/// </summary>
 	public void ShowButtons()
 	{
 		PartyMenu.ApplySkin(ActiveSkin);
 		BattleMenu.ApplySkin(ActiveSkin);
 	}
 
-	public void ShowMenu(MenuState state, bool immediate = false, bool ignoreMemory = false)
+	internal void ShowMenu(MenuState state, bool immediate = false, bool ignoreMemory = false)
 	{
 		LoweredMenus.Clear();
 		CurrentState = state;
@@ -138,7 +165,7 @@ internal partial class MenuManager : Node
 		MoveEnergyBarUp(immediate);
 	}
 
-	public void MoveDownOpenMenus(bool immediate)
+	internal void MoveDownOpenMenus(bool immediate)
 	{
 		LoweredMenus.Clear();
 		foreach (var menu in Menus) {
@@ -152,7 +179,7 @@ internal partial class MenuManager : Node
 		MoveEnergyBarDown(immediate);
 	}
 
-	public void MoveUpOpenMenus(bool immediate)
+	internal void MoveUpOpenMenus(bool immediate)
 	{
 		foreach (Menu open in Menus.Values.Where(x => x.Visible || LoweredMenus.Contains(x)))
 			open.MoveUp(immediate);
@@ -171,8 +198,8 @@ internal partial class MenuManager : Node
 				CurrentMenu.OnRepeat(Repeat.Direction);
 		}
 	}
-
-	public void Select()
+	
+	internal void Select()
 	{
 		if (CurrentState != MenuState.None)
 		{ 
@@ -180,7 +207,7 @@ internal partial class MenuManager : Node
 		}
 	}
 
-	public void SaveLastSelected(PartyMember member)
+	internal void SaveLastSelected(PartyMember member)
 	{
 		if (LastSelected.ContainsKey(member))
 		{
@@ -202,7 +229,7 @@ internal partial class MenuManager : Node
 		}
 	}
 
-	public void ClearLastSelected()
+	internal void ClearLastSelected()
 	{
 		LastSelected.Clear();
 	}
