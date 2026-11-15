@@ -76,7 +76,7 @@ internal sealed class Stranger : Enemy
                 DialogueManager.Instance.QueueMessage(this, $@"{FearPages.SunnyName}...\! I'll trap you down here with me forever.", font: DialogueManager.FontType.Jagged);
                 await DialogueManager.Instance.WaitForDialogue();
                 await Wait.Frames(45);
-                battle.ForceCommand(this, battle.SmoothPartyTarget(LastTargetIndex), Skills["STRShadowBasilAttack"]);
+                battle.ForceCommand(this, battle.GetPartyMemberTargetOrFirst(LastTargetIndex), Skills["STRShadowBasilAttack"]);
                 EndingPending = true;
                 break;
         }

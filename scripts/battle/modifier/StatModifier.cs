@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle.Emotions;
 
@@ -79,7 +80,10 @@ public class StatModifier
     /// </summary>
     public bool ReapplyAllowed { get; private set; }
 
-    internal IReadOnlyCollection<string> Resists { get; private set; } = [];
+    /// <summary>
+    /// The stat modifiers this modifier resists. See <see cref="WithResists"/>.
+    /// </summary>
+    public IReadOnlyCollection<string> Resists { get; private set; } = [];
 
     private readonly HashSet<string> CategorySet = new(StringComparer.OrdinalIgnoreCase);
 
@@ -149,17 +153,34 @@ public class StatModifier
         return this;
     }
 
-    internal StatModifier WithResists(params string[] modifiers)
+    /// <summary>
+    /// Makes this modifier resist other stat modifiers.
+    /// </summary>
+    /// <remarks>
+    /// While an actor has this modifier, the listed ones can't be added to it. Adding this modifier also removes any of them the actor already has.
+    /// </remarks>
+    /// <param name="modifiers">The ids of the stat modifiers to resist.</param>
+    public StatModifier WithResists(params string[] modifiers)
     {
-        Resists = modifiers;
+        Resists = (modifiers ?? []).Where(id => !string.IsNullOrWhiteSpace(id)).ToArray();
         return this;
     }
 
-    internal IReadOnlyCollection<string> SealedSkills { get; private set; } = [];
+    /// <summary>
+    /// The skills this modifier seals. See <see cref="WithSealedSkills"/>.
+    /// </summary>
+    public IReadOnlyCollection<string> SealedSkills { get; private set; } = [];
 
-    internal StatModifier WithSealedSkills(params string[] keys)
+    /// <summary>
+    /// Seals skills, so the actor can't use them while they have this modifier.
+    /// </summary>
+    /// <remarks>
+    /// A sealed skill will fail <see cref="Actors.Actor.CanUse(Skill)"/>. Forced commands will bypass this.
+    /// </remarks>
+    /// <param name="keys">The ids the skills were registered under.</param>
+    public StatModifier WithSealedSkills(params string[] keys)
     {
-        SealedSkills = keys;
+        SealedSkills = (keys ?? []).Where(key => !string.IsNullOrWhiteSpace(key)).ToArray();
         return this;
     }
 
@@ -239,7 +260,11 @@ public class StatModifier
         return this;
     }
 
-    internal bool BlocksEmotion(Emotion emotion)
+    /// <summary>
+    /// Whether this modifier makes its holder immune to <paramref name="emotion"/>. See <see cref="WithImmunityToAllEmotions"/>.
+    /// </summary>
+    /// <param name="emotion">The emotion to check.</param>
+    public bool BlocksEmotion(Emotion emotion)
     {
         return Immunity.Blocks(emotion);
     }
@@ -281,17 +306,31 @@ public class StatModifier
         return BattleManager.IsEmotionElement(element) && (elements.Contains("emotion") || elements.Contains("exploit"));
     }
 
-    internal bool Absorbs(string element)
+    /// <summary>
+    /// Whether this modifier absorbs a hit of the given attack element. See <see cref="WithAbsorb"/>.
+    /// </summary>
+    /// <param name="element">The attack element, or null for a hit with no element.</param>
+    public bool Absorbs(string element)
     {
         return AbsorbElements != null && (AbsorbElements.Count == 0 || (element != null && Matches(AbsorbElements, element)));
     }
 
-    internal bool Reflects(string element)
+    /// <summary>
+    /// Whether this modifier reflects a hit of the given attack element. See <see cref="WithReflect"/>.
+    /// </summary>
+    /// <param name="element">The attack element, or null for a hit with no element.</param>
+    public bool Reflects(string element)
     {
         return ReflectElements != null && (ReflectElements.Count == 0 || (element != null && Matches(ReflectElements, element)));
     }
 
-    internal virtual StateIcon[] GetStateIcons()
+    /// <summary>
+    /// The state icons this modifier shows right now.
+    /// </summary>
+    /// <remarks>
+    /// Returns the icons from <see cref="WithStateIcons"/> by default. Override it to pick icons from the modifier's own state.
+    /// </remarks>
+    public virtual StateIcon[] GetStateIcons()
     {
         return StateIcons;
     }

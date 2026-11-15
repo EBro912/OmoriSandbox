@@ -440,7 +440,16 @@ public abstract class Actor
 		NotifyModifierAdded(modifier, t);
 	}
 
-	internal void RefreshTierStatModifier(string modifier, bool refreshTurns, bool silent)
+	/// <summary>
+	/// Shows a tier stat modifier's failure message, and optionally restarts its turn counter, without changing its tier.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing if this actor doesn't have <paramref name="modifier"/> or it isn't a <see cref="TierStatModifier"/>.
+	/// </remarks>
+	/// <param name="modifier">The modifier's id.</param>
+	/// <param name="refreshTurns">True to restart the turn counter.</param>
+	/// <param name="silent">True to skip the message.</param>
+	public void RefreshTierStatModifier(string modifier, bool refreshTurns, bool silent)
 	{
 		if (!StatModifiers.TryGetValue(modifier, out StatModifier mod) || mod is not TierStatModifier tier)
 			return;
@@ -540,14 +549,21 @@ public abstract class Actor
 	/// <returns>True if the skill can be used now.</returns>
 	public bool CanUse(Skill skill)
 	{
-		return skill != null && GetUseFailure(skill) == null;
+		return skill != null && GetUseFailure(skill) == SkillUseFailure.None;
 	}
 
-	internal SkillUseFailure? GetUseFailure(Skill skill) => GetUseFailure(skill, true);
+	/// <summary>
+	/// Why this actor can't use <paramref name="skill"/> right now, or <see cref="SkillUseFailure.None"/> if it can. See <see cref="CanUse(Skill)"/>.
+	/// </summary>
+	/// <remarks>
+	/// When several reasons apply, the first in the order of <see cref="SkillUseFailure"/> is returned. A null skill reads <see cref="SkillUseFailure.Requirement"/>.
+	/// </remarks>
+	/// <param name="skill">The skill to check. It doesn't have to be in <see cref="Skills"/>.</param>
+	public SkillUseFailure GetUseFailure(Skill skill) => skill == null ? SkillUseFailure.Requirement : GetUseFailure(skill, true);
 
-	internal SkillUseFailure? GetFollowupUseFailure(Skill skill) => GetUseFailure(skill, false);
+	internal SkillUseFailure GetFollowupUseFailure(Skill skill) => GetUseFailure(skill, false);
 
-	private SkillUseFailure? GetUseFailure(Skill skill, bool includeRequirementAndJuice)
+	private SkillUseFailure GetUseFailure(Skill skill, bool includeRequirementAndJuice)
 	{
 		if (includeRequirementAndJuice && (!skill.MeetsRequirements(this) || IsSealed(skill)))
 			return SkillUseFailure.Requirement;
@@ -563,7 +579,7 @@ public abstract class Actor
 			return SkillUseFailure.HP;
 		if (this is PartyMember && BattleManager.Instance != null && BattleManager.Instance.Energy < skill.EnergyCost(this))
 			return SkillUseFailure.Energy;
-		return null;
+		return SkillUseFailure.None;
 	}
 
 	private bool IsSealed(Skill skill)

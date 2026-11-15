@@ -973,7 +973,12 @@ public partial class AnimationManager : Node
 		FreeEffect(ref special);
 	}
 
-	internal async Task WaitForBasilSpecialAnimation(string effect, int animationId)
+	/// <summary>
+	/// Plays the full-screen effect of BASIL's special skills and waits for it to finish. The effect image fades in over the battle, an animation plays, and the image zooms out.
+	/// </summary>
+	/// <param name="effect">The <c>res://</c> path of the effect texture.</param>
+	/// <param name="animationId">The id of the screen animation played once the effect image is in place.</param>
+	public async Task WaitForBasilSpecialAnimation(string effect, int animationId)
 	{
 		Node2D special = BasilSpecialAnimationScene.Instantiate<Node2D>();
 		Sprite2D effectTex = special.GetNode<Sprite2D>("Effect");
@@ -1303,7 +1308,10 @@ public partial class AnimationManager : Node
 		Glitch.Visible = on;
 	}
 
-	internal void ClearScreenTints()
+	/// <summary>
+	/// Removes every screen tint, including the overlay from <see cref="TintOverlay"/>, the tone from <see cref="TintScreen"/> and the glitch effect.
+	/// </summary>
+	public void ClearScreenTints()
 	{
 		ClearScreenTone();
 		ScreenTintTween?.Kill();
@@ -1313,7 +1321,13 @@ public partial class AnimationManager : Node
 		SetGlitch(false);
 	}
 
-	internal void ClearScreenTone()
+	/// <summary>
+	/// Removes the tone set by <see cref="TintScreen"/>.
+	/// </summary>
+	/// <remarks>
+	/// Also turns <see cref="ToneBelowUI"/> off.
+	/// </remarks>
+	public void ClearScreenTone()
 	{
 		StopScreenToneTween();
 		BelowUI = false;
@@ -1322,7 +1336,11 @@ public partial class AnimationManager : Node
 		RefreshUITone();
 	}
 
-	internal async Task FadeOutScreenTints(float seconds)
+	/// <summary>
+	/// Fades out the overlay from <see cref="TintOverlay"/> and the tone from <see cref="TintScreen"/> together, and waits for both.
+	/// </summary>
+	/// <param name="seconds">How long the fade takes.</param>
+	public async Task FadeOutScreenTints(float seconds)
 	{
 		Task tone = WaitForTintScreen(0, 0, 0, 0, seconds);
 		Color overlay = ScreenTint.Color;
@@ -1340,7 +1358,21 @@ public partial class AnimationManager : Node
 
 	private readonly Dictionary<int, PictureState> PictureStates = [];
 
-	internal void ShowPicture(int id, string name, Vector2 position, bool centered, Vector2 scale, int opacity)
+	/// <summary>
+	/// Shows one of the base game's pictures over the battle. See <see cref="ShowPicture(int,Godot.Texture2D,Godot.Vector2,bool,Godot.Vector2,int)"/> to show custom pictures.
+	/// </summary>
+	/// <remarks>
+	/// Pictures draw over the battleback and the enemies, in screen coordinates (640x480), and stay in place while the battle camera moves.
+	/// A higher id draws on top, and showing a picture in a slot already in use replaces it.<br/>
+	/// Every picture is erased when the battle is exited or restarted, and between Boss Rush stages. Winning or losing keeps them on screen.
+	/// </remarks>
+	/// <param name="id">The picture's slot.</param>
+	/// <param name="name">The file name of a picture in the <c>assets/pictures</c> folder, without the extension.</param>
+	/// <param name="position">Where the picture goes.</param>
+	/// <param name="centered">True to put the picture's center at <paramref name="position"/>, false for its top-left corner.</param>
+	/// <param name="scale">The picture's scale. <c>Vector2.One</c> is full size.</param>
+	/// <param name="opacity">The opacity, from 0 to 255.</param>
+	public void ShowPicture(int id, string name, Vector2 position, bool centered, Vector2 scale, int opacity)
 	{
 		string framesPath = $"res://animations/pictures/{name}.tres";
 		string path = $"res://assets/pictures/{name}.png";
@@ -1354,6 +1386,52 @@ public partial class AnimationManager : Node
 			GD.PushError($"Picture '{name}' was not found in assets/pictures.");
 			return;
 		}
+		AddPicture(id, node, position, scale, opacity);
+	}
+
+	/// <summary>
+	/// Shows a texture as a picture over the battle. See <see cref="ShowPicture(int, string, Vector2, bool, Vector2, int)"/> for base game pictures.
+	/// </summary>
+	/// <param name="id">The picture's slot.</param>
+	/// <param name="texture">The texture to show. With null, an error is logged and nothing changes.</param>
+	/// <param name="position">Where the picture goes.</param>
+	/// <param name="centered">True to put the picture's center at <paramref name="position"/>, false for its top-left corner.</param>
+	/// <param name="scale">The picture's scale. <c>Vector2.One</c> is full size.</param>
+	/// <param name="opacity">The opacity, from 0 to 255.</param>
+	public void ShowPicture(int id, Texture2D texture, Vector2 position, bool centered, Vector2 scale, int opacity)
+	{
+		if (texture == null)
+		{
+			GD.PushError("ShowPicture needs a texture.");
+			return;
+		}
+		AddPicture(id, new Sprite2D { Texture = texture, Centered = centered }, position, scale, opacity);
+	}
+
+	/// <summary>
+	/// Shows an animated picture over the battle. See <see cref="ShowPicture(int, string, Vector2, bool, Vector2, int)"/> for base game pictures.
+	/// </summary>
+	/// <remarks>
+	/// Pictures don't animate until <see cref="PlayPictureAnimation"/> is called.
+	/// </remarks>
+	/// <param name="id">The picture's slot.</param>
+	/// <param name="frames">The picture's animations.</param>
+	/// <param name="position">Where the picture goes.</param>
+	/// <param name="centered">True to put the picture's center at <paramref name="position"/>, false for its top-left corner.</param>
+	/// <param name="scale">The picture's scale. <c>Vector2.One</c> is full size.</param>
+	/// <param name="opacity">The opacity, from 0 to 255.</param>
+	public void ShowPicture(int id, SpriteFrames frames, Vector2 position, bool centered, Vector2 scale, int opacity)
+	{
+		if (frames == null)
+		{
+			GD.PushError("ShowPicture needs sprite frames.");
+			return;
+		}
+		AddPicture(id, new AnimatedSprite2D { SpriteFrames = frames, Centered = centered }, position, scale, opacity);
+	}
+
+	private void AddPicture(int id, Node2D node, Vector2 position, Vector2 scale, int opacity)
+	{
 		if (PictureStates.Remove(id, out PictureState old))
 			RemovePicture(old);
 		PictureState state = new() { Node = node };
@@ -1368,7 +1446,18 @@ public partial class AnimationManager : Node
 		Pictures.MoveChild(node, PictureStates.Keys.Count(other => other < id));
 	}
 
-	internal void MovePicture(int id, Vector2 position, Vector2 scale, int opacity, int frames)
+	/// <summary>
+	/// Moves a picture to a new position, scale and opacity over time.
+	/// </summary>
+	/// <remarks>
+	/// Calling this on a running move will replace it.
+	/// </remarks>
+	/// <param name="id">The picture's slot.</param>
+	/// <param name="position">The position to move to.</param>
+	/// <param name="scale">The scale to reach.</param>
+	/// <param name="opacity">The opacity to reach, from 0 to 255.</param>
+	/// <param name="frames">How long the move takes, in frames at 60 per second. At least 1.</param>
+	public void MovePicture(int id, Vector2 position, Vector2 scale, int opacity, int frames)
 	{
 		if (frames <= 0 || !PictureStates.TryGetValue(id, out PictureState state))
 			return;
@@ -1383,7 +1472,15 @@ public partial class AnimationManager : Node
 		state.Move.Finished += () => done.TrySetResult();
 	}
 
-	internal Task WaitForMovePicture(int id, Vector2 position, Vector2 scale, int opacity, int frames)
+	/// <summary>
+	/// Moves a picture like <see cref="MovePicture"/> and waits for the move to finish.
+	/// </summary>
+	/// <param name="id">The picture's slot.</param>
+	/// <param name="position">The position to move to.</param>
+	/// <param name="scale">The scale to reach.</param>
+	/// <param name="opacity">The opacity to reach, from 0 to 255.</param>
+	/// <param name="frames">How long the move takes, in frames at 60 per second. At least 1.</param>
+	public Task WaitForMovePicture(int id, Vector2 position, Vector2 scale, int opacity, int frames)
 	{
 		MovePicture(id, position, scale, opacity, frames);
 		if (frames <= 0 || !PictureStates.TryGetValue(id, out PictureState state))
@@ -1391,7 +1488,15 @@ public partial class AnimationManager : Node
 		return state.MoveDone.Task;
 	}
 
-	internal Task PlayPictureAnimation(int id, string animation)
+	/// <summary>
+	/// Plays an animation on an animated picture.
+	/// </summary>
+	/// <remarks>
+	/// The returned task completes when a non-looping animation finishes. For a looping animation, an unused id or an unknown animation, it completes immediately.
+	/// </remarks>
+	/// <param name="id">The picture's slot.</param>
+	/// <param name="animation">The animation's name in the picture's <see cref="SpriteFrames"/>.</param>
+	public Task PlayPictureAnimation(int id, string animation)
 	{
 		if (!PictureStates.TryGetValue(id, out PictureState state))
 			return Task.CompletedTask;
@@ -1409,13 +1514,20 @@ public partial class AnimationManager : Node
 		return state.AnimationDone.Task;
 	}
 
-	internal void ErasePicture(int id)
+	/// <summary>
+	/// Removes a picture. Does nothing if the slot isn't in use.
+	/// </summary>
+	/// <param name="id">The picture's slot.</param>
+	public void ErasePicture(int id)
 	{
 		if (PictureStates.Remove(id, out PictureState state))
 			RemovePicture(state);
 	}
 
-	internal void ClearPictures()
+	/// <summary>
+	/// Removes every picture.
+	/// </summary>
+	public void ClearPictures()
 	{
 		foreach (int id in PictureStates.Keys.ToList())
 			ErasePicture(id);
@@ -1523,7 +1635,10 @@ public partial class AnimationManager : Node
 		}
 	}
 
-	internal async Task WaitForSnaley()
+	/// <summary>
+	/// Plays SNALEY's full-screen effect and waits for it to finish.
+	/// </summary>
+	public async Task WaitForSnaley()
 	{
 		if (!IsInstanceValid(Snaley))
 			Snaley = SpawnEffect<TextureRect>(SnaleyScene);
@@ -1540,7 +1655,13 @@ public partial class AnimationManager : Node
 		FreeEffect(ref Snaley);
 	}
 
-	internal async Task WaitForHumphreySwarm()
+	/// <summary>
+	/// Plays HUMPHREY's swarm effect and waits for it to finish.
+	/// </summary>
+	/// <remarks>
+	/// The screen turns black when it ends and stays black. Make sure to call <c>TintScreen(0, 0, 0, 0)</c> to restore it.
+	/// </remarks>
+	public async Task WaitForHumphreySwarm()
 	{
 		if (!IsInstanceValid(HumphreySwarm))
 			HumphreySwarm = SpawnEffect<TextureRect>(HumphreySwarmScene);
@@ -1554,7 +1675,10 @@ public partial class AnimationManager : Node
 		FreeEffect(ref HumphreySwarm);
 	}
 
-	internal async Task WaitForHumphreySwallow()
+	/// <summary>
+	/// Plays HUMPHREY's swallow animation over the screen and waits for it to finish.
+	/// </summary>
+	public async Task WaitForHumphreySwallow()
 	{
 		if (!IsInstanceValid(HumphreySwallow))
 			HumphreySwallow = SpawnEffect<AnimatedSprite2D>(HumphreySwallowScene);
@@ -1564,7 +1688,10 @@ public partial class AnimationManager : Node
 		FreeEffect(ref HumphreySwallow);
 	}
 	
-	internal async Task WaitForHumphreyFaceSwallow()
+	/// <summary>
+	/// Plays HUMPHREY's swallow animation with his face over the screen and waits for it to finish.
+	/// </summary>
+	public async Task WaitForHumphreyFaceSwallow()
 	{
 		if (!IsInstanceValid(HumphreyFaceSwallow))
 			HumphreyFaceSwallow = SpawnEffect<AnimatedSprite2D>(HumphreyFaceSwallowScene);
@@ -1574,7 +1701,10 @@ public partial class AnimationManager : Node
 		FreeEffect(ref HumphreyFaceSwallow);
 	}
 
-	internal async Task WaitForEncore()
+	/// <summary>
+	/// Plays the full-screen effect of ENCORE and waits for it to finish.
+	/// </summary>
+	public async Task WaitForEncore()
 	{
 		AudioManager.Instance.PlaySFX("SE_bs_realization", 0.9f, 0.9f);
 		if (!IsInstanceValid(Encore))
@@ -1588,7 +1718,14 @@ public partial class AnimationManager : Node
 		FreeEffect(ref Encore);
 	}
 
-	internal async Task PlayCherish(int index)
+	/// <summary>
+	/// Shows the CHERISH picture with one friend's lines and waits for the dialogue to finish.
+	/// </summary>
+	/// <remarks>
+	/// The picture stays on screen until <see cref="HideCherish"/>.
+	/// </remarks>
+	/// <param name="index">Which friend is remembered: 0 KEL, 1 AUBREY, 2 HERO, 3 BASIL, 4 MARI.</param>
+	public async Task PlayCherish(int index)
 	{
 		if (!IsInstanceValid(Cherish))
 			Cherish = SpawnEffect<TextureRect>(CherishScene);
@@ -1633,7 +1770,10 @@ public partial class AnimationManager : Node
 		await Wait.Frames(60);
 	}
 
-	internal async Task HideCherish()
+	/// <summary>
+	/// Fades out the picture shown by <see cref="PlayCherish"/> and waits for the fade.
+	/// </summary>
+	public async Task HideCherish()
 	{
 		if (!IsInstanceValid(Cherish))
 			return;
@@ -1643,7 +1783,16 @@ public partial class AnimationManager : Node
 		FreeEffect(ref Cherish);
 	}
 
-	internal async Task FadeSuccumb(bool closed, float alpha, float seconds)
+	/// <summary>
+	/// Fades the SUCCUMB picture to the given opacity and waits for the fade.
+	/// </summary>
+	/// <remarks>
+	/// The picture is created automatically. An opacity of 0 removes it when the fade ends.
+	/// </remarks>
+	/// <param name="closed">True for the picture with closed eyes.</param>
+	/// <param name="alpha">The target opacity, from 0 to 1.</param>
+	/// <param name="seconds">How long the fade takes.</param>
+	public async Task FadeSuccumb(bool closed, float alpha, float seconds)
 	{
 		if (!IsInstanceValid(Succumb))
 		{
@@ -1784,7 +1933,10 @@ public partial class AnimationManager : Node
 		return playing;
 	}
 
-	internal void StopAllAnimations()
+	/// <summary>
+	/// Stops every playing animation at once and ends any screen shake.
+	/// </summary>
+	public void StopAllAnimations()
 	{
 		List<PlayingAnimation> stopping = [.. PlayingAnimations];
 		PlayingAnimations.Clear();

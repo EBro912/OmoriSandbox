@@ -568,9 +568,16 @@ public partial class AudioManager : Node
 		return SFXDictionary.TryAdd(name, stream);
 	}
 
-	internal bool HasSFX(string name)
+	/// <summary>
+	/// Whether a sound effect with this name is loaded.
+	/// </summary>
+	/// <remarks>
+	/// Sound effects from mods and the ones animations use are loaded at startup. The game's other sound effects are loaded the first time they play, so this can be false for a sound <see cref="PlaySFX(string, float, float)"/> can still play.
+	/// </remarks>
+	/// <param name="name">The sound effect's name, without the file extension. Names are case-sensitive.</param>
+	public bool HasSFX(string name)
 	{
-		return SFXDictionary.ContainsKey(name);
+		return name != null && SFXDictionary.ContainsKey(name);
 	}
 
 	private void RegisterBGMLoopOffset(string name, AudioStreamOggVorbis stream)

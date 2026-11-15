@@ -107,7 +107,7 @@ internal sealed class SomethingInTheDark : Enemy
         if (turn == 10)
         {
             await Wait.Frames(45);
-            BattleManager.Instance.ForceCommand(this, BattleManager.Instance.SmoothPartyTarget(LastTargetIndex), Skills["DRKFinalAttack"]);
+            BattleManager.Instance.ForceCommand(this, BattleManager.Instance.GetPartyMemberTargetOrFirst(LastTargetIndex), Skills["DRKFinalAttack"]);
             FinalAttackPending = true;
         }
         await FearPages.PlayerDownPage(this);

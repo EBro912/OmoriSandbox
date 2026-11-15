@@ -148,7 +148,7 @@ internal static class ConsolePortRegistry
 			effect: async (self, target) =>
 			{
 				await Skills["KAttack"].Effect(self, [target]);
-				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.SmoothPartyTarget(self.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetPartyMemberTargetOrFirst(self.LastTargetIndex),
 					Skills["KBossPassToAubrey"]);
 				await Wait.Milliseconds(1000);
 			},
@@ -280,7 +280,7 @@ internal static class ConsolePortRegistry
 			effect: async (self, target) =>
 			{
 				await Skills["HAttack"].Effect(self, [target]);
-				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.SmoothPartyTarget(self.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetPartyMemberTargetOrFirst(self.LastTargetIndex),
 					Skills["HBossCallAubrey"]);
 				await Wait.Milliseconds(1000);
 			},
@@ -323,7 +323,7 @@ internal static class ConsolePortRegistry
 			effect: async (self, target) =>
 			{
 				await Skills["HAttack"].Effect(self, [target]);
-				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.SmoothPartyTarget(self.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetPartyMemberTargetOrFirst(self.LastTargetIndex),
 					Skills["HBossCallKel"]);
 				await Wait.Milliseconds(1000);
 			},

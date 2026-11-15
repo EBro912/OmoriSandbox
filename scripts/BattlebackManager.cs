@@ -70,7 +70,10 @@ public sealed partial class BattlebackManager : Node
         return true;
     }
 
-    internal IEnumerable<string> GetAllBattlebacks()
+    /// <summary>
+    /// The names of every battleback, built in and from mods.
+    /// </summary>
+    public IEnumerable<string> GetAllBattlebacks()
     {
         return Battlebacks.Keys;
     }

@@ -205,6 +205,11 @@ public partial class BattleManager : Node
 	/// </summary>
 	public bool ToastlessMode { get; private set; }
 
+	/// <summary>
+	/// Whether the current preset is a Boss Rush.
+	/// </summary>
+	public bool IsBossRush => GameType is GameModeType.BossRush;
+
 	private bool RestartQueued;
 	private double RestartTimer;
 
@@ -955,7 +960,7 @@ public partial class BattleManager : Node
 			return;
 		}
 		PartyMember attacker = CurrentParty[CurrentPartyMember].Actor;
-		if (SelectedAction is Skill attack && GetInputUseFailure(attacker, attack) != null || NoEnemyToTarget(SelectedAction))
+		if (SelectedAction is Skill attack && GetInputUseFailure(attacker, attack) != SkillUseFailure.None || NoEnemyToTarget(SelectedAction))
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return;
@@ -984,9 +989,9 @@ public partial class BattleManager : Node
 		SetPhase(BattlePhase.SkillSelection);
 	}
 
-	internal SkillUseFailure? GetInputUseFailure(PartyMember member, Skill skill)
+	internal SkillUseFailure GetInputUseFailure(PartyMember member, Skill skill)
 	{
-		SkillUseFailure? failure = member.GetUseFailure(skill);
+		SkillUseFailure failure = member.GetUseFailure(skill);
 		if (failure is SkillUseFailure.Requirement or SkillUseFailure.UseDisallowed)
 			return failure;
 		if (IsReservedThisTurn(member, skill))
@@ -1011,7 +1016,7 @@ public partial class BattleManager : Node
 	internal bool OnSelectSkill(Skill skill)
 	{
 		SelectedAction = skill;
-		if (GetInputUseFailure(CurrentParty[CurrentPartyMember].Actor, skill) != null)
+		if (GetInputUseFailure(CurrentParty[CurrentPartyMember].Actor, skill) != SkillUseFailure.None)
 		{
 			AudioManager.Instance.PlaySFX("sys_buzzer", volume: 0.9f);
 			return false;
@@ -2287,8 +2292,8 @@ public partial class BattleManager : Node
 
 	private bool RefuseSkill(BattleCommand command, Skill skill)
 	{
-		SkillUseFailure? failure = command.Actor.GetUseFailure(skill);
-		if (failure == null)
+		SkillUseFailure failure = command.Actor.GetUseFailure(skill);
+		if (failure == SkillUseFailure.None)
 			return false;
 		string name = command.Actor.Name.ToUpper();
 		switch (failure)
@@ -2408,9 +2413,9 @@ public partial class BattleManager : Node
 			SkillTarget.AllEnemies => new BattleCommand(current.Actor, GetAliveEnemies(), skill),
 			SkillTarget.XRandomEnemies when GetAliveEnemies().Count > 0
 				=> new BattleCommand(current.Actor, PickRandomAliveEnemies(skill.RandomTargetCount), skill),
-			SkillTarget.Enemy when SmoothEnemyTarget(current.Actor.LastTargetIndex) is Enemy enemy
+			SkillTarget.Enemy when GetEnemyTargetOrFirst(current.Actor.LastTargetIndex) is Enemy enemy
 				=> new BattleCommand(current.Actor, enemy, skill),
-			SkillTarget.Ally when SmoothPartyTarget(current.Actor.LastTargetIndex) is PartyMember member
+			SkillTarget.Ally when GetPartyMemberTargetOrFirst(current.Actor.LastTargetIndex) is PartyMember member
 				=> new BattleCommand(current.Actor, member, skill),
 			SkillTarget.Self => new BattleCommand(current.Actor, current.Actor, skill),
 			_ => new BattleCommand(current.Actor, CurrentCommand.Targets, skill)
@@ -2598,7 +2603,7 @@ public partial class BattleManager : Node
 			return false;
 		if (user.FollowupSet != null
 		    && Database.TryGetSkill(FollowupSets.SkillNameFor(entry, user.FollowupSet, FollowupTier), out Skill skill)
-		    && user.Actor.GetFollowupUseFailure(skill) != null)
+		    && user.Actor.GetFollowupUseFailure(skill) != SkillUseFailure.None)
 			return false;
 
 		return entry.Requirement == null || entry.Requirement(user.Actor);
@@ -3764,7 +3769,11 @@ public partial class BattleManager : Node
 	private Actor ActionElementUser;
 	private string ActionElement;
 
-	internal static bool IsEmotionElement(string element)
+	/// <summary>
+	/// Whether <paramref name="element"/> is the attack element that is strong against every emotion: <c>"emotion"</c> or <c>"exploit"</c>, ignoring case.
+	/// </summary>
+	/// <param name="element">The attack element to check.</param>
+	public static bool IsEmotionElement(string element)
 	{
 		return string.Equals(element, "emotion", StringComparison.OrdinalIgnoreCase)
 			|| string.Equals(element, "exploit", StringComparison.OrdinalIgnoreCase);
@@ -3782,9 +3791,19 @@ public partial class BattleManager : Node
 		return damage * multiplier;
 	}
 
-	private double EmotionMultiplier(string element, Emotion target)
+	/// <summary>
+	/// The damage multiplier an attack element gets against an emotion.
+	/// </summary>
+	/// <remarks>
+	/// An emotion group that beats the target's group gives 1.5, 2 or 2.5 by the target's tier, and one that the target's group beats gives 0.8, 0.65 or 0.5.
+	/// The <c>"emotion"</c> element (see <see cref="IsEmotionElement"/>) counts as beating every emotion that is in a group.
+	/// An emotion's own rate overrides replace these values. A null element or emotion gives 1.
+	/// </remarks>
+	/// <param name="element">The attack element: an emotion group id, <c>"emotion"</c>, or another element name.</param>
+	/// <param name="target">The defender's emotion, usually its <see cref="Actor.EffectiveEmotion"/>.</param>
+	public double EmotionMultiplier(string element, Emotion target)
 	{
-		if (element == null)
+		if (element == null || target == null)
 			return 1;
 
 		if (IsEmotionElement(element))
@@ -4318,12 +4337,20 @@ public partial class BattleManager : Node
 		return DebugDamageHeld && SettingsMenuManager.Instance.EnableDebugDamage;
 	}
 	
-	internal int DebugScale(int amount)
+	/// <summary>
+	/// Multiplies <paramref name="amount"/> by 10 while Debug Damage is active, like the damage methods do. See <see cref="ShouldDoDebugDamage"/>.
+	/// </summary>
+	/// <param name="amount">The amount to scale.</param>
+	public int DebugScale(int amount)
 	{
 		return ShouldDoDebugDamage() ? amount * 10 : amount;
 	}
 
-	internal double LimitDamage(double amount)
+	/// <summary>
+	/// Caps <paramref name="amount"/> at 9999, unless the damage limit is turned off in the settings.
+	/// </summary>
+	/// <param name="amount">The damage amount.</param>
+	public double LimitDamage(double amount)
 	{
 		return !SettingsMenuManager.Instance.DisableDamageLimit && amount > 9999 ? 9999 : amount;
 	}
@@ -4705,13 +4732,23 @@ public partial class BattleManager : Node
 			: CurrentParty.IndexOf(((PartyMember)target).Component);
 	}
 
-	internal Enemy SmoothEnemyTarget(int index)
+	/// <summary>
+	/// The enemy at <paramref name="index"/> if it can still be targeted, otherwise the first alive enemy.
+	/// </summary>
+	/// <param name="index">The enemy's index, as in <see cref="GetEnemy"/>.</param>
+	/// <returns>The enemy, or null if no enemy is alive.</returns>
+	public Enemy GetEnemyTargetOrFirst(int index)
 	{
 		Enemy enemy = GetEnemy(index);
 		return enemy != null && !IsOut(enemy) ? enemy : GetAliveEnemies().FirstOrDefault();
 	}
 
-	internal PartyMember SmoothPartyTarget(int index)
+	/// <summary>
+	/// The party member at <paramref name="index"/> if they are alive, otherwise the first alive party member.
+	/// </summary>
+	/// <param name="index">The party member's index, as in <see cref="GetPartyMember"/>.</param>
+	/// <returns>The party member, or null if nobody is alive.</returns>
+	public PartyMember GetPartyMemberTargetOrFirst(int index)
 	{
 		PartyMember member = CurrentParty.ElementAtOrDefault(index)?.Actor;
 		return member != null && member.CurrentHP > 0 && !member.IsToast ? member : GetAlivePartyMembers().FirstOrDefault();

@@ -183,7 +183,15 @@ public partial class GameManager : Node
 		BattlebackParent.SetBattleback(name);
 	}
 
-	internal void FadeBaseBattleback(float opacity, int frames)
+	/// <summary>
+	/// Fades the battleback to the given opacity.
+	/// </summary>
+	/// <remarks>
+	/// Enemies and extra battleback layers are not affected. The opacity goes back to 1 when a battle starts, is exited or restarted, and at each Boss Rush stage.
+	/// </remarks>
+	/// <param name="opacity">The target opacity, from 0 to 1.</param>
+	/// <param name="frames">How long the fade takes, in frames at 60 per second. 0 or fewer sets it immediately</param>
+	public void FadeBaseBattleback(float opacity, int frames)
 	{
 		BattlebackFade?.Kill();
 		BattlebackFade = null;
@@ -284,7 +292,13 @@ public partial class GameManager : Node
 			GrayscaleSprites.Clear();
 	}
 
-	internal void FadeOutBattlebackGrayscale()
+	/// <summary>
+	/// Fades out the greyscale filter set by <see cref="SetBattlebackGrayscale"/>, then removes it.
+	/// </summary>
+	/// <remarks>
+	/// Does nothing if the filter is off or already fading out.
+	/// </remarks>
+	public void FadeOutBattlebackGrayscale()
 	{
 		if (BattlebackRoot.Material == null || (GrayscaleFade != null && GrayscaleFade.IsRunning()))
 			return;

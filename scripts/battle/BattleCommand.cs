@@ -23,7 +23,10 @@ public class BattleCommand
     /// </summary>
     public readonly BattleAction Action;
 
-    internal bool Forced { get; init; }
+    /// <summary>
+    /// Whether this command was forced.
+    /// </summary>
+    public bool Forced { get; internal init; }
 
 	/// <summary>
 	/// Creates a new <see cref="BattleCommand"/> context with a single target.

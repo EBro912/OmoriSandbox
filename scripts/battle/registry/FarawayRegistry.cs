@@ -843,7 +843,7 @@ internal static class FarawayRegistry
 			cost: 0,
 			effect: (Actor self, IReadOnlyList<Actor> _) =>
 			{
-				BattleManager.Instance.ForceCommand(self, BattleManager.Instance.SmoothPartyTarget(self.LastTargetIndex), Skills["BASBasilAttackPlayer"]);
+				BattleManager.Instance.ForceCommand(self, BattleManager.Instance.GetPartyMemberTargetOrFirst(self.LastTargetIndex), Skills["BASBasilAttackPlayer"]);
 				return Task.CompletedTask;
 			}
 		);

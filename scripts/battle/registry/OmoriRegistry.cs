@@ -670,7 +670,7 @@ internal static class OmoriRegistry
 	private static async Task Lock(PartyMember member)
 	{
 		BattleManager battle = BattleManager.Instance;
-		Enemy enemy = battle.SmoothEnemyTarget(member.LastTargetIndex);
+		Enemy enemy = battle.GetEnemyTargetOrFirst(member.LastTargetIndex);
 		if (enemy == null)
 			return;
 		enemy.AddStatModifier("ObserveIgnoreTaunt", silent: true);

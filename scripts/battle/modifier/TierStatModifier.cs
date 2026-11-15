@@ -109,7 +109,8 @@ public class TierStatModifier : StatModifier
 
 	private static StatBonus[] Flatten(StatTier[] tiers) => [.. tiers.SelectMany(tier => tier.Bonuses)];
 
-	internal override StateIcon[] GetStateIcons()
+	/// <inheritdoc/>
+	public override StateIcon[] GetStateIcons()
 	{
 		if (StateIcons.Length == 0)
 			return [];
@@ -197,11 +198,19 @@ public class TierStatModifier : StatModifier
 		return true;
 	}
 
-	internal void WithTier(int tier)
+	/// <summary>
+	/// Sets this modifier's tier directly.
+	/// </summary>
+	/// <remarks>
+	/// The tier is kept between 1 and the max tier. Unlike <see cref="ApplyTier"/>, there are no stacking rules and the turn counter isn't refreshed.
+	/// </remarks>
+	/// <param name="tier">The tier to set.</param>
+	public TierStatModifier WithTier(int tier)
 	{
 		Tier = Math.Min(tier, MaxTier);
 		if (Tier < 1)
 			Tier = 1;
+		return this;
 	}
 
 	/// <inheritdoc/>

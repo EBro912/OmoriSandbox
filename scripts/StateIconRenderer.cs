@@ -14,7 +14,7 @@ internal static class StateIconRenderer
 		List<(Texture2D Texture, string Tooltip)> desired = [];
 		foreach (StatModifier modifier in actor.StatModifiers.Values)
 		{
-			foreach (StateIcon icon in modifier.GetStateIcons())
+			foreach (StateIcon icon in modifier.GetStateIcons() ?? [])
 			{
 				string tooltip = modifier.TurnsLeft > -1
 					? icon.Description + "\nTurns Left: " + modifier.TurnsLeft

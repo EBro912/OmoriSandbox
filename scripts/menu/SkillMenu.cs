@@ -104,7 +104,7 @@ internal partial class SkillMenu : PagedMenu
 		for (int i = 0; i < DisplayedSkills.Count; i++)
 		{
 			SkillLabels[i].SetFittedText(DisplayedSkills[i].Name);
-			bool usable = BattleManager.Instance.GetInputUseFailure(Actor, DisplayedSkills[i]) == null;
+			bool usable = BattleManager.Instance.GetInputUseFailure(Actor, DisplayedSkills[i]) == SkillUseFailure.None;
 			if (DisplayedSkills[i].MenuFontColor(usable) is Color color)
 				SkillLabels[i].AddThemeColorOverride("font_color", color);
 		}

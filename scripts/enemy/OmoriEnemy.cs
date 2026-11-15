@@ -307,7 +307,7 @@ internal sealed class OmoriEnemy : Enemy
             return;
         if (Phase == 3)
             ChangeBGS("b_omori_02", 0.9f);
-        BattleManager.Instance.ForceCommand(this, BattleManager.Instance.SmoothPartyTarget(LastTargetIndex), Skills[skill]);
+        BattleManager.Instance.ForceCommand(this, BattleManager.Instance.GetPartyMemberTargetOrFirst(LastTargetIndex), Skills[skill]);
         if (Phase is 4 or 5)
         {
             PendingBgs = Phase == 4 ? "b_omori_03" : "b_omori_04";

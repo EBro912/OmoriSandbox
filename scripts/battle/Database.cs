@@ -622,7 +622,13 @@ public class Database
 		WindowSkinOrder.Add(id);
 	}
 
-	internal static void QueueEmotionLine(Actor who, string groupId, bool applied)
+	/// <summary>
+	/// Queues the battle log line for an emotion change, showing the "feels" line if it applied, or the no-effect line if it didn't.
+	/// </summary>
+	/// <param name="who">The actor whose emotion was changed.</param>
+	/// <param name="groupId">The emotion group or emotion id that was applied. See <see cref="BattleManager.ShowEmotionNoEffect"/>.</param>
+	/// <param name="applied">Whether the change applied, as returned by <see cref="BattleManager.MakeEmotion"/> called with <c>silent</c> on.</param>
+	public static void QueueEmotionLine(Actor who, string groupId, bool applied)
 	{
 		if (applied)
 			BattleLogManager.Instance.QueueMessage(who.CurrentEmotion.FeelsMessage(who.Name));
@@ -630,7 +636,16 @@ public class Database
 			BattleManager.Instance.ShowEmotionNoEffect(who, groupId);
 	}
 
-	internal static void QueueRecoveryLines(Actor who, int hpBefore, int juiceBefore)
+	/// <summary>
+	/// Queues the "recovers HEART" and "recovers JUICE" battle log lines for what an actor gained since the given values.
+	/// </summary>
+	/// <remarks>
+	/// The JUICE line is skipped when <paramref name="juiceBefore"/> is 0.
+	/// </remarks>
+	/// <param name="who">The actor that recovered.</param>
+	/// <param name="hpBefore">The actor's HP before the recovery.</param>
+	/// <param name="juiceBefore">The actor's JUICE before the recovery.</param>
+	public static void QueueRecoveryLines(Actor who, int hpBefore, int juiceBefore)
 	{
 		int heal = who.CurrentHP - hpBefore;
 		if (heal > 0)
@@ -641,7 +656,13 @@ public class Database
 			BattleLogManager.Instance.QueueMessage(who, $"[actor] recovers {juice} JUICE...");
 	}
 
-	internal static void QueueTierOneEmotionLine(Actor who, string groupId, bool applied)
+	/// <summary>
+	/// Like <see cref="QueueEmotionLine"/>, but an applied change always uses the wording of the group's first emotion.
+	/// </summary>
+	/// <param name="who">The actor whose emotion was changed.</param>
+	/// <param name="groupId">The emotion group id that was applied.</param>
+	/// <param name="applied">Whether the change applied.</param>
+	public static void QueueTierOneEmotionLine(Actor who, string groupId, bool applied)
 	{
 		if (!applied)
 			BattleManager.Instance.ShowEmotionNoEffect(who, groupId);
@@ -649,19 +670,43 @@ public class Database
 			BattleLogManager.Instance.QueueMessage(first.FeelsMessage(who.Name));
 	}
 
-	internal static EmotionGroup RollRandomEmotionGroup()
+	/// <summary>
+	/// Picks a random emotion group from those that take part in random emotion rolls.
+	/// </summary>
+	/// <returns>The group, or null if there is none.</returns>
+	public static EmotionGroup RollRandomEmotionGroup()
 	{
 		IReadOnlyList<EmotionGroup> pool = GetRandomEmotionGroups();
 		return pool.Count == 0 ? null : pool[GameManager.Instance.Random.RandiRange(0, pool.Count - 1)];
 	}
 
-	internal static bool RollLuckStateChance(Actor user, Actor target, double chance)
+	/// <summary>
+	/// Rolls a chance that scales with the LUCK difference between two actors.
+	/// </summary>
+	/// <remarks>
+	/// The chance is multiplied by 1 + (user LUCK - target LUCK) x 0.001, and is never less than 0.
+	/// </remarks>
+	/// <param name="user">The actor applying the effect.</param>
+	/// <param name="target">The actor receiving it.</param>
+	/// <param name="chance">The base chance, from 0 to 1.</param>
+	/// <returns>True if the roll succeeded.</returns>
+	public static bool RollLuckStateChance(Actor user, Actor target, double chance)
 	{
 		chance *= Math.Max(1 + (user.CurrentStats.LCK - target.CurrentStats.LCK) * 0.001, 0);
 		return GameManager.Instance.Random.Randf() < chance;
 	}
 
-	internal static bool AddTierThreeStatModifier(Actor target, string modifier, bool silentAtLimit = false)
+	/// <summary>
+	/// Raises a tier stat modifier straight to tier 3.
+	/// </summary>
+	/// <remarks>
+	/// If the target is already at tier 3, only the turn counter restarts and the modifier's failure message shows.
+	/// </remarks>
+	/// <param name="target">The actor to give the modifier to.</param>
+	/// <param name="modifier">The modifier's id.</param>
+	/// <param name="silentAtLimit">True to skip the failure message when the target is already at tier 3.</param>
+	/// <returns>True if the tier was raised, false if the target was already at tier 3.</returns>
+	public static bool AddTierThreeStatModifier(Actor target, string modifier, bool silentAtLimit = false)
 	{
 		if (target.GetStatModifierTier(modifier) == 3)
 		{
@@ -672,7 +717,16 @@ public class Database
 		return true;
 	}
 
-	internal static void AddFixedTierStatModifier(Actor target, string modifier, int tier)
+	/// <summary>
+	/// Silently brings a tier stat modifier up to a given tier, without going past it.
+	/// </summary>
+	/// <remarks>
+	/// A target below the tier is raised to the target tier. A target exactly at the tier gets its turn counter restarted. A target above the tier is left alone.
+	/// </remarks>
+	/// <param name="target">The actor to give the modifier to.</param>
+	/// <param name="modifier">The modifier's id.</param>
+	/// <param name="tier">The tier to reach.</param>
+	public static void AddFixedTierStatModifier(Actor target, string modifier, int tier)
 	{
 		int held = target.GetStatModifierTier(modifier);
 		if (held >= tier)

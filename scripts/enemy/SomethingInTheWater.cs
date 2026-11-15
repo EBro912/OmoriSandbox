@@ -72,7 +72,7 @@ internal sealed class SomethingInTheWater : Enemy
         AnimationManager.Instance.InitShake(new Shake(2, 6, 15));
         AudioManager.Instance.PlaySFX("BA_angry_stage_2", 0.5f, 0.05f);
         FearPages.BlackFlash(60);
-        BattleManager.Instance.ForceCommand(this, BattleManager.Instance.SmoothPartyTarget(LastTargetIndex), Skills["WTRDragDown"]);
+        BattleManager.Instance.ForceCommand(this, BattleManager.Instance.GetPartyMemberTargetOrFirst(LastTargetIndex), Skills["WTRDragDown"]);
         DragDownPending = true;
     }
 

@@ -353,7 +353,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				CallHeal(self, first, "[actor] signals to [target]!", 15, 0);
-				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.SmoothEnemyTarget(first.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.GetEnemyTargetOrFirst(first.LastTargetIndex),
 					Skills["OAttack"]);
 			},
 			hidden: true
@@ -372,7 +372,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				CallHeal(self, first, "[actor] signals to [target]!", 25, 10);
-				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.SmoothEnemyTarget(first.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.GetEnemyTargetOrFirst(first.LastTargetIndex),
 					Skills["OAttack"]);
 			},
 			hidden: true
@@ -391,7 +391,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(93, false);
 				await AnimationManager.Instance.WaitForAnimation(212, first);
 				CallHeal(self, first, "[actor] signals to [target]!", 40, 20);
-				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.SmoothEnemyTarget(first.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(first, BattleManager.Instance.GetEnemyTargetOrFirst(first.LastTargetIndex),
 					Skills["OAttack"]);
 			},
 			hidden: true
@@ -411,7 +411,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				CallHeal(self, second, "[actor] encourages [target]!", 15, 0);
-				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.SmoothEnemyTarget(second.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.GetEnemyTargetOrFirst(second.LastTargetIndex),
 					Skills["AAttack"]);
 			},
 			hidden: true
@@ -431,7 +431,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				CallHeal(self, second, "[actor] encourages [target]!", 25, 10);
-				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.SmoothEnemyTarget(second.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.GetEnemyTargetOrFirst(second.LastTargetIndex),
 					Skills["AAttack"]);
 			},
 			hidden: true
@@ -451,7 +451,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(94, false);
 				await AnimationManager.Instance.WaitForAnimation(212, second);
 				CallHeal(self, second, "[actor] encourages [target]!", 40, 20);
-				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.SmoothEnemyTarget(second.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(second, BattleManager.Instance.GetEnemyTargetOrFirst(second.LastTargetIndex),
 					Skills["AAttack"]);
 			},
 			hidden: true
@@ -471,7 +471,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				CallHeal(self, fourth, "[actor] psyches up [target]!", 15, 0);
-				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.SmoothEnemyTarget(fourth.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.GetEnemyTargetOrFirst(fourth.LastTargetIndex),
 					Skills["KAttack"]);
 				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
 					fourth.SetEmotion("neutral", true);
@@ -493,7 +493,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				CallHeal(self, fourth, "[actor] psyches up [target]!", 25, 10);
-				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.SmoothEnemyTarget(fourth.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.GetEnemyTargetOrFirst(fourth.LastTargetIndex),
 					Skills["KAttack"]);
 				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
 					fourth.SetEmotion("neutral", true);
@@ -515,7 +515,7 @@ internal static class HeroRegistry
 				await AnimationManager.Instance.WaitForScreenAnimation(95, false);
 				await AnimationManager.Instance.WaitForAnimation(212, fourth);
 				CallHeal(self, fourth, "[actor] psyches up [target]!", 40, 20);
-				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.SmoothEnemyTarget(fourth.LastTargetIndex),
+				BattleManager.Instance.QueueForceCommand(fourth, BattleManager.Instance.GetEnemyTargetOrFirst(fourth.LastTargetIndex),
 					Skills["KAttack"]);
 				if (fourth.CurrentEmotion.Id is "sad" or "depressed")
 					fourth.SetEmotion("neutral", true);

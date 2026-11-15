@@ -229,4 +229,22 @@ public abstract partial class Mod : Node
     {
         Database.RegisterWindowSkin(id, texture);
     }
+
+    /// <summary>
+    /// Registers a state icon texture. A <see cref="StateIcon"/> refers to it by <paramref name="name"/>.
+    /// </summary>
+    /// <remarks>
+    /// Images in the mod's <c>stateicons</c> folder are registered automatically under their file names, so only icons built in code need this.
+    /// </remarks>
+    /// <param name="name">The icon's asset name.</param>
+    /// <param name="texture">The icon texture.</param>
+    protected static void RegisterStateIcon(string name, Texture2D texture)
+    {
+        if (string.IsNullOrWhiteSpace(name) || texture == null)
+        {
+            GD.PrintErr("Cannot register a state icon without a name and a texture!");
+            return;
+        }
+        Database.AddStateIcon(name, texture);
+    }
 }

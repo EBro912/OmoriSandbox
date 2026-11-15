@@ -545,7 +545,7 @@ internal static class UnderwaterHighwayRegistry
 				await AnimationManager.Instance.WaitForAnimation(122, target);
 				BattleLogManager.Instance.QueueMessage(self, target, "[actor] attacks [target]!");
 				BattleManager.Instance.Damage(self, target, () => self.CurrentStats.ATK * 2 - target.CurrentStats.DEF, false, 0.1f);
-				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.SmoothPartyTarget(self.LastTargetIndex), Skills["SNFollowup"]);
+				BattleManager.Instance.QueueForceCommand(self, BattleManager.Instance.GetPartyMemberTargetOrFirst(self.LastTargetIndex), Skills["SNFollowup"]);
 				await Wait.Milliseconds(1000);
 			},
 			hidden: true
