@@ -347,6 +347,6 @@ internal static class BasilRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Party);
 	}
 }

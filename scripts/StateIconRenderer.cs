@@ -3,6 +3,7 @@ using Godot;
 using OmoriSandbox.Actors;
 using OmoriSandbox.Battle;
 using OmoriSandbox.Battle.Modifier;
+using OmoriSandbox.Editor;
 
 namespace OmoriSandbox;
 
@@ -11,7 +12,8 @@ internal static class StateIconRenderer
 {
 	internal static void Render(Container container, Actor actor)
 	{
-		List<(Texture2D Texture, string Tooltip)> desired = [];
+		List<(Texture2D Texture, string Tooltip, bool Blinking)> desired = [];
+		bool blinkExpiring = SettingsMenuManager.Instance.BlinkExpiringStateIcons;
 		foreach (StatModifier modifier in actor.StatModifiers.Values)
 		{
 			foreach (StateIcon icon in modifier.GetStateIcons() ?? [])
@@ -19,8 +21,9 @@ internal static class StateIconRenderer
 				string tooltip = modifier.TurnsLeft > -1
 					? icon.Description + "\nTurns Left: " + modifier.TurnsLeft
 					: icon.Description;
+				bool blinking = blinkExpiring && modifier.TurnsLeft is > -1 and <= 1;
 				if (Database.TryGetStateIcon(icon.AssetName, out Texture2D texture))
-					desired.Add((texture, tooltip));
+					desired.Add((texture, tooltip, blinking));
 				else
 					GD.PrintErr("Unknown state icon texture: " + icon.AssetName);
 			}
@@ -31,16 +34,18 @@ internal static class StateIconRenderer
 		{
 			if (i < existing)
 			{
-				TextureRect rect = container.GetChild<TextureRect>(i);
+				StateIconRect rect = container.GetChild<StateIconRect>(i);
 				rect.Texture = desired[i].Texture;
 				rect.TooltipText = desired[i].Tooltip;
+				rect.Blinking = desired[i].Blinking;
 			}
 			else
 			{
-				container.AddChild(new TextureRect
+				container.AddChild(new StateIconRect
 				{
 					Texture = desired[i].Texture,
-					TooltipText = desired[i].Tooltip
+					TooltipText = desired[i].Tooltip,
+					Blinking = desired[i].Blinking
 				});
 			}
 		}

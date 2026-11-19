@@ -10,9 +10,9 @@ internal static class ControllerBinding
 
     internal static InputEvent Normalize(InputEvent input) => input switch
     {
-        InputEventJoypadButton button when button.ButtonIndex >= 0 && button.ButtonIndex < JoyButton.Max =>
+        InputEventJoypadButton { ButtonIndex: >= 0 and < JoyButton.Max } button =>
             new InputEventJoypadButton { Device = -1, ButtonIndex = button.ButtonIndex },
-        InputEventJoypadMotion motion when motion.Axis >= 0 && motion.Axis < JoyAxis.Max && motion.AxisValue != 0 =>
+        InputEventJoypadMotion { Axis: >= 0 and < JoyAxis.Max } motion when motion.AxisValue != 0 =>
             new InputEventJoypadMotion { Device = -1, Axis = motion.Axis, AxisValue = Mathf.Sign(motion.AxisValue) },
         _ => null
     };

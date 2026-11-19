@@ -376,7 +376,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["LookAtKel2"] = new Skill(
 			name: "Look At Kel 2",
@@ -403,7 +403,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["LookAtKel3"] = new Skill(
 			name: "Look At Kel 3",
@@ -430,7 +430,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["LookAtHero1"] = new Skill(
 			name: "Look At Hero 1",
@@ -455,7 +455,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["LookAtHero2"] = new Skill(
 			name: "Look At Hero 2",
@@ -483,7 +483,7 @@ internal static class AubreyRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		bool lookHero3Ecstatic = false;
 		Skills["LookAtHero3"] = new Skill(
@@ -518,7 +518,7 @@ internal static class AubreyRegistry
 				return Task.CompletedTask;
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 
 		Skills["ARWAttack"] = new Skill(

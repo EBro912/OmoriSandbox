@@ -154,11 +154,11 @@ internal static class OmoriRegistry
 				for (int slot = pick.Component.Position; slot > 0 && member == null; slot--)
 				{
 					PartyMember atSlot = battle.GetPartyMemberAtPosition(slot);
-					if (atSlot != null && atSlot.CurrentHP > 0)
+					if (atSlot != null && atSlot.IsStanding)
 						member = atSlot;
 				}
 				member ??= battle.GetPartyMemberAtPosition(0);
-				if (member == null || member.CurrentHP <= 0)
+				if (member == null || !member.IsStanding)
 					return;
 				foreach (PartyMember m in members)
 					m.AddStatModifier("ObserveSingle", silent: true);
@@ -604,7 +604,7 @@ internal static class OmoriRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Party);
 
 		Skills["ReleaseEnergy2"] = new Skill(
 			name: "Release Energy 2",
@@ -634,7 +634,7 @@ internal static class OmoriRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Party);
 
 		Skills["ReleaseEnergy3"] = new Skill(
 			name: "Release Energy 3",
@@ -664,7 +664,7 @@ internal static class OmoriRegistry
 				}
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Party);
 	}
 
 	private static async Task Lock(PartyMember member)

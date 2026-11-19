@@ -99,6 +99,8 @@ internal partial class DisplayLayout : Node
         Vector2 margin = ApplyStretch(window, size, width, scale, shown);
         Vector2 visible = window.GetVisibleRect().Size;
         bool resized = width != Width;
+        // the scales checked here do not suffer from floating point issues
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (!resized && scale == Scale && margin == Margin && visible == VisibleSize)
             return false;
         Width = width;
@@ -147,6 +149,9 @@ internal partial class DisplayLayout : Node
             window.ContentScaleAspect = aspect;
         if (window.ContentScaleSize != contentSize)
             window.ContentScaleSize = contentSize;
+        // the scales checked here do not suffer from floating point issues
+        // at worst one redundant refresh
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (window.ContentScaleFactor != factor)
             window.ContentScaleFactor = factor;
         if (window.ContentScaleMode != mode)

@@ -360,7 +360,7 @@ theme_override_styles/hover = ExtResource("12_1ajci")
 text = "Quit
 "
 
-[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "IntegerScalingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "DelayPortraitChangeCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
+[node name="Settings" type="Panel" parent="Main" unique_id=1298067288 node_paths=PackedStringArray("Logo", "OmoriFace", "MasterSlider", "BGMSlider", "BGSSlider", "SFXSlider", "TestSFXButton", "FullscreenCheckbox", "WindowSizeDropdown", "AspectDropdown", "PortraitsDropdown", "PixelSnappingCheckbox", "IntegerScalingCheckbox", "BattlelogSpeedSlider", "ActionDelaySlider", "DialogueSpeedSlider", "DialogueSpeedLabel", "TextSkipCheckbox", "ShowFPSCheckbox", "LogDebugCheckbox", "PreventRunCheckbox", "DisableDamageLimitCheckbox", "DisableStatLimitCheckbox", "ShowMoreInfoCheckbox", "ShowStateIconsCheckbox", "BlinkExpiringStateIconsCheckbox", "DelayPortraitChangeCheckbox", "EnemySelectionWrappingCheckbox", "PlayFinalDuetCheckbox", "SelectionHoldTimeSlider", "SelectionHoldTimeLabel", "SelectionChangeSpeedSlider", "SelectionChangeSpeedLabel", "UseConsoleSpdCheckbox", "UseConsoleDefCheckbox", "InfiniteBuffsDebuffsCheckbox", "VertigoUsesAtkCheckbox", "ToysUseEmotionDamageCheckbox", "SpaceExHusbandReleaseEnergyCheckbox", "FollowupImmortalityBugCheckbox", "ReleaseEnergyAnyPartyCheckbox", "PerTargetBuffTiersCheckbox", "AllowEnemyAbortCheckbox", "EnableDebugDamageCheckbox", "AllowNoPartyCheckbox", "AllowNoEnemiesCheckbox", "CombinedAccuracyCheckbox", "AllowStateReapplyOnRemovalCheckbox", "RestartHoldTimeSlider", "RestartHoldTimeLabel", "SpeedUpSlider", "SpeedUpLabel", "KeybindGrid", "ResetKeybindsButton", "BackButton", "MainControls", "SettingsTabs", "TitleMusicDropdown", "TitleLoopPointSpinBox", "TitleLoopSetCurrentButton")]
 visible = false
 offset_left = 120.0
 offset_top = 19.0
@@ -395,6 +395,7 @@ DisableDamageLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableDamageLim
 DisableStatLimitCheckbox = NodePath("Tabs/Rules/VBoxContainer/DisableStatLimit")
 ShowMoreInfoCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowMoreInfo")
 ShowStateIconsCheckbox = NodePath("Tabs/Battle/VBoxContainer/ShowStateIcons")
+BlinkExpiringStateIconsCheckbox = NodePath("Tabs/Battle/VBoxContainer/BlinkExpiringStateIcons")
 DelayPortraitChangeCheckbox = NodePath("Tabs/Battle/VBoxContainer/DelayPortraitChange")
 EnemySelectionWrappingCheckbox = NodePath("Tabs/Battle/VBoxContainer/EnemySelectionWrapping")
 PlayFinalDuetCheckbox = NodePath("Tabs/Battle/VBoxContainer/PlayFinalDuet")
@@ -408,6 +409,7 @@ InfiniteBuffsDebuffsCheckbox = NodePath("Tabs/Rules/VBoxContainer/InfiniteBuffsD
 VertigoUsesAtkCheckbox = NodePath("Tabs/Rules/VBoxContainer/VertigoUsesAtk")
 ToysUseEmotionDamageCheckbox = NodePath("Tabs/Rules/VBoxContainer/ToysUseEmotionDamage")
 SpaceExHusbandReleaseEnergyCheckbox = NodePath("Tabs/Rules/VBoxContainer/SpaceExHusbandReleaseEnergy")
+FollowupImmortalityBugCheckbox = NodePath("Tabs/Rules/VBoxContainer/FollowupImmortalityBug")
 ReleaseEnergyAnyPartyCheckbox = NodePath("Tabs/Rules/VBoxContainer/ReleaseEnergyAnyParty")
 PerTargetBuffTiersCheckbox = NodePath("Tabs/Rules/VBoxContainer/PerTargetBuffTiers")
 AllowEnemyAbortCheckbox = NodePath("Tabs/Rules/VBoxContainer/AllowEnemyAbort")
@@ -949,6 +951,16 @@ theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Show State Icons"
 
+[node name="BlinkExpiringStateIcons" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=406312015]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Makes State Icons blink when they have 1 turn left
+Does nothing if State Icons are not turned on"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Blink Expiring State Icons"
+
 [node name="DelayPortraitChange" type="CheckBox" parent="Main/Settings/Tabs/Battle/VBoxContainer" unique_id=406312014]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -1187,6 +1199,17 @@ theme_override_fonts/font = ExtResource("2_ekxnf")
 theme_override_font_sizes/font_size = 20
 theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
 text = "Toys Use Emotion Damage"
+
+[node name="FollowupImmortalityBug" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=1830512650]
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Makes Release Energy and certain follow-ups leave party members
+unable to become toast until an action that targets them ends
+TLDR: Enables the Aubrey RE bug"
+theme_override_fonts/font = ExtResource("2_ekxnf")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/checkbox_unchecked_color = Color(3.2944162, 3.2944162, 3.2944162, 1)
+text = "Follow-up Immortality Bug"
 
 [node name="SpaceExHusbandReleaseEnergy" type="CheckBox" parent="Main/Settings/Tabs/Rules/VBoxContainer" unique_id=852665377]
 layout_mode = 2

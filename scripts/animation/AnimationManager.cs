@@ -232,6 +232,8 @@ public partial class AnimationManager : Node
 				foreach (float[][] frame in animation.Frames)
 				{
 					List<Frame> frames = [];
+					// mirror only ever checks for 0 or 1
+					// ReSharper disable once CompareOfFloatsByEqualityOperator
 					frames.AddRange(frame.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6],
 					f.Length > 7 ? (int)f[7] : 0)));
 					anim.CreateFrame(frames);
@@ -425,6 +427,8 @@ public partial class AnimationManager : Node
 				{
 					List<Frame> frames;
 					if (frameData.TryGetValue(i, out List<float[]> cells))
+						// mirror only ever checks for 0 or 1
+						// ReSharper disable once CompareOfFloatsByEqualityOperator
 						frames = cells.Select(f => new Frame((int)f[0], f[1], f[2], f[3], f[4], f[5] == 1, f[6],
 							f.Length > 7 ? (int)f[7] : 0)).ToList();
 					else
@@ -434,6 +438,8 @@ public partial class AnimationManager : Node
 					{
 						foreach (var (cellIdx, cellData) in cellPatches)
 						{
+							// mirror only ever checks for 0 or 1
+							// ReSharper disable once CompareOfFloatsByEqualityOperator
 							Frame newFrame = new((int)cellData[0], cellData[1], cellData[2], cellData[3], cellData[4],
 								cellData[5] == 1, cellData[6], cellData.Length > 7 ? (int)cellData[7] : 0);
 							while (frames.Count <= cellIdx)

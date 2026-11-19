@@ -138,13 +138,21 @@ public partial class BattleManager : Node
 
 	/// <summary>
 	/// Fired after an attack lands and its damage has been applied to any target.
-	/// Not fired for misses, evades, or hits a modifier turned into a miss.
+	/// Not fired for misses, evades, or hits a modifier turned into a miss. Those raise <see cref="AttackMissed"/>.
 	/// </summary>
 	/// <remarks>
 	/// A hit the target absorbs raises <see cref="Healed"/> instead. A hit the target reflects raises this event for the damage
 	/// the original attacker then takes, with the reflecting actor as the attacker, unless the original attacker absorbs it.
 	/// </remarks>
 	public event EventHandler<DamageDealtEventArgs> DamageDealt;
+
+	/// <summary>
+	/// Fired when an attack misses, is evaded, or a stat modifier turns it into a miss.
+	/// </summary>
+	/// <remarks>
+	/// Raised by every damage call that can miss and by <see cref="RollHit"/>, after the miss sound and MISS text.
+	/// </remarks>
+	public event EventHandler<AttackMissedEventArgs> AttackMissed;
 
 	/// <summary>
 	/// Fired after healing (Heart or Juice) is applied through <see cref="Heal"/> or <see cref="HealJuice"/>.
@@ -197,6 +205,7 @@ public partial class BattleManager : Node
 	private bool DebugDamageHeld;
 	private bool InActionEffect;
 	private bool ActionForcedCrit;
+	private bool RollingJuiceHit;
 
 	internal bool CombinedBuffsDebuffs { get; private set; }
 
@@ -1169,6 +1178,13 @@ public partial class BattleManager : Node
 					ended.DecreaseActionStatTurnCounter();
 				}
 
+				if (CurrentCommand.Action is not Skill { FollowupImmortalMark: not FollowupImmortalMark.None }
+				    && CurrentCommand.Action.Target is not (SkillTarget.DeadAlly or SkillTarget.AllDeadAllies))
+				{
+					foreach (PartyMember released in CommandTargets.OfType<PartyMember>())
+						released.FollowupImmortal = false;
+				}
+
 				await ConvertDeadPartyMembers();
 
 				if (CurrentCommand.Actor is PartyMember
@@ -1241,6 +1257,18 @@ public partial class BattleManager : Node
 			enemy.EndHurt();
 	}
 
+	private void MarkFollowupImmortal(Skill skill, List<Actor> targets)
+	{
+		IEnumerable<PartyMember> members = skill.FollowupImmortalMark switch
+		{
+			FollowupImmortalMark.Party => CurrentParty.Select(x => x.Actor).Where(x => !x.IsToast),
+			FollowupImmortalMark.Targets => targets.OfType<PartyMember>(),
+			_ => []
+		};
+		foreach (PartyMember member in members)
+			member.FollowupImmortal = true;
+	}
+
 	private async Task ConvertDeadPartyMembers()
 	{
 		RefreshPartyStatus();
@@ -1248,7 +1276,7 @@ public partial class BattleManager : Node
 		{
 			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast && member.Actor.HasStatModifier("PersistentPlotArmor"))
 				member.Actor.CurrentHP = 1;
-			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast)
+			if (member.Actor.CurrentHP == 0 && !member.Actor.IsToast && (!member.Actor.FollowupImmortal || member.Actor is Omori))
 			{
 				member.Actor.SetToast();
 				member.Actor.ClearStatModifiersOnDeath();
@@ -2249,6 +2277,9 @@ public partial class BattleManager : Node
 		}
 
 		CommandTargets = resolvedTargets;
+		// VANILLA BUG: these follow-ups never release the party members they target, causing them to unintentionally be come immortal until they are targeted again
+		if (currentAction.Action is Skill marking && SettingsMenuManager.Instance.FollowupImmortalityBug)
+			MarkFollowupImmortal(marking, resolvedTargets);
 		ActionEventArgs actionArgs = new(currentAction.Actor, currentAction.Action, resolvedTargets);
 		RaiseGuarded(ActionStarted, actionArgs, "ActionStarted");
 
@@ -2775,7 +2806,8 @@ public partial class BattleManager : Node
 			CurrentParty.FirstOrDefault(x => x.Actor is Omori omori && omori.IsToast);
 		// if any omori is toast, the battle is over
 		// this may change in the future
-		if (!AllowsEmptyParty && (CurrentParty.All(x => x.Actor.CurrentHP == 0) || omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast))))
+		if (!AllowsEmptyParty && (CurrentParty.All(x => x.Actor.CurrentHP == 0 && !x.Actor.FollowupImmortal) 
+		                          || omori != null || (ToastlessMode && CurrentParty.Any(x => x.Actor.IsToast))))
 		{
 			if (DeathBeatDue())
 			{
@@ -2888,6 +2920,8 @@ public partial class BattleManager : Node
 			return;
 		CurrentParty.ForEach(x =>
 		{
+			bool marked = x.Actor.FollowupImmortal;
+			x.Actor.FollowupImmortal = false;
 			x.Actor.HasUsedPlotArmor = false;
 			x.Actor.RemoveStatModifier("ObserveSingle");
 			x.Actor.RemoveStatModifier("ObserveMulti");
@@ -2899,6 +2933,10 @@ public partial class BattleManager : Node
 				else
 					x.Actor.CurrentHP = x.Actor.CurrentStats.MaxHP;
 				x.Actor.CurrentJuice = x.Actor.CurrentStats.MaxJuice;
+			}
+			else if (x.Actor.CurrentHP == 0 && marked && !x.Actor.IsToast)
+			{
+				x.Actor.CurrentHP = 1;
 			}
 			else if (x.Actor.CurrentHP == 0)
 			{
@@ -3277,8 +3315,14 @@ public partial class BattleManager : Node
 		// VANILLA BUG: TICKLE never restores the critical hit it forces, so it lasts the rest of the action
 		if (InActionEffect && options.Crit != CritMode.Never && target.HasStatModifier("Tickle"))
 			ActionForcedCrit = true;
-		if (!options.NeverMiss && !RollHit(self, target, options.Silent || juice))
-			return -1;
+		if (!options.NeverMiss)
+		{
+			RollingJuiceHit = juice;
+			bool hit = RollHit(self, target, options.Silent || juice);
+			RollingJuiceHit = false;
+			if (!hit)
+				return -1;
+		}
 
 		float damage = Math.Max(0, damageFunc());
 		// locked bosses resolve advantage as their locked emotion
@@ -3370,6 +3414,7 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_miss", volume: 0.9f);
 			SpawnDamageNumber(-1, target, DamageType.Miss);
 			if (!options.Silent && !juice) BattleLogManager.Instance.QueueMessage(self, "[actor]'s attack did nothing.");
+			NotifyMiss(self, target, MissReason.Nullified, juice);
 			return -1;
 		}
 
@@ -3496,7 +3541,16 @@ public partial class BattleManager : Node
 			AudioManager.Instance.PlaySFX("BA_miss", volume: 0.9f);
 		// Miss text spawns a little further down
 		SpawnDamageNumber(-1, target, DamageType.Miss);
+		NotifyMiss(self, target, evaded ? MissReason.Evaded : MissReason.Missed, RollingJuiceHit);
 		return false;
+	}
+
+	private void NotifyMiss(Actor self, Actor target, MissReason reason, bool juice)
+	{
+		AttackMissedEventArgs missed = new(self, target, reason, juice);
+		RunModifierHooks(target, "OnAttackAvoided", modifier => modifier.OnAttackAvoided(target, missed));
+		RunModifierHooks(self, "OnAttackMissed", modifier => modifier.OnAttackMissed(self, missed));
+		RaiseGuarded(AttackMissed, missed, "AttackMissed");
 	}
 
 	private static void ApplyOutcomeRules(DamageContext context)
@@ -3715,6 +3769,8 @@ public partial class BattleManager : Node
 		{
 			TierReactionDepth--;
 		}
+		// no need for precision, any change should count
+		// ReSharper disable once CompareOfFloatsByEqualityOperator
 		return value == original ? amount : value;
 	}
 
@@ -4548,14 +4604,14 @@ public partial class BattleManager : Node
 	/// <returns>A random alive <see cref="PartyMember"/>, or null if no party members are alive.</returns>
 	public PartyMember GetRandomAlivePartyMember()
 	{
-		List<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0).ToList();
+		List<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.IsStanding).ToList();
 		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 	
 	/// <returns>Returns a random alive <see cref="PartyMember"/> that's not the provided actor, or null if no match is found.</returns>
 	public PartyMember GetRandomUniqueAlivePartyMember(Actor not)
 	{
-		List<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.CurrentHP > 0 && x.Actor != not).ToList();
+		List<PartyMemberComponent> alive = CurrentParty.Where(x => x.Actor.IsStanding && x.Actor != not).ToList();
 		return alive.Count == 0 ? null : alive[GameManager.Instance.Random.RandiRange(0, alive.Count - 1)].Actor;
 	}
 
@@ -4568,7 +4624,7 @@ public partial class BattleManager : Node
 	/// <returns>The first <see cref="PartyMember"/> at 0 HEART, or null if none is found.</returns>
 	public PartyMember GetFirstDeadPartyMember()
 	{
-		PartyMemberComponent result = CurrentParty.FirstOrDefault(x => x.Actor.CurrentHP <= 0);
+		PartyMemberComponent result = CurrentParty.FirstOrDefault(x => !x.Actor.IsStanding);
 		return result?.Actor;
 	}
 
@@ -4581,7 +4637,7 @@ public partial class BattleManager : Node
 	/// <returns>A random <see cref="PartyMember"/> at 0 HEART, or null if none is found.</returns>
 	public PartyMember GetRandomDeadPartyMember()
 	{
-		List<PartyMemberComponent> dead = CurrentParty.Where(x => x.Actor.CurrentHP <= 0).ToList();
+		List<PartyMemberComponent> dead = CurrentParty.Where(x => !x.Actor.IsStanding).ToList();
 		return dead.Count == 0 ? null : dead[GameManager.Instance.Random.RandiRange(0, dead.Count - 1)].Actor;
 	}
 
@@ -4653,7 +4709,7 @@ public partial class BattleManager : Node
 	/// </summary>
 	public List<PartyMember> GetAlivePartyMembers()
 	{
-		return CurrentParty.Where(x => x.Actor.CurrentHP > 0).Select(x => x.Actor).ToList();
+		return CurrentParty.Where(x => x.Actor.IsStanding).Select(x => x.Actor).ToList();
 	}
 
 	/// <summary>
@@ -4751,7 +4807,7 @@ public partial class BattleManager : Node
 	public PartyMember GetPartyMemberTargetOrFirst(int index)
 	{
 		PartyMember member = CurrentParty.ElementAtOrDefault(index)?.Actor;
-		return member != null && member.CurrentHP > 0 && !member.IsToast ? member : GetAlivePartyMembers().FirstOrDefault();
+		return member != null && member.IsStanding && !member.IsToast ? member : GetAlivePartyMembers().FirstOrDefault();
 	}
 
 	internal PartyMember GetSunnyStandIn()

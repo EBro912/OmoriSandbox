@@ -16,8 +16,7 @@ public partial class MenuManager : Node
 	[Export] private PartyMenu PartyMenu;
 	[Export] private BattleMenu BattleMenu;
 	[Export] private SkillMenu SkillMenu;
-	[Export] private ItemMenu SnackMenu;
-	[Export] private ItemMenu ToyMenu;
+	[Export] private ItemMenu ItemMenu;
 	[Export] private Sprite2D EnergyBar;
 	[Export] private Label EnergyText;
 	[Export] private EnergyDots EnergyDots;
@@ -25,7 +24,7 @@ public partial class MenuManager : Node
 
 	// the energy bar node, tinted by the DialogueManager while dialogue is on screen
 	internal Sprite2D EnergyDisplay => EnergyBar;
-	internal IEnumerable<Menu> AllMenus => Menus.Values;
+	internal IEnumerable<Menu> AllMenus => Menus.Values.Distinct();
 	public static MenuManager Instance { get; private set; }
 
 	/// <summary>
@@ -48,8 +47,8 @@ public partial class MenuManager : Node
 			{ MenuState.Party, PartyMenu },
 			{ MenuState.Battle, BattleMenu },
 			{ MenuState.Skill, SkillMenu },
-			{ MenuState.Snack, SnackMenu },
-			{ MenuState.Toy, ToyMenu }
+			{ MenuState.Snack, ItemMenu },
+			{ MenuState.Toy, ItemMenu }
 		};
 
 		BattleManager.Instance.EnergyChanged += RefreshEnergy;
@@ -134,7 +133,7 @@ public partial class MenuManager : Node
 		CurrentState = state;
 		if (CurrentState == MenuState.None)
 		{
-			foreach (Menu open in Menus.Values.Where(x => x.Visible)) {
+			foreach (Menu open in AllMenus.Where(x => x.Visible)) {
 				open.MoveDown(state, immediate);
 			}
 			CurrentMenu = null;
@@ -168,7 +167,7 @@ public partial class MenuManager : Node
 	internal void MoveDownOpenMenus(bool immediate)
 	{
 		LoweredMenus.Clear();
-		foreach (var menu in Menus) {
+		foreach (var menu in Menus.DistinctBy(x => x.Value)) {
 			if (menu.Value.Visible)
 			{
 				// remember which menus are lowered so they can be raised later
@@ -181,7 +180,7 @@ public partial class MenuManager : Node
 
 	internal void MoveUpOpenMenus(bool immediate)
 	{
-		foreach (Menu open in Menus.Values.Where(x => x.Visible || LoweredMenus.Contains(x)))
+		foreach (Menu open in AllMenus.Where(x => x.Visible || LoweredMenus.Contains(x)))
 			open.MoveUp(immediate);
 		LoweredMenus.Clear();
 		MoveEnergyBarUp(immediate);

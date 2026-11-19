@@ -9,10 +9,10 @@ internal sealed class Merci : Enemy
 {
     public override string Name => "???";
     public override Vector2 InfoBoxOffset => new(20, -240);
-    public override Vector2 DamageNumberOffset => new(0, -300);
+    public override Vector2 DamageNumberOffset => new(0, -200);
     public override bool InfoBoxCursorAboveBox => true;
     public override SpriteFrames Animation => ResourceLoader.Load<SpriteFrames>("res://animations/merci.tres");
-    protected override Stats Stats => new(660, 330, 82, 13, 87, 10, 95);
+    protected override Stats Stats => new(666, 333, 84, 53, 80, 10, 95);
 
     public override bool IsEmotionValid(Emotion emotion)
     {
@@ -38,11 +38,11 @@ internal sealed class Merci : Enemy
         if (HasObserveTarget(out PartyMember observe))
             return new BattleCommand(this, observe, Skills["MERAttack"]);
 
-        if (Roll() < 66)
+        if (Roll() < 61)
             return new BattleCommand(this, SelectTarget(), Skills["MERAttack"]);
         if (Roll() < 36)
             return new BattleCommand(this, SelectTarget(), Skills["MERLiar"]);
-        if (Roll() < 36)
+        if (Roll() < 41)
             return new BattleCommand(this, SelectTarget(), Skills["MERMelody"]);
         return new BattleCommand(this, SelectTarget(), Skills["MERScream"]);
     }

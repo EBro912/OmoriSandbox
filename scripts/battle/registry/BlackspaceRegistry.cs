@@ -15,7 +15,6 @@ internal static class BlackspaceRegistry
 	internal static void Register()
 	{
 		Enemies.Add("OmoriEnemy", () => new OmoriEnemy());
-		Enemies.Add("Merci", () => new Merci());
 		Enemies.Add("OmoriSomething", () => new OmoriSomething());
 		Enemies.Add("OmoriSomething (Heights)", () => new OmoriSomethingHeights());
 		Enemies.Add("OmoriSomething (Spiders)", () => new OmoriSomethingSpiders());

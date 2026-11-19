@@ -592,6 +592,7 @@ public class Database
 		RegisterArea("Last Resort", LastResortRegistry.Register);
 		RegisterArea("Underwater Highway", UnderwaterHighwayRegistry.Register);
 		RegisterArea("Humphrey", HumphreyRegistry.Register);
+		RegisterArea("Lost Library", LostLibraryRegistry.Register);
 		RegisterArea("Orange Oasis", OrangeOasisRegistry.Register);
 		RegisterArea("Snowglobe Mountain", SnowglobeMountainRegistry.Register);
 		RegisterArea("The Abyss", AbyssRegistry.Register);

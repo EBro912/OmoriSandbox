@@ -213,7 +213,7 @@ public partial class SettingsMenuManager : Control
 	public override void _Process(double delta)
 	{
 		// a key being captured for a rebind must not also trigger its old/new action
-		if (Input.IsActionJustPressed("ToggleFullscreen") && !KeybindButton.IsCapturing)
+		if (Input.IsActionJustPressed("ToggleFullscreen", exactMatch: true) && !KeybindButton.IsCapturing)
 		{
 			FullscreenCheckbox.ButtonPressed = !FullscreenCheckbox.ButtonPressed;
 		}
@@ -400,6 +400,7 @@ public partial class SettingsMenuManager : Control
 		("PreventAccidentalRun", PreventRunCheckbox, false),
 		("ShowMoreInfo", ShowMoreInfoCheckbox, false),
 		("ShowStateIcons", ShowStateIconsCheckbox, false),
+		("BlinkExpiringStateIcons", BlinkExpiringStateIconsCheckbox, false),
 		("DelayPortraitChange", DelayPortraitChangeCheckbox, false),
 		("EnemySelectionWrapping", EnemySelectionWrappingCheckbox, false),
 		("PlayFinalDuet", PlayFinalDuetCheckbox, false),
@@ -420,6 +421,7 @@ public partial class SettingsMenuManager : Control
 		("AllowStateReapplyOnRemoval", AllowStateReapplyOnRemovalCheckbox),
 		("ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox),
 		("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox),
+		("FollowupImmortalityBug", FollowupImmortalityBugCheckbox),
 		("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox),
 		("PerTargetBuffTiers", PerTargetBuffTiersCheckbox),
 		("AllowEnemyAbort", AllowEnemyAbortCheckbox)
@@ -478,6 +480,8 @@ public partial class SettingsMenuManager : Control
 		TitleLoopPointSpinBox.SetValueNoSignal(0);
 		TitleLoopPointSpinBox.MaxValue = 0;
 		TitleLoopPointSpinBox.MaxValue = AudioManager.Instance.TryGetBGM(bgm, out AudioStreamOggVorbis stream) ? stream.GetLength() : 0;
+		TitleLoopPointSpinBox.SetValueNoSignal(TitleTrackLoopPoint);
+		TitleTrackLoopPoint = TitleLoopPointSpinBox.Value;
 		TitleLoopPointSpinBox.SetValueNoSignal(bgm == TitleBGM && TitleBGMLoopPoint > 0 ? TitleBGMLoopPoint : TitleTrackLoopPoint);
 	}
 
@@ -488,6 +492,7 @@ public partial class SettingsMenuManager : Control
 	public bool DisableStatLimit => Rule("DisableStatLimit", DisableStatLimitCheckbox);
 	public bool ShowMoreInfo => ShowMoreInfoCheckbox.ButtonPressed;
 	public bool ShowStateIcons => ShowStateIconsCheckbox.ButtonPressed;
+	public bool BlinkExpiringStateIcons => BlinkExpiringStateIconsCheckbox.ButtonPressed;
 	public bool DelayPortraitChange => DelayPortraitChangeCheckbox.ButtonPressed;
 	public bool UseConsoleSpeed => Rule("UseConsoleSpd", UseConsoleSpdCheckbox);
 	public bool UseConsoleDefense => Rule("UseConsoleDef", UseConsoleDefCheckbox);
@@ -495,6 +500,7 @@ public partial class SettingsMenuManager : Control
 	public bool VertigoUsesAtk => Rule("VertigoUsesAtk", VertigoUsesAtkCheckbox);
 	public bool ToysUseEmotionDamage => Rule("ToysUseEmotionDamage", ToysUseEmotionDamageCheckbox);
 	public bool SpaceExHusbandReleaseEnergy => Rule("SpaceExHusbandReleaseEnergy", SpaceExHusbandReleaseEnergyCheckbox);
+	public bool FollowupImmortalityBug => Rule("FollowupImmortalityBug", FollowupImmortalityBugCheckbox);
 	public bool ReleaseEnergyAnyParty => Rule("ReleaseEnergyAnyParty", ReleaseEnergyAnyPartyCheckbox);
 	public bool PerTargetBuffTiers => Rule("PerTargetBuffTiers", PerTargetBuffTiersCheckbox);
 	public bool AllowEnemyAbort => Rule("AllowEnemyAbort", AllowEnemyAbortCheckbox);
@@ -540,6 +546,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox DisableStatLimitCheckbox;
 	[Export] private CheckBox ShowMoreInfoCheckbox;
 	[Export] private CheckBox ShowStateIconsCheckbox;
+	[Export] private CheckBox BlinkExpiringStateIconsCheckbox;
 	[Export] private CheckBox DelayPortraitChangeCheckbox;
 	[Export] private CheckBox EnemySelectionWrappingCheckbox;
 	[Export] private CheckBox PlayFinalDuetCheckbox;
@@ -553,6 +560,7 @@ public partial class SettingsMenuManager : Control
 	[Export] private CheckBox VertigoUsesAtkCheckbox;
 	[Export] private CheckBox ToysUseEmotionDamageCheckbox;
 	[Export] private CheckBox SpaceExHusbandReleaseEnergyCheckbox;
+	[Export] private CheckBox FollowupImmortalityBugCheckbox;
 	[Export] private CheckBox ReleaseEnergyAnyPartyCheckbox;
 	[Export] private CheckBox PerTargetBuffTiersCheckbox;
 	[Export] private CheckBox AllowEnemyAbortCheckbox;

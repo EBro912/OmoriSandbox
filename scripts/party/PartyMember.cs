@@ -49,6 +49,13 @@ public abstract class PartyMember : Actor
 	}
 
 	/// <inheritdoc/>
+	public override void SetToast()
+	{
+		FollowupImmortal = false;
+		base.SetToast();
+	}
+
+	/// <inheritdoc/>
 	public override void SetHurt(bool hurt)
 	{
 		if (hurt || Component == null)
@@ -153,6 +160,17 @@ public abstract class PartyMember : Actor
 	public IReadOnlyList<string> SkillSlots => Slots;
 
 	internal bool SkillModelChanged { get; private set; }
+
+	internal bool FollowupImmortal { get; set; }
+
+	/// <summary>
+	/// Whether this party member is considered alive, e.g. for <see cref="BattleManager.GetAlivePartyMembers"/> and random targets.
+	/// </summary>
+	/// <remarks>
+	/// True above 0 HEART. With the Follow-up Immortality Bug rule on, a member kept alive by a follow-up skill immortality also counts at 0 HEART.<br/>
+	/// This is not necessarily the opposite of <see cref="Actor.IsToast"/>, as a member at 0 HEART who hasn't collapsed yet is neither standing nor toast.
+	/// </remarks>
+	public bool IsStanding => CurrentHP > 0 || FollowupImmortal;
 
 	/// <summary>
 	/// Learns a skill. A newly learned skill goes into the first empty slot, if there is one.

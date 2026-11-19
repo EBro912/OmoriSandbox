@@ -346,6 +346,14 @@ public class Skill : BattleAction
 		return this;
 	}
 
+	internal FollowupImmortalMark FollowupImmortalMark { get; private set; }
+
+	internal Skill WithFollowupImmortalMark(FollowupImmortalMark mark)
+	{
+		FollowupImmortalMark = mark;
+		return this;
+	}
+
 	/// <summary>
 	/// Whether this skill is instant. See <see cref="WithInstantCast"/>.
 	/// </summary>
@@ -410,4 +418,11 @@ public class Skill : BattleAction
 			return new Color(color.R, color.G, color.B, color.A * 160f / 255f);
 		return new Color(1f, 1f, 1f, 160f / 255f);
 	}
+}
+
+internal enum FollowupImmortalMark
+{
+	None,
+	Targets,
+	Party
 }

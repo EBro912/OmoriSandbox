@@ -12,7 +12,7 @@ internal static class AbyssRegistry
 	{
 		Enemies.Add("Abbi", () => new Abbi());
 		Enemies.Add("Tentacle", () => new Tentacle());
-		Enemies.Add("Merci (Abyss)", () => new MerciAbyss());
+		Enemies.Add("Merci", () => new Merci());
 		Enemies.Add("Angi", () => new Angi());
 
 		// Abbi //

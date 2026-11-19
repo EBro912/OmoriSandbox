@@ -32,7 +32,7 @@ public partial class DialogueManager : Node2D
 	private bool HasChoice;
 
 	private const float TEXT_SPEED = 1f / 60f;
-	private const float TEXT_SIZE = 32.5f;
+	private const float TEXT_SIZE = 30f;
 	private bool WaitingForInput;
 	private bool IsTyping;
 	private bool WaitingForAnimation;
@@ -56,8 +56,8 @@ public partial class DialogueManager : Node2D
 	private const float CHOICE_BOX_RIGHT = 180f;
 	private const float CHOICE_BOX_DEFAULT_LEFT = 70f;
 	private const float CHOICE_BOX_BOTTOM = -60f;
-	private const float CURSOR_TOP_OFFSET = 30f;
-	private const float CURSOR_LEFT_PADDING = 30f;
+	private const float CURSOR_TOP_OFFSET = 25f;
+	private const float CURSOR_LEFT_PADDING = 22.5f;
 	private const float CURSOR_FADE_DURATION = 10f / 60f;
 	private const float WRAP_WIDTH = 324f;
 	private const int WRAP_FONT_SIZE = 28;
@@ -822,10 +822,10 @@ public partial class DialogueManager : Node2D
 		float maxTextWidth = 0f;
 		foreach (string choice in CurrentChoices)
 		{
-			float w = font.GetStringSize(ParsedChoiceText(choice), fontSize: 30).X;
+			float w = font.GetStringSize(ParsedChoiceText(choice), fontSize: 28).X;
 			maxTextWidth = Mathf.Max(maxTextWidth, w);
 		}
-		float targetWidth = Mathf.Max(110f, maxTextWidth + 34f + CURSOR_LEFT_PADDING);
+		float targetWidth = Mathf.Max(84f, maxTextWidth + 60f);
 
 		ChoiceBox.CustomMinimumSize = new Vector2(targetWidth, ChoiceBox.CustomMinimumSize.Y);
 		ChoiceBox.OffsetLeft = CHOICE_BOX_RIGHT - targetWidth;
@@ -855,7 +855,7 @@ public partial class DialogueManager : Node2D
 			Text = choice
 		};
 		label.AddThemeFontOverride("normal_font", ResourceLoader.Load<Font>("res://fonts/OMORI_GAME2.ttf"));
-		label.AddThemeFontSizeOverride("normal_font_size", 30);
+		label.AddThemeFontSizeOverride("normal_font_size", 28);
 		label.AddThemeColorOverride("default_color", ChoiceTextParent.GetThemeColor("font_color", "Label"));
 		return label;
 	}

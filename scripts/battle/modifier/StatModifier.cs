@@ -413,6 +413,28 @@ public class StatModifier
     public virtual void OnDamageDealt(Actor actor, DamageDealtEventArgs e) { }
 
     /// <summary>
+    /// Called after an attack on the actor this modifier is attached to misses.
+    /// </summary>
+    /// <remarks>
+    /// Includes a failed hit roll, an evade, or a hit a stat modifier turned into a miss. See <see cref="AttackMissedEventArgs.Reason"/>.<br/>
+    /// It runs before <see cref="OnAttackMissed"/> on the attacker, then <see cref="BattleManager.AttackMissed"/>.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to, which the attack was aimed at.</param>
+    /// <param name="e">The miss's details, the same ones <see cref="BattleManager.AttackMissed"/> receives.</param>
+    public virtual void OnAttackAvoided(Actor actor, AttackMissedEventArgs e) { }
+
+    /// <summary>
+    /// Called after an attack by the actor this modifier is attached to misses.
+    /// </summary>
+    /// <remarks>
+    /// Includes a failed hit roll, an evade, or a hit a stat modifier turned into a miss. See <see cref="AttackMissedEventArgs.Reason"/>.<br/>
+    /// It runs after <see cref="OnAttackAvoided"/> on the target, and before <see cref="BattleManager.AttackMissed"/>.
+    /// </remarks>
+    /// <param name="actor">The <see cref="Actor"/> this modifier is attached to, whose attack missed.</param>
+    /// <param name="e">The miss's details, the same ones <see cref="BattleManager.AttackMissed"/> receives.</param>
+    public virtual void OnAttackMissed(Actor actor, AttackMissedEventArgs e) { }
+
+    /// <summary>
     /// The total multiplier this modifier applies to the given stat, as the product of its
     /// stat bonus multipliers. Flat bonuses are ignored.
     /// </summary>

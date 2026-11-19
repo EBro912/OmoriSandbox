@@ -94,6 +94,59 @@ public sealed class DamageDealtEventArgs : EventArgs
 }
 
 /// <summary>
+/// Why an attack missed. See <see cref="AttackMissedEventArgs.Reason"/>.
+/// </summary>
+public enum MissReason
+{
+    /// <summary>
+    /// The attacker's HIT roll failed.
+    /// </summary>
+    Missed,
+    /// <summary>
+    /// The target evaded the attack.
+    /// </summary>
+    Evaded,
+    /// <summary>
+    /// A stat modifier turned the hit into a miss.
+    /// </summary>
+    Nullified
+}
+
+/// <summary>
+/// Event arguments for <see cref="BattleManager.AttackMissed"/>.
+/// </summary>
+public sealed class AttackMissedEventArgs : EventArgs
+{
+    /// <summary>
+    /// The attacker.
+    /// </summary>
+    public Actor Attacker { get; }
+
+    /// <summary>
+    /// The actor the attack was aimed at.
+    /// </summary>
+    public Actor Target { get; }
+
+    /// <summary>
+    /// Why the attack missed.
+    /// </summary>
+    public MissReason Reason { get; }
+
+    /// <summary>
+    /// True if this was a juice attack (see <c>BattleManager.DamageJuice</c>), false for a regular HP attack or a plain <see cref="BattleManager.RollHit"/>.
+    /// </summary>
+    public bool JuiceDamage { get; }
+
+    internal AttackMissedEventArgs(Actor attacker, Actor target, MissReason reason, bool juiceDamage)
+    {
+        Attacker = attacker;
+        Target = target;
+        Reason = reason;
+        JuiceDamage = juiceDamage;
+    }
+}
+
+/// <summary>
 /// Event arguments for <see cref="BattleManager.Healed"/>.
 /// </summary>
 public sealed class HealedEventArgs : EventArgs

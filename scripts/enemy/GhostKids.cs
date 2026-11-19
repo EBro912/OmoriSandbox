@@ -8,7 +8,7 @@ internal static class GhostKids
 {
     private static readonly ConditionalWeakTable<Enemy, BattleCommand> FellInCommand = new();
 
-    private static bool IsGhostKid(Enemy enemy) => enemy is Salli or Cindi or Nanci or Lili or Dorothi or DorothiTrain or MerciAbyss or Angi or Merci;
+    private static bool IsGhostKid(Enemy enemy) => enemy is Salli or Cindi or Nanci or Lili or Dorothi or DorothiTrain or Merci or Angi;
 
     internal static bool AnotherAlive(Enemy self)
     {

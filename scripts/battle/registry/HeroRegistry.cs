@@ -357,7 +357,7 @@ internal static class HeroRegistry
 					Skills["OAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 		Skills["CallOmori2"] = new Skill(
 			name: "Call Omori 2",
 			description: "Hero Followup",
@@ -395,7 +395,7 @@ internal static class HeroRegistry
 					Skills["OAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["CallAubrey1"] = new Skill(
 			name: "Call Aubrey 1",
@@ -415,7 +415,7 @@ internal static class HeroRegistry
 					Skills["AAttack"]);
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["CallAubrey2"] = new Skill(
 			name: "Call Aubrey 2",
@@ -477,7 +477,7 @@ internal static class HeroRegistry
 					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["CallKel2"] = new Skill(
 			name: "Call Kel 2",
@@ -499,7 +499,7 @@ internal static class HeroRegistry
 					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["CallKel3"] = new Skill(
 			name: "Call Kel 3",
@@ -521,7 +521,7 @@ internal static class HeroRegistry
 					fourth.SetEmotion("neutral", true);
 			},
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 
 		Skills["HRWAttack"] = new Skill(
 			name: "Attack",

@@ -369,7 +369,7 @@ internal static class KelRegistry
 			},
 			effect: (Actor _, Actor _) => Task.CompletedTask,
 			hidden: true
-		).WithCustomRequirement(_ => true);
+		).WithCustomRequirement(_ => true).WithFollowupImmortalMark(FollowupImmortalMark.Targets);
 		Skills["PassToOmori2"] = new Skill(
 			name: "Pass To Omori 2",
 			description: "Kel Followup",
